@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lanf.system.mapper.SysI18nMapper">
+    <resultMap id="sysI18nMap" type="com.lanf.system.model.entiry.SysI18nDO" autoMapping="true">
+    </resultMap>
+    <!-- 用于select查询公用抽取的列 -->
+    <sql id="columns">
+            x1.name
+            ,x1.val
+            ,x1.type,sysDicItem.name as typeName
+            ,x1.create_time
+            ,x1.update_time
+            ,x1.is_deleted
+            ,x1.id
+    </sql>
+    <sql id="middles">
+        from sys_i18n x1
+                left join (select * from sys_dic_item where is_deleted=0) sysDicItem  on x1.type=sysDicItem.code
+    </sql>
+    <sql id="conditions">
+        <if test="vo.name != null and vo.name != ''">
+            and x1.name like CONCAT('%',#{vo.name},'%')
+        </if>
+        <if test="vo.val != null and vo.val != ''">
+            and x1.val like CONCAT('%',#{vo.val},'%')
+        </if>
+        <if test="vo.type != null and vo.type != ''">
+            and x1.type =#{vo.type}
+        </if>
+        <if test="vo.typeName != null and vo.typeName != ''">
+            and sysDicItem.name like CONCAT('%',#{vo.typeName},'%')
+        </if>
+        <if test="vo.createTimeBegin != null and vo.createTimeBegin != ''">
+            and x1.create_time >= #{vo.createTimeBegin}
+        </if>
+        <if test="vo.createTimeEnd != null and vo.createTimeEnd != ''">
+            and x1.create_time &lt;= #{vo.createTimeEnd}
+        </if>
+        <if test="vo.updateTimeBegin != null and vo.updateTimeBegin != ''">
+            and x1.create_time >= #{vo.updateTimeBegin}
+        </if>
+        <if test="vo.updateTimeEnd != null and vo.updateTimeEnd != ''">
+            and x1.create_time &lt;= #{vo.updateTimeEnd}
+        </if>
+        and x1.is_deleted = 0 order by x1.create_time desc
+    </sql>
+    <select id="selectPage" resultMap="sysI18nMap">
+        select
+        <include refid="columns"/>
+        <include refid="middles"/>
+        <where>
+            <include refid="conditions"/>
+        </where>
+    </select>
+    <select id="queryList" resultMap="sysI18nMap">
+        select
+        <include refid="columns"/>
+        <include refid="middles"/>
+        <where>
+            <include refid="conditions"/>
+        </where>
+    </select>
+</mapper>

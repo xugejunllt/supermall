@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: service-storage
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        enabled: true
+      config:
+        #nacos服务地址
+        server-addr: localhost:8848
+        #命名空间做环境隔离
+        namespace: 286634bf-14d1-486f-b53a-a8aaa2af5221
+        #配置文件后缀，properties文件不需要
+        file-extension: yaml
+        #指定引入的yaml文件
+        extension-configs:
+          - group: storage
+            data-id: mysql.yaml
+          - group: common
+            data-id: redis.yaml
+          - group: common
+            data-id: tenant.yaml
+            refresh: true
+          - group: common
+            data-id: filterPath.yaml
+            refresh: true
+          - group: common
+            data-id: rocketmq.yaml
+server:
+  port: 9004
+  servlet:
+    context-path: /storage
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
+

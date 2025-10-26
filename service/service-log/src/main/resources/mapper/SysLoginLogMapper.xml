@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lanf.log.mapper.SysLoginLogMapper">
+    <resultMap id="sysLoginLogMap" type="com.lanf.log.model.entity.SysLoginLogDO" autoMapping="true">
+    </resultMap>
+    <!-- 用于select查询公用抽取的列 -->
+    <sql id="columns">
+            x1.username
+            ,x1.ipaddr
+            ,x1.status
+            ,x1.msg
+            ,x1.access_time
+            ,x1.create_time
+            ,x1.update_time
+            ,x1.is_deleted
+            ,x1.id
+        
+    </sql>
+    <sql id="middles">
+        from sys_login_log x1
+    </sql>
+    <sql id="conditions">
+        <if test="vo.username != null and vo.username != ''">
+            and x1.username like CONCAT('%',#{vo.username},'%')
+        </if>
+        and x1.is_deleted = 0 order by x1.create_time desc
+    </sql>
+    <select id="selectPage" resultMap="sysLoginLogMap">
+        select
+        <include refid="columns"/>
+        <include refid="middles"/>
+        <where>
+            <include refid="conditions"/>
+        </where>
+    </select>
+    <select id="queryList" resultMap="sysLoginLogMap">
+        select
+        <include refid="columns"/>
+        <include refid="middles"/>
+        <where>
+            <include refid="conditions"/>
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lanf.system.mapper.SysUserMapper">
+
+    <resultMap id="SysUserMap" type="com.lanf.system.model.entiry.SysUserDO" autoMapping="true">
+    </resultMap>
+
+    <!-- 用于select查询公用抽取的列 -->
+    <sql id="columns">
+      u.id,u.username,u.password,u.name,u.phone as mobile,u.head_url,u.dept_id,u.description,u.email,
+      u.status,u.create_time,u.update_time,u.is_deleted,d.roleIds,sdept.name as dept_name
+   </sql>
+    <select id="selectPage" resultMap="SysUserMap">
+        select
+        <include refid="columns"/>
+        from sys_user u left join (select group_concat(sd.id order by sud.create_time asc) as roleIds,
+        sud.user_id from sys_role sd
+        inner join sys_user_role sud on sd.id=sud.role_id
+        where sd.is_deleted = 0 and sud.is_deleted=0
+        group by sud.user_id) d on u.id = d.user_id
+         left join (select * from sys_dept where is_deleted=0) sdept on u.dept_id=sdept.id
+        <where>
+            <if test="vo.keyword != null and vo.keyword != ''">
+                and (u.username like CONCAT('%',#{vo.keyword},'%') or u.name like CONCAT('%',#{vo.keyword},'%') or
+                u.phone like CONCAT('%',#{vo.keyword},'%'))
+            </if>
+            <if test="vo.createTimeBegin != null and vo.createTimeBegin != ''">
+                and u.create_time >= #{vo.createTimeBegin}
+            </if>
+            <if test="vo.createTimeEnd != null and vo.createTimeEnd != ''">
+                and u.create_time &lt;= #{vo.createTimeEnd}
+            </if>
+            <choose>
+                <when test="vo.deptId!= null and vo.deptId!=''">
+                    and  exists (select 1 from  sys_dept xd
+                    where xd.id=u.dept_id
+                    and xd.is_deleted=0  and xd.tree_path
+                    like CONCAT('%,',#{vo.deptId},',%'))
+                </when>
+            </choose>
+            and u.is_deleted = 0
+        </where>
+        order by u.create_time desc
+    </select>
+    <select id="getByUserName" resultType="com.lanf.system.model.entiry.SysUserDO">
+        SELECT *  from sys_user WHERE username=#{userName} AND tenant_code=#{tenantCode} AND is_deleted =0
+
+    </select>
+
+</mapper>

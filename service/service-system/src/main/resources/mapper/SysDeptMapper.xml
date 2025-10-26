@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.lanf.system.mapper.SysDeptMapper">
+    <select id="findList" resultType="java.util.Map">
+        select
+        id,name,parent_id,name as label
+        from sys_dept
+        <where>
+            <choose>
+                <when test="vo.deptId!= null and vo.deptId!=''">
+                    and tree_path like CONCAT('%,',#{vo.deptId},',%')
+                </when>
+            </choose>
+            and is_deleted=0 order by level asc
+        </where>
+    </select>
+    <select id="queryList" resultType="com.lanf.system.model.entiry.SysDeptDO">
+        select * from sys_dept sp
+        <where>
+            <if test="vo.name != null and vo.name != ''">
+                and exists (select 1 from sys_dept where  name like CONCAT('%',#{vo.name},'%')
+                and sp.tree_path like CONCAT('%,',id,',%'))
+            </if>
+        <choose>
+            <when test="vo.deptId!= null and vo.deptId!=''">
+                and sp.tree_path like CONCAT('%,',#{vo.deptId},',%')
+            </when>
+        </choose>
+            and is_deleted=0 order by level asc
+        </where>
+    </select>
+</mapper>

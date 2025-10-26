@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: service-search
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        enabled: true
+      config:
+        server-addr: localhost:8848
+        #命名空间做环境隔离
+        namespace: 286634bf-14d1-486f-b53a-a8aaa2af5221
+        #配置文件后缀，properties文件不需要
+        file-extension: yaml
+        extension-configs:
+          - group: common
+            data-id: elasticsearch.yaml
+          - group: common
+            data-id: redis.yaml
+          - group: common
+            data-id: rocketmq.yaml
+server:
+  port: 9014
+  servlet:
+    context-path: /search

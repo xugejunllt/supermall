@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: service-sms
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        enabled: true
+      config:
+        server-addr: localhost:8848
+        #命名空间做环境隔离
+        namespace: 286634bf-14d1-486f-b53a-a8aaa2af5221
+        #配置文件后缀，properties文件不需要
+        file-extension: yaml
+        extension-configs:
+          - group: sms
+            data-id: mysql.yaml
+          - group: common
+            data-id: redis.yaml
+          - group: common
+            data-id: tenant.yaml
+            refresh: true
+          - group: common
+            data-id: filterPath.yaml
+            refresh: true
+          - group: common
+            data-id: rocketmq.yaml
+server:
+  port: 9012
+  servlet:
+    context-path: /sms
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
+
+sms:
+  #渠道重试，当阿里云短信发送失败后，进行华为云短信发送
+  channelRetry: true
+  aliyun:
+    active: true
+    signName: 深圳市芽鑫成教育科技有限
+    accessKeyId: ${ALIYUN_ACCESS_KEY_ID:your-access-key-id}
+    accessKeySecret: ${ALIYUN_ACCESS_KEY_SECRET:your-access-key-secret}
+    regionId: cn-hangzhou
+    product: Dysmsapi
+    domain: dysmsapi.aliyuncs.com

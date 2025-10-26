@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: service-file
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        enabled: true
+      config:
+        server-addr: localhost:8848
+        #命名空间做环境隔离
+        namespace: 286634bf-14d1-486f-b53a-a8aaa2af5221
+        #配置文件后缀，properties文件不需要
+        file-extension: yaml
+        extension-configs:
+          - group: common
+            data-id: redis.yaml
+          - group: common
+            data-id: filterPath.yaml
+            refresh: true
+  servlet:
+   multipart:
+     #配置单个文件最大上传大小
+     max-file-size: 10MB
+     #配置单个请求最大上传大小(一次请求可以上传多个文件)
+     max-request-size: 20MB
+
+server:
+  port: 9013
+#  servlet:
+#    context-path: /file
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
+
+oss:
+  aliyun:
+    access-key-id: ${ALIYUN_ACCESS_KEY_ID:your-access-key-id}
+    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET:your-access-key-secret}
+    endpoint: http://oss-cn-shenzhen.aliyuncs.com
+    bucket-name: yaxincheng
+file:
+  #//图片最大 单位m 根据环境变量切换文件上传bean
+  imageMax: 2
+  #0：阿里云oss 1:华为云  2:本地
+  active: 2
+  localPath: D:\file\localimages\
+  localFileUrlPre: /download
+  domain: http://file.l2.ttut.cc

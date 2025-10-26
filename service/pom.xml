@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.lanf</groupId>
+        <artifactId>base-mf</artifactId>
+        <version>${base-mf-version}</version>
+    </parent>
+    <packaging>pom</packaging>
+    <artifactId>service</artifactId>
+    <version>${service-pom.version}</version>
+    <modules>
+        <module>service-system</module>
+        <module>service-log</module>
+        <module>service-logistics</module>
+        <module>service-file</module>
+        <module>service-storage</module>
+        <module>service-goods</module>
+        <module>service-user</module>
+        <module>service-order</module>
+        <module>service-pay</module>
+        <module>service-sms</module>
+        <module>service-file</module>
+        <module>service-welfare</module>
+        <module>service-aftersales</module>
+        <module>service-finance</module>
+        <module>service-search</module>
+
+    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-start</artifactId>
+            <version>${common-start.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+    </dependencies>
+</project>

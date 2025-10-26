@@ -1,0 +1,100 @@
+package com.lanf.system.controller;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lanf.system.model.entiry.SysDicItemDO;
+import com.lanf.system.model.vo.SysDicItemQueryVO;
+import com.lanf.web.result.Result;
+import com.lanf.system.service.SysDicItemService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * @author tanlingfei
+ * @version 1.0
+ * @description 字典选项
+ * @date 2020-04-13 16:12:32
+ */
+@Api(tags = "字典选项")
+@RestController
+@RequestMapping("/system/sysDicItem")
+public class SysDicItemController {
+    @Autowired
+    private SysDicItemService sysDicItemService;
+
+    @PreAuthorize("hasAuthority('bnt.sysDicItem.list')")
+    @ApiOperation(value = "获取分页列表")
+    @GetMapping("/{page}/{limit}")
+    public Result index(@ApiParam(name = "page", value = "当前页码", required = true)
+                        @PathVariable Long page,
+                        @ApiParam(name = "limit", value = "每页记录数", required = true)
+                        @PathVariable Long limit,
+                        @ApiParam(name = "sysDicItemQueryVo", value = "查询对象", required = false)
+                        SysDicItemQueryVO sysDicItemQueryVo) {
+        Page<SysDicItemDO> pageParam = new Page<>(page, limit);
+        IPage<SysDicItemDO> pageModel = sysDicItemService.selectPage(pageParam, sysDicItemQueryVo);
+        return Result.ok(pageModel);
+    }
+
+    @PreAuthorize("hasAuthority('bnt.sysDicItem.list')")
+    @ApiOperation(value = "查询列表")
+    @GetMapping("/list")
+    public Result list(@ApiParam(name = "sysDicItemQueryVo", value = "查询对象", required = false)
+                       SysDicItemQueryVO sysDicItemQueryVo) {
+        List<SysDicItemDO> list = sysDicItemService.queryList(sysDicItemQueryVo);
+        return Result.ok(list);
+    }
+
+    @PreAuthorize("hasAuthority('bnt.sysDicItem.list')")
+    @ApiOperation(value = "所有字典选项列表")
+    @GetMapping("findAll/{dicCode}")
+    public Result findAllSysDicItem(@PathVariable String dicCode) {
+        //调用service的方法实现查询所有的操作
+        QueryWrapper queryWrapper = new QueryWrapper();
+        if (!StringUtils.isEmpty(dicCode)) {
+            queryWrapper.eq("dic_code", dicCode);
+        }
+        List<SysDicItemDO> list = sysDicItemService.list(queryWrapper);
+        return Result.ok(list);
+    }
+
+    @PreAuthorize("hasAuthority('bnt.sysDicItem.list')")
+    @ApiOperation(value = "获取字典选项")
+    @GetMapping("/get/{id}")
+    public Result get(@PathVariable String id) {
+        SysDicItemDO sysDicItem = sysDicItemService.getById(id);
+        return Result.ok(sysDicItem);
+    }
+
+    @PreAuthorize("hasAuthority('bnt.sysDicItem.add')")
+    @ApiOperation(value = "保存字典选项")
+    @PostMapping("/save")
+    public Result save(@RequestBody SysDicItemDO sysDicItem) {
+        sysDicItemService.save(sysDicItem);
+        return Result.ok();
+    }
+
+    @PreAuthorize("hasAuthority('bnt.sysDicItem.update')")
+    @ApiOperation(value = "更新字典选项")
+    @PutMapping("/update")
+    public Result updateById(@RequestBody SysDicItemDO sysDicItem) {
+        sysDicItemService.updateById(sysDicItem);
+        return Result.ok();
+    }
+
+    @PreAuthorize("hasAuthority('bnt.sysDicItem.remove')")
+    @ApiOperation(value = "删除字典选项")
+    @DeleteMapping("/batchRemove")
+    public Result batchRemove(@RequestBody List<String> idList) {
+        sysDicItemService.removeByIds(idList);
+        return Result.ok();
+    }
+}

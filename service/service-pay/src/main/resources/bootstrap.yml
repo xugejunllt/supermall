@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: service-pay
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        enabled: true
+        meta-data:
+          #大版本 小版本 bug修改版本/小功能
+          appVersion: 9.7.3
+      config:
+        server-addr: localhost:8848
+        #命名空间做环境隔离
+        namespace: 286634bf-14d1-486f-b53a-a8aaa2af5221
+        #配置文件后缀，properties文件不需要
+        file-extension: yaml
+        extension-configs:
+          - group: pay
+            data-id: mysql.yaml
+          - group: common
+            data-id: redis.yaml
+          - group: common
+            data-id: tenant.yaml
+          - group: common
+            data-id: filterPath.yaml
+          - group: common
+            data-id: rocketmq.yaml
+          - group: common
+            data-id: seata.yaml
+server:
+  port: 9008
+  servlet:
+    context-path: /pay
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
+
+pay:
+  ali:
+    notifyUrl: http://94kf749024wj.vicp.fun/pay/callback/aliPayCallback
+    serverUrl: https://openapi.alipay.com/gateway.do
+    appId: 2021004163695380
+    format: json
+    charset: utf-8
+    signType: RSA2
+    appCertPath: D:\file\支付宝支付证书\appCertPublicKey_2021004163695380.crt
+    alipayPublicCertPath: D:\file\支付宝支付证书\alipayCertPublicKey_RSA2.crt
+    rootCertPath: D:\file\支付宝支付证书\alipayRootCert.crt
+    privateKey: "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC5fJqJ\
+    S6xzxrx27nSp7x3xZhaJqj0tVxBFy3iVP/1HljJ6qw+XMs6JuCyWvNRS0A/CcJ\
+    VZbkL9Ae+xB3PzWihoPIXQGGBiikTLTiarz3kOwYLJCe2SheBm4DKJCBexcIl\
+    Y3Qwt9ggo2tAzMxjbKW9XH54MIJZXxv2axbYtqke65Rf972l+F3gEV5yf3ih3\
+    0inQeH1knOSEAMN9zbv2LjYtfzLK1hKKgrm4Q3TOEj/Xu0W5GZ3K1cSRMBWybGbdV5a/I\
+    GQvGfnj1SCDFnG9PpguSkzGVdqUfvPXR7jS3Fynxh6z+p345WlLayNMMKZ2W2b5SR3JP98r\
+    3Nx1sIHks3slAgMBAAECggEBAKnK/kugEgUJb4wPTIwib26C3S63v7i5chPx5jf5k4jsXNk\
+    dre/iel5nUanKwTHtc/+xv4VWAcxI8XlEMUgax9JjVLrhFZoeqErTB2NPUKnJSkdt5yOxmX\
+    GS2a/G0KmFMrU94+BOz7lWVDAKHj7A90LxlmPTkMxZQ91iDxpOPcs+R7rEUcZ6d5yvpP4J\
+    HAE8c5oGSQ5l4AW00f68GE5BsGtDvSZRI6IsuuR50AWxyyRdfAvUD6rC/LS/FBTZu47dh5Sl\
+    /kYmTrBbDGKSroFXV8JXlQTKXejtLjkRxnT1WZg8jWC1ttSU0o3942rF2vfpIUTDEJVAh8GIM\
+    90VaPt03iECgYEA/kJY3noNIFYdcYI844VizBlLc91WWNqYTOSr7ynWuobJnAHFJgfUKQ+Z1\
+    +xbcPGwmG1feMLSAjIWkBEg2VoymJR66euVW3s2TPWXPaK0AA7HiAayxVsURLPDveGQL7aTZ\
+    PlHGqECbuOJSqvSpKw6FwDiQN3Mi2epyoOafEQPK58CgYEAusG3MZAFkkPJ2P1pcfcB7vq\
+    OWec1JFhg0VJN14qm5LTb2xYoIRpSIdeVAivAXP0DilVASqgB88Un4/hsoXI92hLUGPP9yaI\
+    IbcOByxzNvR8R4JYgxF8o+OsNLrN1Ja5dNAXcEiHdatgOsoaWclFMdSfNA80qWmocGz4jya1\
+    8orsCgYEApD17Zor0u7Sk5FO6vUXGYgzc3oVVZ6QcyV7VaXJfULIMvYevMDfSZou7Vu1IzB\
+    ZzeqL8DufZ/K0aQgmubHiFQmZ3V29kVWmr0964yYm2OGtTnJynEjEZUJ/Gi3uPRiLr50fXFG\
+    55QeQdJW0EbncKNx3NCRW9MTfPSA/m1Oqp2gUCgYBZSOuwQk6nkskZeG3FEnZWLmuIB8Wc\
+    TrRa3qJgfeU0SlMh9wHQcaj6jPqsQwaAbmYW6JMIHjJwvL1JfCdTOC7h50aHd37JuzGUaHfRB0\
+    BFPmlpmdyohWYtOxLeVOWY0je0+2gvMwmMXycHqtiaZsvK5vBY9OleuIQfciHh9ZM0qQKBgHHYyz\
+    FCZ6ZAmgsYE9jooEWsVJDC6fpULJWHilpEtooI+dlp33PDZrQpW3KIQDCElw6pIdD0cRysxL\
+    Pwn3KwmkL92FUhZO6vgQ2hhFP5x9kfGCXI7JRh7syEesaFnOQYiinfimj4wVAZqi\
+    UP8dqpOfBEYxmIitpAmBz26kB4MmVp"

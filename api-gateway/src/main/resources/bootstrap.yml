@@ -1,0 +1,92 @@
+server:
+  port: 9003
+
+spring:
+  application:
+    name: service-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        locator:
+          enabled: true
+      config:
+        server-addr: localhost:8848
+        #命名空间做环境隔离
+        namespace: 286634bf-14d1-486f-b53a-a8aaa2af5221
+        #配置文件后缀，properties文件不需要
+        file-extension: yaml
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      routes:
+        - id: service-system
+          uri: lb://service-system
+          predicates:
+            - Path=/system/**
+        - id: service-log
+          uri: lb://service-log
+          predicates:
+            - Path=/log/**
+        - id: service-storage
+          uri: lb://service-storage
+          predicates:
+            - Path=/storage/**
+        - id: service-goods
+
+          uri: lb://service-goods
+          predicates:
+            - Path=/goods/**
+        - id: service-user
+          uri: lb://service-user
+          predicates:
+            - Path=/user/**
+        - id: service-order
+          uri: lb://service-order
+          predicates:
+            - Path=/order/**
+        - id: service-pay
+          uri: lb://service-pay
+          predicates:
+            - Path=/pay/**
+        - id: service-logistics
+          uri: lb://service-logistics
+          predicates:
+            - Path=/logistics/**
+        - id: service-aftersales
+          uri: lb://service-aftersales
+          predicates:
+            - Path=/aftersales/**
+        - id: service-welfare
+          uri: lb://service-welfare
+          predicates:
+            - Path=/welfare/**
+        - id: service-file
+          uri: lb://service-file
+          predicates:
+            - Path=/file/**
+        - id: service-interfaceMonitor
+          uri: lb://service-interfaceMonitor
+          predicates:
+            - Path=/interfaceMonitor/**
+        - id: service-dynamicsrrefresh
+          uri: lb://service-dynamicsrrefresh
+          predicates:
+            - Path=/dynamicsrrefresh/**
+        - id: service-grayscaleRelease
+          uri: lb://service-grayscaleRelease
+          predicates:
+            - Path=/grayscaleRelease/**
+        - id: service-logCollect
+          uri: lb://service-logCollect
+          predicates:
+            - Path=/logCollect/**
+        - id: service-finance
+          uri: lb://service-finance
+          predicates:
+            - Path=/finance/**
+front:
+  path: http://127.0.0.1:8420

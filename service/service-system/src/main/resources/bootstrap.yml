@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: service-system
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        enabled: true
+        meta-data:
+          #大版本 小版本 bug修改版本/小功能
+          appVersion: 11.25.14
+      config:
+        server-addr: localhost:8848
+        #命名空间做环境隔离
+        namespace: 286634bf-14d1-486f-b53a-a8aaa2af5221
+        #配置文件后缀，properties文件不需要
+        file-extension: yaml
+        extension-configs:
+          - group: system
+            data-id: mysql.yaml
+          - group: common
+            data-id: redis.yaml
+          - group: common
+            data-id: tenant.yaml
+          - group: common
+            data-id: filterPath.yaml
+          - group: common
+            data-id: interfacemonitor.yaml
+server:
+  port: 9002
+  servlet:
+    context-path: /system
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
+
+front:
+  path: http://127.0.0.1:8420
+logging:
+  level:
+    root: info
+
+logPath: D:\applogs\${spring.application.name}

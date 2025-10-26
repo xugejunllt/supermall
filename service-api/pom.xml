@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.lanf</groupId>
+        <artifactId>base-mf</artifactId>
+        <version>${base-mf-version}</version>
+    </parent>
+    <packaging>pom</packaging>
+    <modules>
+        <module>service-api-system</module>
+        <module>service-api-log</module>
+        <module>service-api-goods</module>
+        <module>service-api-pay</module>
+        <module>service-api-storage</module>
+        <module>service-api-order</module>
+        <module>service-api-finance</module>
+        <module>service-api-logistics</module>
+        <module>service-api-welfare</module>
+        <module>service-api-search</module>
+    </modules>
+    <artifactId>service-api</artifactId>
+    <version>${service-api-pom.version}</version>
+    <dependencies>
+
+
+
+
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>${spring-web.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.lanf</groupId>
+        <artifactId>common</artifactId>
+        <version>${common-pom.version}</version>
+    </parent>
+    <artifactId>common-seata</artifactId>
+    <version>${common-seata.version}</version>
+   <dependencies>
+
+       <dependency>
+           <groupId>com.lanf</groupId>
+           <version>${spring-web.version}</version>
+           <artifactId>spring-web</artifactId>
+       </dependency>
+       <dependency>
+           <groupId>com.lanf</groupId>
+           <artifactId>common-constant</artifactId>
+           <version>${common-core.version}</version>
+       </dependency>
+       <dependency>
+           <groupId>org.springframework.cloud</groupId>
+           <artifactId>spring-cloud-starter-openfeign</artifactId>
+       </dependency>
+
+       <dependency>
+           <groupId>io.seata</groupId>
+           <artifactId>iseata-all</artifactId>
+           <version>${iseata-all.version}</version>
+       </dependency>
+       <dependency>
+           <groupId>com.lanf</groupId>
+           <artifactId>common-mybatis</artifactId>
+           <version>${common-mybatis.version}</version>
+       </dependency>
+   </dependencies>
+</project>
