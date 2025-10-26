@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="service-api-goods (1)" />
+        <module name="common-fs (2)" />
+        <module name="service-api-finance (2)" />
+        <module name="service-api-storage (2)" />
+        <module name="service-sms (1)" />
+        <module name="common-lock (1)" />
+        <module name="service-api-pay (2)" />
+        <module name="common-shardingsphere (1)" />
+        <module name="spring-web (2)" />
+        <module name="common-redis (2)" />
+        <module name="common-log (2)" />
+        <module name="service-log (1)" />
+        <module name="service-api-order (1)" />
+        <module name="service-user (1)" />
+        <module name="common-seata (1)" />
+        <module name="common-rocketmq (2)" />
+        <module name="service-order (2)" />
+        <module name="common-biz-cache (2)" />
+        <module name="service-api-logistics (2)" />
+        <module name="service-api-welfare (2)" />
+        <module name="service-goods (2)" />
+        <module name="service-finance (2)" />
+        <module name="service-storage (2)" />
+        <module name="common-fs (1)" />
+        <module name="common-constant (2)" />
+        <module name="api-gateway (1)" />
+        <module name="service-api-system (1)" />
+        <module name="service-file (1)" />
+        <module name="service-aftersales (1)" />
+        <module name="service-system (1)" />
+        <module name="common-shardingsphere (2)" />
+        <module name="common-log (1)" />
+        <module name="service-log (2)" />
+        <module name="service-user (2)" />
+        <module name="service-api-search (2)" />
+        <module name="common-biz-cache (1)" />
+        <module name="service-goods (1)" />
+        <module name="service-order (1)" />
+        <module name="common-elasticsearch (1)" />
+        <module name="service-api-storage (1)" />
+        <module name="service-pay (1)" />
+        <module name="service-storage (1)" />
+        <module name="service-search (1)" />
+        <module name="service-pay (2)" />
+        <module name="service-aftersales (2)" />
+        <module name="service-api-log (1)" />
+        <module name="common-constant (1)" />
+        <module name="api-gateway (2)" />
+        <module name="service-api-system (2)" />
+        <module name="common-start (2)" />
+        <module name="spring-security (2)" />
+        <module name="service-file (2)" />
+        <module name="service-system (2)" />
+        <module name="service-logistics (1)" />
+        <module name="common-start (1)" />
+        <module name="spring-security (1)" />
+        <module name="service-api-search (1)" />
+        <module name="common-mybatis (1)" />
+        <module name="service-welfare (2)" />
+        <module name="common-elasticsearch (2)" />
+        <module name="common-util (1)" />
+        <module name="service-search (2)" />
+        <module name="service-api-goods (2)" />
+        <module name="service-api-finance (1)" />
+        <module name="service-api-log (2)" />
+        <module name="service-sms (2)" />
+        <module name="spring-web (1)" />
+        <module name="common-lock (2)" />
+        <module name="service-api-pay (1)" />
+        <module name="common-redis (1)" />
+        <module name="service-logistics (2)" />
+        <module name="service-api-logistics (1)" />
+        <module name="service-api-order (2)" />
+        <module name="common-util (2)" />
+        <module name="common-rocketmq (1)" />
+        <module name="common-mybatis (2)" />
+        <module name="service-api-welfare (1)" />
+        <module name="common-seata (2)" />
+        <module name="service-finance (1)" />
+        <module name="service-welfare (1)" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="api-gateway" target="1.8" />
+      <module name="base-mf (1)" target="1.8" />
+      <module name="base-mf (2)" target="1.8" />
+      <module name="common" target="1.8" />
+      <module name="common-biz-cache" target="1.8" />
+      <module name="common-constant" target="1.8" />
+      <module name="common-elasticsearch" target="1.8" />
+      <module name="common-fs" target="1.8" />
+      <module name="common-lock" target="1.8" />
+      <module name="common-log" target="1.8" />
+      <module name="common-mybatis" target="1.8" />
+      <module name="common-redis" target="1.8" />
+      <module name="common-rocketmq" target="1.8" />
+      <module name="common-seata" target="1.8" />
+      <module name="common-shardingsphere" target="1.8" />
+      <module name="common-start" target="1.8" />
+      <module name="common-util" target="1.8" />
+      <module name="service" target="1.8" />
+      <module name="service-aftersales" target="1.8" />
+      <module name="service-api" target="1.8" />
+      <module name="service-api-finance" target="1.8" />
+      <module name="service-api-goods" target="1.8" />
+      <module name="service-api-log" target="1.8" />
+      <module name="service-api-logistics" target="1.8" />
+      <module name="service-api-order" target="1.8" />
+      <module name="service-api-pay" target="1.8" />
+      <module name="service-api-search" target="1.8" />
+      <module name="service-api-storage" target="1.8" />
+      <module name="service-api-system" target="1.8" />
+      <module name="service-api-welfare" target="1.8" />
+      <module name="service-file" target="1.8" />
+      <module name="service-finance" target="1.8" />
+      <module name="service-goods" target="1.8" />
+      <module name="service-log" target="1.8" />
+      <module name="service-logistics" target="1.8" />
+      <module name="service-order" target="1.8" />
+      <module name="service-pay" target="1.8" />
+      <module name="service-search" target="1.8" />
+      <module name="service-sms" target="1.8" />
+      <module name="service-storage" target="1.8" />
+      <module name="service-system" target="1.8" />
+      <module name="service-user" target="1.8" />
+      <module name="service-welfare" target="1.8" />
+      <module name="spring-security" target="1.8" />
+      <module name="spring-web" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
