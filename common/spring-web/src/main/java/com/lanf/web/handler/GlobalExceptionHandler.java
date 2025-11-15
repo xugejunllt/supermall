@@ -1,8 +1,13 @@
 package com.lanf.web.handler;
 
+import com.lanf.common.utils.StackTraceUtil;
+import com.lanf.constant.exception.IRedisException;
+import com.lanf.constant.exception.MQException;
+import com.lanf.constant.exception.UtilException;
 import com.lanf.web.code.CommonResultCodeEnum;
 import com.lanf.web.exception.BizException;
 import com.lanf.web.result.Result;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,6 +21,7 @@ import java.util.List;
 /**
  * 全局异常处理类
  */
+@Slf4j
 @ControllerAdvice
 @Order(2)
 public class GlobalExceptionHandler {
@@ -23,17 +29,41 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseBody
     public Result error(Exception e) {
-        e.printStackTrace();
+
+        log.error("请求异常[{}]", StackTraceUtil.getStackTrace(e));
+
         return Result.fail();
     }
-
 
     @ExceptionHandler(BizException.class)
     @ResponseBody
     public Result error(BizException e) {
-        e.printStackTrace();
+
         return Result.fail(e.getCode(), e.getMessage());
     }
+
+
+    @ExceptionHandler(IRedisException.class)
+    @ResponseBody
+    public Result error(IRedisException e) {
+
+        return Result.fail(CommonResultCodeEnum.SERVICE_ERROR.getCode(), CommonResultCodeEnum.SERVICE_ERROR.getMessage());
+    }
+
+    @ExceptionHandler(MQException.class)
+    @ResponseBody
+    public Result error(MQException e) {
+
+        return Result.fail(CommonResultCodeEnum.SERVICE_ERROR.getCode(), CommonResultCodeEnum.SERVICE_ERROR.getMessage());
+    }
+
+    @ExceptionHandler(UtilException.class)
+    @ResponseBody
+    public Result error(UtilException e) {
+
+        return Result.fail(CommonResultCodeEnum.SERVICE_ERROR.getCode(), CommonResultCodeEnum.SERVICE_ERROR.getMessage());
+    }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody

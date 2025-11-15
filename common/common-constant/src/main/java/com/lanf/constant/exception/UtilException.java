@@ -1,4 +1,4 @@
-package com.lanf.common.exception;
+package com.lanf.constant.exception;
 
 import lombok.Data;
 

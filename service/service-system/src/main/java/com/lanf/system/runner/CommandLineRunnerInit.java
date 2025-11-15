@@ -1,7 +1,7 @@
 package com.lanf.system.runner;
 
 import com.lanf.bizcache.model.bo.PlatformRateConfigBO;
-import com.lanf.bizcache.util.BizCacheUtils;
+import com.lanf.bizcache.service.BizCacheService;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.system.model.entiry.CompanyDO;
 import com.lanf.system.model.entiry.PlatformRateConfigDO;
@@ -30,12 +30,12 @@ public class CommandLineRunnerInit implements CommandLineRunner {
         List<PlatformRateConfigDO> list = platformRateConfigService.lambdaQuery().list();
         List<PlatformRateConfigBO> platformRateConfigDOList = BeanCopyUtils.copyBeanList(list, PlatformRateConfigBO.class);
 
-        BizCacheUtils.addCache(platformRateConfigDOList);
+        BizCacheService.addCache(platformRateConfigDOList);
         /**
          * 加载缓存平台商家信息
          */
         Long id = companyService.lambdaQuery().eq(CompanyDO::getUserType, 0).one().getId();
-        BizCacheUtils.addCache(id);
+        BizCacheService.addCache(id);
 
     }
 }

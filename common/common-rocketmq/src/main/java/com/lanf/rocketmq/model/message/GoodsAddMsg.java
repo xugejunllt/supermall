@@ -1,6 +1,6 @@
 package com.lanf.rocketmq.model.message;
 
-import com.lanf.messagemanager.client.base.BaseMessage;
+import com.lanf.rocketmq.model.BaseMessage;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
-public class GoodsAddMsg extends BaseMessage {
+public class GoodsAddMsg{
 
     private Long goodsId;
     //商品编码

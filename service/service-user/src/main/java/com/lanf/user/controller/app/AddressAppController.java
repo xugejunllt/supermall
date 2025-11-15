@@ -4,7 +4,6 @@ package com.lanf.user.controller.app;
 import com.lanf.user.model.dto.AddressAddDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
 import com.lanf.user.model.entity.AddressDO;
-import com.lanf.user.model.vo.UserLoginVO;
 import com.lanf.user.service.IAddressService;
 import com.lanf.web.result.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -30,14 +29,7 @@ public class AddressAppController {
     @Autowired
     private IAddressService addressService;
 
-    @PostMapping("/addAddress")
-    public Result<UserLoginVO> addAddress(@Validated @RequestBody AddressAddDTO dto) {
 
-        log.info("添加用户地址:dto{}", dto);
-
-        addressService.addAddress(dto);
-        return Result.ok();
-    }
 
     @GetMapping("/getDefaultAddress")
     public Result<AddressDO> getDefaultAddress() {

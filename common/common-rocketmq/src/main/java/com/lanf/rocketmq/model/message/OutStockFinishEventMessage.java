@@ -1,10 +1,9 @@
 package com.lanf.rocketmq.model.message;
 
-import com.lanf.messagemanager.client.base.BaseMessage;
 import lombok.Data;
 
 @Data
-public class OutStockFinishEventMessage extends BaseMessage {
+public class OutStockFinishEventMessage  {
 
     private Long orderId;
 

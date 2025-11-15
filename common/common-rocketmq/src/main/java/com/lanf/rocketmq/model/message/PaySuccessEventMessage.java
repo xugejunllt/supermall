@@ -1,12 +1,11 @@
 package com.lanf.rocketmq.model.message;
 
-import com.lanf.messagemanager.client.base.BaseMessage;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class PaySuccessEventMessage extends BaseMessage {
+public class PaySuccessEventMessage  {
 
     private Long orderId;
 

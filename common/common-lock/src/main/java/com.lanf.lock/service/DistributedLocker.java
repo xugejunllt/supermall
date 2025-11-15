@@ -1,6 +1,7 @@
 package com.lanf.lock.service;
 
-import org.redisson.api.RLock;
+
+import com.lanf.constant.exception.IRedisException;
 
 import java.util.concurrent.TimeUnit;
 
@@ -19,7 +20,7 @@ public interface DistributedLocker {
      *
      *
      */
-    Boolean getLock(String key);
+    Boolean getLock(String key)throws IRedisException;
 
     /**
      * 获取锁，获取失败直接返回 指定锁过期时间
@@ -31,6 +32,6 @@ public interface DistributedLocker {
     /****
      * 释放锁
      */
-    void unlock(String key);
+    void unlock(String key)throws IRedisException;
 
 }

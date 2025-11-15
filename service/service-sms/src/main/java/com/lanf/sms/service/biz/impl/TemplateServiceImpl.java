@@ -3,7 +3,7 @@ package com.lanf.sms.service.biz.impl;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
-import com.lanf.common.utils.StrUtils;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.sms.mapper.TemplateMapper;
 import com.lanf.sms.model.bo.SendSmsResultBO;
 import com.lanf.sms.model.dto.BathSendSmsDTO;
@@ -92,7 +92,7 @@ public class TemplateServiceImpl extends ServiceImpl<TemplateMapper, TemplateDO>
        // sendLog.setId(1L);
         sendLog.setTemplateCode(one.getCode());
         sendLog.setScene(one.getScene());
-        sendLog.setPhone(StrUtils.splitJoint(dto.getPhones(), ","));
+        sendLog.setPhone(IStringUtils.splitJoint(dto.getPhones(), ","));
         sendLog.setSendContent(sendContent);
         sendLog.setStatus(status);
         sendLog.setFailMessage(sendSmsResult.getFailMessage());

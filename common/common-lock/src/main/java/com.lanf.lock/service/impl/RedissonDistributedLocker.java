@@ -1,10 +1,12 @@
 package com.lanf.lock.service.impl;
 
+import com.lanf.common.utils.StackTraceUtil;
+import com.lanf.constant.exception.IRedisException;
 import com.lanf.lock.service.DistributedLocker;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.redisson.client.RedisException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +22,7 @@ public class RedissonDistributedLocker implements DistributedLocker {
 
 
     @Override
-    public Boolean lock(String key, Long lesstime, Long timeout,TimeUnit timeUtil) {
+    public Boolean lock(String key, Long lesstime, Long timeout, TimeUnit timeUtil) {
         try {
             RLock lock = redissonClient.getLock(key);
             return lock.tryLock(timeout, lesstime, timeUtil);
@@ -32,30 +34,36 @@ public class RedissonDistributedLocker implements DistributedLocker {
     }
 
     @Override
-    public void unlock(String key) {
+    public void unlock(String key) throws IRedisException {
 
-        log.info("释放锁:{}", key);
-        RLock lock = redissonClient.getLock(key);
+        RLock lock = null;
+        try {
+            lock = redissonClient.getLock(key);
+            lock.unlock();
+        } catch (Exception e) {
 
-        lock.unlock();
+            log.error("[{}]异常,key[{}],异常堆栈[{}]", "释放分布式锁",key, StackTraceUtil.getStackTrace(e));
+            throw new RedisException();
+        }
+
     }
 
 
     @Override
-    public Boolean getLock(String key) {
+    public Boolean getLock(String key) throws IRedisException {
 
-
-        RLock lock = redissonClient.getLock(key);
+        boolean tryLock = false;
         try {
+            RLock lock = redissonClient.getLock(key);
+            tryLock = lock.tryLock(0L, TimeUnit.SECONDS);
 
-            return lock.tryLock(0L, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error("[{}]异常,key[{}],异常堆栈[{}]", "获取分布式锁", key,StackTraceUtil.getStackTrace(e));
+            throw new RedisException();
 
-        } catch (InterruptedException e) {
-
-            log.info("获取锁失败:{}", key);
-            return false;
         }
 
+        return tryLock;
     }
 
     @Override

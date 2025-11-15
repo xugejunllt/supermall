@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.common.utils.StrUtils;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.goods.mapper.GoodsMapper;
 import com.lanf.goods.model.dto.*;
@@ -32,7 +32,6 @@ import com.lanf.system.api.SystemService;
 import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.vo.ShopVO;
 import com.lanf.web.exception.BizException;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,7 +115,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         GoodsDO goodsDO = new GoodsDO();
         BeanCopyUtils.copy(dto, goodsDO);
         //设置商品主图
-        String pit = StrUtils.splitJoint(dto.getPictureAddressList(), ",");
+        String pit = IStringUtils.splitJoint(dto.getPictureAddressList(), ",");
         goodsDO.setPictureAddress(pit);
         goodsDO.setShopId(userInfo.getShopId());
         List<GoodsSkuAddDTO> goodsSkuAddDTOList = dto.getGoodsSkuAddDTOList();
@@ -176,8 +175,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         Long shopId = UserUtil.getShopId();
         IPage<GoodsDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<GoodsDO> purchaseStorageOrderPage = this.lambdaQuery().
-                eq(!StringUtils.isEmpty(query.getCode()), GoodsDO::getCode, query.getCode()).
-                eq(!StringUtils.isEmpty(query.getName()), GoodsDO::getName, query.getName()).
+                eq(!org.apache.commons.lang3.StringUtils.isEmpty(query.getCode()), GoodsDO::getCode, query.getCode()).
+                eq(!org.apache.commons.lang3.StringUtils.isEmpty(query.getName()), GoodsDO::getName, query.getName()).
                 eq(GoodsDO::getShopId,shopId).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
@@ -219,8 +218,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         IPage<GoodsDO> page = new Page<>(query.getPage(), query.getPageSize());
         ThreadLocalUtils.addIgnoreTableName(true);
         IPage<GoodsDO> purchaseStorageOrderPage = this.lambdaQuery().
-                like(!StringUtils.isEmpty(query.getName()), GoodsDO::getName, query.getName()).
-                like(!StringUtils.isEmpty(query.getTitle()), GoodsDO::getTitle, query.getTitle()).
+                like(!org.apache.commons.lang3.StringUtils.isEmpty(query.getName()), GoodsDO::getName, query.getName()).
+                like(!org.apache.commons.lang3.StringUtils.isEmpty(query.getTitle()), GoodsDO::getTitle, query.getTitle()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
         if (purchaseStorageOrderPage.getRecords().isEmpty()) {
@@ -313,7 +312,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             skuIdVOMap.put(keyBuffer.toString(), a.getId());
         });
         //截取pictureList
-        List<String> pictureList = StrUtils.toList(goodsDO.getPictureAddress(), ",");
+        List<String> pictureList = IStringUtils.toList(goodsDO.getPictureAddress(), ",");
 
         /**
          * 构建返回信息

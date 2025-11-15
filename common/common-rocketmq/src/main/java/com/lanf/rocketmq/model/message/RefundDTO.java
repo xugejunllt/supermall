@@ -1,13 +1,12 @@
 package com.lanf.rocketmq.model.message;
 
-import com.lanf.messagemanager.client.base.BaseMessage;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class RefundDTO extends BaseMessage {
+public class RefundDTO  {
 
 
     private Long orderId;

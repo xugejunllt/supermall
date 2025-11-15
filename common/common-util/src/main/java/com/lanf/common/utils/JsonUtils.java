@@ -3,10 +3,12 @@ package com.lanf.common.utils;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lanf.common.exception.UtilException;
+import com.sun.xml.internal.ws.util.UtilException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@Slf4j
 public class JsonUtils {
     public static String toJsonString(Object object) {
 
@@ -15,7 +17,9 @@ public class JsonUtils {
         try {
             return objectMapper.writeValueAsString(object);
         } catch (Exception e) {
-            e.printStackTrace();
+
+            log.error("序列化异常,异常信息[{}]",StackTraceUtil.getStackTrace(e));
+
             throw new UtilException("序列化异常");
         }
     }

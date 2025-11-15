@@ -1,5 +1,6 @@
 package com.lanf.lock.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -24,7 +25,10 @@ public class RedissonConfig {
         RedissonClient redisson = null;
         Config config = new Config();
         config.useSingleServer().setAddress( "redis://"+urls+":"+port);
-        config.useSingleServer().setPassword(password);
+        if ( !StringUtils.isEmpty(password)){
+            config.useSingleServer().setPassword(password);
+        }
+
         /**
          * 当加锁不指定过期时间 ，默认30秒过期，启动看门狗机制，每30秒自动续期30秒；
          *

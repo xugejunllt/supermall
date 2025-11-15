@@ -15,8 +15,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MybatisPlusConfig {
 
-    @Autowired
-    private TenantProperties tenantProperties;
 
     /**
      * @return
@@ -25,7 +23,6 @@ public class MybatisPlusConfig {
     public MybatisPlusInterceptor addPaginationInnerInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
         //向Mybatis过滤器链中添加分页拦截器
-        interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(new MultiTenantHandler(tenantProperties)));
         interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
 
         return interceptor;

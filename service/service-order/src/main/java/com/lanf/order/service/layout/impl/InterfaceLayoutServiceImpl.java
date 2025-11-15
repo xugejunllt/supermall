@@ -3,7 +3,7 @@ package com.lanf.order.service.layout.impl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.IdUtils;
-import com.lanf.common.utils.StrUtils;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.enums.LogisticsTrackStatusEnum;
 import com.lanf.goods.api.GoodsApiService;
 import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
@@ -37,7 +37,6 @@ import com.lanf.welfare.model.vo.CouponVO;
 import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -126,7 +125,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         String finishContent = "下单成功";
         LogisticsTrackBathAddDTO message = MessageBuildAdapter.buildLogisticsTrackAddDTO(orderIdList,
                 finishContent, LogisticsTrackStatusEnum.PLACE_AN_ORDER_BUS_INCOME.getCode());
-        message.setBizKeyValue(StrUtils.generateKey(orderIdList,finishContent));
+        message.setBizKeyValue(IStringUtils.generateKey(orderIdList,finishContent));
         sendMqMessageService.sendMessage(TopicName.BATH_ADD_LOGISTICS_TRACK_TOPIC, message);
 
 

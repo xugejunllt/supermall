@@ -1,7 +1,7 @@
 package com.lanf.finance.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.bizcache.util.BizCacheUtils;
+import com.lanf.bizcache.service.BizCacheService;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.finance.model.entity.LiquidationDO;
@@ -86,7 +86,7 @@ public class LiquidationServiceImpl extends ServiceImpl<LiquidationMapper, Liqui
         liquidationDO.setOrderId(orderId);
         liquidationDO.setSource(source);
         liquidationDO.setPayMoney(payMoney);
-        BigDecimal rate = BizCacheUtils.getByType(0).getRate();
+        BigDecimal rate = BizCacheService.getByType(0).getRate();
         Long platformShopId = systemService.getPlatformShopId().getData();
         if (source.equals(0)) {
             /**

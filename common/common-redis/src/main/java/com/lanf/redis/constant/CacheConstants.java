@@ -7,6 +7,10 @@ package com.lanf.redis.constant;
  */
 public class CacheConstants {
 
+    /**
+     * 注册短信验证码
+     */
+    public static final String REGISTER_CODE_KEY = "register:code:%s"; //
 
 
     /**
@@ -14,10 +18,6 @@ public class CacheConstants {
      */
     public static final String LOGIN_TOKEN_KEY = "login_tokens:";
 
-    /**
-     * 验证码 redis key
-     */
-    public static final String CAPTCHA_CODE_KEY = "captcha_codes:";
 
     /**
      * 参数管理 cache key
@@ -53,5 +53,12 @@ public class CacheConstants {
      * 平台商户id
      */
     public static final String PLATFORM_BUS_ID  = "platform_bus_id";
+
+
+
+
+
+
+
 
 }

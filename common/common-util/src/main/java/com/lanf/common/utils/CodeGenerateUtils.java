@@ -29,5 +29,13 @@ public class CodeGenerateUtils {
 
         return IdUtils.generateId()+"";
     }
-
+    /**
+     * 生成4位数字验证码
+     * @return 4位数字验证码字符串
+     */
+    public static String generateFourDigitCode() {
+        // 生成1000-9999之间的随机数，确保总是4位数
+        int code = (int) (Math.random() * 9000) + 1000;
+        return String.valueOf(code);
+    }
 }

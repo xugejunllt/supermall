@@ -22,6 +22,18 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-util</artifactId>
+            <version>${common-util.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-constant</artifactId>
+            <version>${common-core.version}</version>
+        </dependency>
+
     </dependencies>
 
 </project>

@@ -27,5 +27,6 @@
         <module>common-seata</module>
         <module>common-elasticsearch</module>
         <module>common-shardingsphere</module>
+        <module>common-biz-control</module>
     </modules>
 </project>

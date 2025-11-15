@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class StrUtils {
+public class IStringUtils {
 
     public static String splitJoint(List<String> dataList, String so) {
 
@@ -45,5 +45,8 @@ public class StrUtils {
         return MD5.encrypt(splitJoint);
 
     }
+    public static boolean isEmpty(CharSequence cs) {
 
+        return org.apache.commons.lang3.StringUtils.isEmpty(cs);
+    }
 }

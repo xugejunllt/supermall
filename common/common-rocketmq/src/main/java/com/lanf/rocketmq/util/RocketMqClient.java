@@ -1,6 +1,8 @@
 package com.lanf.rocketmq.util;
 
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.common.utils.StackTraceUtil;
+import com.lanf.constant.exception.MQException;
 import com.lanf.rocketmq.model.BaseMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
@@ -22,11 +24,55 @@ public class RocketMqClient {
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
 
+
+    public void sendMessage(String topic, String message){
+
+        log.info("发送mq消息开始:topic:{},message:{}",topic, message);
+
+        try {
+            SendResult  sendResult = rocketMQTemplate.syncSend(topic, message);
+
+             if ( !SendStatus.SEND_OK.equals(sendResult.getSendStatus())){
+                 String sendResultJson = JsonUtils.toJsonString(sendResult);
+                 log.error("发送MQ消息失败,异常状态[{}]", sendResultJson);
+                 handleException(  sendResultJson,null);
+             } else {
+                 log.info("发送mq消息成功");
+
+             }
+
+        } catch (Exception e) {
+            //不抛异常，事务最终一致性
+            String exception =  StackTraceUtil.getStackTrace(e);
+           // log.error("发送MQ消息失败,异常信息[{}]",exception);
+            handleException(  null,exception);
+        }
+
+    }
+    private void  handleException(String  sendResultJson,String exception){
+
+
+
+
+
+    }
+
     public void sendMessage(String topic, Object message){
 
-        log.info("发送mq消息:topic:{},message:{}",topic, JsonUtils.toJsonString(message));
-        rocketMQTemplate.convertAndSend(topic, message);
+        String jsonMessage = JsonUtils.toJsonString(message);
+        log.info("发送mq消息:topic:{},message:{}",topic, jsonMessage);
+
+        try {
+            SendResult sendResult = rocketMQTemplate.syncSend(topic, jsonMessage);
+        } catch (Exception e) {
+
+            //不抛异常，事务最终一致性
+            log.error("发送MQ消息失败[{}]", StackTraceUtil.getStackTrace(e));
+        }
+
     }
+
+
     public void sendMessage(String topic, BaseMessage message)  {
 
         log.info("发送mq消息:topic:{},message:{}",topic, JsonUtils.toJsonString(message));

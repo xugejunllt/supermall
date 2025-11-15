@@ -9,7 +9,7 @@ import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
-import com.lanf.common.utils.StrUtils;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.sms.model.bo.SendSmsResultBO;
 import com.lanf.sms.model.dto.BathSendSmsDTO;
 import com.lanf.sms.model.dto.StartSendSmsDTO;
@@ -45,7 +45,7 @@ public class AliyunSmsServiceImpl implements SmsService {
             SendSmsRequest request = new SendSmsRequest();
             request.setMethod(MethodType.POST);
             // 手机号可以单个也可以多个（多个用逗号隔开，如：15*******13,13*******27,17*******56）
-            request.setPhoneNumbers(StrUtils.splitJoint(phoneList, ","));
+            request.setPhoneNumbers(IStringUtils.splitJoint(phoneList, ","));
             request.setSignName(aliyunSmsConfig.getSignName());
             request.setTemplateCode(dto.getTemplateCode());
             request.setTemplateParam(dto.getTemplateParam());

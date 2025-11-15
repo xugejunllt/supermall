@@ -1,5 +1,8 @@
 package com.lanf.redis.service;
 
+import com.lanf.common.utils.StackTraceUtil;
+import com.lanf.constant.exception.IRedisException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.HashOperations;
@@ -17,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  **/
 @SuppressWarnings(value = {"unchecked", "rawtypes"})
 @Component
+@Slf4j
 public class RedisCache {
     @Autowired
     public RedisTemplate redisTemplate;
@@ -32,17 +36,36 @@ public class RedisCache {
     }
 
     /**
-     * 缓存基本的对象，Integer、String、实体类等
+     * 缓存基本的对象
      *
      * @param key      缓存的键值
      * @param value    缓存的值
      * @param timeout  时间
      * @param timeUnit 时间颗粒度
      */
-    public <T> void setCacheObject(final String key, final T value, final Integer timeout, final TimeUnit timeUnit) {
-        redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
-    }
+    public  void setCacheObject(final String key, final String value, final long timeout, final TimeUnit timeUnit) throws IRedisException {
 
+
+        try {
+            redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
+        } catch (Exception e) {
+            log.error("添加Redis缓存失败,key[{}],value[{}],timeout[{}],timeUnit[{}],异常堆栈[{}]",key,
+                    value, timeout, timeUnit, StackTraceUtil.getStackTrace(e));
+            throw new IRedisException();
+        }
+    }
+    /**
+     * 获得缓存的基本对象。
+     *
+     * @param key 缓存键值
+     * @return 缓存键值对应的数据
+     */
+    public String getCacheObject(final String key) {
+
+        ValueOperations<String, String> operation = redisTemplate.opsForValue();
+
+        return operation.get(key);
+    }
     /**
      * 设置有效时间
      *
@@ -83,19 +106,22 @@ public class RedisCache {
      * @return true 存在 false不存在
      */
     public Boolean hasKey(String key) {
-        return redisTemplate.hasKey(key);
+
+        log.info("判断key是否存在");
+        Boolean hasKey = null;
+        try {
+            hasKey = redisTemplate.hasKey(key);
+        } catch (Exception e) {
+
+            log.error("判断key失败,异常堆栈[{}]", StackTraceUtil.getStackTrace(e));
+            throw new IRedisException("判断key失败");
+        }
+        log.info("判断key成功");
+        return hasKey;
+
     }
 
-    /**
-     * 获得缓存的基本对象。
-     *
-     * @param key 缓存键值
-     * @return 缓存键值对应的数据
-     */
-    public <T> T getCacheObject(final String key) {
-        ValueOperations<String, T> operation = redisTemplate.opsForValue();
-        return operation.get(key);
-    }
+
 
     /**
      * 删除单个对象
@@ -235,7 +261,6 @@ public class RedisCache {
      * 获取递增数 每次+1
      */
     public Long getInc(final String key, final long add) {
-
 
 
         return redisTemplate.opsForValue().increment(key, add);

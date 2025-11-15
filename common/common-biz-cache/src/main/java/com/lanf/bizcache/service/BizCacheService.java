@@ -1,4 +1,4 @@
-package com.lanf.bizcache.util;
+package com.lanf.bizcache.service;
 
 import com.lanf.bizcache.model.bo.PlatformRateConfigBO;
 import com.lanf.common.utils.BeanUtil;
@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class BizCacheUtils {
+public class BizCacheService {
 
     public static void addCache(List<PlatformRateConfigBO> platformRateConfigBOList) {
 
@@ -42,10 +42,5 @@ public class BizCacheUtils {
 
     }
 
-    public static Long getPlatformBusId() {
-
-        RedisCache redisCache = BeanUtil.getBean(RedisCache.class);
-        return redisCache.getCacheObject(CacheConstants.PLATFORM_BUS_ID);
-    }
 
 }
