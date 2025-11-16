@@ -46,11 +46,10 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        logger.info("uri:" + request.getRequestURI());
 
-        //如果是登录接口，直接放行
+
         if ("/system/admin/system/index/login".equals(request.getRequestURI())) {
-
+            //如果是登录接口，直接放行 然后走账号密码拦截器
             chain.doFilter(request, response);
             return;
         }
