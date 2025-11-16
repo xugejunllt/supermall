@@ -121,7 +121,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         list.add("/temp/sysUser.xlsx");
         list.add("/img/**");
         list.add("/admin/system/index/getI18n");
-        list.addAll(filterPathConfig.getNotTokenPath());
+        list.addAll(filterPathConfig.getAdminNotTokenPath());
         String arr[] = list.toArray(new String[0]);
         web.ignoring().antMatchers(arr);
     }

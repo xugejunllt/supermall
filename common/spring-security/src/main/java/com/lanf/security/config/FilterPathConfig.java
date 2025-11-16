@@ -15,8 +15,8 @@ import java.util.List;
 @RefreshScope
 public class FilterPathConfig {
 
-    private List<String> notTokenPath;
+    private List<String> adminNotTokenPath;
 
-    private List<String> userTokenPath;
+    private List<String> userNotTokenPath;
 
 }
