@@ -16,7 +16,7 @@ public class SmsRateLimitService {
     
     private static final String SMS_RATE_LIMIT_KEY = "sms:rate:%s"; // %s 替换为手机号
     private static final long SMS_INTERVAL = 60; // 60秒内只能发送一次
-    private static final long DAILY_LIMIT = 10; // 每天最多发送10次
+    private static final long DAILY_LIMIT = 1000; // 每天最多发送10次
     
     public boolean canSend(String mobile) {
         String rateKey = String.format(SMS_RATE_LIMIT_KEY, mobile);

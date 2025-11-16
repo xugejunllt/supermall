@@ -36,11 +36,10 @@ import com.lanf.pay.model.vo.OrderTradeVO;
 import com.lanf.pay.model.vo.TradeOrderBathVO;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderDTO;
-import com.lanf.rocketmq.model.message.LogisticsTrackAddDTO;
 import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.util.MessageBuildAdapter;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
 import com.lanf.web.exception.BizException;
@@ -250,7 +249,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         IPage<OrderDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<OrderDO> pageResult = this.lambdaQuery().
                 eq(query.getStatus() != null, OrderDO::getStatus, query.getStatus()).
-                eq(OrderDO::getUserId,UserUtil.getUserId()).
+                eq(OrderDO::getUserId, UserUtils.getUserId()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
 
@@ -480,7 +479,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
          */
         IPage<OrderDO> page = new Page<>(query2.getPage(), query2.getPageSize());
         IPage<OrderDO> pageResult = this.lambdaQuery().
-                eq(OrderDO::getShopId, UserUtil.getShopId()).
+                eq(OrderDO::getShopId, UserUtils.getShopId()).
                 eq(query2.getStatus() != null, OrderDO::getStatus, query2.getStatus()).
                 orderByDesc(BaseEntity::getId)
                 .page(page);

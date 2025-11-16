@@ -1,12 +1,8 @@
 package com.lanf.mybatis.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import com.lanf.common.utils.ThreadLocalUtils;
-import com.lanf.constant.constant.Constants;
-import com.lanf.security.utils.UserUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;

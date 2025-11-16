@@ -19,15 +19,13 @@ import com.lanf.aftersales.service.IAfterSalesOrderItemService;
 import com.lanf.aftersales.service.IAfterSalesOrderService;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.api.StorageApiService;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
 import com.lanf.web.exception.BizException;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -132,8 +130,8 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         v2.setPage(query.getPage());
         v2.setPageSize(query.getPageSize());
         v2.setUserId(query.getUserId());
-        if (UserUtil.getShopId()!=null){
-            v2.setShopId(UserUtil.getShopId());
+        if (UserUtils.getShopId()!=null){
+            v2.setShopId(UserUtils.getShopId());
         }
 
         return afterSalesOrderPageQuery(v2);

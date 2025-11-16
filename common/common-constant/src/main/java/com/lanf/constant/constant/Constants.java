@@ -167,9 +167,16 @@ public class Constants
      * 系统管理员租户编码
      */
     public static final String ADMIN_TENANT_CODE = "JOPGBIVZNUWPQWXRJUV";
-    public static  final String USER_TOKEN = "userToken";
     //refreshToken
     public static  final String REFRESH_TOKEN = "refreshToken";
+    /**
+     * 请求头名称
+     */
+    public static  final String CHANEL = "channel";
+    public static  final String USERID = "userId";
+    public static  final String USER_TOKEN = "userToken";
+
+
     /**
      * 定时任务违规的字符
      */

@@ -73,9 +73,9 @@ public class GlobalExceptionHandler {
         if (!allErrors.isEmpty()) {
             ObjectError objectError = allErrors.get(0);
             String defaultMessage = objectError.getDefaultMessage();
-            return Result.fail(CommonResultCodeEnum.ARGUMENT_VALID_ERROR.getCode(), defaultMessage);
+            return Result.fail(CommonResultCodeEnum.FAIL.getCode(), defaultMessage);
         }
-        return Result.fail(CommonResultCodeEnum.ARGUMENT_VALID_ERROR.getCode(), CommonResultCodeEnum.ARGUMENT_VALID_ERROR.getMessage());
+        return Result.fail(CommonResultCodeEnum.FAIL.getCode(), CommonResultCodeEnum.FAIL.getMessage());
     }
 
 

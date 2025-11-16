@@ -16,7 +16,7 @@ import com.lanf.finance.service.*;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.rocketmq.model.message.MoneyFlowDTO;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.web.exception.BizException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -299,10 +299,10 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
     public PageResult<MoneyFlowDO> moneyFlowPage(MoneyFlowPageQuery query) {
 
         Long shopId = null;
-        String tenantCode = UserUtil.getTenantCode();
+        String tenantCode = UserUtils.getTenantCode();
         if ( !Constants.ADMIN_TENANT_CODE.equals(tenantCode)){
             //平台管理员查询所有资金流水 租户查询自己的流水
-            shopId = UserUtil.getShopId();
+            shopId = UserUtils.getShopId();
         }
 
         Date startTime = null;
@@ -331,7 +331,7 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
     @Override
     public AccountMoneySumVO accountMoneySumQuery(AccountMoneySumQuery query) {
 
-        Long shopId = UserUtil.getUserInfo().getShopId();
+        Long shopId = UserUtils.getUserInfo().getShopId();
         String incomeAccount = query.getIncomeAccount();
         Date startTime = null;
         Date endTime = null;

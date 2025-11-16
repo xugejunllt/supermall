@@ -18,7 +18,7 @@ import com.lanf.system.service.SysDeptService;
 import com.lanf.system.service.SysMenuService;
 import com.lanf.system.service.SysUserRoleService;
 import com.lanf.system.service.SysUserService;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -50,7 +50,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUserDO> im
     @Override
     public IPage<SysUserDO> selectPage(Page<SysUserDO> pageParam, SysUserQueryVO userQueryVo) {
         //只查询当前登录所属部门数据
-        SysUserBO sysUser = UserUtil.getUserInfo();
+        SysUserBO sysUser = UserUtils.getUserInfo();
         if ("admin".equals(sysUser.getUsername())) {
             userQueryVo.setDeptId(null);
         } else {
@@ -84,7 +84,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUserDO> im
         }
 
         String pwd = customMd5PasswordEncoder.encode(sysUser.getPassword());
-        sysUser.setTenantCode(UserUtil.getTenantCode());
+        sysUser.setTenantCode(UserUtils.getTenantCode());
         sysUser.setPassword(pwd);
         sysUser.setStatus(sysUser.getStatus());
         int result = this.sysUserMapper.insert(sysUser);
@@ -164,7 +164,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUserDO> im
 
     @Override
     public void changePwd(SysPwdVO sysPwdVo) {
-        SysUserDO sysUser = this.getById(UserUtil.getAdminUserId());
+        SysUserDO sysUser = this.getById(UserUtils.getAdminUserId());
         if (!MD5.encrypt(sysPwdVo.getPassword()).equals(sysUser.getPassword())) {
             throw new RuntimeException();
         }

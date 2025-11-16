@@ -40,17 +40,18 @@ public class RedisCache {
      *
      * @param key      缓存的键值
      * @param value    缓存的值
-     * @param timeout  时间
-     * @param timeUnit 时间颗粒度
+     * @param timeout  时间 默认分钟
+     * @param
      */
-    public  void setCacheObject(final String key, final String value, final long timeout, final TimeUnit timeUnit) throws IRedisException {
+    public  void setCacheObject(final String key, final String value, final long timeout) throws IRedisException {
 
-
+        TimeUnit minutes = TimeUnit.MINUTES;
         try {
-            redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
+
+            redisTemplate.opsForValue().set(key, value, timeout, minutes);
         } catch (Exception e) {
             log.error("添加Redis缓存失败,key[{}],value[{}],timeout[{}],timeUnit[{}],异常堆栈[{}]",key,
-                    value, timeout, timeUnit, StackTraceUtil.getStackTrace(e));
+                    value, timeout, minutes, StackTraceUtil.getStackTrace(e));
             throw new IRedisException();
         }
     }
@@ -60,12 +61,22 @@ public class RedisCache {
      * @param key 缓存键值
      * @return 缓存键值对应的数据
      */
-    public String getCacheObject(final String key) {
+    public String getCacheObject(final String key) throws IRedisException {
 
-        ValueOperations<String, String> operation = redisTemplate.opsForValue();
+        try {
+            ValueOperations<String, String> operation = redisTemplate.opsForValue();
+            return operation.get(key);
 
-        return operation.get(key);
+        } catch (Exception e) {
+
+            log.error("获取缓存失败,key[{}],异常堆栈[{}]",key,
+                     StackTraceUtil.getStackTrace(e));
+            throw new IRedisException();
+        }
+
     }
+
+
     /**
      * 设置有效时间
      *
@@ -73,20 +84,18 @@ public class RedisCache {
      * @param timeout 超时时间
      * @return true=设置成功；false=设置失败
      */
-    public boolean expire(final String key, final long timeout) {
-        return expire(key, timeout, TimeUnit.SECONDS);
-    }
+    public Boolean expire(final String key, final long timeout) {
 
-    /**
-     * 设置有效时间
-     *
-     * @param key     Redis键
-     * @param timeout 超时时间
-     * @param unit    时间单位
-     * @return true=设置成功；false=设置失败
-     */
-    public boolean expire(final String key, final long timeout, final TimeUnit unit) {
-        return redisTemplate.expire(key, timeout, unit);
+        TimeUnit minutes = TimeUnit.MINUTES;
+
+        try {
+            return redisTemplate.expire(key, timeout, minutes);
+        } catch (Exception e) {
+            log.error("设置过期时间失败,key[{}],timeout[{}],timeUnit[{}],异常堆栈[{}]",key,
+                    timeout, minutes, StackTraceUtil.getStackTrace(e));
+            throw new IRedisException();
+        }
+
     }
 
     /**
@@ -107,7 +116,6 @@ public class RedisCache {
      */
     public Boolean hasKey(String key) {
 
-        log.info("判断key是否存在");
         Boolean hasKey = null;
         try {
             hasKey = redisTemplate.hasKey(key);
@@ -116,7 +124,6 @@ public class RedisCache {
             log.error("判断key失败,异常堆栈[{}]", StackTraceUtil.getStackTrace(e));
             throw new IRedisException("判断key失败");
         }
-        log.info("判断key成功");
         return hasKey;
 
     }
@@ -129,7 +136,19 @@ public class RedisCache {
      * @param key
      */
     public boolean deleteObject(final String key) {
-        return redisTemplate.delete(key);
+
+        Boolean delete = null;
+        try {
+            delete = redisTemplate.delete(key);
+        } catch (Exception e) {
+            log.error("删除key失败,异常堆栈[{}]", StackTraceUtil.getStackTrace(e));
+            throw new IRedisException("删除key失败");
+        }
+
+        return delete;
+
+
+
     }
 
     /**

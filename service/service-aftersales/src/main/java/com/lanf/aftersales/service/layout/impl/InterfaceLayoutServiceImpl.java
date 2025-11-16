@@ -23,7 +23,7 @@ import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.PromiseOrderReturnMoneyDTO;
 import com.lanf.rocketmq.model.message.RefundDTO;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.api.StorageApiService;
 import com.lanf.storage.model.dto.SalesInStockOrderAddDTO;
 import com.lanf.storage.model.dto.SalesInStockOrderItemAddDTO;
@@ -104,7 +104,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         Date applicationTime = new Date();
         AfterSalesOrderDO afterSalesOrder = new AfterSalesOrderDO();
         Long id = IdUtils.generateId();
-        afterSalesOrder.setUserId(UserUtil.getUserId());
+        afterSalesOrder.setUserId(UserUtils.getUserId());
         afterSalesOrder.setId(id);
         afterSalesOrder.setOrderId(orderId);
         afterSalesOrder.setOrderNumber(CodeGenerateUtils.generateOrderNumber());

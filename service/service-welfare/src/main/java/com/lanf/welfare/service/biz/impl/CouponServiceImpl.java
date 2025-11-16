@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.web.exception.BizException;
 import com.lanf.welfare.mapper.CouponMapper;
 import com.lanf.welfare.model.dto.ReceiveCouponDTO;
@@ -47,7 +47,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         CouponTemplateDO couponTemplate = couponTemplateService.getById(dto.getCouponTemplateId());
         CouponDO couponDO = new CouponDO();
         couponDO.setShopId(couponTemplate.getShopId());
-        couponDO.setUserId(UserUtil.getUserId());
+        couponDO.setUserId(UserUtils.getUserId());
         couponDO.setTemplateId(couponTemplateId);
         couponDO.setEndTime(couponTemplate.getEndTime());
         couponDO.setUsed(0);
@@ -77,7 +77,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
     @Override
     public List<ShopCouponVO> shopCouponList(Long shopId) {
 
-        List<CouponDO> couponList = this.lambdaQuery().eq(CouponDO::getUserId, UserUtil.getUserId()).
+        List<CouponDO> couponList = this.lambdaQuery().eq(CouponDO::getUserId, UserUtils.getUserId()).
                 eq(CouponDO::getShopId, shopId).
                 eq(CouponDO::getUsed, 0).list();
         if (couponList.isEmpty()){

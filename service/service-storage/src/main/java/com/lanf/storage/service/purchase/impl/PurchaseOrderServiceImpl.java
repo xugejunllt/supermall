@@ -7,7 +7,7 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.mapper.PurchaseOrderMapper;
 import com.lanf.storage.model.bo.CalculatePurchaseOrderMoneyBO;
 import com.lanf.storage.model.bo.PurchaseOrderItemAddBO;
@@ -292,7 +292,7 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         purchaseOrderUpdate.setId(id);
         purchaseOrderUpdate.setStatus(status);
         purchaseOrderUpdate.setReviewTime(new Date());
-        purchaseOrderUpdate.setReviewer(UserUtil.getUserInfo().getName());
+        purchaseOrderUpdate.setReviewer(UserUtils.getUserInfo().getName());
         this.updateById(purchaseOrderUpdate);
     }
 

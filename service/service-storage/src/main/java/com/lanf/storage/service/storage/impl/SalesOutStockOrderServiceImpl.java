@@ -3,7 +3,6 @@ package com.lanf.storage.service.storage.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fasterxml.jackson.databind.node.LongNode;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.IdUtils;
@@ -20,7 +19,7 @@ import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.*;
 import com.lanf.rocketmq.util.MessageBuildAdapter;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.model.dto.SalesInStockOrderAddDTO;
 import com.lanf.storage.model.dto.SalesInStockOrderItemAddDTO;
 import com.lanf.storage.mapper.SalesOutStockOrderMapper;
@@ -485,7 +484,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
 
         IPage<SalesOutStockOrderDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<SalesOutStockOrderDO> purchaseStorageOrderPage = this.lambdaQuery().
-                eq(SalesOutStockOrderDO::getShopId, UserUtil.getShopId()).
+                eq(SalesOutStockOrderDO::getShopId, UserUtils.getShopId()).
                 eq(query.getInStockStatus() != null, SalesOutStockOrderDO::getStorageStatus, query.getInStockStatus()).
                 eq(!ObjectUtils.isEmpty(query.getOrderId()), SalesOutStockOrderDO::getOrderId, query.getOrderId()).
                 orderByDesc(BaseEntity::getUpdateTime)

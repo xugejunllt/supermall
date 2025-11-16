@@ -11,6 +11,27 @@ public class CacheConstants {
      * 注册短信验证码
      */
     public static final String REGISTER_CODE_KEY = "register:code:%s"; //
+    /**
+     * 登入短信验证码
+     */
+    public static final String LOGIN_CODE_KEY = "login:code:%s"; //
+
+    public static final String USER_SESSION = "user:session:%s:%s"; //
+
+
+    /**
+     * 过期时间
+     */
+    public static final int USER_SESSION_TIME = 7*24*60; //
+
+
+    /**
+     * 获取key方法
+     */
+     public static String getUSER_SESSION_KEY(Integer channel,Long userId){
+
+         return String.format(CacheConstants.USER_SESSION, channel, userId);
+     }
 
 
     /**

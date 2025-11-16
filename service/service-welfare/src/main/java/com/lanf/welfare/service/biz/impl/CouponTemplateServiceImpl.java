@@ -4,15 +4,13 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
 import com.lanf.web.exception.BizException;
 import com.lanf.welfare.mapper.CouponTemplateMapper;
 import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
-import com.lanf.welfare.model.entity.CouponDO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
 import com.lanf.welfare.model.query.CouponTemplatePageQuery;
 import com.lanf.welfare.model.query.CouponTemplatePageQuery2;
@@ -40,7 +38,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     @Override
     public void couponTemplateAdd(CouponTemplateAddDTO dto) {
 
-        dto.setShopId(UserUtil.getUserInfo().getShopId());
+        dto.setShopId(UserUtils.getUserInfo().getShopId());
         checkAdd( dto);
         CouponTemplateDO couponTemplate = new CouponTemplateDO();
         BeanCopyUtils.copy(dto,couponTemplate);
@@ -85,7 +83,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     @Override
     public PageResult<CouponTemplateDO> couponTemplatePage2(CouponTemplatePageQuery2 query) {
-        query.setShopId(UserUtil.getShopId());
+        query.setShopId(UserUtils.getShopId());
         IPage<CouponTemplateDO> page = this.lambdaQuery().
                 eq(CouponTemplateDO::getShopId,query.getShopId()).
                 orderByDesc(BaseEntity::getId).

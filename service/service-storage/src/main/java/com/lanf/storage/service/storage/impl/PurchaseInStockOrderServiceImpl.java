@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.mapper.PurchaseInStockOrderMapper;
 import com.lanf.storage.model.bo.StockSaveOrUpdateBO;
 import com.lanf.storage.model.bo.StockUpdateBO;
@@ -235,7 +235,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         storageDetailsDO.setBizNumber(storageOrderDO.getCode());
         storageDetailsDO.setWarehousName(warehouseDO.getName());
         storageDetailsDO.setInQuantity(enterQuantity);
-        storageDetailsDO.setShopId(UserUtil.getShopId());
+        storageDetailsDO.setShopId(UserUtils.getShopId());
         return storageDetailsDO;
     }
 
@@ -253,7 +253,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
             stockFlowDO.setBizNumber(storageOrderDO.getCode());
             stockFlowDO.setWarehousName(warehouseDO.getName());
             stockFlowDO.setInQuantity(is.getActualQuantity());
-            stockFlowDO.setShopId(UserUtil.getShopId());
+            stockFlowDO.setShopId(UserUtils.getShopId());
             stockFlowList.add(stockFlowDO);
         }
         return stockFlowList;

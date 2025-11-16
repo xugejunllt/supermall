@@ -16,7 +16,7 @@ import com.lanf.goods.service.goods.ICartService;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
 import com.lanf.web.exception.BizException;
@@ -69,7 +69,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         if (cartDO1 == null) {
             //新增
             CartDO cartDO = new CartDO();
-            cartDO.setUserId(UserUtil.getUserId());
+            cartDO.setUserId(UserUtils.getUserId());
             cartDO.setShopId(goodsDO.getShopId());
             cartDO.setSkuId(skuId);
             cartDO.setQuantity(quantity);
@@ -188,7 +188,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
     @Override
     public List<CartGoodsVO> cartList() {
 
-        Long userId = UserUtil.getUserId();
+        Long userId = UserUtils.getUserId();
 
         List<CartDO> cartDOList = this.lambdaQuery().eq(CartDO::getUserId, userId).orderByDesc(BaseEntity::getUpdateTime).list();
 

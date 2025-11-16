@@ -14,13 +14,11 @@ import com.lanf.finance.model.vo.PayAccountApiVO;
 import com.lanf.finance.service.IPayAccountService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.web.exception.BizException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
 
 /**
  * <p>
@@ -60,7 +58,7 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
 
         String account = dto.getAccount();
         Integer accountType = dto.getAccountType();
-        SysUserBO userInfo = UserUtil.getUserInfo();
+        SysUserBO userInfo = UserUtils.getUserInfo();
         Long businessId = userInfo.getBusinessId();
         /**
          * 远程查询支付宝账户 初期余额是否相等
@@ -101,7 +99,7 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
 
         IPage<PayAccountDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<PayAccountDO> payAccountPage = this.lambdaQuery().
-                eq(PayAccountDO::getBusinessId,UserUtil.getBusinessId()).
+                eq(PayAccountDO::getBusinessId, UserUtils.getBusinessId()).
                 eq(query.getAccountType() != null, PayAccountDO::getAccountType, query.getAccountType()).
                 orderByDesc(BaseEntity::getId).
                 page(page);

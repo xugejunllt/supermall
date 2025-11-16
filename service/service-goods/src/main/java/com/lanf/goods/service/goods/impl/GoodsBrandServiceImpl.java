@@ -10,7 +10,7 @@ import com.lanf.goods.model.entity.GoodsBrandDO;
 import com.lanf.goods.service.goods.IGoodsBrandService;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.web.exception.BizException;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +37,7 @@ public class GoodsBrandServiceImpl extends ServiceImpl<GoodsBrandMapper, GoodsBr
         }
         GoodsBrandDO goodsBrandDO = new GoodsBrandDO();
         BeanCopyUtils.copy(dto, goodsBrandDO);
-        goodsBrandDO.setShopId(UserUtil.getShopId());
+        goodsBrandDO.setShopId(UserUtils.getShopId());
         this.save(goodsBrandDO);
 
     }
@@ -47,7 +47,7 @@ public class GoodsBrandServiceImpl extends ServiceImpl<GoodsBrandMapper, GoodsBr
 
         IPage<GoodsBrandDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<GoodsBrandDO> pageResult = this.lambdaQuery().
-                eq(GoodsBrandDO::getShopId,UserUtil.getShopId()).
+                eq(GoodsBrandDO::getShopId, UserUtils.getShopId()).
                 orderByDesc(GoodsBrandDO::getUpdateTime)
                 .page(page);
 

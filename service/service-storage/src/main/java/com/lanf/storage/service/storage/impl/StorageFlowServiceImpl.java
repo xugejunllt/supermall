@@ -5,9 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.mapper.StorageFlowMapper;
-import com.lanf.storage.model.entity.StockFlowDO;
 import com.lanf.storage.model.entity.StorageFlowDO;
 import com.lanf.storage.model.query.StorageFlowPageQuery;
 import com.lanf.storage.service.storage.IStorageFlowService;
@@ -31,7 +30,7 @@ public class StorageFlowServiceImpl extends ServiceImpl<StorageFlowMapper, Stora
 
         IPage<StorageFlowDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<StorageFlowDO> companyPage = this.lambdaQuery().
-                eq(StorageFlowDO::getShopId, UserUtil.getShopId()).
+                eq(StorageFlowDO::getShopId, UserUtils.getShopId()).
                 eq(!ObjectUtils.isEmpty(query.getBizNumber()), StorageFlowDO::getBizNumber, query.getBizNumber()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);

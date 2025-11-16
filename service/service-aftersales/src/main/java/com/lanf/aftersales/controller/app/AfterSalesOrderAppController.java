@@ -2,19 +2,16 @@ package com.lanf.aftersales.controller.app;
 
 
 import com.lanf.aftersales.model.dto.AfterSalesOrderAddDTO;
-import com.lanf.aftersales.model.dto.ExchangeGoodsBusinessDeliveryDTO;
-import com.lanf.aftersales.model.dto.ExchangeGoodsCreateOutStockOrderDTO;
 import com.lanf.aftersales.model.dto.UserDeliveryDTO;
 import com.lanf.aftersales.model.query.AfterSalesOrderPageQuery;
 import com.lanf.aftersales.model.vo.AfterSalesOrderPageVO;
 import com.lanf.aftersales.service.IAfterSalesOrderService;
 import com.lanf.aftersales.service.layout.InterfaceLayoutService;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.web.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,7 +47,7 @@ public class AfterSalesOrderAppController {
     public Result<PageResult<AfterSalesOrderPageVO>> afterSalesOrderPageQuery(@Validated AfterSalesOrderPageQuery query) {
 
         log.info("分页查询售后单:query{}", query);
-        query.setUserId(UserUtil.getUserId());
+        query.setUserId(UserUtils.getUserId());
         return Result.ok(afterSalesOrderService.afterSalesOrderPageQuery(query));
     }
 

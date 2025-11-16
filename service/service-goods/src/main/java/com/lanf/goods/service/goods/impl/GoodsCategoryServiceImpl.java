@@ -11,7 +11,7 @@ import com.lanf.goods.model.vo.GoodsCategoryPageVO;
 import com.lanf.goods.service.goods.IGoodsCategoryService;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class GoodsCategoryServiceImpl extends ServiceImpl<GoodsCategoryMapper, G
 
         GoodsCategoryDO goodsCategoryDO = new GoodsCategoryDO();
         BeanCopyUtils.copy(dto, goodsCategoryDO);
-        goodsCategoryDO.setShopId(UserUtil.getShopId());
+        goodsCategoryDO.setShopId(UserUtils.getShopId());
         this.save(goodsCategoryDO);
 
     }
@@ -49,7 +49,7 @@ public class GoodsCategoryServiceImpl extends ServiceImpl<GoodsCategoryMapper, G
         IPage<GoodsCategoryDO> pageResult = this.lambdaQuery().
                 eq(GoodsCategoryDO::getLevel, 1).
                 orderByDesc(GoodsCategoryDO::getUpdateTime).
-                eq(GoodsCategoryDO::getShopId,UserUtil.getShopId())
+                eq(GoodsCategoryDO::getShopId, UserUtils.getShopId())
                 .page(page);
         if (pageResult.getRecords().isEmpty()){
 

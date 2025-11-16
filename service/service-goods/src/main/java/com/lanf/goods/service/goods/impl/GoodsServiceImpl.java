@@ -25,7 +25,7 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.GoodsAddMsg;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.api.StorageApiService;
 import com.lanf.storage.model.vo.StockVO;
 import com.lanf.system.api.SystemService;
@@ -111,7 +111,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         });
 
         //
-        SysUserBO userInfo = UserUtil.getUserInfo();
+        SysUserBO userInfo = UserUtils.getUserInfo();
         GoodsDO goodsDO = new GoodsDO();
         BeanCopyUtils.copy(dto, goodsDO);
         //设置商品主图
@@ -172,7 +172,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
     @Override
     public PageResult<GoodsPageVO> goodsPage(GoodsPageQuery query) {
-        Long shopId = UserUtil.getShopId();
+        Long shopId = UserUtils.getShopId();
         IPage<GoodsDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<GoodsDO> purchaseStorageOrderPage = this.lambdaQuery().
                 eq(!org.apache.commons.lang3.StringUtils.isEmpty(query.getCode()), GoodsDO::getCode, query.getCode()).

@@ -3,7 +3,6 @@ package com.lanf.system.controller;
 import com.google.gson.JsonObject;
 import com.lanf.common.utils.JwtUtils;
 
-import com.lanf.security.model.RefreshTokenTokenBO;
 import com.lanf.security.utils.TokenUtils;
 import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.entiry.SysI18nDO;
@@ -15,9 +14,7 @@ import com.lanf.system.service.SysI18nService;
 import com.lanf.system.service.SysMenuService;
 import com.lanf.system.service.SysUserService;
 import com.lanf.system.utils.JsonListEach;
-import com.lanf.security.utils.UserUtil;
-import com.sun.org.apache.regexp.internal.RE;
-import io.swagger.annotations.Api;
+import com.lanf.security.utils.UserUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -101,7 +98,7 @@ public class IndexController {
      */
     @PostMapping("/logout")
     public Result logout() {
-        SysUserBO sysUser = UserUtil.getUserInfo();
+        SysUserBO sysUser = UserUtils.getUserInfo();
         redisTemplate.delete(sysUser.getUsername());
         redisTemplate.delete(sysUser.getId() + "");
         return Result.ok();

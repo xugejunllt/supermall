@@ -12,7 +12,7 @@ import com.lanf.goods.service.base.IGoodsAttributeService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.web.exception.BizException;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,7 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
 
         GoodsAttributeDO one = this.lambdaQuery().
                 eq(GoodsAttributeDO::getAttribute, dto.getAttribute()).
-                eq(GoodsAttributeDO::getShopId,UserUtil.getShopId())
+                eq(GoodsAttributeDO::getShopId, UserUtils.getShopId())
                 .one();
         if (one != null) {
             throw new BizException("属性已存在");
@@ -43,7 +43,7 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
 
         GoodsAttributeDO goodsAttributeDO = new GoodsAttributeDO();
         BeanCopyUtils.copy(dto, goodsAttributeDO);
-        goodsAttributeDO.setShopId(UserUtil.getShopId());
+        goodsAttributeDO.setShopId(UserUtils.getShopId());
         this.save(goodsAttributeDO);
 
     }
@@ -53,7 +53,7 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
 
         IPage<GoodsAttributeDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<GoodsAttributeDO> result = this.lambdaQuery().
-                eq(GoodsAttributeDO::getShopId,UserUtil.getShopId()).
+                eq(GoodsAttributeDO::getShopId, UserUtils.getShopId()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
 

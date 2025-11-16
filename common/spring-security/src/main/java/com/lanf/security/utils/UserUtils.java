@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
  * @description TODO
  * @date 2023/4/27 15:53
  */
-public class UserUtil {
+public class UserUtils {
 
     public static String getAdminUserId() {
         HttpServletRequest request = WebUtil.getRequest();

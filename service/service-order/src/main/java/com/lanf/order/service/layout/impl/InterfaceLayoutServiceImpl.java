@@ -29,7 +29,7 @@ import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.model.message.PrePayMsg;
 import com.lanf.rocketmq.util.MessageBuildAdapter;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.web.exception.BizException;
 import com.lanf.web.result.Result;
 import com.lanf.welfare.api.WelfareApiService;
@@ -178,7 +178,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
             orderDTO.setId(bizOrderIdMap.get(a));
             orderDTO.setShopId(a);
             orderDTO.setBusinessId(businessIdMap.get(a));
-            orderDTO.setUserId(UserUtil.getUserId());
+            orderDTO.setUserId(UserUtils.getUserId());
             //待远程调用查询
             orderDTO.setTakeAddress(dto.getTakeAddress());
             //
@@ -231,7 +231,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
             createPayOrderDTO.setShopId(a);
             createPayOrderDTO.setBizOrderId(bizOrderIdMap.get(a));
             createPayOrderDTO.setSource(0);
-            createPayOrderDTO.setUserId(UserUtil.getUserId());
+            createPayOrderDTO.setUserId(UserUtils.getUserId());
             createPayOrderDTO.setBusinessId(businessIdMap.get(a));
             createPayOrderDTO.setMainOrderId(mainOrderId);
             createPayOrderDTO.setOrderMoney(orderMoney);
@@ -317,7 +317,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         OnePlaceAnOrderBO bo = new OnePlaceAnOrderBO();
         bo.setMainOrderId(mainOrderId);
         bo.setBizOrderId(bizOrderId);
-        bo.setUserId(UserUtil.getUserId());
+        bo.setUserId(UserUtils.getUserId());
 
         return bo;
     }

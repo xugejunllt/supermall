@@ -3,7 +3,7 @@ package com.lanf.user.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.user.mapper.AddressMapper;
 import com.lanf.user.model.dto.AddressAddDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
@@ -29,7 +29,7 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
     public void addAddress(AddressAddDTO dto) {
         AddressDO addressDO = new AddressDO();
         BeanCopyUtils.copy(dto, addressDO);
-        Long userId = UserUtil.getUserId();
+        Long userId = UserUtils.getUserId();
         addressDO.setMemberId(userId);
         List<AddressDO> list = this.lambdaQuery().eq(AddressDO::getMemberId, userId).list();
         if (list.isEmpty()) {
@@ -44,7 +44,7 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
 
     @Override
     public AddressDO getDefaultAddress() {
-        Long userId = UserUtil.getUserId();
+        Long userId = UserUtils.getUserId();
 
         return this.lambdaQuery().eq(AddressDO::getMemberId, userId).eq(AddressDO::getDefaultAddress, 0).one();
     }
@@ -52,7 +52,7 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
     @Override
     public List<AddressDO> addressList() {
 
-        return this.lambdaQuery().eq(AddressDO::getMemberId,UserUtil.getUserId() ).orderByDesc(BaseEntity::getCreateTime).list();
+        return this.lambdaQuery().eq(AddressDO::getMemberId, UserUtils.getUserId() ).orderByDesc(BaseEntity::getCreateTime).list();
     }
 
     @Transactional

@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.mapper.StockFlowMapper;
 import com.lanf.storage.model.entity.StockFlowDO;
 import com.lanf.storage.model.query.StockFlowPageQuery;
@@ -28,7 +28,7 @@ public class StockFlowServiceImpl extends ServiceImpl<StockFlowMapper, StockFlow
     public PageResult<StockFlowDO> stockFlowPage(StockFlowPageQuery query) {
         IPage<StockFlowDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<StockFlowDO> companyPage = this.lambdaQuery().
-                eq(StockFlowDO::getShopId, UserUtil.getShopId()).
+                eq(StockFlowDO::getShopId, UserUtils.getShopId()).
                 eq(!ObjectUtils.isEmpty(query.getBizNumber()), StockFlowDO::getBizNumber, query.getBizNumber()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);

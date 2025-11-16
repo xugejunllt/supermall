@@ -1,8 +1,11 @@
 package com.lanf.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.user.model.dto.LoginUserDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.entity.UserDO;
+import com.lanf.user.model.vo.LoginUserVO;
+
 /**
  * <p>
  *  User 接口
@@ -19,5 +22,7 @@ public interface IUserService extends IService<UserDO> {
     void registerSendCode(String phoneNumber);
 
     void  loginSendCode(String phoneNumber);
+
+    LoginUserVO login(LoginUserDTO dt);
 
 }

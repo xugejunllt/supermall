@@ -11,7 +11,7 @@ import com.lanf.logistics.service.IExpressService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,7 +30,7 @@ public class ExpressServiceImpl extends ServiceImpl<ExpressMapper, ExpressDO> im
 
         ExpressDO expressDO = new ExpressDO();
         BeanCopyUtils.copy(dto, expressDO);
-        expressDO.setBusinessId(UserUtil.getBusinessId());
+        expressDO.setBusinessId(UserUtils.getBusinessId());
         this.save(expressDO);
 
     }
@@ -40,7 +40,7 @@ public class ExpressServiceImpl extends ServiceImpl<ExpressMapper, ExpressDO> im
 
         IPage<ExpressDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<ExpressDO> companyPage = this.lambdaQuery().
-                eq(ExpressDO::getBusinessId,UserUtil.getBusinessId()).
+                eq(ExpressDO::getBusinessId, UserUtils.getBusinessId()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
 

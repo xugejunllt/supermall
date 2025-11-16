@@ -4,7 +4,7 @@ package com.lanf.system.service.impl.manager;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.constant.constant.Constants;
-import com.lanf.security.utils.UserUtil;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.system.model.bo.AddAdminUserBO;
 import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.entiry.SysUserDO;
@@ -42,7 +42,7 @@ public class SystemManagerServiceImpl implements SystemManagerService {
     @Override
     public void ignoreTableName() {
 
-        SysUserBO userInfo = UserUtil.getUserInfo();
+        SysUserBO userInfo = UserUtils.getUserInfo();
         String tenantCode = userInfo.getTenantCode();
         if (Constants.ADMIN_TENANT_CODE.equals(tenantCode)) {
             ThreadLocalUtils.addIgnoreTableName(true);

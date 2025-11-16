@@ -10,13 +10,24 @@ import lombok.Getter;
 public enum CommonResultCodeEnum {
 
     SUCCESS(200, "成功"),
+    /**
+     * 通用错误code 业务主动抛出异常 通常用于业务校验
+     * message通常会被重置
+     */
     FAIL(201, "失败"),
+
+    /**
+     * 发生exception code
+     */
     SERVICE_ERROR(202, "服务异常"),
-    DATA_ERROR(203, "数据异常"),
-    ILLEGAL_REQUEST(204, "非法请求"),
-    REPEAT_SUBMIT(205, "重复提交"),
-    ARGUMENT_VALID_ERROR(210, "参数校验异常"),
-    DATA_NOT_FOUNT(211, "数据不存在");
+
+
+    /**
+     * 特殊业务处理code 通常前段需求处理的code
+     */
+    SESSION_EXPIRED(300, "sesion过期");
+
+
     //MethodArgumentNotValid
 //    LOGIN_AUTH(208, "请先登录"),
 //    PERMISSION(209, "没有权限"),
@@ -39,10 +50,7 @@ public enum CommonResultCodeEnum {
         this.code = code;
         this.message = message;
     }
-    public static  BizException throwDataNotFountException(String message){
 
-        throw new BizException(CommonResultCodeEnum.DATA_NOT_FOUNT.getCode(), message);
-    }
 
 
 }
