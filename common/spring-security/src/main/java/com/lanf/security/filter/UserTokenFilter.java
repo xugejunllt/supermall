@@ -90,10 +90,14 @@ public class UserTokenFilter implements Filter {
         //userid添加到 context中
         UserContext.setUserId(tokenBO.getUserId());
         log.info("处理用户token完成");
-        //请求放行
-        chain.doFilter(request, response);
+        try {
+            //请求放行
+            chain.doFilter(request, response);
 
+        } finally {
+            UserContext.clear();
 
+        }
     }
 
 
@@ -138,7 +142,7 @@ public class UserTokenFilter implements Filter {
             throw new BizException("channel错误");
         }
 
-        String sessionKey = String.format(CacheConstants.USER_TOKEN, channel, cacheUserId);
+
         String token = userSessionCache.getToken(channel2, cacheUserId);
         if (IStringUtils.isEmpty(token)) {
             log.info("缓存 token过期");
@@ -152,7 +156,6 @@ public class UserTokenFilter implements Filter {
         //
         ValidateTokenBO bo = new ValidateTokenBO();
         bo.setUserId(cacheUserId);
-        bo.setSessionKey(sessionKey);
         bo.setSessionExpired(sessionExpired);
         bo.setToken(token);
         bo.setDeviceId(deviceId2);

@@ -9,7 +9,7 @@ public class ValidateTokenBO implements Serializable {
 
     private Long userId;
 
-    private String sessionKey;
+
 
     private Integer channel;
 

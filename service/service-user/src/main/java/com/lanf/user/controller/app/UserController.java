@@ -8,6 +8,7 @@ import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.vo.LoginUserVO;
 import com.lanf.user.model.vo.RefreshTokenVO;
 import com.lanf.user.service.IUserService;
+import com.lanf.web.exception.BizException;
 import com.lanf.web.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,8 +95,8 @@ public class UserController {
         log.info("[{}]开始,入参");
 
         log.info("[{}]结束", "刷新token");
+        throw new BizException("1");
 
-        return Result.ok();
     }
 }
 

@@ -33,15 +33,7 @@ public class UserSessionCache {
     }
 
 
-    //
-//    public  void cacheSession(Integer channel, Long userId, String session)  {
-//
-//        String sessionKey = CacheConstants.getUSER_SESSION_KEY(channel,userId);
-//
-//        redisCache.setCacheObject(sessionKey, session, CacheConstants.TOKEM_EXP_TIME);
-//
-//    }
-//
+
     public Boolean refreshToken(Integer channel, Long userId)  {
 
         String tokenKey = CacheConstants.getUSER_TOKEN_KEY(channel,userId);

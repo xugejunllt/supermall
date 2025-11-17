@@ -18,18 +18,16 @@ public class CacheConstants {
 
     public static final String USER_TOKEN = "user:token:%s:%s"; //
     public static final String USER_REFRESH_TOKEN = "user:refreshToken:%s:%s"; //
-    public static final String TOKEN_REFRESH_TOKEN = "user:tokenRefreshToken:%s:%s";
 
     /**
      * token过期时间 2个小时
      */
-    //public static final int TOKEN_EXP_TIME = 2 * 60;
-     public static final int TOKEN_EXP_TIME = 1;
+    public static final int TOKEN_EXP_TIME = 2 * 60;
+
     /**
      * 刷新token过期时间 7天
      */
     public static final int REFRESH_TOKEN_EXP_TIME = 7 * 24 * 60;
-    //public static final int REFRESH_TOKEN_EXP_TIME = 1;
     /**
      * 获取key方法
      */
