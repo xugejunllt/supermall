@@ -35,7 +35,7 @@ private static final long serialVersionUID=1L;
 
 
 
-    private String sessionId;
+
 
     @ApiModelProperty(value = "客户端IP地址")
     private String ipAddress;

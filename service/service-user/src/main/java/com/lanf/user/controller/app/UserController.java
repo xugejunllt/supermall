@@ -3,17 +3,15 @@ package com.lanf.user.controller.app;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.user.model.dto.LoginUserDTO;
+import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.vo.LoginUserVO;
+import com.lanf.user.model.vo.RefreshTokenVO;
 import com.lanf.user.service.IUserService;
 import com.lanf.web.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 
@@ -72,7 +70,26 @@ public class UserController {
 
         return Result.ok();
     }
+    @PostMapping("/refreshToken")
+    public Result<RefreshTokenVO> refreshToken(@RequestBody RefreshTokenDTO dto) {
 
+        log.info("[{}]开始,入参:[{}]", "刷新token", dto);
 
+        RefreshTokenVO refreshTokenVO = userService.refreshToken(dto);
+
+        log.info("[{}]结束", "刷新token");
+
+        return Result.ok(refreshTokenVO);
+    }
+
+    @GetMapping("/test")
+    public Result<Void> test() {
+
+        log.info("[{}]开始,入参");
+
+        log.info("[{}]结束", "刷新token");
+
+        return Result.ok();
+    }
 }
 

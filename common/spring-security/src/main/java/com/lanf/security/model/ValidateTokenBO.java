@@ -16,6 +16,6 @@ public class ValidateTokenBO implements Serializable {
     private  Boolean sessionExpired;
 
     private String  token;
-
+    private String deviceId;
 
 }

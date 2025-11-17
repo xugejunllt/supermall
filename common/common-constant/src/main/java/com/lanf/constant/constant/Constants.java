@@ -175,7 +175,12 @@ public class Constants
     public static  final String CHANEL = "channel";
     public static  final String USERID = "userId";
     public static  final String USER_TOKEN = "userToken";
-
+    public static  final String DEVICE_ID = "deviceId";
+    /**
+     * 标记
+     */
+    //intercept
+    public static  final  String NOT_INTERCEPT_PATH = "notInterceptPath";
 
     /**
      * 定时任务违规的字符

@@ -1,14 +1,11 @@
 package com.lanf.security.utils;
 
-import com.lanf.constant.exception.IRedisException;
 import com.lanf.redis.constant.CacheConstants;
 import com.lanf.redis.service.RedisCache;
-import com.lanf.web.exception.BizException;
+import com.lanf.security.model.CacheSessionBO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * 用户 session 缓存管理
@@ -21,26 +18,83 @@ public class UserSessionCache {
     private RedisCache redisCache;
 
 
-    public String getSession(Integer channel, Long userId)  {
+    public String getToken(Integer channel, Long userId)  {
 
-        String sessionKey = CacheConstants.getUSER_SESSION_KEY(channel,userId);
+        String tokenKey = CacheConstants.getUSER_TOKEN_KEY(channel,userId);
 
-        return redisCache.getCacheObject(sessionKey);
+        return redisCache.getCacheObject(tokenKey);
     }
 
-    public  void cacheSession(Integer channel, Long userId, String session)  {
+    public String getRefreshToken(Integer channel, Long userId)  {
 
-        String sessionKey = CacheConstants.getUSER_SESSION_KEY(channel,userId);
+        String tokenKey = CacheConstants.getUSER_REFRESH_TOKEN(channel,userId);
 
-        redisCache.setCacheObject(sessionKey, session, CacheConstants.USER_SESSION_TIME);
+        return redisCache.getCacheObject(tokenKey);
+    }
+
+
+    //
+//    public  void cacheSession(Integer channel, Long userId, String session)  {
+//
+//        String sessionKey = CacheConstants.getUSER_SESSION_KEY(channel,userId);
+//
+//        redisCache.setCacheObject(sessionKey, session, CacheConstants.TOKEM_EXP_TIME);
+//
+//    }
+//
+    public Boolean refreshToken(Integer channel, Long userId)  {
+
+        String tokenKey = CacheConstants.getUSER_TOKEN_KEY(channel,userId);
+        String refreshTokenKey = CacheConstants.getUSER_REFRESH_TOKEN(channel, userId);
+        Boolean expire = redisCache.expire(tokenKey, CacheConstants.TOKEN_EXP_TIME);
+        Boolean expire2 = redisCache.expire(refreshTokenKey, CacheConstants.REFRESH_TOKEN_EXP_TIME);
+        return expire && expire2;
 
     }
 
-    public Boolean refreshSession(Integer channel, Long userId)  {
+    public CacheSessionBO cacheSession(Integer channel, Long userId,String deviceId)  {
 
-        String sessionKey = CacheConstants.getUSER_SESSION_KEY(channel,userId);
-       return redisCache.expire(sessionKey,CacheConstants.USER_SESSION_TIME);
+        String tokenKey = CacheConstants.getUSER_TOKEN_KEY(channel,userId);
+        String refreshTokenKey = CacheConstants.getUSER_REFRESH_TOKEN(channel, userId);
+
+        String token = JwtUtils.createUserToken(userId,deviceId,CacheConstants.TOKEN_EXP_TIME);
+        String refreshToken = JwtUtils.createUserToken(userId,deviceId,CacheConstants.REFRESH_TOKEN_EXP_TIME);
+
+        redisCache.setCacheObject(tokenKey, token, CacheConstants.TOKEN_EXP_TIME);
+        redisCache.setCacheObject(refreshTokenKey, refreshToken, CacheConstants.REFRESH_TOKEN_EXP_TIME);
+
+        CacheSessionBO cacheSessionBO = new CacheSessionBO();
+        cacheSessionBO.setToken(token);
+        cacheSessionBO.setRefreshToken(refreshToken);
+        return  cacheSessionBO;
+    }
+
+    public  void cleanSession(Integer channel, Long userId)  {
+
+        String tokenKey = CacheConstants.getUSER_TOKEN_KEY(channel,userId);
+        String refreshTokenKey = CacheConstants.getUSER_REFRESH_TOKEN(channel, userId);
+        redisCache.deleteObject(tokenKey);
+        redisCache.deleteObject(refreshTokenKey);
+
+
+
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

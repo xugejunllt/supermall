@@ -1,18 +1,15 @@
 package com.lanf.user.model.vo;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class LoginUserVO implements Serializable {
-
-    private Long userId;
+public class RefreshTokenVO implements Serializable {
 
     private String token;
 
     private String refreshToken;
 
-
+    private Boolean refresh;
 }

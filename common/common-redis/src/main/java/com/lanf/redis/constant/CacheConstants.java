@@ -2,7 +2,7 @@ package com.lanf.redis.constant;
 
 /**
  * 缓存的key 常量
- * 
+ *
  * @author ruoyi
  */
 public class CacheConstants {
@@ -16,23 +16,32 @@ public class CacheConstants {
      */
     public static final String LOGIN_CODE_KEY = "login:code:%s"; //
 
-    public static final String USER_SESSION = "user:session:%s:%s"; //
-
+    public static final String USER_TOKEN = "user:token:%s:%s"; //
+    public static final String USER_REFRESH_TOKEN = "user:refreshToken:%s:%s"; //
+    public static final String TOKEN_REFRESH_TOKEN = "user:tokenRefreshToken:%s:%s";
 
     /**
-     * 过期时间
+     * token过期时间 2个小时
      */
-    public static final int USER_SESSION_TIME = 7*24*60; //
-
-
+    //public static final int TOKEN_EXP_TIME = 2 * 60;
+     public static final int TOKEN_EXP_TIME = 1;
+    /**
+     * 刷新token过期时间 7天
+     */
+    public static final int REFRESH_TOKEN_EXP_TIME = 7 * 24 * 60;
+    //public static final int REFRESH_TOKEN_EXP_TIME = 1;
     /**
      * 获取key方法
      */
-     public static String getUSER_SESSION_KEY(Integer channel,Long userId){
+    public static String getUSER_TOKEN_KEY(Integer channel, Long userId) {
 
-         return String.format(CacheConstants.USER_SESSION, channel, userId);
-     }
+        return String.format(CacheConstants.USER_TOKEN, channel, userId);
+    }
 
+    public static String getUSER_REFRESH_TOKEN(Integer channel, Long userId) {
+
+        return String.format(CacheConstants.USER_REFRESH_TOKEN, channel, userId);
+    }
 
     /**
      * 登录用户 redis key
@@ -65,7 +74,6 @@ public class CacheConstants {
      */
     public static final String PWD_ERR_CNT_KEY = "pwd_err_cnt:";
 
-    public static final String USER_TOKEN = "user_token:";
     /**
      * 平台费率配置
      */
@@ -73,13 +81,7 @@ public class CacheConstants {
     /**
      * 平台商户id
      */
-    public static final String PLATFORM_BUS_ID  = "platform_bus_id";
-
-
-
-
-
-
+    public static final String PLATFORM_BUS_ID = "platform_bus_id";
 
 
 }

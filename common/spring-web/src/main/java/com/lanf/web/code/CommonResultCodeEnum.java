@@ -25,8 +25,9 @@ public enum CommonResultCodeEnum {
     /**
      * 特殊业务处理code 通常前段需求处理的code
      */
-    SESSION_EXPIRED(300, "sesion过期");
+    SESSION_EXPIRED(300, "token过期"),
 
+    OUT_LOGIN(301, "退出登入");
 
     //MethodArgumentNotValid
 //    LOGIN_AUTH(208, "请先登录"),

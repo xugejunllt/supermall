@@ -2,9 +2,11 @@ package com.lanf.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.user.model.dto.LoginUserDTO;
+import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.entity.UserDO;
 import com.lanf.user.model.vo.LoginUserVO;
+import com.lanf.user.model.vo.RefreshTokenVO;
 
 /**
  * <p>
@@ -25,4 +27,5 @@ public interface IUserService extends IService<UserDO> {
 
     LoginUserVO login(LoginUserDTO dt);
 
+    RefreshTokenVO refreshToken(RefreshTokenDTO dto);
 }

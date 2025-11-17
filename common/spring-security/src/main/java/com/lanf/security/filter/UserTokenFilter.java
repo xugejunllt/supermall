@@ -9,12 +9,14 @@ import com.lanf.constant.constant.Constants;
 import com.lanf.redis.service.RedisCache;
 import com.lanf.security.config.FilterPathConfig;
 import com.lanf.security.model.ValidateTokenBO;
+import com.lanf.security.utils.JwtUtils;
 import com.lanf.security.utils.UserContext;
 import com.lanf.security.utils.UserSessionCache;
 import com.lanf.web.code.CommonResultCodeEnum;
 import com.lanf.web.exception.BizException;
 import com.lanf.web.result.Result;
 import com.lanf.web.utils.ResponseUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -73,16 +75,17 @@ public class UserTokenFilter implements Filter {
 
         log.info("处理用户token开始");
         String channel = request.getHeader(Constants.CHANEL);
-        String userId = request.getHeader(Constants.USERID);
+        String deviceId = request.getHeader(Constants.DEVICE_ID);
         String userToken = request.getHeader(Constants.USER_TOKEN);
-        //校验token
-        ValidateTokenBO tokenBO = validateToken(request, channel, userId, userToken);
 
-        //处理session过期
+        //校验token
+        ValidateTokenBO tokenBO = validateToken(request, channel, deviceId, userToken);
+
+        //处理token过期
         processSessionExpired(tokenBO.getSessionExpired());
 
-        //刷新token过期时间
-        refreshSession(tokenBO);
+        //刷新token
+        refreshToken(tokenBO);
 
         //userid添加到 context中
         UserContext.setUserId(tokenBO.getUserId());
@@ -93,61 +96,76 @@ public class UserTokenFilter implements Filter {
 
     }
 
-    private void refreshSession(ValidateTokenBO tokenBO) {
-        Boolean refreshSession = userSessionCache.refreshSession(tokenBO.getChannel(), tokenBO.getUserId());
-        if (!refreshSession) {
-            //如果续期失败 可能key刚好过期了 统一用户重新登入
-            log.info("token过期");
-            processSessionExpired(tokenBO.getSessionExpired());
-        }
-    }
 
-    private ValidateTokenBO validateToken(HttpServletRequest request, String channel, String userId, String userToken) throws IRedisException {
+    private ValidateTokenBO validateToken(HttpServletRequest request, String channel, String deviceId,
+                                          String userToken) throws IRedisException {
 
 
-        if (IStringUtils.isEmpty(channel) || IStringUtils.isEmpty(userId) || IStringUtils.isEmpty(userToken)) {
+        if (IStringUtils.isEmpty(channel) || IStringUtils.isEmpty(deviceId) || IStringUtils.isEmpty(userToken)) {
             log.info("请求头参数为空");
             throw new BizException("请求头参数为空");
         }
-        Long id = null;
+
         Integer channel2 = null;
         Boolean sessionExpired = false;
+        String deviceId2 = null;
+        Long cacheUserId = null;
         try {
-            //用户id必须是Long类型
-            id = Long.parseLong(userId);
-        } catch (NumberFormatException e) {
-            log.info("userId错误");
-            throw new BizException("userId错误");
+
+            deviceId2 = JwtUtils.parseDeviceId(userToken);
+            cacheUserId = JwtUtils.parseUserId(userToken);
+        } catch (ExpiredJwtException e) {
+            log.info(" JWT token 过期");
+
+            return expiredTokenProcess();
+
+        } catch (Exception e) {
+
+            log.info("JWT 解析异常 [{}]", StackTraceUtil.getStackTrace(e));
+            throw new BizException("jwt解析异常");
+        }
+
+        if (!deviceId.equals(deviceId2)) {
+            //访问的客户端与登入时客户端一致  如果不一致跑出异常
+            log.info("设备id错误");
+            throw new BizException("设备id错误");
         }
 
         try {
-            //用户id必须是Long类型
             channel2 = Integer.parseInt(channel);
         } catch (NumberFormatException e) {
-            log.info("userId错误");
-            throw new BizException("userId错误");
+            log.info("channel错误");
+            throw new BizException("channel错误");
         }
 
-        String sessionKey = String.format(CacheConstants.USER_SESSION, channel, userId);
-        String token = userSessionCache.getSession(channel2, id);
+        String sessionKey = String.format(CacheConstants.USER_TOKEN, channel, cacheUserId);
+        String token = userSessionCache.getToken(channel2, cacheUserId);
         if (IStringUtils.isEmpty(token)) {
-            log.info("token过期");
-            sessionExpired = true;
+            log.info("缓存 token过期");
+            return expiredTokenProcess();
         }
+
         if (!IStringUtils.isEmpty(token) && !userToken.equals(token)) {
             log.info("请求头token与缓存token不一致");
             throw new BizException("请求头token与缓存token不一致");
         }
         //
         ValidateTokenBO bo = new ValidateTokenBO();
-        bo.setUserId(id);
+        bo.setUserId(cacheUserId);
         bo.setSessionKey(sessionKey);
         bo.setSessionExpired(sessionExpired);
         bo.setToken(token);
-
+        bo.setDeviceId(deviceId2);
         return bo;
     }
 
+    private ValidateTokenBO expiredTokenProcess(){
+
+        ValidateTokenBO validateTokenBO = new ValidateTokenBO();
+        validateTokenBO.setSessionExpired(true);
+
+        return validateTokenBO;
+    }
     private void processSessionExpired(Boolean sessionExpired) {
 
         if (sessionExpired) {
@@ -157,5 +175,15 @@ public class UserTokenFilter implements Filter {
         }
 
 
+    }
+
+    private void refreshToken(ValidateTokenBO tokenBO) {
+        Boolean refreshSession = userSessionCache.refreshToken(tokenBO.getChannel(), tokenBO.getUserId());
+
+        if (!refreshSession) {
+            //如果续期失败 可能key刚好过期了 统一刷新token
+            log.info("token过期");
+            processSessionExpired(tokenBO.getSessionExpired());
+        }
     }
 }
