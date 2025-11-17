@@ -357,7 +357,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     private RefreshTokenVO againRefreshToken(RefreshTokenDTO dto) {
 
-        log.info("重新颁发令牌");
+        log.info("重新颁发令牌开始");
         CacheSessionBO cacheSessionBO = userSessionCache.cacheSession(dto.getChannel(), dto.getUserId(), dto.getDeviceId());
         RefreshTokenVO vo = new RefreshTokenVO();
         vo.setRefreshToken(cacheSessionBO.getRefreshToken());
