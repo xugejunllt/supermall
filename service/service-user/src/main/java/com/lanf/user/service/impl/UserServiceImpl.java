@@ -308,8 +308,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                 refreshTokenVO = againRefreshToken(dto);
 
             } else {
-                refreshTokenVO = new RefreshTokenVO();
 
+                throw new BizException("不符合重新刷新令牌条件");
             }
 
         } else {
@@ -317,7 +317,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             refreshTokenVO = againRefreshToken(dto);
         }
 
-        refreshTokenVO.setRefresh(refresh);
         return refreshTokenVO;
     }
 
@@ -330,9 +329,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private boolean hasRefreshToken(RefreshTokenDTO dto) {
 
 
+        String refreshToken = dto.getRefreshToken();
+        String deviceId = parseDeviceId(refreshToken);
+
+
         //从风控系统获取用户特征 判断是否能够重新刷新令牌
 
         return true;
+    }
+
+    private String parseDeviceId(String refreshToken) {
+
+        String deviceId = null;
+        try {
+            deviceId = JwtUtils.parseDeviceId(refreshToken);
+
+        } catch (ExpiredJwtException e) {
+            log.info("token已过期");
+            return null;
+
+        } catch (Exception e) {
+            log.info("JWT 解析异常 [{}]", StackTraceUtil.getStackTrace(e));
+            throw new BizException("jwt解析异常");
+        }
+
+        return deviceId;
     }
 
     private RefreshTokenVO againRefreshToken(RefreshTokenDTO dto) {
@@ -368,8 +389,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                 refreshTokenExpired = true;
             } else {
                 log.info("JWT解析 deviceId失败[{}]", StackTraceUtil.getStackTrace(e));
-                //退出登入
-                outLogin();
+                throw new BizException("JWT解析 deviceId失败");
 
             }
 
@@ -378,8 +398,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             log.info("JWT refreshToken没有过期");
             if (!deviceId.equals(dto.getDeviceId())) {
                 log.info("设备id不一致");
-                //退出登入 ,
-                outLogin();
+                throw new BizException("设备id不一致");
+
 
             }
         }
@@ -394,18 +414,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         } else {
 
             if (!cacheRefreshToken.equals(refreshToken)) {
-                log.info("请求refreshToken与缓存refreshToken不一致");
-                //退出登入 ,
-                outLogin();
-
+                throw new BizException("请求refreshToken与缓存refreshToken不一致");
 
             }
         }
         //
         String token = userSessionCache.getToken(channel, userId);
         if (!IStringUtils.isEmpty(token)) {
-            log.info("token未过期,不允许刷新");
-            outLogin();
+            throw new BizException("token未过期,不允许刷新");
+
         }
         /**
          * JWT过期 或者缓存过期 都认为已过期
@@ -416,9 +433,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         return bo;
     }
 
-    private void outLogin(){
 
-        throw new BizException(CommonResultCodeEnum.OUT_LOGIN.getCode(),CommonResultCodeEnum.OUT_LOGIN.OUT_LOGIN.getMessage());
-
-    }
 }
+

@@ -70,6 +70,12 @@ public class UserController {
 
         return Result.ok();
     }
+
+    /**
+     * 如果出现异常 统一退出登入
+     * @param dto
+     * @return
+     */
     @PostMapping("/refreshToken")
     public Result<RefreshTokenVO> refreshToken(@RequestBody RefreshTokenDTO dto) {
 

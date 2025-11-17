@@ -11,5 +11,5 @@ public class RefreshTokenVO implements Serializable {
 
     private String refreshToken;
 
-    private Boolean refresh;
+
 }
