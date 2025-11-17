@@ -295,7 +295,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         //校验
         ValidateRefreshTokenBO refreshTokenBO = validateRefreshToken(dto);
-        Boolean refresh = true;
         RefreshTokenVO refreshTokenVO = null;
         if (refreshTokenBO.getRefreshTokenExpired()) {
             //刷新token已过期了
