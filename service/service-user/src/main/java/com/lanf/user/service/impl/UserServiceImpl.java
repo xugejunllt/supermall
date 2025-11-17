@@ -308,7 +308,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                 refreshTokenVO = againRefreshToken(dto);
 
             } else {
-
+                log.info("不符合重新刷新令牌条件");
                 throw new BizException("不符合重新刷新令牌条件");
             }
 
