@@ -22,13 +22,16 @@ public class CacheConstants {
      * 用户登入失败次数统计
      */
     public static final String LOGIN_FAIL_COUNT = "user:loginFail:%s"; //
-
+    /**
+     * 用户地址缓存
+     */
+    public static final String ADDRESS = "user:address:%s"; //
 
     /**
      * token过期时间 2个小时
      */
-    public static final int TOKEN_EXP_TIME = 2 * 60;
-
+    //public static final int TOKEN_EXP_TIME = 2 * 60;
+    public static final int TOKEN_EXP_TIME = 5 * 24 * 60;
     /**
      * 刷新token过期时间 7天
      */
@@ -37,6 +40,8 @@ public class CacheConstants {
      * 缓存时间1天
      */
     public static final int LOGIN_FAIL_COUNT_TIME = 24 * 60;
+
+    public static final int ADDRESS_TIME = 3*24 * 60;
 
 
 
@@ -56,7 +61,10 @@ public class CacheConstants {
 
         return String.format(CacheConstants.LOGIN_FAIL_COUNT,phoneNumber);
     }
+    public static String getADDRESS( Long userId) {
 
+        return String.format(CacheConstants.ADDRESS, userId);
+    }
 
 
     /**

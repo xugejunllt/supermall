@@ -5,11 +5,14 @@ import com.lanf.redis.service.RedisCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * 登入频率控制
+ */
 @Component
 public class LoginSecurityService {
 
 
-    private final  int MAX_FAIL_COUNT = 10;
+    private final  int MAX_FAIL_COUNT = 100000;
 
     @Autowired
     private RedisCache redisCache;
@@ -22,7 +25,7 @@ public class LoginSecurityService {
 
         Long userCount = null;
 
-        if (redisCache.hasKey(key)){
+        if ( !redisCache.hasKey(key)){
             userCount = redisCache.increment(key);
             redisCache.expire(key, CacheConstants.LOGIN_FAIL_COUNT_TIME);
 
@@ -36,12 +39,13 @@ public class LoginSecurityService {
     public boolean isLocked(String phoneNumber) {
         String key = CacheConstants.getLOGIN_FAIL_COUNT(phoneNumber);
 
+        Long increment = redisCache.increment(key);
+
         if ( !redisCache.hasKey(key)){
 
             return false;
         }
-        long cacheObject = Long.parseLong(redisCache.getCacheObject(key));
 
-        return cacheObject <= MAX_FAIL_COUNT;
+        return increment-1 > MAX_FAIL_COUNT;
     }
 }

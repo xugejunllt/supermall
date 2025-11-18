@@ -27,7 +27,6 @@ import com.lanf.user.model.vo.UserVO;
 import com.lanf.user.service.IUserLoginLogService;
 import com.lanf.user.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.web.code.CommonResultCodeEnum;
 import com.lanf.web.exception.BizException;
 import com.lanf.web.utils.WebUtil;
 import io.jsonwebtoken.ExpiredJwtException;

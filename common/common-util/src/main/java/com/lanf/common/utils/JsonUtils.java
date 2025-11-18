@@ -2,6 +2,7 @@ package com.lanf.common.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.xml.internal.ws.util.UtilException;
 import lombok.extern.slf4j.Slf4j;
@@ -10,15 +11,18 @@ import java.util.List;
 
 @Slf4j
 public class JsonUtils {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+
     public static String toJsonString(Object object) {
 
-        ObjectMapper objectMapper = new ObjectMapper();
 
         try {
             return objectMapper.writeValueAsString(object);
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
 
-            log.error("序列化异常,异常信息[{}]",StackTraceUtil.getStackTrace(e));
+            log.error("序列化异常object[{}],异常信息[{}]",object,StackTraceUtil.getStackTrace(e));
 
             throw new UtilException("序列化异常");
         }
@@ -26,7 +30,6 @@ public class JsonUtils {
 
     public static <T> T toObject(String json, Class<T> tClass) {
 
-        ObjectMapper objectMapper = new ObjectMapper();
         T value = null;
         try {
             value = objectMapper.readValue(json, tClass);
@@ -38,10 +41,26 @@ public class JsonUtils {
         return value;
     }
 
-    public static <T> List<T> toList(String json, Class<T> tClass) {
 
-        return JSON.parseArray(json, tClass);
+    // 反序列化 List
+    public static <T> List<T> toList(String json, Class<T> elementClass)  {
+
+        JavaType javaType = objectMapper.getTypeFactory()
+                .constructCollectionType(List.class, elementClass);
+        List<T> object = null;
+        try {
+
+            object = objectMapper.readValue(json, javaType);
+
+        } catch (JsonProcessingException e) {
+
+            log.error("反序列化异常json[{}],elementClass[{}],异常信息[{}]",elementClass,json,StackTraceUtil.getStackTrace(e));
+            throw new UtilException("反序列化异常");
+        }
+
+        return object;
+
+
 
     }
-
 }
