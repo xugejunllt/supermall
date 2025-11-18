@@ -112,7 +112,7 @@ public class BenefitGrantServiceFactory implements CommandLineRunner {
         return benefitGrantService;
     }
 
-    private boolean loadSuccess ;
+    private boolean loadSuccess = true ;
 
     @Override
     public void run(String... args) {
@@ -120,7 +120,15 @@ public class BenefitGrantServiceFactory implements CommandLineRunner {
 
         log.info("应用启动成功,加载BenefitGrantService开始");
         //避免循环依赖 通过上下文工具获取
-        IBenefitService benefitService = BeanUtil.getBean(IBenefitService.class);
+        IBenefitService benefitService = null;
+        try {
+            benefitService = BeanUtil.getBean(IBenefitService.class);
+        } catch (Exception e) {
+            //异常发生的原因无法预知 但提前做异常处理 比如手动DB插入脏数据又或者代码回滚了 新增的类不存在
+            //但DB中的code是存在的
+            log.error("获取benefitService失败");
+            loadSuccess = false;
+        }
 
         //查找开放的权益列表
         List<String> benefitDOList = null;
@@ -135,11 +143,15 @@ public class BenefitGrantServiceFactory implements CommandLineRunner {
         }
         if (IStringUtils.isEmpty(benefitDOList)) {
             log.info("没有可以使用的权益");
-            loadSuccess = true;
             return;
         }
-        benefitDOList.forEach(this::addBenefitGrantService);
-        loadSuccess = true;
+        try {
+            benefitDOList.forEach(this::addBenefitGrantService);
+        } catch (Exception e) {
+            log.error("加载权益失败{}",StackTraceUtil.getStackTrace(e));
+            loadSuccess = false;
+            return;
+        }
         log.info("应用启动重构,加载BenefitGrantService完成");
 
     }
