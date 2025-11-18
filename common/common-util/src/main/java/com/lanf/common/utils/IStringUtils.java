@@ -1,8 +1,11 @@
 package com.lanf.common.utils;
 
+import org.springframework.util.CollectionUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class IStringUtils {
@@ -48,5 +51,14 @@ public class IStringUtils {
     public static boolean isEmpty(CharSequence cs) {
 
         return org.apache.commons.lang3.StringUtils.isEmpty(cs);
+    }
+
+    public static boolean isEmpty(List list) {
+
+        return CollectionUtils.isEmpty(list);
+    }
+    public static boolean isEmpty(Set list) {
+
+        return CollectionUtils.isEmpty(list);
     }
 }
