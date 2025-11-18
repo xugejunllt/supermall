@@ -173,7 +173,6 @@ public class Constants
      * 请求头名称
      */
     public static  final String CHANEL = "channel";
-    public static  final String USERID = "userId";
     public static  final String USER_TOKEN = "userToken";
     public static  final String DEVICE_ID = "deviceId";
     /**

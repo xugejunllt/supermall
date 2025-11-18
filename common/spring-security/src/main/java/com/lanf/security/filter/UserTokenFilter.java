@@ -82,8 +82,10 @@ public class UserTokenFilter implements Filter {
         ValidateTokenBO tokenBO = validateToken(request, channel, deviceId, userToken);
 
         //处理token过期
-        processSessionExpired(tokenBO.getSessionExpired());
+        if (tokenBO.getSessionExpired()){
+            processSessionExpired();
 
+        }
         //刷新token
         refreshToken(tokenBO);
 
@@ -159,6 +161,7 @@ public class UserTokenFilter implements Filter {
         bo.setSessionExpired(sessionExpired);
         bo.setToken(token);
         bo.setDeviceId(deviceId2);
+        bo.setChannel(channel2);
         return bo;
     }
 
@@ -169,13 +172,13 @@ public class UserTokenFilter implements Filter {
 
         return validateTokenBO;
     }
-    private void processSessionExpired(Boolean sessionExpired) {
+    private void processSessionExpired() {
 
-        if (sessionExpired) {
+
 
             throw new BizException(CommonResultCodeEnum.SESSION_EXPIRED.getCode(),
                     CommonResultCodeEnum.SESSION_EXPIRED.getMessage());
-        }
+
 
 
     }
@@ -185,8 +188,8 @@ public class UserTokenFilter implements Filter {
 
         if (!refreshSession) {
             //如果续期失败 可能key刚好过期了 统一刷新token
-            log.info("token过期");
-            processSessionExpired(tokenBO.getSessionExpired());
+            log.info("token刷新失败");
+            processSessionExpired();
         }
     }
 }

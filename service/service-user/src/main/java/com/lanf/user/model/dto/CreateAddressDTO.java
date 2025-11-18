@@ -7,8 +7,10 @@ import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 @Data
-public class AddressAddDTO implements Serializable {
+public class CreateAddressDTO implements Serializable {
 
+
+    private Long userId;
 
     @ApiModelProperty(value = "联系人")
     @NotBlank(message = "联系人不能为空")

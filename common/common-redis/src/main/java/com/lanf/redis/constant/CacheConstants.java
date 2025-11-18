@@ -18,6 +18,11 @@ public class CacheConstants {
 
     public static final String USER_TOKEN = "user:token:%s:%s"; //
     public static final String USER_REFRESH_TOKEN = "user:refreshToken:%s:%s"; //
+    /**
+     * 用户登入失败次数统计
+     */
+    public static final String LOGIN_FAIL_COUNT = "user:loginFail:%s"; //
+
 
     /**
      * token过期时间 2个小时
@@ -28,6 +33,13 @@ public class CacheConstants {
      * 刷新token过期时间 7天
      */
     public static final int REFRESH_TOKEN_EXP_TIME = 7 * 24 * 60;
+    /**
+     * 缓存时间1天
+     */
+    public static final int LOGIN_FAIL_COUNT_TIME = 24 * 60;
+
+
+
     /**
      * 获取key方法
      */
@@ -40,6 +52,12 @@ public class CacheConstants {
 
         return String.format(CacheConstants.USER_REFRESH_TOKEN, channel, userId);
     }
+    public static String getLOGIN_FAIL_COUNT( String phoneNumber) {
+
+        return String.format(CacheConstants.LOGIN_FAIL_COUNT,phoneNumber);
+    }
+
+
 
     /**
      * 登录用户 redis key

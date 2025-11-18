@@ -1,9 +1,12 @@
 package com.lanf.user.controller.app;
 
 
-import com.lanf.user.model.dto.AddressAddDTO;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.security.utils.UserContext;
+import com.lanf.user.model.dto.CreateAddressDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
 import com.lanf.user.model.entity.AddressDO;
+import com.lanf.user.model.vo.AddressVO;
 import com.lanf.user.service.IAddressService;
 import com.lanf.web.result.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -29,24 +32,35 @@ public class AddressAppController {
     @Autowired
     private IAddressService addressService;
 
+    @PostMapping("/createAddress")
+    public Result<Void>  createAddress(@Validated @RequestBody CreateAddressDTO dto){
 
+        Long userId = UserContext.getUserId();
+        log.info("用户[{}][{}]开始,入参:[{}]",userId, "添加收货地址", JsonUtils.toJsonString(dto));
+        dto.setUserId(userId);
+        addressService.createAddress(dto);
 
-    @GetMapping("/getDefaultAddress")
-    public Result<AddressDO> getDefaultAddress() {
-        log.info("获取默认地址");
-        return Result.ok(addressService.getDefaultAddress());
+        log.info("[{}]结束", "添加收货地址");
+
+        return Result.ok();
     }
 
-    @GetMapping("/addressList")
-    public Result<List<AddressDO>> addressList() {
-        log.info("获取地址列表");
-        return Result.ok(addressService.addressList());
+
+    @GetMapping("/listAddress")
+    public Result<List<AddressVO>> listAddress() {
+
+        log.info("用户[{}][{}]开始", UserContext.getUserId(),"获取地址列表");
+
+        return Result.ok(addressService.listAddress());
     }
 
     @PostMapping("/setDefaultAddress")
     public Result setDefaultAddress(@Validated @RequestBody SetDefaultAddressDTO dto) {
 
-        log.info("设置地址为默认地址dto:{}", dto);
+        Long userId = UserContext.getUserId();
+        log.info("用户[{}][{}]开始,入参:[{}]",userId, "设置地址为默认地址", JsonUtils.toJsonString(dto));
+        dto.setUserId(userId);
+        log.info("[{}]结束", "设置地址为默认地址");
         addressService.setDefaultAddress(dto);
         return Result.ok();
     }

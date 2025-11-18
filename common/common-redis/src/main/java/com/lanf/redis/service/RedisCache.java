@@ -121,7 +121,7 @@ public class RedisCache {
             hasKey = redisTemplate.hasKey(key);
         } catch (Exception e) {
 
-            log.error("判断key失败,异常堆栈[{}]", StackTraceUtil.getStackTrace(e));
+            log.error("判断key失败key[{}],异常堆栈[{}]",key, StackTraceUtil.getStackTrace(e));
             throw new IRedisException("判断key失败");
         }
         return hasKey;
@@ -199,6 +199,18 @@ public class RedisCache {
         return setOperation;
     }
 
+    public Long increment(String key){
+
+        Long increment = null;
+        try {
+            increment = redisTemplate.opsForValue().increment(key);
+        } catch (Exception e) {
+            log.error("递增key失败key[{}],异常堆栈[{}]",key, StackTraceUtil.getStackTrace(e));
+            throw new IRedisException("递增key失败key");
+        }
+
+        return increment;
+    }
     /**
      * 获得缓存的set
      *

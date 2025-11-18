@@ -9,4 +9,5 @@ public class SetDefaultAddressDTO implements Serializable {
 
     private Long id;
 
+    private Long userId;
 }

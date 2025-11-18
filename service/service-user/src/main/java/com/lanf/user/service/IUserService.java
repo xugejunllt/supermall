@@ -7,6 +7,7 @@ import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.entity.UserDO;
 import com.lanf.user.model.vo.LoginUserVO;
 import com.lanf.user.model.vo.RefreshTokenVO;
+import com.lanf.user.model.vo.UserVO;
 
 /**
  * <p>
@@ -28,4 +29,6 @@ public interface IUserService extends IService<UserDO> {
     LoginUserVO login(LoginUserDTO dt);
 
     RefreshTokenVO refreshToken(RefreshTokenDTO dto);
+
+    UserVO getUserById();
 }

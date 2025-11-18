@@ -2,16 +2,19 @@ package com.lanf.user.controller.app;
 
 
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.security.utils.UserContext;
 import com.lanf.user.model.dto.LoginUserDTO;
 import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.vo.LoginUserVO;
 import com.lanf.user.model.vo.RefreshTokenVO;
+import com.lanf.user.model.vo.UserVO;
 import com.lanf.user.service.IUserService;
 import com.lanf.web.exception.BizException;
 import com.lanf.web.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
@@ -27,7 +30,7 @@ public class UserController {
 
 
     @PostMapping("/register")
-    public Result<Void> register(@RequestBody RegisterUserDTO dto) {
+    public Result<Void> register(@Validated @RequestBody RegisterUserDTO dto) {
 
         log.info("[{}]开始,入参:[{}]", "注册", JsonUtils.toJsonString(dto));
         userService.registerUser(dto);
@@ -49,7 +52,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public Result<LoginUserVO> login(@RequestBody LoginUserDTO dt) {
+    public Result<LoginUserVO> login(@Validated @RequestBody LoginUserDTO dt) {
 
         log.info("[{}]开始,入参:[{}]", "登入", JsonUtils.toJsonString(dt));
 
@@ -78,7 +81,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/refreshToken")
-    public Result<RefreshTokenVO> refreshToken(@RequestBody RefreshTokenDTO dto) {
+    public Result<RefreshTokenVO> refreshToken(@Validated @RequestBody RefreshTokenDTO dto) {
 
         log.info("[{}]开始,入参:[{}]", "刷新token", dto);
 
@@ -97,6 +100,14 @@ public class UserController {
         log.info("[{}]结束", "刷新token");
         throw new BizException("1");
 
+    }
+
+    @GetMapping("/getUserById")
+    public Result<UserVO> getUserById() {
+
+        log.info("用户[{}][{}]开始", UserContext.getUserId(),"根据id查询用户信息");
+
+        return Result.ok(userService.getUserById());
     }
 }
 

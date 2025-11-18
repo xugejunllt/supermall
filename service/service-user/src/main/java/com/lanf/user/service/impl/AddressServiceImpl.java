@@ -2,16 +2,20 @@ package com.lanf.user.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.lock.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.security.utils.UserContext;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.user.mapper.AddressMapper;
-import com.lanf.user.model.dto.AddressAddDTO;
+import com.lanf.user.model.dto.CreateAddressDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
 import com.lanf.user.model.entity.AddressDO;
+import com.lanf.user.model.vo.AddressVO;
 import com.lanf.user.service.IAddressService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,12 +30,13 @@ import java.util.List;
 public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> implements IAddressService {
 
     @Override
-    public void addAddress(AddressAddDTO dto) {
+    @DistributedLock(key = "#dto.userId")
+    public void createAddress(CreateAddressDTO dto) {
         AddressDO addressDO = new AddressDO();
         BeanCopyUtils.copy(dto, addressDO);
-        Long userId = UserUtils.getUserId();
-        addressDO.setMemberId(userId);
-        List<AddressDO> list = this.lambdaQuery().eq(AddressDO::getMemberId, userId).list();
+        Long userId = UserContext.getUserId();
+        addressDO.setUserId(userId);
+        List<AddressDO> list = this.lambdaQuery().eq(AddressDO::getUserId, userId).list();
         if (list.isEmpty()) {
             //只有一条，设置为默认地址
             addressDO.setDefaultAddress(0);
@@ -44,19 +49,30 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
 
     @Override
     public AddressDO getDefaultAddress() {
-        Long userId = UserUtils.getUserId();
 
-        return this.lambdaQuery().eq(AddressDO::getMemberId, userId).eq(AddressDO::getDefaultAddress, 0).one();
+        Long userId = UserContext.getUserId();
+
+        return this.lambdaQuery().eq(AddressDO::getUserId, userId).eq(AddressDO::getDefaultAddress, 0).one();
     }
 
     @Override
-    public List<AddressDO> addressList() {
+    public List<AddressVO> listAddress() {
 
-        return this.lambdaQuery().eq(AddressDO::getMemberId, UserUtils.getUserId() ).orderByDesc(BaseEntity::getCreateTime).list();
+        Long userId = UserContext.getUserId();
+
+        List<AddressDO> list = this.lambdaQuery().eq(AddressDO::getUserId, userId).
+                orderByDesc(BaseEntity::getUpdateTime).list();
+        if (list.isEmpty()){
+
+            return new ArrayList<>();
+        }
+        return  BeanCopyUtils.copyBeanList(list,AddressVO.class);
     }
 
+
+    @Override
     @Transactional
-    @Override
+    //@DistributedLock(key = "#dto.userId")
     public void setDefaultAddress(SetDefaultAddressDTO dto) {
 
         //把上个默认地址更新
@@ -64,13 +80,16 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
         AddressDO updateAddressDO = new AddressDO();
         updateAddressDO.setId(defaultAddress.getId());
         updateAddressDO.setDefaultAddress(1);
-        this.updateById(updateAddressDO);
 
         //更新当前地址为默认地址
         Long id = dto.getId();
         AddressDO updateAddressDO2 = new AddressDO();
         updateAddressDO2.setId(id);
         updateAddressDO2.setDefaultAddress(0);
-        this.updateById(updateAddressDO2);
+        List<AddressDO> addressDOList = new ArrayList<>();
+        addressDOList.add(updateAddressDO);
+        addressDOList.add(updateAddressDO2);
+        this.updateBatchById(addressDOList);
+
     }
 }

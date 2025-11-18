@@ -1,25 +1,14 @@
-package com.lanf.user.model.entity;
+package com.lanf.user.model.vo;
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-/**
- * <p>
- * 
- * </p>
- *
- * @author 江帅帅 Jss_forever
- * @since 2024-06-10
- */
+import java.io.Serializable;
+
 @Data
-@TableName("address")
-public class AddressDO extends BaseEntity {
+public class AddressVO implements Serializable {
 
-private static final long serialVersionUID=1L;
-
-
+    private Long id;
 
     @ApiModelProperty(value = "用户id")
     private Long userId;
@@ -37,6 +26,5 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "是否默认 0默认 1.不是")
     private Integer defaultAddress;
-
 
 }
