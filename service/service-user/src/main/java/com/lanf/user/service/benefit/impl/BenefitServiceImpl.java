@@ -3,6 +3,7 @@ package com.lanf.user.service.benefit.impl;
 import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.lock.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.user.mapper.BenefitMapper;
 import com.lanf.user.model.dto.CreateBenefitDTO;
@@ -36,10 +37,10 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
     private BenefitGrantServiceFactory benefitGrantServiceFactory;
 
     @Override
+    @DistributedLock(key = "#dto.code")
     public void createBenefit(CreateBenefitDTO dto) {
 
         validateCreateBenefit(dto);
-        ;
 
         BenefitDO benefitDO = BeanCopyUtils.copyBean(dto, BenefitDO.class);
         benefitDO.setStatus(0);
@@ -67,6 +68,7 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
 
     @Override
     @Transactional//使用事务 DB与添加service同时成功或失败
+    @DistributedLock(key = "#id")
     public void useBenefit(Long id) {
 
         validateUseBenefit(id);
@@ -103,8 +105,8 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
 
     @Override
     @Transactional//使用事务 DB与添加service同时成功或失败
+    @DistributedLock(key = "#id")
     public void disableBenefit(Long id) {
-
 
         validateDisableBenefit(id);
         //更新

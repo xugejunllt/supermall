@@ -17,6 +17,7 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.BindException;
 
 import java.lang.reflect.Method;
 
@@ -52,11 +53,13 @@ public class DistributedLockAspect {
 
             if (locked) {
                 return joinPoint.proceed();
+            } else {
+
+                throw new IRedisException("正在执行，请稍后");
             }
         } finally {
             distributedLocker.unlock(lockKey);
         }
-        return null;
     }
 
     /**
