@@ -6,8 +6,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 钱包余额发放权益
- *@Component 避免权益没有开放 被滥用 手动创建
+ *
  */
+@Component
 
 public class WalletBalanceBenefitGrantServiceImpl implements BenefitGrantService{
 

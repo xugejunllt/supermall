@@ -47,6 +47,10 @@ public class BenefitGrantServiceFactory implements CommandLineRunner {
 
     }
 
+    /**
+     * 获取可以权益列表
+     *
+     */
     public Set<BenefitGrantService> listBenefitGrantService(Set<String> codeSet) {
 
         if (IStringUtils.isEmpty(codeSet)) {
@@ -84,16 +88,16 @@ public class BenefitGrantServiceFactory implements CommandLineRunner {
         BenefitGrantService benefitGrantService = null;
         if (BenefitCodeEnum.GRANT_COUPON.getCode().equals(benefitGrantCode)) {
 
-            benefitGrantService = new CouponBenefitGrantServiceImpl();
+            benefitGrantService =  BeanUtil.getBean(CouponBenefitGrantServiceImpl.class);
         }
         if (BenefitCodeEnum.GRANT_WALLET_BALANCE.getCode().equals(benefitGrantCode)) {
-            benefitGrantService = new CouponBenefitGrantServiceImpl();
+
+            benefitGrantService =  BeanUtil.getBean(CouponBenefitGrantServiceImpl.class);
         }
 
         if (benefitGrantService == null) {
             throw new BizException("权益code服务不存在");
         }
-
         return  benefitGrantService;
     }
 
@@ -101,7 +105,7 @@ public class BenefitGrantServiceFactory implements CommandLineRunner {
     @Override
     public void run(String... args)  {
 
-        log.info("应用启动重构,加载BenefitGrantService开始");
+        log.info("应用启动成功,加载BenefitGrantService开始");
         //避免循环依赖 通过上下文工具获取
         IBenefitService benefitService = BeanUtil.getBean(IBenefitService.class);
         //查找开放的权益列表
