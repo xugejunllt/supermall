@@ -5,7 +5,6 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.security.utils.UserContext;
-import com.lanf.security.utils.UserUtils;
 import com.lanf.user.mapper.AddressMapper;
 import com.lanf.user.model.dto.CreateAddressDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;

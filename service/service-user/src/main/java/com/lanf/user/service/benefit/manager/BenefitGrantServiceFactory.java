@@ -3,7 +3,6 @@ package com.lanf.user.service.benefit.manager;
 import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.StackTraceUtil;
-import com.lanf.user.model.entity.BenefitDO;
 import com.lanf.user.model.enums.BenefitCodeEnum;
 import com.lanf.user.service.benefit.IBenefitService;
 import com.lanf.web.exception.BizException;

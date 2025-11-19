@@ -5,7 +5,6 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.security.utils.UserContext;
 import com.lanf.user.model.dto.CreateAddressDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
-import com.lanf.user.model.entity.AddressDO;
 import com.lanf.user.model.vo.AddressVO;
 import com.lanf.user.service.IAddressService;
 import com.lanf.web.result.Result;

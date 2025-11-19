@@ -4,7 +4,6 @@ package com.lanf.user.controller.admin;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.user.model.dto.CreateBenefitDTO;
-import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.entity.BenefitDO;
 import com.lanf.user.model.query.BenefitPageQuery;
 import com.lanf.user.service.benefit.IBenefitService;

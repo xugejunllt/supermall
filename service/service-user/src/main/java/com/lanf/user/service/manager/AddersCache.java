@@ -1,6 +1,5 @@
 package com.lanf.user.service.manager;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.redis.constant.CacheConstants;
 import com.lanf.redis.service.RedisCache;

@@ -9,6 +9,7 @@ import lombok.Getter;
 @Getter
 public enum BenefitCodeEnum {
 
+    EMPTY("9999","空权益"),
     GRANT_COUPON("1001", "赠送优惠卷"),
     GRANT_WALLET_BALANCE("1002", "赠送钱包余额");
 
