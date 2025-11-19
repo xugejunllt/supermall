@@ -1,8 +1,10 @@
 package com.lanf.user.service.benefit;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.mybatis.base.PageResult;
 import com.lanf.user.model.dto.CreateBenefitDTO;
 import com.lanf.user.model.entity.BenefitDO;
+import com.lanf.user.model.query.BenefitPageQuery;
 
 import java.util.List;
 
@@ -36,4 +38,9 @@ public interface IBenefitService extends IService<BenefitDO> {
      * @return
      */
     List<String> listUseBenefitCode();
+
+
+    PageResult<BenefitDO> pageBenefit(BenefitPageQuery query);
+
+
 }

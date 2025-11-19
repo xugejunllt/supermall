@@ -154,7 +154,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         String codeKey = String.format(CacheConstants.LOGIN_CODE_KEY, phoneNumber);
 
-        redisCache.setCacheObject(codeKey, code, 10);
+        redisCache.setCacheObject(codeKey, code, 1000000000);
 
     }
 

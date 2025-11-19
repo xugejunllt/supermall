@@ -20,7 +20,7 @@ public class CreateBenefitDTO implements Serializable {
 
     //权益描述
     @NotNull( message = "权益描述不能为空")
-    private String desc;
+    private String benefitDesc;
 
 
 }

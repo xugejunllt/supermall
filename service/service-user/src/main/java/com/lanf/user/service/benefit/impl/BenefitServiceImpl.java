@@ -1,14 +1,19 @@
 package com.lanf.user.service.benefit.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.mybatis.base.PageResult;
+import com.lanf.security.utils.UserUtils;
 import com.lanf.user.mapper.BenefitMapper;
 import com.lanf.user.model.dto.CreateBenefitDTO;
 import com.lanf.user.model.entity.BenefitDO;
 import com.lanf.user.model.enums.BenefitCodeEnum;
+import com.lanf.user.model.query.BenefitPageQuery;
 import com.lanf.user.service.benefit.IBenefitService;
 import com.lanf.user.service.benefit.manager.BenefitGrantServiceFactory;
 import com.lanf.web.exception.BizException;
@@ -73,10 +78,11 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
 
         validateUseBenefit(id);
         //更新
-        LambdaUpdateChainWrapper<BenefitDO> chainWrapper = lambdaUpdate();
-        chainWrapper.eq(BaseEntity::getId, id);
-        chainWrapper.set(BenefitDO::getStatus, 1);
-        boolean update = this.update(chainWrapper);
+
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, id)
+                .set(BenefitDO::getStatus, 1)
+                .update();
         if (!update) {
             log.info("更新失败");
             throw new BizException("更新失败");
@@ -110,10 +116,10 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
 
         validateDisableBenefit(id);
         //更新
-        LambdaUpdateChainWrapper<BenefitDO> chainWrapper = lambdaUpdate();
-        chainWrapper.eq(BaseEntity::getId, id);
-        chainWrapper.set(BenefitDO::getStatus, 0);
-        boolean update = this.update(chainWrapper);
+        boolean update = update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, id)
+                .set(BenefitDO::getStatus, 0)
+                .update();
         if (!update) {
             log.info("更新失败");
             throw new BizException("更新失败");
@@ -152,6 +158,17 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
         }
 
         return listCode;
+    }
+
+    @Override
+    public PageResult<BenefitDO> pageBenefit(BenefitPageQuery query) {
+
+        IPage<BenefitDO> page = new Page<>(query.getPage(), query.getPageSize());
+        IPage<BenefitDO> pageResult = this.lambdaQuery().
+                orderByDesc(BaseEntity::getUpdateTime)
+                .page(page);
+
+        return PageResult.toPageResult(pageResult);
     }
 
 }

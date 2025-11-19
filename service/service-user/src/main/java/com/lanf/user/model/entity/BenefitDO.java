@@ -38,7 +38,8 @@ private static final long serialVersionUID=1L;
     //状态流程规则 0->1 1>0 0->2 1>2
     private Integer status;
     //权益描述
-    private String desc;
+
+    private String benefitDesc;
 
 
 
