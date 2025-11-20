@@ -3,6 +3,7 @@ package com.lanf.user.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -27,6 +28,10 @@ public class UserLevelDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
+    /**
+     * userId 作唯一索引 避免重复插入
+     */
+
     @ApiModelProperty(value = "用户ID")
     private Long userId;
 
@@ -40,6 +45,7 @@ private static final long serialVersionUID=1L;
     private Integer growthValue;
 
     @ApiModelProperty(value = "乐观锁版本号")
+    @Version
     private Long version;
 
 

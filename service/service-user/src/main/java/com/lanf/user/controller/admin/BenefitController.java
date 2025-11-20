@@ -3,10 +3,12 @@ package com.lanf.user.controller.admin;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.user.model.dto.CalculationGrowthValueDTO;
 import com.lanf.user.model.dto.CreateBenefitDTO;
 import com.lanf.user.model.entity.BenefitDO;
 import com.lanf.user.model.query.BenefitPageQuery;
 import com.lanf.user.service.benefit.IBenefitService;
+import com.lanf.user.service.benefit.IUserLevelService;
 import com.lanf.web.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,10 @@ public class BenefitController {
 
     @Autowired
     private IBenefitService benefitService;
+
+    @Autowired
+    private IUserLevelService userLevelService;
+
 
     @PostMapping("/createBenefit")
     public Result<Void> createBenefit(@Validated @RequestBody CreateBenefitDTO dto) {
@@ -79,7 +85,17 @@ public class BenefitController {
 
 
 
+    @PostMapping("/calculationGrowthValue")
+    public Result<Void>  calculationGrowthValue(@Validated @RequestBody CalculationGrowthValueDTO dto) {
 
+        log.info("[{}]开始,入参:[{}]", "计算成长值", dto);
+
+        userLevelService.calculationGrowthValue(dto);
+
+        log.info("[{}]结束", "计算成长值");
+
+        return Result.ok();
+    }
 
 }
 

@@ -9,8 +9,8 @@ import lombok.Getter;
 @Getter
 public enum BenefitGrantEventEnum {
 
-    USER_Login("1001", "用户登入事件", 51),
-    CREATE_ORDER("1002", "用户下单事件", 51);
+    USER_REGISTER("1001", "用户注册事件", 50),
+    CREATE_ORDER("1002", "用户下单事件", 50);
 
     private String code;
     private String name;

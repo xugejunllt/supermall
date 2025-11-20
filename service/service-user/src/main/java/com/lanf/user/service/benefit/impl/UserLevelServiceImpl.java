@@ -3,26 +3,30 @@ package com.lanf.user.service.benefit.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.IStringUtils;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.enums.BenefitGrantEventEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.user.mapper.UserLevelMapper;
 import com.lanf.user.model.bo.CalculationGrowthValueBO;
 import com.lanf.user.model.dto.CalculationGrowthValueDTO;
+import com.lanf.user.model.dto.GrantBenefitDTO;
+import com.lanf.user.model.dto.LevelBenefitDTO;
 import com.lanf.user.model.entity.UserLevelConfigDO;
 import com.lanf.user.model.entity.UserLevelDO;
 import com.lanf.user.model.entity.UserLevelDetailDO;
 import com.lanf.user.service.benefit.IUserLevelConfigService;
 import com.lanf.user.service.benefit.IUserLevelDetailService;
 import com.lanf.user.service.benefit.IUserLevelService;
+import com.lanf.user.service.benefit.manager.BenefitGrantService;
+import com.lanf.user.service.benefit.manager.BenefitGrantServiceFactory;
 import com.lanf.web.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -44,9 +48,14 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
     @Autowired
     private IUserLevelDetailService userLevelDetailService;
 
+    @Autowired
+    private BenefitGrantServiceFactory benefitGrantServiceFactory;
+
     @Override
+    @Transactional
     public void calculationGrowthValue(CalculationGrowthValueDTO dto) {
 
+        log.info("成长值计算开始[{}]", JsonUtils.toJsonString(dto));
         Long userId = dto.getUserId();
        //获取等级配置 key:level
         Map<Integer, UserLevelConfigDO> levelMap = getLevelMap();
@@ -57,35 +66,58 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
         //更新
         updateUserLevel( growthValueBO);
         if (growthValueBO.getUpgrade()){
-            log.info("升级成功,发放权益");
-        }
-        z
-    }
+            log.info("升级成功,发放权益开始");
+            grantBenefit(growthValueBO.getLevelPrivileges(),userId);
+            log.info("发放权益结束");
 
+        }
+        log.info("成长值计算结束");
+
+    }
+    private void grantBenefit(String levelPrivileges,Long userId){
+
+        List<LevelBenefitDTO> list = JsonUtils.toList(levelPrivileges, LevelBenefitDTO.class);
+
+        Set<String> benefitsCode = list.stream()
+                .map(LevelBenefitDTO::getCode)
+                .collect(Collectors.toSet());
+        Set<BenefitGrantService> grantServices = benefitGrantServiceFactory.listBenefitGrantService(benefitsCode);
+
+        GrantBenefitDTO grantBenefitDTO = new GrantBenefitDTO();
+        grantBenefitDTO.setUserId(userId);
+        grantServices.forEach(a->{
+
+            a.execute(grantBenefitDTO);
+
+        });
+
+    }
     private void updateUserLevel(CalculationGrowthValueBO growthValueBO){
 
+        log.info("更新成长值开始");
         Long userId = growthValueBO.getUserId();
         UserLevelDO one = this.lambdaQuery().eq(UserLevelDO::getUserId, userId).one();
-
+        //乐观锁更新 有乐观锁上层就不需要分布式锁
         boolean update = this.lambdaUpdate().eq(BaseEntity::getId, one.getId())
                 .eq(UserLevelDO::getVersion, one.getVersion())
                 .set(UserLevelDO::getLevelId, growthValueBO.getLevelId())
                 .set(UserLevelDO::getLevel, growthValueBO.getLevel())
-                .set(UserLevelDO::getGrowthValue, growthValueBO.getGrowthValue())
+                .set(UserLevelDO::getGrowthValue, growthValueBO.getCurrentTotal())
+                .set(UserLevelDO::getVersion,one.getVersion()+1)
                 .update();
         if ( !update){
             throw new BizException("更新失败");
         }
         UserLevelDetailDO userLevelDetailDO = BeanCopyUtils.copyBean(growthValueBO, UserLevelDetailDO.class);
         userLevelDetailService.save(userLevelDetailDO);
-
+        log.info("更新成长值结束");
 
     }
 
     private CalculationGrowthValueBO doCalculationGrowthValue(CalculationGrowthValueDTO dto,Map<Integer, UserLevelConfigDO> levelMap){
 
 
-
+        log.info("开始计算");
         String eventCode = dto.getEventCode();
         Long userId = dto.getUserId();
 
@@ -120,6 +152,7 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
 
         if (nextLevelConfigDO != null){
 
+            log.info("未满级");
             Integer growthValue1 = nextLevelConfigDO.getGrowthValue();
 
             if (addGrowthValue >=growthValue1 ){
@@ -152,7 +185,7 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
         bo.setLevel(currentLevel);
         bo.setLevelId(levelId);
         bo.setUpgrade(upgrade);
-
+        log.info("计算结束");
         return  bo;
     }
 
@@ -189,8 +222,11 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
 
         UserLevelDO one = this.lambdaQuery().eq(UserLevelDO::getUserId, userId).one();
         if ( one == null){
+
+            log.info("创建新的用户等级");
+            Integer defaultLevel = 1;
             //从缓存中找到 默认1级
-            UserLevelConfigDO configDO = levelMap.get(1);
+            UserLevelConfigDO configDO = levelMap.get(defaultLevel);
             if (configDO == null){
                 log.info("默认等级配置不存在");
                 throw new BizException("默认等级配置不存在");
@@ -199,7 +235,19 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
             userLevelDO.setUserId(userId);
             userLevelDO.setLevelId(configDO.getId());
             userLevelDO.setGrowthValue(configDO.getGrowthValue());
-            this.save(userLevelDO);
+            userLevelDO.setLevel(defaultLevel);
+            try {
+                this.save(userLevelDO);
+            } catch (DuplicateKeyException e) {
+
+                log.warn("重复插入用户等级");
+
+                throw new BizException("重复插入用户等级");
+            }
+
+        } else {
+
+            log.info("等级用户已存在,无需创建");
         }
     }
 
