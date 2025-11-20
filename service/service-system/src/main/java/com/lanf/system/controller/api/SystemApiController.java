@@ -1,7 +1,7 @@
 package com.lanf.system.controller.api;
 
 import com.lanf.system.model.vo.ShopVO;
-import com.lanf.system.service.company.IShopService;
+import com.lanf.system.service.merchant.IShopService;
 import com.lanf.web.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

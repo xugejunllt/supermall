@@ -28,7 +28,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "头像")
     private String headUrl;
 
-    private Long businessId;
+    private Long merchantId;
 
 
 

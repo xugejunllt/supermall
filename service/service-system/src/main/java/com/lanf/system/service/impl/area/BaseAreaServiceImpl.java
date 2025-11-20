@@ -1,10 +1,10 @@
 package com.lanf.system.service.impl.area;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.system.mapper.area.BaseAreaMapper;
+import com.lanf.system.mapper.BaseAreaMapper;
 import com.lanf.system.model.entiry.BaseAreaDO;
 import com.lanf.system.model.vo.BaseAreaVO;
-import com.lanf.system.service.area.IBaseAreaService;
+import com.lanf.system.service.IBaseAreaService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

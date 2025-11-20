@@ -1,4 +1,4 @@
-package com.lanf.system.service.impl.company;
+package com.lanf.system.service.merchant.company;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -8,13 +8,13 @@ import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.constant.constant.Constants;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.system.mapper.company.ShopMapper;
-import com.lanf.system.model.entiry.CompanyDO;
+import com.lanf.system.mapper.ShopMapper;
+import com.lanf.system.model.entiry.MerchantDO;
 import com.lanf.system.model.entiry.ShopDO;
 import com.lanf.system.model.query.ShopPageQuery;
 import com.lanf.system.model.vo.ShopVO;
-import com.lanf.system.service.company.ICompanyService;
-import com.lanf.system.service.company.IShopService;
+import com.lanf.system.service.merchant.IMerchantService;
+import com.lanf.system.service.merchant.IShopService;
 import com.lanf.system.service.manager.SystemManagerService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, ShopDO> implements 
     private SystemManagerService systemManagerService;
     @Lazy
     @Autowired
-    private ICompanyService companyService;
+    private IMerchantService companyService;
 
     @Override
     public PageResult<ShopDO> shopPage(ShopPageQuery query) {
@@ -67,9 +67,9 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, ShopDO> implements 
     public Long getPlatformShopId() {
 
         ThreadLocalUtils.addIgnoreTableName(true);
-        CompanyDO companyDO = companyService.lambdaQuery().eq(CompanyDO::getTenantCode, Constants.ADMIN_TENANT_CODE).one();
+        MerchantDO companyDO = companyService.lambdaQuery().eq(MerchantDO::getTenantCode, Constants.ADMIN_TENANT_CODE).one();
 
-        ShopDO one = this.lambdaQuery().eq(ShopDO::getBusinessId, companyDO.getId()).one();
+        ShopDO one = this.lambdaQuery().eq(ShopDO::getMerchantId, companyDO.getId()).one();
 
         return one.getId();
     }
@@ -78,9 +78,9 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, ShopDO> implements 
     public String getTenantCodeByShopId(Long shopId) {
 
         ShopDO shopDO = this.getById(shopId);
-        Long businessId = shopDO.getBusinessId();
+        Long businessId = shopDO.getMerchantId();
         ThreadLocalUtils.addIgnoreTableName(true);
-        CompanyDO companyDO = companyService.getById(businessId);
+        MerchantDO companyDO = companyService.getById(businessId);
 
         return companyDO.getTenantCode();
     }

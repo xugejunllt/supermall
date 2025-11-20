@@ -2,17 +2,16 @@ package com.lanf.system.service.impl;
 
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
-import com.lanf.constant.constant.Constants;
 import com.lanf.system.mapper.SysUserMapper;
 import com.lanf.system.model.bo.CustomUserBO;
-import com.lanf.system.model.entiry.CompanyDO;
+import com.lanf.system.model.entiry.MerchantDO;
 import com.lanf.system.model.entiry.ShopDO;
 import com.lanf.system.model.entiry.SysUserDO;
 import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.service.SysMenuService;
 import com.lanf.system.service.SysUserService;
-import com.lanf.system.service.company.ICompanyService;
-import com.lanf.system.service.company.IShopService;
+import com.lanf.system.service.merchant.IMerchantService;
+import com.lanf.system.service.merchant.IShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,7 +32,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private SysUserMapper sysUserMapper;
     @Autowired
-    private ICompanyService companyService;
+    private IMerchantService companyService;
     @Autowired
     private IShopService shopService;
 
@@ -54,17 +53,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (sysUser.getStatus() == 0) {
             throw new RuntimeException("账号已停用");
         }
+        /**
+         * 这里过滤出平台租户才有的页面权限
+         */
         List<String> userPermsList = sysMenuService.findUserPermsList(sysUser.getId() + "", username);
         for (String perm : userPermsList) {
             authorities.add(new SimpleGrantedAuthority(perm.trim()));
         }
         ThreadLocalUtils.addIgnoreTableName(true);
-        CompanyDO companyDO = companyService.lambdaQuery().
-                eq(CompanyDO::getTenantCode,tenantCode).
+        MerchantDO companyDO = companyService.lambdaQuery().
+                eq(MerchantDO::getTenantCode,tenantCode).
                 one();
 
         //商家用户才有店铺
-        ShopDO one = shopService.lambdaQuery().eq(ShopDO::getBusinessId,companyDO.getId()).one();
+        ShopDO one = shopService.lambdaQuery().eq(ShopDO::getMerchantId,companyDO.getId()).one();
         sysUserVO.setShopId(one.getId());
         sysUserVO.setBusinessId(companyDO.getId());
 

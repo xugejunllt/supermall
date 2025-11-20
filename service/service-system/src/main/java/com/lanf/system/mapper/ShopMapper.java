@@ -1,4 +1,4 @@
-package com.lanf.system.mapper.company;
+package com.lanf.system.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lanf.system.model.entiry.ShopDO;

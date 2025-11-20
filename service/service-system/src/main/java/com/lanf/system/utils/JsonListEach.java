@@ -3,7 +3,7 @@ package com.lanf.system.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.*;
-import com.lanf.system.model.dto.CompanyRegisterDTO;
+import com.lanf.system.model.dto.MerchantRegisterDTO;
 import com.lanf.system.model.entiry.SysI18nDO;
 
 import java.util.ArrayList;
@@ -110,7 +110,7 @@ public class JsonListEach {
 
     public static void main(String[] args) {
 
-        CompanyRegisterDTO companyRegisterDTO = new CompanyRegisterDTO();
+        MerchantRegisterDTO companyRegisterDTO = new MerchantRegisterDTO();
         
         System.out.println(toJsonString(companyRegisterDTO));
 

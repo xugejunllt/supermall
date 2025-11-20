@@ -1,10 +1,10 @@
-package com.lanf.system.controller.company;
+package com.lanf.system.controller.app;
 
 
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.system.model.entiry.ShopDO;
 import com.lanf.system.model.query.ShopPageQuery;
-import com.lanf.system.service.company.IShopService;
+import com.lanf.system.service.merchant.IShopService;
 import com.lanf.web.result.Result;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;

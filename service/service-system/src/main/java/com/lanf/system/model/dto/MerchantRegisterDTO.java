@@ -10,7 +10,7 @@ import javax.validation.constraints.Pattern;
  * 公司注册dto
  */
 @Data
-public class CompanyRegisterDTO {
+public class MerchantRegisterDTO {
 
     /**
      * 公司名称
@@ -40,12 +40,8 @@ public class CompanyRegisterDTO {
      */
     @NotBlank(message = "手机验证码不能为空")
     private String code;
-    /**
-     * admin账号密码
-     */
-    @NotBlank(message = "admin密码不能为空")
-    private String adminPassword;
 
+    //默认店铺头像
     private String headUrl;
 
 }

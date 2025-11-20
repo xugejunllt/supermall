@@ -1,8 +1,8 @@
-package com.lanf.system.controller.area;
+package com.lanf.system.controller;
 
 
 import com.lanf.system.model.vo.BaseAreaVO;
-import com.lanf.system.service.area.IBaseAreaService;
+import com.lanf.system.service.IBaseAreaService;
 import com.lanf.web.result.Result;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;

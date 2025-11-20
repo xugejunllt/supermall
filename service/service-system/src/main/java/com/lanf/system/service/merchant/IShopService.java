@@ -1,4 +1,4 @@
-package com.lanf.system.service.company;
+package com.lanf.system.service.merchant;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.mybatis.base.PageResult;

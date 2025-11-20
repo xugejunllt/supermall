@@ -9,15 +9,15 @@ import lombok.Data;
 
 /**
  * <p>
- * 公司信息
+ * 商家
  * </p>
  *
- * @author 江帅帅 Jss_forever
+ * @author
  * @since 2024-05-28
  */
 @Data
-@TableName("company")
-public class CompanyDO extends BaseEntity {
+@TableName("merchant")
+public class MerchantDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
