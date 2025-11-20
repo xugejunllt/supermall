@@ -94,13 +94,8 @@
 
         <dependency>
             <groupId>com.lanf</groupId>
-            <artifactId>innterface-monitor-client</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>metadata</artifactId>
-            <version>1.0.0</version>
+            <artifactId>common-lock</artifactId>
+            <version>${common-lock.version}</version>
         </dependency>
 
     </dependencies>

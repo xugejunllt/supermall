@@ -18,8 +18,7 @@ public class SysUserBO {
    // @ApiModelProperty(value = "密码")
     private String password;
 
-   // @ApiModelProperty(value = "新密码")
-    private String newpassword;
+
 
     //@ApiModelProperty(value = "姓名")
     private String name;
@@ -74,5 +73,8 @@ public class SysUserBO {
     //店铺id
     private Long shopId;
 
+    private Integer channel;
+
+    private String deviceId;
 }
 

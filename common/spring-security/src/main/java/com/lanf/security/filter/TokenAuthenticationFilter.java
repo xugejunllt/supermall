@@ -50,6 +50,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
         if ("/system/admin/system/index/login".equals(request.getRequestURI())) {
             //如果是登录接口，直接放行 然后走账号密码拦截器
+
             chain.doFilter(request, response);
             return;
         }
@@ -78,7 +79,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request, HttpServletResponse response) {
 
-        String token = request.getHeader(Constants.TOKEN);
+        String token = request.getHeader("");
         String refreshToken = request.getHeader(Constants.REFRESH_TOKEN);
 
         if (StringUtils.isEmpty(token) || StringUtils.isEmpty(refreshToken)) {

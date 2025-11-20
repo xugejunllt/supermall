@@ -1,4 +1,4 @@
-package com.lanf.system.service.merchant.company;
+package com.lanf.system.service.merchant.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -6,12 +6,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
+import com.lanf.lock.aop.DistributedLock;
+import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.security.custom.IBCryptPasswordEncoder;
 import com.lanf.system.mapper.MerchantMapper;
 import com.lanf.system.model.dto.MerchantRegisterDTO;
 import com.lanf.system.model.entiry.MerchantDO;
-import com.lanf.system.model.entiry.ShopDO;
 import com.lanf.system.model.entiry.SysUserDO;
 import com.lanf.system.model.enums.CompanyStatusEnum;
 import com.lanf.system.model.query.CompanyPageQuery;
@@ -35,8 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, MerchantDO> implements IMerchantService {
 
-    @Autowired
-    private ShopServiceImpl shopService;
+
     @Autowired
     private SysUserService sysUserService;
     @Autowired
@@ -45,32 +45,19 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, MerchantDO>
     private MerchantMapper companyMapper;
     @Autowired
     private SystemManagerService systemManagerService;
-
+    @Autowired
+    private IBCryptPasswordEncoder customMd5PasswordEncoder;
     @Override
-    @Transactional
+    @DistributedLock(key = "#companyRegister.phoneNumber")
     public void registerMerchant(MerchantRegisterDTO companyRegister) {
 
         validateRegisterMerchant( companyRegister);
         //构建公司信息
         MerchantDO merchantDO = buildMerchantDO(companyRegister);
-        //构建店铺信息
-        ShopDO shopDO = buildShopDO(companyRegister);
+
         this.save(merchantDO);
-        shopDO.setMerchantId(merchantDO.getId());
-        shopService.save(shopDO);
 
     }
-
-    private ShopDO buildShopDO(MerchantRegisterDTO companyRegister){
-
-        ShopDO shopSave = new ShopDO();
-        shopSave.setName(companyRegister.getShopName());
-        //注册时 生成默认头像
-        shopSave.setHeadUrl(companyRegister.getHeadUrl());
-        shopSave.setId(IdUtils.generateId());
-        return  shopSave;
-    }
-
 
     private MerchantDO buildMerchantDO(MerchantRegisterDTO companyRegister){
         String tenantCode = CodeGenerateUtils.generaCode();
@@ -96,49 +83,61 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, MerchantDO>
         if (company != null) {
             throw new BizException("手机号已注册");
         }
-        ShopDO shop = shopService.lambdaQuery().eq(ShopDO::getName, companyRegister.getShopName()).one();
-        if (shop != null) {
-            throw new BizException("店铺名称已存在");
-        }
+
 
     }
 
     @Override
     @Transactional
-    public void auditing(Long id, Integer status) {
+    @DistributedLock(key = "#id")
+    public void auditApprove(Long id) {
 
-        if (!CompanyStatusEnum.include(status)) {
-            throw new BizException("审核状态不存在");
-        }
-        ThreadLocalUtils.addIgnoreTableName(true);
-        MerchantDO company = companyMapper.selectById(id);
-
-
+        validateAuditApprove( id);
+        //创建默认admin用户
+        SysUserDO sysUserDO = buildSysUserDO(id);
+        sysUserService.save(sysUserDO);
+        //更新商家审核状态
+        this.lambdaUpdate().eq(BaseEntity::getId, id)
+                .set(MerchantDO::getStatus,1)
+                .update();
         /**
-         * 更新审核状态
+         * 发送短信给注册商家 告知默认密码 账号 租户编码 及后台地址
          */
-        //初始admin账号时需要的密码
-        //companySave.setAdminPassword(cryptPasswordEncoder.encode(companyRegister.getAdminPassword()));
-        MerchantDO companyUpdate = new MerchantDO();
-        companyUpdate.setId(company.getId());
-        companyUpdate.setStatus(status);
-        this.updateById(companyUpdate);
-        /**
-         * 添加admin用户
-         */
+
+    }
+
+    private SysUserDO buildSysUserDO( Long id){
+
+        MerchantDO company = this.getById(id);
+
+        String password = "123456";
         SysUserDO sysUser = new SysUserDO();
         sysUser.setUsername("admin");
         sysUser.setName(company.getUserName());
-        sysUser.setPassword(company.getAdminPassword());
+        sysUser.setPassword(password);
         sysUser.setMobile(company.getPhoneNumber());
         sysUser.setHeadUrl("http://yaxincheng.oss-cn-shenzhen.aliyuncs.com/images/1722712091070.png?Expires=2040664091&OSSAccessKeyId=LTAI5tDUawmj1r1teFxZBWYo&Signature=0fsf0Nu1FVqEn22WnQRSIt9%2Biwk%3D");
         sysUser.setStatus(1);
         sysUser.setTenantCode(company.getTenantCode());
-        ThreadLocalUtils.addTenantCode(company.getTenantCode());
-        sysUserService.save(sysUser);
+        //这里与spring security同一个加密器加密 因为它登入时比较的是加密的密码
+        sysUser.setPassword(customMd5PasswordEncoder.encode(password));
 
+        return  sysUser;
     }
 
+
+    private void  validateAuditApprove(Long id){
+
+        MerchantDO company = this.getById(id);
+        if (company == null){
+            log.warn("商家不存在");
+            throw new BizException("商家不存在");
+        }
+        if (company.getStatus() != 0){
+            log.warn("商家已审核");
+            throw new BizException("商家已审核");
+        }
+    }
 
     /**
      * 校验手机验证码

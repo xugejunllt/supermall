@@ -21,7 +21,12 @@ public interface IMerchantService extends IService<MerchantDO> {
      * @param
      */
     void registerMerchant(MerchantRegisterDTO companyRegisterDTO);
-    void auditing(Long id,Integer status);
+
+    /**
+     * 审核通过
+     *
+     */
+    void auditApprove(Long id);
 
     PageResult<MerchantDO>  companyPage(CompanyPageQuery query);
 

@@ -42,11 +42,7 @@ public class SystemManagerServiceImpl implements SystemManagerService {
     @Override
     public void ignoreTableName() {
 
-        SysUserBO userInfo = UserUtils.getUserInfo();
-        String tenantCode = userInfo.getTenantCode();
-        if (Constants.ADMIN_TENANT_CODE.equals(tenantCode)) {
-            ThreadLocalUtils.addIgnoreTableName(true);
-        }
+
 
 
     }

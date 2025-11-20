@@ -13,6 +13,9 @@ public class CustomUserBO extends User {
     private SysUserBO sysUser;
 
     public CustomUserBO(SysUserBO sysUser, Collection<? extends GrantedAuthority> authorities) {
+        /**
+         * 给spring security 框架使用
+         */
         super(sysUser.getUsername(), sysUser.getPassword(), authorities);
         this.sysUser = sysUser;
     }

@@ -18,6 +18,8 @@ public class CacheConstants {
 
     public static final String USER_TOKEN = "user:token:%s:%s"; //
     public static final String USER_REFRESH_TOKEN = "user:refreshToken:%s:%s"; //
+
+
     /**
      * 用户登入失败次数统计
      */
@@ -36,6 +38,10 @@ public class CacheConstants {
      * 刷新token过期时间 7天
      */
     public static final int REFRESH_TOKEN_EXP_TIME = 7 * 24 * 60;
+
+    public static final int ADMIN_TOKEN_EXP_TIME = 5 * 24 * 60;
+    public static final int ADMIN_REFRESH_TOKEN_EXP_TIME = 7 * 24 * 60;
+
     /**
      * 缓存时间1天
      */
@@ -43,6 +49,13 @@ public class CacheConstants {
 
     public static final int ADDRESS_TIME = 3*24 * 60;
 
+    /**
+     *
+     */
+    public static final String ADMIN_USER_TOKEN = "admin:token:%s:%s"; //
+    public static final String ADMIN_USER_REFRESH_TOKEN = "admin:refreshToken:%s:%s"; //
+    public static final String ADMIN_AUTH = "admin:auth:%s:%s"; //
+    public static final int ADMIN_ADMIN_AUTH_EXP_TIME = ADMIN_REFRESH_TOKEN_EXP_TIME;
 
 
     /**
@@ -65,7 +78,18 @@ public class CacheConstants {
 
         return String.format(CacheConstants.ADDRESS, userId);
     }
+    public static String getADMIN_USER_TOKEN(Integer channel, Long userId) {
 
+        return String.format(CacheConstants.ADMIN_USER_TOKEN, channel, userId);
+    }
+    public static String getADMIN_USER_REFRESH_TOKEN(Integer channel, Long userId) {
+
+        return String.format(CacheConstants.ADMIN_USER_REFRESH_TOKEN, channel, userId);
+    }
+    public static String getADMIN_AUTH(Integer channel, Long userId) {
+
+        return String.format(CacheConstants.ADMIN_AUTH, channel, userId);
+    }
 
     /**
      * 登录用户 redis key
@@ -73,30 +97,7 @@ public class CacheConstants {
     public static final String LOGIN_TOKEN_KEY = "login_tokens:";
 
 
-    /**
-     * 参数管理 cache key
-     */
-    public static final String SYS_CONFIG_KEY = "sys_config:";
 
-    /**
-     * 字典管理 cache key
-     */
-    public static final String SYS_DICT_KEY = "sys_dict:";
-
-    /**
-     * 防重提交 redis key
-     */
-    public static final String REPEAT_SUBMIT_KEY = "repeat_submit:";
-
-    /**
-     * 限流 redis key
-     */
-    public static final String RATE_LIMIT_KEY = "rate_limit:";
-
-    /**
-     * 登录账户密码错误次数 redis key
-     */
-    public static final String PWD_ERR_CNT_KEY = "pwd_err_cnt:";
 
     /**
      * 平台费率配置

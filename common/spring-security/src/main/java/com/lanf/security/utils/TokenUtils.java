@@ -20,7 +20,7 @@ public class TokenUtils {
     private RedisTemplate redisTemplate;
 
     public RefreshTokenTokenBO refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        String token = request.getHeader(Constants.TOKEN);
+        String token = request.getHeader(Constants.USER_TOKEN);
         String refreshToken = request.getHeader(Constants.REFRESH_TOKEN);
 
         if (StringUtils.isEmpty(token) || StringUtils.isEmpty(refreshToken)) {
@@ -37,7 +37,7 @@ public class TokenUtils {
         refreshTokenTokenBO.setToken(token);
         refreshTokenTokenBO.setRefreshToken(refreshToken);
         //
-        response.setHeader(Constants.TOKEN, token);
+        response.setHeader(Constants.USER_TOKEN, token);
         response.setHeader(Constants.REFRESH_TOKEN, refreshToken);
         response.setHeader("Access-Control-Expose-Headers", "*");
         return refreshTokenTokenBO;

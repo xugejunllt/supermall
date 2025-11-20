@@ -39,17 +39,21 @@ public class MerchantController {
 
         companyService.registerMerchant(companyRegister);
 
-        log.info("[{}]商家注册", "添加权益");
+        log.info("[{}]结束", "商家注册");
         return Result.ok();
     }
 
     //@PreAuthorize("hasAuthority('bnt.company.auditing')")
-    @ApiOperation(value = "公司信息审核")
-    @PostMapping("/auditing")
-    public Result auditing(Long id, Integer status) {
+    @ApiOperation(value = "审核通过")
+    @PostMapping("/auditApprove")
+    public Result auditApprove(Long id) {
 
-        log.info("公司信息审核:id{},status:{}", id, status);
-        companyService.auditing(id, status);
+        log.info("[{}]开始,入参:[{}]", "审核商家", id);
+
+        companyService.auditApprove(id);
+
+        log.info("[{}]结束", "审核商家");
+
         return Result.ok();
     }
 

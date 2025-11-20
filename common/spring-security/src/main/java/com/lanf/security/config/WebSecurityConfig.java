@@ -1,13 +1,16 @@
 package com.lanf.security.config;
 
+import com.lanf.common.utils.BeanUtil;
 import com.lanf.log.api.SystemLogService;
 import com.lanf.security.custom.IBCryptPasswordEncoder;
 import com.lanf.security.filter.TokenAuthenticationFilter;
-import com.lanf.security.filter.TokenLoginFilter;
+import com.lanf.security.filter.AdminLoginFilter;
+import com.lanf.security.utils.AdminSessionCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,12 +46,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private IBCryptPasswordEncoder customMd5PasswordEncoder;
 
-    @Autowired(required = false)
-    private SystemLogService systemLogService;
     @Autowired
     private Environment environment;
     @Autowired
     private FilterPathConfig filterPathConfig;
+
+
+    @Autowired(required = false)
+    private SystemLogService systemLogService;
+
+    @Autowired
+    private AdminSessionCache adminSessionCache;
 
     @Bean
     @Override
@@ -58,6 +66,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
         // 这是配置的关键，决定哪些接口开启防护，哪些接口绕过防护
         http
                 //关闭csrf
@@ -72,7 +81,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 //TokenAuthenticationFilter放到UsernamePasswordAuthenticationFilter的前面，这样做就是为了除了登录的时候去查询数据库外，其他时候都用token进行认证。
                 .addFilterBefore(new TokenAuthenticationFilter(redisTemplate), UsernamePasswordAuthenticationFilter.class)
-                .addFilter(new TokenLoginFilter(authenticationManager(), redisTemplate, systemLogService));
+                .addFilter(new AdminLoginFilter(authenticationManager(),adminSessionCache));
+
 
         //禁用session
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);

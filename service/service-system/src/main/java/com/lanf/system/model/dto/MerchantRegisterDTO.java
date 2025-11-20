@@ -30,18 +30,14 @@ public class MerchantRegisterDTO {
     @Pattern(regexp = "/^1\\d{10}$|^(0\\d{2,3}-?|\\(0\\d{2,3}\\))?[1-9]\\d{4,7}(-\\d{1,8})?$/\n",message = "手机号格式错误")
     private String phoneNumber;
 
-    /**
-     * 店铺名称
-     */
-    @NotBlank(message = "铺名称不能为空")
-    private String shopName;
+
     /**
      * 手机验证码
      */
     @NotBlank(message = "手机验证码不能为空")
     private String code;
 
-    //默认店铺头像
-    private String headUrl;
+
+
 
 }

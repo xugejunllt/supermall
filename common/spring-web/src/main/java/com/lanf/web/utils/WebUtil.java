@@ -1,5 +1,6 @@
 package com.lanf.web.utils;
 
+import com.lanf.web.exception.BizException;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -21,7 +22,7 @@ public class WebUtil {
         if (servletRequestAttributes != null) {
             return servletRequestAttributes.getRequest();
         }
-        return null;
+        throw new BizException("获取request对象异常");
     }
 
     public static HttpServletResponse getResponse() {

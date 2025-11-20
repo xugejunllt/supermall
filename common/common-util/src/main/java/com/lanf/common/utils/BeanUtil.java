@@ -6,10 +6,17 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 /**
- * @author tanlingfei
- * @version 1.0
- * @description TODO
- * @date 2023/4/27 20:32
+ *
+ * 不要在bean对象的构造方法中使用 此时 ApplicationContextAware Bean还
+ * 未被初始化
+ * 1. 实例化Bean（调用构造方法）
+ * 2. 填充属性（依赖注入）
+ * 3. 调用Aware接口方法（包括ApplicationContextAware）--问题在这里  BeanUtil可能还没有初始化
+ * 4. BeanPostProcessor前置处理
+ * 5. 初始化方法（@PostConstruct）
+ * 6. BeanPostProcessor后置处理
+ * 7. Bean准备就绪
+ *
  */
 @Component
 public class BeanUtil implements ApplicationContextAware {

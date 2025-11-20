@@ -127,10 +127,10 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO> im
 
     @Override
     public List<String> findUserPermsList(String userId,String username) {
-        //超级管理员admin账号id为：1
 
         List<SysMenuDO> sysMenuList = null;
         if (username.equals("admin")) {
+            //admin返回所有权限
             sysMenuList = this.list();
         } else {
             sysMenuList = sysMenuMapper.findListByUserId(Long.parseLong(userId), 2, null);

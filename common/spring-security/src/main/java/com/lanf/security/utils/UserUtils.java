@@ -81,7 +81,7 @@ public class UserUtils {
         if (userInfo == null) {
             return null;
         }
-        return userInfo.getShopId();
+        return null;
     }
 
     public static Long getBusinessId() {
@@ -96,7 +96,7 @@ public class UserUtils {
         if (userInfo == null) {
             return null;
         }
-        return userInfo.getBusinessId();
+        return null;
 
     }
 }

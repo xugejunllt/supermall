@@ -28,8 +28,7 @@ private static final long serialVersionUID=1L;
     //用户类型 0:平台 1:商户
     private Integer userType;
 
-    @ApiModelProperty(value = "admin密码")
-    private String adminPassword;
+
     @ApiModelProperty(value = "姓名")
     private String userName;
 

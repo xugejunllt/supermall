@@ -27,9 +27,9 @@ public class FeignConfig implements RequestInterceptor {
         HttpServletRequest request = WebUtil.getRequest();
         if (request != null) {
             //添加admin token
-            String token = request.getHeader(Constants.TOKEN);
+            String token = request.getHeader(Constants.USER_TOKEN);
             if (!StringUtils.isEmpty(token)) {
-                requestTemplate.header(Constants.TOKEN, token);
+                requestTemplate.header(Constants.USER_TOKEN, token);
             }
         }
 
