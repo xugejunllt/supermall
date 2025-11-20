@@ -68,12 +68,10 @@ public class UserTokenFilter implements Filter {
 
         List<String> userNotTokenPath = filterPathConfig.getUserNotTokenPath();
         if (userNotTokenPath.contains(request.getRequestURI())) {
-            log.info("直接放行请求");
             chain.doFilter(request, response);
             return;
         }
 
-        log.info("处理用户token开始");
         String channel = request.getHeader(Constants.CHANEL);
         String deviceId = request.getHeader(Constants.DEVICE_ID);
         String userToken = request.getHeader(Constants.USER_TOKEN);
@@ -91,7 +89,7 @@ public class UserTokenFilter implements Filter {
 
         //userid添加到 context中
         UserContext.setUserId(tokenBO.getUserId());
-        log.info("处理用户token完成");
+        log.info("当前用户是[{}]",tokenBO.getUserId());
         try {
             //请求放行
             chain.doFilter(request, response);

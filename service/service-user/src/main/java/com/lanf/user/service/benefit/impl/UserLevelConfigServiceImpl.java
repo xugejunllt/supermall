@@ -61,15 +61,14 @@ public class UserLevelConfigServiceImpl extends ServiceImpl<UserLevelConfigMappe
         });
 
     }
-
+    /**
+     * 这里可以将数据缓存在redis当中
+     */
     @Override
     public List<UserLevelConfigDO> listUserLevelConfig() {
 
-        List<UserLevelConfigDO> levelConfigDOS = this.lambdaQuery().list();
-        /**
-         * 这里可以将数据缓存在redis当中
-         */
-        return levelConfigDOS;
+
+        return this.lambdaQuery().list();
     }
 
 }

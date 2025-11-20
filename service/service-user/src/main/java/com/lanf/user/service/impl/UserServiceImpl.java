@@ -15,6 +15,7 @@ import com.lanf.security.utils.JwtUtils;
 import com.lanf.security.utils.UserContext;
 import com.lanf.security.utils.UserSessionCache;
 import com.lanf.user.mapper.UserMapper;
+import com.lanf.user.model.bo.UserLevelBO;
 import com.lanf.user.model.bo.ValidateRefreshTokenBO;
 import com.lanf.user.model.dto.LoginUserDTO;
 import com.lanf.user.model.dto.RefreshTokenDTO;
@@ -23,10 +24,12 @@ import com.lanf.user.model.entity.UserDO;
 import com.lanf.user.model.entity.UserLoginLog;
 import com.lanf.user.model.vo.LoginUserVO;
 import com.lanf.user.model.vo.RefreshTokenVO;
+import com.lanf.user.model.vo.UserDetailVO;
 import com.lanf.user.model.vo.UserVO;
 import com.lanf.user.service.IUserLoginLogService;
 import com.lanf.user.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.user.service.benefit.IUserLevelService;
 import com.lanf.web.exception.BizException;
 import com.lanf.web.utils.WebUtil;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -64,7 +67,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     @Autowired
     private LoginSecurityService loginSecurityService;
-
+    @Autowired
+    private IUserLevelService userLevelService;
 
     @Override
     @DistributedLock(key = "#dto.phoneNumber")
@@ -460,6 +464,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
 
         return BeanCopyUtils.copyBean(userDO,UserVO.class);
+    }
+
+    /**
+     * 用户详细信息由 基本信息+会员等级信息 这两个分别缓存在redis中
+     * 因为它们修改的时机都不一样
+     */
+    @Override
+    public UserDetailVO getUserDetail() {
+        Long userId = UserContext.getUserId();
+
+        //获取用户基本信息 这里可以使用redis进行缓存
+        UserVO userVO = getUserById();
+        UserLevelBO userLevel = userLevelService.getUserLevel(userId);
+
+        UserDetailVO userDetailVO = BeanCopyUtils.copyBean(userVO, UserDetailVO.class);
+        userDetailVO.setLevel(userLevel.getLevel());
+        userDetailVO.setLevelName(userLevel.getName());
+        userDetailVO.setLevelIcon(userLevel.getIcon());
+
+        return userDetailVO;
     }
 
 

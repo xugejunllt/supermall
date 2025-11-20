@@ -8,6 +8,7 @@ import com.lanf.constant.enums.BenefitGrantEventEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.user.mapper.UserLevelMapper;
 import com.lanf.user.model.bo.CalculationGrowthValueBO;
+import com.lanf.user.model.bo.UserLevelBO;
 import com.lanf.user.model.dto.CalculationGrowthValueDTO;
 import com.lanf.user.model.dto.GrantBenefitDTO;
 import com.lanf.user.model.dto.LevelBenefitDTO;
@@ -57,24 +58,26 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
 
         log.info("成长值计算开始[{}]", JsonUtils.toJsonString(dto));
         Long userId = dto.getUserId();
-       //获取等级配置 key:level
+        //获取等级配置 key:level
         Map<Integer, UserLevelConfigDO> levelMap = getLevelMap();
         //创建新用户等级
-        createUserLevel( userId,levelMap);
+        createUserLevel(userId, levelMap);
         //计算成长值
         CalculationGrowthValueBO growthValueBO = doCalculationGrowthValue(dto, levelMap);
         //更新
-        updateUserLevel( growthValueBO);
-        if (growthValueBO.getUpgrade()){
+        updateUserLevel(growthValueBO);
+        if (growthValueBO.getUpgrade()) {
             log.info("升级成功,发放权益开始");
-            grantBenefit(growthValueBO.getLevelPrivileges(),userId);
+            grantBenefit(growthValueBO.getLevelPrivileges(), userId);
             log.info("发放权益结束");
 
         }
         log.info("成长值计算结束");
 
     }
-    private void grantBenefit(String levelPrivileges,Long userId){
+
+
+    private void grantBenefit(String levelPrivileges, Long userId) {
 
         List<LevelBenefitDTO> list = JsonUtils.toList(levelPrivileges, LevelBenefitDTO.class);
 
@@ -85,14 +88,15 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
 
         GrantBenefitDTO grantBenefitDTO = new GrantBenefitDTO();
         grantBenefitDTO.setUserId(userId);
-        grantServices.forEach(a->{
+        grantServices.forEach(a -> {
 
             a.execute(grantBenefitDTO);
 
         });
 
     }
-    private void updateUserLevel(CalculationGrowthValueBO growthValueBO){
+
+    private void updateUserLevel(CalculationGrowthValueBO growthValueBO) {
 
         log.info("更新成长值开始");
         Long userId = growthValueBO.getUserId();
@@ -103,9 +107,9 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
                 .set(UserLevelDO::getLevelId, growthValueBO.getLevelId())
                 .set(UserLevelDO::getLevel, growthValueBO.getLevel())
                 .set(UserLevelDO::getGrowthValue, growthValueBO.getCurrentTotal())
-                .set(UserLevelDO::getVersion,one.getVersion()+1)
+                .set(UserLevelDO::getVersion, one.getVersion() + 1)
                 .update();
-        if ( !update){
+        if (!update) {
             throw new BizException("更新失败");
         }
         UserLevelDetailDO userLevelDetailDO = BeanCopyUtils.copyBean(growthValueBO, UserLevelDetailDO.class);
@@ -114,14 +118,14 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
 
     }
 
-    private CalculationGrowthValueBO doCalculationGrowthValue(CalculationGrowthValueDTO dto,Map<Integer, UserLevelConfigDO> levelMap){
+    private CalculationGrowthValueBO doCalculationGrowthValue(CalculationGrowthValueDTO dto, Map<Integer, UserLevelConfigDO> levelMap) {
 
 
         log.info("开始计算");
         String eventCode = dto.getEventCode();
         Long userId = dto.getUserId();
 
-        BenefitGrantEventEnum byCode = getBenefitGrantEvent( eventCode );
+        BenefitGrantEventEnum byCode = getBenefitGrantEvent(eventCode);
         //
         Integer addValue = byCode.getValue();
         UserLevelDO one = this.lambdaQuery().eq(UserLevelDO::getUserId, userId).one();
@@ -131,9 +135,9 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
         //当前成长值
         Integer growthValue = one.getGrowthValue();
         //累加后成长值
-        Integer addGrowthValue = addValue+growthValue;
+        Integer addGrowthValue = addValue + growthValue;
         //下一等级
-        Integer nextLevel = level+1;
+        Integer nextLevel = level + 1;
         //下一等级配置
         UserLevelConfigDO nextLevelConfigDO = levelMap.get(nextLevel);
 
@@ -150,12 +154,12 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
         Long levelId = one.getLevelId();
 
 
-        if (nextLevelConfigDO != null){
+        if (nextLevelConfigDO != null) {
 
             log.info("未满级");
             Integer growthValue1 = nextLevelConfigDO.getGrowthValue();
 
-            if (addGrowthValue >=growthValue1 ){
+            if (addGrowthValue >= growthValue1) {
                 log.info("进行升级");
                 upgrade = true;
                 afterLevel = nextLevelConfigDO.getLevel();
@@ -167,7 +171,7 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
             }
 
         }
-        if (nextLevelConfigDO == null){
+        if (nextLevelConfigDO == null) {
             log.info("已满级");
         }
 
@@ -186,22 +190,19 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
         bo.setLevelId(levelId);
         bo.setUpgrade(upgrade);
         log.info("计算结束");
-        return  bo;
+        return bo;
     }
 
 
     /**
      * key:level
-     *
-     *
-     *
      */
 
-    private Map<Integer,UserLevelConfigDO> getLevelMap(){
+    private Map<Integer, UserLevelConfigDO> getLevelMap() {
 
         List<UserLevelConfigDO> userLevelConfigDOList = userLevelConfigService.listUserLevelConfig();
 
-        if (IStringUtils.isEmpty(userLevelConfigDOList)){
+        if (IStringUtils.isEmpty(userLevelConfigDOList)) {
             throw new BizException("配置不存在");
         }
 
@@ -210,24 +211,25 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
     }
 
 
-    private  BenefitGrantEventEnum getBenefitGrantEvent( String eventCode ){
+    private BenefitGrantEventEnum getBenefitGrantEvent(String eventCode) {
         BenefitGrantEventEnum byCode = BenefitGrantEventEnum.getByCode(eventCode);
-        if (byCode == null){
+        if (byCode == null) {
             log.info("事件不存在");
             throw new BizException("事件不存在");
         }
-        return  byCode;
+        return byCode;
     }
-    private void createUserLevel( Long userId,Map<Integer, UserLevelConfigDO> levelMap){
+
+    private void createUserLevel(Long userId, Map<Integer, UserLevelConfigDO> levelMap) {
 
         UserLevelDO one = this.lambdaQuery().eq(UserLevelDO::getUserId, userId).one();
-        if ( one == null){
+        if (one == null) {
 
             log.info("创建新的用户等级");
             Integer defaultLevel = 1;
             //从缓存中找到 默认1级
             UserLevelConfigDO configDO = levelMap.get(defaultLevel);
-            if (configDO == null){
+            if (configDO == null) {
                 log.info("默认等级配置不存在");
                 throw new BizException("默认等级配置不存在");
             }
@@ -251,5 +253,30 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
         }
     }
 
+    @Override
+    public UserLevelBO getUserLevel(Long userId) {
 
+        //这里可以将UserLevel缓存在redis中
+        UserLevelDO userLevelDO = getByUserId(userId);
+        List<UserLevelConfigDO> configDOS = userLevelConfigService.listUserLevelConfig();
+        UserLevelConfigDO userLevelConfigDO = null;
+
+        for (UserLevelConfigDO u : configDOS) {
+            if (u.getId().equals(userLevelDO.getLevelId())) {
+
+                userLevelConfigDO = u;
+            }
+        }
+        if (userLevelConfigDO == null) {
+            log.warn("未找到等级配置levelId[{}]", userLevelDO.getLevelId());
+            throw new BizException("未找到等级配置");
+        }
+
+        return BeanCopyUtils.copyBean(userLevelConfigDO, UserLevelBO.class);
+    }
+
+    private UserLevelDO getByUserId(Long userId) {
+
+        return this.lambdaQuery().eq(UserLevelDO::getUserId, userId).one();
+    }
 }

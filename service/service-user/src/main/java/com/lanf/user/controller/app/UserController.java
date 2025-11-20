@@ -8,6 +8,7 @@ import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.vo.LoginUserVO;
 import com.lanf.user.model.vo.RefreshTokenVO;
+import com.lanf.user.model.vo.UserDetailVO;
 import com.lanf.user.model.vo.UserVO;
 import com.lanf.user.service.IUserService;
 import com.lanf.web.exception.BizException;
@@ -105,9 +106,17 @@ public class UserController {
     @GetMapping("/getUserById")
     public Result<UserVO> getUserById() {
 
-        log.info("用户[{}][{}]开始", UserContext.getUserId(),"根据id查询用户信息");
+        log.info("[{}]开始","根据id查询用户信息");
 
         return Result.ok(userService.getUserById());
+    }
+
+    @GetMapping("/getUserDetail")
+    public Result<UserDetailVO> getUserDetail() {
+
+        log.info("[{}]开始", "获取用户详细");
+
+        return Result.ok(userService.getUserDetail());
     }
 }
 
