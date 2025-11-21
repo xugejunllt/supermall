@@ -150,9 +150,8 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, MerchantDO>
     }
 
     @Override
-    public PageResult<MerchantDO> companyPage(CompanyPageQuery query) {
+    public PageResult<MerchantDO> merchantPage(CompanyPageQuery query) {
 
-        ThreadLocalUtils.addIgnoreTableName(true);
        IPage<MerchantDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<MerchantDO> companyPage = this.lambdaQuery().
                 like(!StringUtils.isEmpty(query.getCompanyName()), MerchantDO::getCompany, query.getCompanyName()).

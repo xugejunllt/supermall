@@ -29,7 +29,7 @@ public class MerchantController {
 
 
     @Autowired
-    private IMerchantService companyService;
+    private IMerchantService merchantService;
 
     @ApiOperation(value = "公司注册")
     @PostMapping("/registerMerchant")
@@ -37,34 +37,13 @@ public class MerchantController {
 
         log.info("[{}]开始,入参:[{}]", "商家注册", JsonUtils.toJsonString(companyRegister));
 
-        companyService.registerMerchant(companyRegister);
+        merchantService.registerMerchant(companyRegister);
 
         log.info("[{}]结束", "商家注册");
         return Result.ok();
     }
 
-    //@PreAuthorize("hasAuthority('bnt.company.auditing')")
-    @ApiOperation(value = "审核通过")
-    @PostMapping("/auditApprove")
-    public Result auditApprove(Long id) {
 
-        log.info("[{}]开始,入参:[{}]", "审核商家", id);
-
-        companyService.auditApprove(id);
-
-        log.info("[{}]结束", "审核商家");
-
-        return Result.ok();
-    }
-
-    @PreAuthorize("hasAuthority('bnt.company.list')")
-    @ApiOperation(value = "分页查询公司列表")
-    @GetMapping("/companyPage")
-    public Result<PageResult<MerchantDO>> companyPage(CompanyPageQuery query) {
-
-        log.info("分页查询公司列表:query{}", query);
-        return Result.ok(companyService.companyPage(query));
-    }
 
 }
 

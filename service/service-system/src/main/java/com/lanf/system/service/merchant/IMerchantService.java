@@ -28,6 +28,6 @@ public interface IMerchantService extends IService<MerchantDO> {
      */
     void auditApprove(Long id);
 
-    PageResult<MerchantDO>  companyPage(CompanyPageQuery query);
+    PageResult<MerchantDO>  merchantPage(CompanyPageQuery query);
 
 }
