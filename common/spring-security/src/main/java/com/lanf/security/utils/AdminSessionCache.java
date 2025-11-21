@@ -25,37 +25,44 @@ public class AdminSessionCache {
 
     public String getToken(Integer channel, Long userId)  {
 
-        String tokenKey = CacheConstants.getUSER_TOKEN_KEY(channel,userId);
+        String tokenKey = CacheConstants.getADMIN_USER_TOKEN(channel,userId);
 
         return redisCache.getCacheObject(tokenKey);
     }
 
-    public String getRefreshToken(Integer channel, Long userId)  {
+    public String getAuth(Integer channel, Long userId){
 
-        String tokenKey = CacheConstants.getUSER_REFRESH_TOKEN(channel,userId);
+        String authKey = CacheConstants.getADMIN_AUTH( channel,userId);
 
-        return redisCache.getCacheObject(tokenKey);
+
+        return  redisCache.getCacheObject(authKey);
     }
+
 
 
 
     public Boolean refreshToken(Integer channel, Long userId)  {
 
-        String tokenKey = CacheConstants.getUSER_TOKEN_KEY(channel,userId);
-        String refreshTokenKey = CacheConstants.getUSER_REFRESH_TOKEN(channel, userId);
-        Boolean expire = redisCache.expire(tokenKey, CacheConstants.TOKEN_EXP_TIME);
-        Boolean expire2 = redisCache.expire(refreshTokenKey, CacheConstants.REFRESH_TOKEN_EXP_TIME);
-        return expire && expire2;
+        String tokenKey = CacheConstants.getADMIN_USER_TOKEN(channel,userId);
+        String refreshTokenKey = CacheConstants.getADMIN_USER_REFRESH_TOKEN(channel, userId);
+        String authKey = CacheConstants.getADMIN_AUTH( channel,userId);
+
+        Boolean expire = redisCache.expire(tokenKey, CacheConstants.ADMIN_TOKEN_EXP_TIME);
+        Boolean expire2 = redisCache.expire(refreshTokenKey, CacheConstants.ADMIN_REFRESH_TOKEN_EXP_TIME);
+        Boolean expire3 = redisCache.expire(authKey, CacheConstants.ADMIN_ADMIN_AUTH_EXP_TIME);
+
+        return expire && expire2 && expire3;
 
     }
 
-    public CacheSessionBO cacheSession(Integer channel, Long userId, String deviceId, Collection<GrantedAuthority> authorities)  {
+    public CacheSessionBO cacheSession(Integer channel, Long userId, String deviceId, String username,Long merchantId,
+                                       Collection<GrantedAuthority> authorities)  {
 
         String tokenKey = CacheConstants.getADMIN_USER_TOKEN(channel,userId);
         String refreshTokenKey = CacheConstants.getADMIN_USER_REFRESH_TOKEN(channel, userId);
 
-        String token = JwtUtils.createUserToken(userId,deviceId,CacheConstants.ADMIN_TOKEN_EXP_TIME);
-        String refreshToken = JwtUtils.createUserToken(userId,deviceId,CacheConstants.ADMIN_REFRESH_TOKEN_EXP_TIME);
+        String token = JwtUtils.createUserToken(userId,deviceId,username,merchantId,CacheConstants.ADMIN_TOKEN_EXP_TIME);
+        String refreshToken = JwtUtils.createUserToken(userId,deviceId,username,merchantId,CacheConstants.ADMIN_REFRESH_TOKEN_EXP_TIME);
 
         redisCache.setCacheObject(tokenKey, token, CacheConstants.ADMIN_TOKEN_EXP_TIME);
         redisCache.setCacheObject(refreshTokenKey, refreshToken, CacheConstants.ADMIN_REFRESH_TOKEN_EXP_TIME);

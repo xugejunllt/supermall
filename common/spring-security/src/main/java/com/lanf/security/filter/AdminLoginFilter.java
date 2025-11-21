@@ -101,15 +101,17 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
 
         CustomUserBO customUser = (CustomUserBO) auth.getPrincipal();
         SysUserBO sysUser = customUser.getSysUser();
+        String username = sysUser.getUsername();
+        Long merchantId = sysUser.getMerchantId();
         //权限
         Collection<GrantedAuthority> authorities = customUser.getAuthorities();
         //加入缓存信息
-        CacheSessionBO cacheSessionBO = adminSessionCache.cacheSession(sysUser.getChannel(), sysUser.getId(), sysUser.getDeviceId(), authorities);
+        CacheSessionBO cacheSessionBO = adminSessionCache.cacheSession(sysUser.getChannel(), sysUser.getId(),
+                sysUser.getDeviceId(),username,merchantId, authorities);
 
         Map<String, Object> map = new HashMap<>();
         map.put(Constants.USER_TOKEN, cacheSessionBO.getToken());
         map.put(Constants.REFRESH_TOKEN, cacheSessionBO.getRefreshToken());
-        map.put("name", customUser.getSysUser().getUsername());
 
 //        //保存登录日志
 //        if (systemLoginLogService != null) {

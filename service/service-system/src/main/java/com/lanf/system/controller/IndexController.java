@@ -87,6 +87,7 @@ public class IndexController {
     @GetMapping("/menuTree")
     public Result menuTree(HttpServletRequest request) {
         String username = JwtUtils.getUsername(request.getHeader("token"));
+
         List<SysMenuDO> menuList = sysMenuService.findUserMenuList(username);
         return Result.ok(menuList);
     }

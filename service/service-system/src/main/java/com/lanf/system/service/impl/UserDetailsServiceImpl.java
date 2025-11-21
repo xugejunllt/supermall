@@ -34,8 +34,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private SysUserMapper sysUserMapper;
     @Autowired
     private IMerchantService companyService;
-
-
+    @Autowired
+    private IMerchantService merchantService;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
@@ -44,14 +44,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String chanel = request.getHeader(Constants.CHANEL);
         String  deviceId = request.getHeader(Constants.DEVICE_ID);
 
+        MerchantDO merchantDO = merchantService.lambdaQuery().eq(MerchantDO::getTenantCode, tenantCode).one();
+        if ( merchantDO == null){
+            throw new UsernameNotFoundException("租户不存在！");
+        }
 
         SysUserDO sysUser = sysUserService.lambdaQuery()
                 .eq(SysUserDO::getUsername,username)
-                .eq(SysUserDO::getTenantCode,tenantCode).one();
+                .eq(SysUserDO::getTenantId,merchantDO.getId()).one();
 
         if (  sysUser == null) {
             throw new UsernameNotFoundException("租户不存在！");
         }
+
 
         /**
          * 这里过滤出平台租户才有的页面权限
@@ -66,7 +71,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         SysUserBO sysUserBO = BeanCopyUtils.copyBean(sysUser, SysUserBO.class);
         sysUserBO.setChannel(Integer.parseInt(chanel));
         sysUserBO.setDeviceId(deviceId);
-
+        sysUserBO.setMerchantId(merchantDO.getId());
         return new CustomUserBO(sysUserBO, authorities);
 
     }

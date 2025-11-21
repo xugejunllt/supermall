@@ -18,4 +18,7 @@ public class ValidateTokenBO implements Serializable {
     private String  token;
     private String deviceId;
 
+    private String   userName;
+
+    private  Long merchantId;
 }

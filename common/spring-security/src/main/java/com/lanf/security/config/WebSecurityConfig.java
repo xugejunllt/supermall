@@ -58,6 +58,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private AdminSessionCache adminSessionCache;
 
+
     @Bean
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {
@@ -80,7 +81,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 .and()
                 //TokenAuthenticationFilter放到UsernamePasswordAuthenticationFilter的前面，这样做就是为了除了登录的时候去查询数据库外，其他时候都用token进行认证。
-                .addFilterBefore(new TokenAuthenticationFilter(redisTemplate), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new TokenAuthenticationFilter(redisTemplate,adminSessionCache), UsernamePasswordAuthenticationFilter.class)
                 .addFilter(new AdminLoginFilter(authenticationManager(),adminSessionCache));
 
 

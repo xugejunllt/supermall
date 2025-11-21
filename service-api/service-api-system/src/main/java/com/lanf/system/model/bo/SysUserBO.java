@@ -76,5 +76,7 @@ public class SysUserBO {
     private Integer channel;
 
     private String deviceId;
+    //租户id
+    private Long merchantId;
 }
 

@@ -72,8 +72,6 @@ public class SysUserDO extends BaseEntity {
     @TableField(exist = false)
     private String deptName;
 
-
-    @TableField( fill = FieldFill.INSERT)
-    private String  tenantCode;
+    private Long  tenantId;
 }
 

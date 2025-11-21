@@ -3,10 +3,15 @@ package com.lanf.security.filter;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lanf.common.utils.BeanUtil;
-import com.lanf.common.utils.JwtUtils;
+import com.lanf.common.utils.*;
 import com.lanf.constant.constant.Constants;
+import com.lanf.constant.exception.IRedisException;
+import com.lanf.security.config.FilterPathConfig;
+import com.lanf.security.model.ValidateTokenBO;
+import com.lanf.security.utils.AdminSessionCache;
+import com.lanf.security.utils.JwtUtils;
 import com.lanf.security.utils.TokenUtils;
+import com.lanf.security.utils.UserContext;
 import com.lanf.web.code.CommonResultCodeEnum;
 import com.lanf.web.exception.BizException;
 import com.lanf.web.result.Result;
@@ -44,8 +49,12 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private RedisTemplate redisTemplate;
 
-    public TokenAuthenticationFilter(RedisTemplate redisTemplate) {
+
+    private AdminSessionCache adminSessionCache;
+    public TokenAuthenticationFilter(RedisTemplate redisTemplate,AdminSessionCache adminSessionCache) {
+
         this.redisTemplate = redisTemplate;
+        this.adminSessionCache = adminSessionCache;
     }
 
     @Override
@@ -58,11 +67,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         }
-
         UsernamePasswordAuthenticationToken authentication = null;
         try {
-            authentication = getAuthentication(request, response);
-
+            authentication =  tokenHandle( request);
         } catch (BizException e) {
             ResponseUtil.out(response, Result.fail(e.getCode(), e.getMessage()));
             return;
@@ -71,60 +78,144 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (null != authentication) {
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            chain.doFilter(request, response);
-        } else {
-            ResponseUtil.out(response, Result.fail(TOKENEXPIRED.getCode(), TOKENEXPIRED.getMessage()));
-        }
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        chain.doFilter(request, response);
 
 
     }
 
-    private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request, HttpServletResponse response) {
 
-        String token = request.getHeader("");
-        String refreshToken = request.getHeader(Constants.REFRESH_TOKEN);
+    /**
+     * 用戶token拦截
+     */
+    private UsernamePasswordAuthenticationToken tokenHandle(HttpServletRequest request) throws ServletException, IOException {
 
-        if (StringUtils.isEmpty(token) || StringUtils.isEmpty(refreshToken)) {
-            throw new BizException(TOKENEXPIRED.getCode(), TOKENEXPIRED.getMessage());
+
+        String channel = request.getHeader(Constants.CHANEL);
+        String deviceId = request.getHeader(Constants.DEVICE_ID);
+        String userToken = request.getHeader(Constants.USER_TOKEN);
+
+        //校验token
+        ValidateTokenBO tokenBO = validateToken(request, channel, deviceId, userToken);
+
+        //处理token过期
+        if (tokenBO.getSessionExpired()){
+            processSessionExpired();
+
         }
+        //刷新token
+        refreshToken(tokenBO);
+        //构建UsernamePasswordAuthenticationToken
+        return  buildUsernamePasswordAuthenticationToken(  tokenBO);
+    }
 
-        String useruame = null;
-        String tenantCode = null;
-        try {
-            tenantCode = JwtUtils.getTenantCode(token);
-            useruame = JwtUtils.getUsername(token);
-        } catch (ExpiredJwtException e) {
-            throw new BizException(TOKENEXPIRED.getCode(), TOKENEXPIRED.getMessage());
-        }
-        String key1 = useruame + ":" + tenantCode;
-        String key2 = JwtUtils.getUserId(token) + "";
-        /**
-         * 登入是否过期
-         */
-        boolean refresh = JwtUtils.refresh(refreshToken);
-        if (refresh) {
-            //刷新tokenn
-            TokenUtils tokenUtils = BeanUtil.getBean(TokenUtils.class);
-            logger.info("token过期,刷新token");
-            tokenUtils.refreshToken(request, response);
-        }
-        String authoritiesString = (String) redisTemplate.opsForValue().get(key1);
-        String userInfo = (String) redisTemplate.opsForValue().get(key2);
-        //延迟token在缓存中的过期时间
-        redisTemplate.opsForValue().set(key1, authoritiesString, Duration.ofHours(24));
-        redisTemplate.opsForValue().set(key2, userInfo, Duration.ofHours(24));
+    private UsernamePasswordAuthenticationToken buildUsernamePasswordAuthenticationToken( ValidateTokenBO tokenBO){
 
-        List<Map> mapList = JSON.parseArray(authoritiesString, Map.class);
+        //从缓存获取权限
+        String auth = adminSessionCache.getAuth(tokenBO.getChannel(), tokenBO.getUserId());
+        List<Map> mapList = JsonUtils.toList(auth, Map.class);
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         for (Map map : mapList) {
             authorities.add(new SimpleGrantedAuthority((String) map.get("authority")));
         }
-        return new UsernamePasswordAuthenticationToken(useruame, null, authorities);
+        return new UsernamePasswordAuthenticationToken(tokenBO.getUserName(), null, authorities);
+    }
+
+    private ValidateTokenBO validateToken(HttpServletRequest request, String channel, String deviceId,
+                                          String userToken) throws IRedisException {
+
+
+        if (IStringUtils.isEmpty(channel) || IStringUtils.isEmpty(deviceId) || IStringUtils.isEmpty(userToken)) {
+            log.info("请求头参数为空");
+            throw new BizException("请求头参数为空");
+        }
+
+        Integer channel2 = null;
+        Boolean sessionExpired = false;
+        String deviceId2 = null;
+        Long cacheUserId = null;
+        String userName = null;
+        String merchantId = null;
+        try {
+
+            deviceId2 = com.lanf.security.utils.JwtUtils.parseDeviceId(userToken);
+            cacheUserId = com.lanf.security.utils.JwtUtils.parseUserId(userToken);
+            userName = com.lanf.security.utils.JwtUtils.parseUserName(userToken);
+            merchantId = JwtUtils.parseMerchantId(userToken);
+
+        } catch (ExpiredJwtException e) {
+            log.info(" JWT token 过期");
+
+            return expiredTokenProcess();
+
+        } catch (Exception e) {
+
+            log.info("JWT 解析异常 [{}]", StackTraceUtil.getStackTrace(e));
+            throw new BizException("jwt解析异常");
+        }
+
+        if (!deviceId.equals(deviceId2)) {
+            //访问的客户端与登入时客户端一致  如果不一致跑出异常
+            log.info("设备id错误");
+            throw new BizException("设备id错误");
+        }
+
+        try {
+            channel2 = Integer.parseInt(channel);
+        } catch (NumberFormatException e) {
+            log.info("channel错误");
+            throw new BizException("channel错误");
+        }
+
+
+        String token = adminSessionCache.getToken(channel2, cacheUserId);
+        if (IStringUtils.isEmpty(token)) {
+            log.info("缓存 token过期");
+            return expiredTokenProcess();
+        }
+
+        if (!IStringUtils.isEmpty(token) && !userToken.equals(token)) {
+            log.info("请求头token与缓存token不一致");
+            throw new BizException("请求头token与缓存token不一致");
+        }
+        //
+        ValidateTokenBO bo = new ValidateTokenBO();
+        bo.setUserId(cacheUserId);
+        bo.setSessionExpired(sessionExpired);
+        bo.setToken(token);
+        bo.setDeviceId(deviceId2);
+        bo.setChannel(channel2);
+        bo.setUserName(userName);
+        bo.setMerchantId(Long.parseLong(merchantId));
+        return bo;
+    }
+
+    private ValidateTokenBO expiredTokenProcess(){
+
+        ValidateTokenBO validateTokenBO = new ValidateTokenBO();
+        validateTokenBO.setSessionExpired(true);
+
+        return validateTokenBO;
+    }
+    private void processSessionExpired() {
+
+
+
+        throw new BizException(CommonResultCodeEnum.SESSION_EXPIRED.getCode(),
+                CommonResultCodeEnum.SESSION_EXPIRED.getMessage());
+
 
 
     }
 
+    private void refreshToken(ValidateTokenBO tokenBO) {
+        Boolean refreshSession = adminSessionCache.refreshToken(tokenBO.getChannel(), tokenBO.getUserId());
+
+        if (!refreshSession) {
+            //如果续期失败 可能key刚好过期了 统一刷新token
+            log.info("token刷新失败");
+            processSessionExpired();
+        }
+    }
 
 }
