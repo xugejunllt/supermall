@@ -34,21 +34,7 @@ public class JwtUtils {
                 .compact();
         return token;
     }
-    public static String createUserToken(Long userId, String deviceId,String userName,Long merchantId, int expTime) {
 
-        long time = expTime*60*1000;
-        String token = Jwts.builder()
-                .setSubject("AUTH-USER")
-                .setExpiration(new Date(System.currentTimeMillis() + time))
-                .claim("userId", userId + "")
-                .claim("deviceId", deviceId)
-                .claim("userName", userName)
-                .claim("merchantId", merchantId+"")
-                .signWith(SignatureAlgorithm.HS512, tokenSignKey)
-                .compressWith(CompressionCodecs.GZIP)
-                .compact();
-        return token;
-    }
 
     public static String parseDeviceId(String token) throws ExpiredJwtException,Exception {
 

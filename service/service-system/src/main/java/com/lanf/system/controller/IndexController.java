@@ -1,10 +1,10 @@
 package com.lanf.system.controller;
 
 import com.google.gson.JsonObject;
-import com.lanf.common.utils.JwtUtils;
 
-import com.lanf.security.utils.AdminContext;
+import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.security.utils.TokenUtils;
+import com.lanf.security.utils.UserSessionCache;
 import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.entiry.SysI18nDO;
 import com.lanf.system.model.entiry.SysMenuDO;
@@ -49,7 +49,8 @@ public class IndexController {
     private RedisTemplate redisTemplate;
     @Autowired
     private TokenUtils tokenUtils;
-
+    @Autowired
+    private AdminSessionCache adminSessionCache;
     @CrossOrigin
     @GetMapping("/getI18n")
     public Result getI18n(HttpServletResponse response) {
@@ -74,7 +75,8 @@ public class IndexController {
      */
     @GetMapping("/info")
     public Result info(HttpServletRequest request) {
-        Map<String, Object> map = sysUserService.getUserInfo(AdminContext.get().getUserName());
+        SysUserBO sysUser = adminSessionCache.getSysUser();
+        Map<String, Object> map = sysUserService.getUserInfo(sysUser.getUsername());
 
         return Result.ok(map);
     }
@@ -87,8 +89,9 @@ public class IndexController {
      */
     @GetMapping("/menuTree")
     public Result menuTree(HttpServletRequest request) {
+        SysUserBO sysUser = adminSessionCache.getSysUser();
 
-        List<SysMenuDO> menuList = sysMenuService.findUserMenuList(AdminContext.get().getUserName());
+        List<SysMenuDO> menuList = sysMenuService.findUserMenuList(sysUser.getUsername());
         return Result.ok(menuList);
     }
 

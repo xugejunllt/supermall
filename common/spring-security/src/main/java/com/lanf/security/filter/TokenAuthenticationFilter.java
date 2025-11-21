@@ -1,24 +1,17 @@
 package com.lanf.security.filter;
 
-import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lanf.common.utils.*;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.IRedisException;
-import com.lanf.security.config.FilterPathConfig;
-import com.lanf.security.model.AdminCacheBO;
 import com.lanf.security.model.ValidateTokenBO;
 import com.lanf.security.utils.*;
-import com.lanf.security.utils.JwtUtils;
-import com.lanf.security.utils.TokenUtils;
+import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.web.code.CommonResultCodeEnum;
 import com.lanf.web.exception.BizException;
 import com.lanf.web.result.Result;
 import com.lanf.web.utils.ResponseUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,13 +23,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import static com.lanf.security.code.SystemResultCodeEnum.TOKENEXPIRED;
 
 /**
  * @author tanlingfei
@@ -82,7 +71,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         try {
             chain.doFilter(request, response);
         } finally {
-            AdminContext.clear();
+            UserIdContext.clear();
+            MerchantIdContext.clear();
         }
 
 
@@ -111,12 +101,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         //刷新token
         refreshToken(tokenBO);
 
-        //加入threadlocal中
-        AdminCacheBO adminCacheBO = new AdminCacheBO();
-        adminCacheBO.setUserName(tokenBO.getUserName());
-        adminCacheBO.setMerchantId(tokenBO.getMerchantId());
-        adminCacheBO.setUserId(tokenBO.getUserId());
-        AdminContext.set(adminCacheBO);
+        //添加到threadlocal
+        UserIdContext.setUserId(tokenBO.getUserId());
+        MerchantIdContext.setMerchantId(tokenBO.getMerchantId());
 
         //构建UsernamePasswordAuthenticationToken
         return  buildUsernamePasswordAuthenticationToken(  tokenBO);
@@ -145,16 +132,12 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
         Integer channel2 = null;
         Boolean sessionExpired = false;
-        String deviceId2 = null;
-        Long cacheUserId = null;
-        String userName = null;
-        String merchantId = null;
+        String  deviceId2 = null;
+        Long   cacheUserId = null;
         try {
 
             deviceId2 = com.lanf.security.utils.JwtUtils.parseDeviceId(userToken);
             cacheUserId = com.lanf.security.utils.JwtUtils.parseUserId(userToken);
-            userName = com.lanf.security.utils.JwtUtils.parseUserName(userToken);
-            merchantId = JwtUtils.parseMerchantId(userToken);
 
         } catch (ExpiredJwtException e) {
             log.info(" JWT token 过期");
@@ -191,6 +174,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             log.info("请求头token与缓存token不一致");
             throw new BizException("请求头token与缓存token不一致");
         }
+        SysUserBO sysUser = adminSessionCache.getSysUser(cacheUserId);
+
         //
         ValidateTokenBO bo = new ValidateTokenBO();
         bo.setUserId(cacheUserId);
@@ -198,8 +183,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         bo.setToken(token);
         bo.setDeviceId(deviceId2);
         bo.setChannel(channel2);
-        bo.setUserName(userName);
-        bo.setMerchantId(Long.parseLong(merchantId));
+        bo.setMerchantId(sysUser.getMerchantId());
+
         return bo;
     }
 

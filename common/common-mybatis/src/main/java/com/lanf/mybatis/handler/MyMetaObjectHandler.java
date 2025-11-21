@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.lanf.mybatis.config.TenantProperties;
-import com.lanf.security.utils.AdminContext;
+import com.lanf.security.utils.MerchantIdContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 
         if (tenantProperties.getFilterTables().contains(getTableName( metaObject) )) {
             //拦截的租户表 插入租户id
-            this.setFieldValByName("tenant_id", AdminContext.get().getMerchantId(), metaObject);
+            this.setFieldValByName("tenant_id", MerchantIdContext.getMerchantId(), metaObject);
         }
     }
 

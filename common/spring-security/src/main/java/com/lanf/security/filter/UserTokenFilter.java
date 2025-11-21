@@ -4,13 +4,12 @@ import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.StackTraceUtil;
 import com.lanf.constant.exception.IRedisException;
-import com.lanf.redis.constant.CacheConstants;
 import com.lanf.constant.constant.Constants;
 import com.lanf.redis.service.RedisCache;
 import com.lanf.security.config.FilterPathConfig;
 import com.lanf.security.model.ValidateTokenBO;
 import com.lanf.security.utils.JwtUtils;
-import com.lanf.security.utils.UserContext;
+import com.lanf.security.utils.UserIdContext;
 import com.lanf.security.utils.UserSessionCache;
 import com.lanf.web.code.CommonResultCodeEnum;
 import com.lanf.web.exception.BizException;
@@ -65,9 +64,14 @@ public class UserTokenFilter implements Filter {
     private void userTokenHandle(HttpServletRequest request, FilterChain chain, HttpServletResponse response) throws ServletException, IOException {
 
         FilterPathConfig filterPathConfig = BeanUtil.getBean(FilterPathConfig.class);
-
+        String url = request.getRequestURI();
         List<String> userNotTokenPath = filterPathConfig.getUserNotTokenPath();
-        if (userNotTokenPath.contains(request.getRequestURI())) {
+        if (userNotTokenPath.contains(url)) {
+            chain.doFilter(request, response);
+            return;
+        }
+        if (url.startsWith("/system")){
+            //解决restfult风格
             chain.doFilter(request, response);
             return;
         }
@@ -88,14 +92,14 @@ public class UserTokenFilter implements Filter {
         refreshToken(tokenBO);
 
         //userid添加到 context中
-        UserContext.setUserId(tokenBO.getUserId());
+        UserIdContext.setUserId(tokenBO.getUserId());
         log.info("当前用户是[{}]",tokenBO.getUserId());
         try {
             //请求放行
             chain.doFilter(request, response);
 
         } finally {
-            UserContext.clear();
+            UserIdContext.clear();
 
         }
     }

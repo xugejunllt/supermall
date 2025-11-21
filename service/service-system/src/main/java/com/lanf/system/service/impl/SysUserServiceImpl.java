@@ -59,6 +59,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUserDO> im
             }
             userQueryVo.setDeptId(sysUser.getDeptId());
         }
+
         return sysUserMapper.selectPage(pageParam, userQueryVo);
     }
 

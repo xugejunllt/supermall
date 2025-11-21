@@ -2,7 +2,6 @@ package com.lanf.user.controller.app;
 
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.security.utils.UserContext;
 import com.lanf.user.model.dto.LoginUserDTO;
 import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;

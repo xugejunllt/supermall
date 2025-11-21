@@ -12,7 +12,7 @@ import com.lanf.rocketmq.model.message.SendSmsDTO;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.model.CacheSessionBO;
 import com.lanf.security.utils.JwtUtils;
-import com.lanf.security.utils.UserContext;
+import com.lanf.security.utils.UserIdContext;
 import com.lanf.security.utils.UserSessionCache;
 import com.lanf.user.mapper.UserMapper;
 import com.lanf.user.model.bo.UserLevelBO;
@@ -455,7 +455,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     public UserVO getUserById() {
 
 
-        Long userId = UserContext.getUserId();
+        Long userId = UserIdContext.getUserId();
         UserDO userDO = this.getById(userId);
         if ( userDO == null){
             log.info("用户不存在");
@@ -472,7 +472,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
      */
     @Override
     public UserDetailVO getUserDetail() {
-        Long userId = UserContext.getUserId();
+        Long userId = UserIdContext.getUserId();
 
         //获取用户基本信息 这里可以使用redis进行缓存
         UserVO userVO = getUserById();

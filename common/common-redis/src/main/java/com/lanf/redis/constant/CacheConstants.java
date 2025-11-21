@@ -57,6 +57,10 @@ public class CacheConstants {
     public static final String ADMIN_AUTH = "admin:auth:%s:%s"; //
     public static final int ADMIN_ADMIN_AUTH_EXP_TIME = ADMIN_REFRESH_TOKEN_EXP_TIME;
 
+    public static final String ADMIN_USER_INFO = "admin:info:%s"; //
+
+    public static final int ADMIN_USER_INFO_EXP_TIME = ADMIN_REFRESH_TOKEN_EXP_TIME;
+
 
     /**
      * 获取key方法
@@ -90,7 +94,10 @@ public class CacheConstants {
 
         return String.format(CacheConstants.ADMIN_AUTH, channel, userId);
     }
+    public static String getADMIN_INFO( Long userId) {
 
+        return String.format(CacheConstants.ADMIN_USER_INFO, userId);
+    }
     /**
      * 登录用户 redis key
      */

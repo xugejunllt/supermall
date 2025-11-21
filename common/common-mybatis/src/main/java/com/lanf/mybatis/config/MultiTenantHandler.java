@@ -1,7 +1,7 @@
 package com.lanf.mybatis.config;
 
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
-import com.lanf.security.utils.AdminContext;
+import com.lanf.security.utils.MerchantIdContext;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 
@@ -31,7 +31,7 @@ public class MultiTenantHandler implements TenantLineHandler {
     public Expression getTenantId() {
 
 
-        return new LongValue(AdminContext.get().getMerchantId());
+        return new LongValue(MerchantIdContext.getMerchantId());
 
     }
 

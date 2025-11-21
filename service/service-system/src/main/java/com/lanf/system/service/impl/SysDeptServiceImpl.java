@@ -72,14 +72,13 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDeptDO> im
     @Override
     public List<SysDeptDO> findNodes(SysDeptQueryVO sysDeptQueryVo) {
         //全部部门列表
-        SysUserBO sysUser = UserUtils.getUserInfo();
-        if ("admin".equals(sysUser.getUsername())) {
+        if ("admin".equals(sysDeptQueryVo.getName())) {
             sysDeptQueryVo.setDeptId(null);
         } else {
-            if (StringUtils.isEmpty(sysUser.getDeptId())) {
+            if (StringUtils.isEmpty(sysDeptQueryVo.getDeptId())) {
                 return null;
             }
-            sysDeptQueryVo.setDeptId(sysUser.getDeptId());
+            sysDeptQueryVo.setDeptId(sysDeptQueryVo.getDeptId());
         }
         List<SysDeptDO> sysDptList = sysDeptMapper.queryList(sysDeptQueryVo);
         if (CollectionUtils.isEmpty(sysDptList)) return null;

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.security.utils.UserContext;
+import com.lanf.security.utils.UserIdContext;
 import com.lanf.user.mapper.AddressMapper;
 import com.lanf.user.model.dto.CreateAddressDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
@@ -41,7 +41,7 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
     public void createAddress(CreateAddressDTO dto) {
         AddressDO addressDO = new AddressDO();
         BeanCopyUtils.copy(dto, addressDO);
-        Long userId = UserContext.getUserId();
+        Long userId = UserIdContext.getUserId();
         addressDO.setUserId(userId);
         List<AddressDO> list = this.lambdaQuery().eq(AddressDO::getUserId, userId).list();
         if (list.isEmpty()) {
@@ -57,7 +57,7 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
     @Override
     public AddressDO getDefaultAddress() {
 
-        Long userId = UserContext.getUserId();
+        Long userId = UserIdContext.getUserId();
 
         return this.lambdaQuery().eq(AddressDO::getUserId, userId).eq(AddressDO::getDefaultAddress, 0).one();
     }
@@ -65,7 +65,7 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
     @Override
     public List<AddressVO> listAddress() {
 
-        Long userId = UserContext.getUserId();
+        Long userId = UserIdContext.getUserId();
 
         List<AddressVO> addressVOList = addersCache.getCache(userId);
         if (addressVOList != null){
@@ -110,6 +110,6 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
         addressDOList.add(updateAddressDO);
         addressDOList.add(updateAddressDO2);
         this.updateBatchById(addressDOList);
-        addersCache.removeCache(UserContext.getUserId());
+        addersCache.removeCache(UserIdContext.getUserId());
     }
 }
