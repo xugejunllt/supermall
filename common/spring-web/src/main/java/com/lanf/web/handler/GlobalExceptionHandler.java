@@ -9,6 +9,7 @@ import com.lanf.web.exception.BizException;
 import com.lanf.web.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -34,7 +35,13 @@ public class GlobalExceptionHandler {
 
         return Result.fail();
     }
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseBody
+    public Result error(AccessDeniedException e) {
+        //权限异常  没有访问权限 -spring security
+        return Result.fail(CommonResultCodeEnum.SERVICE_ERROR.getCode(), e.getMessage());
 
+    }
     @ExceptionHandler(BizException.class)
     @ResponseBody
     public Result error(BizException e) {

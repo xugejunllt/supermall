@@ -18,7 +18,6 @@ import com.lanf.system.model.enums.CompanyStatusEnum;
 import com.lanf.system.model.query.CompanyPageQuery;
 import com.lanf.system.service.SysUserService;
 import com.lanf.system.service.merchant.IMerchantService;
-import com.lanf.system.service.manager.SystemManagerService;
 import com.lanf.web.exception.BizException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +42,7 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, MerchantDO>
     private IBCryptPasswordEncoder cryptPasswordEncoder;
     @Autowired
     private MerchantMapper companyMapper;
-    @Autowired
-    private SystemManagerService systemManagerService;
+
     @Autowired
     private IBCryptPasswordEncoder customMd5PasswordEncoder;
     @Override

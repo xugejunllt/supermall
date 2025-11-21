@@ -2,7 +2,10 @@ package com.lanf.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.constant.constant.Constants;
+import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.mapper.SysMenuMapper;
+import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.entiry.SysMenuDO;
 import com.lanf.system.model.entiry.SysRoleMenuDO;
 import com.lanf.system.model.entiry.SysUserDO;
@@ -10,7 +13,9 @@ import com.lanf.system.model.vo.AssginMenuVO;
 import com.lanf.system.service.SysMenuService;
 import com.lanf.system.service.SysRoleMenuService;
 import com.lanf.system.service.SysUserService;
+import com.lanf.system.service.manager.PermissionFilter;
 import com.lanf.system.utils.MenuHelper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +28,7 @@ import java.util.function.Function;
 
 @Transactional
 @Service
+@Slf4j
 public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO> implements SysMenuService {
 
     @Autowired
@@ -31,16 +37,24 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO> im
     private SysRoleMenuService sysRoleMenuService;
     @Autowired
     private SysUserService sysUserService;
+    @Autowired
+    private PermissionFilter permissionFilter;
 
     @Override
     public List<SysMenuDO> findNodes() {
         //全部权限列表
         List<SysMenuDO> sysMenuList = sysMenuMapper.queryList("", "");
         if (CollectionUtils.isEmpty(sysMenuList)) return null;
+        SysUserBO sysUser = AdminSessionCache.getSysUser();
+
+        if ( !permissionFilter.isPlatformAdminAccount(sysUser.getUsername(),sysUser.getTenantCode())){
+            log.info("非平台租户,开始过滤按钮和菜单权限");
+            sysMenuList = permissionFilter.excludeMenuAndButton(sysMenuList);
+        }
         //构建树形数据
-        List<SysMenuDO> result = MenuHelper.buildTree(sysMenuList);
-        return result;
+        return MenuHelper.buildTree(sysMenuList);
     }
+
 
     @Override
     public List<SysMenuDO> findDir(String notId) {
@@ -119,6 +133,12 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO> im
             typeList.add(1);
             sysMenuList = sysMenuMapper.findListByUserId(userId, null, typeList);
         }
+        SysUserBO sysUser2 = AdminSessionCache.getSysUser();
+        if ( !permissionFilter.isPlatformAdminAccount(sysUser2.getUsername(),sysUser2.getTenantCode())){
+            log.info("非平台租户,开始过滤菜单权限");
+            sysMenuList = permissionFilter.excludeMenu(sysMenuList);
+        }
+
         //构建树形数据
         List<SysMenuDO> sysMenuTreeList = MenuHelper.buildTree(sysMenuList);
         return sysMenuTreeList;
