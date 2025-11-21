@@ -82,7 +82,7 @@ public class SysI18nController {
         return Result.ok(list);
     }
 
-    @Log(title = "国际化语言", businessType = BusinessType.INSERT)
+    //@Log(title = "国际化语言", businessType = BusinessType.INSERT)
     @PreAuthorize("hasAuthority('bnt.sysI18n.add')")
     @ApiOperation(value = "保存国际化语言")
     @PostMapping("/save")
@@ -91,7 +91,7 @@ public class SysI18nController {
         return Result.ok();
     }
 
-    @Log(title = "国际化语言", businessType = BusinessType.UPDATE)
+    //@Log(title = "国际化语言", businessType = BusinessType.UPDATE)
     @PreAuthorize("hasAuthority('bnt.sysI18n.update')")
     @ApiOperation(value = "更新国际化语言")
     @PutMapping("/update")
@@ -100,7 +100,7 @@ public class SysI18nController {
         return Result.ok();
     }
 
-    @Log(title = "国际化语言", businessType = BusinessType.DELETE)
+    //@Log(title = "国际化语言", businessType = BusinessType.DELETE)
     @PreAuthorize("hasAuthority('bnt.sysI18n.remove')")
     @ApiOperation(value = "删除国际化语言")
     @DeleteMapping("/remove/{id}")
@@ -109,7 +109,7 @@ public class SysI18nController {
         return Result.ok();
     }
 
-    @Log(title = "国际化语言", businessType = BusinessType.DELETE)
+   // @Log(title = "国际化语言", businessType = BusinessType.DELETE)
     @PreAuthorize("hasAuthority('bnt.sysI18n.remove')")
     @ApiOperation(value = "根据id列表删除")
     @DeleteMapping("/batchRemove")

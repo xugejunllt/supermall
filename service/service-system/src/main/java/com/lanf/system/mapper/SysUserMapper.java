@@ -15,7 +15,6 @@ import org.springframework.stereotype.Repository;
 public interface SysUserMapper extends BaseMapper<SysUserDO> {
     IPage<SysUserDO> selectPage(Page<SysUserDO> page, @Param("vo") SysUserQueryVO userQueryVo);
 
-    @InterceptorIgnore(tenantLine = "true")
     SysUserDO getByUserName(@Param("userName") String userName,@Param("tenantCode")String tenantCode);
 }
 

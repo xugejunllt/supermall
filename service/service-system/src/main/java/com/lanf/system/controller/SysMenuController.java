@@ -45,7 +45,7 @@ public class SysMenuController {
         return Result.ok(list);
     }
 
-    @Log(title = "菜单管理", businessType = BusinessType.INSERT)
+    //@Log(title = "菜单管理", businessType = BusinessType.INSERT)
     @PreAuthorize("hasAuthority('bnt.sysMenu.add')")
     @ApiOperation(value = "新增菜单")
     @PostMapping("save")
@@ -66,7 +66,7 @@ public class SysMenuController {
         return Result.ok(sysMenu);
     }
 
-    @Log(title = "菜单管理", businessType = BusinessType.UPDATE)
+    //@Log(title = "菜单管理", businessType = BusinessType.UPDATE)
     @PreAuthorize("hasAuthority('bnt.sysMenu.update')")
     @ApiOperation(value = "修改菜单")
     @PostMapping("update")
@@ -75,7 +75,7 @@ public class SysMenuController {
         return Result.ok();
     }
 
-    @Log(title = "菜单管理", businessType = BusinessType.DELETE)
+   // @Log(title = "菜单管理", businessType = BusinessType.DELETE)
     @PreAuthorize("hasAuthority('bnt.sysMenu.remove')")
     @ApiOperation(value = "删除菜单")
     @DeleteMapping("/batchRemove")

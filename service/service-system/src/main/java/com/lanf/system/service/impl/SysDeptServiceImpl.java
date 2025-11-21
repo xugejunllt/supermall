@@ -2,6 +2,8 @@ package com.lanf.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.security.utils.AdminSessionCache;
+import com.lanf.security.utils.MerchantIdContext;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.mapper.SysDeptMapper;
 import com.lanf.system.model.bo.SysUserBO;
@@ -24,14 +26,15 @@ import java.util.Map;
 public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDeptDO> implements SysDeptService {
     @Autowired
     private SysDeptMapper sysDeptMapper;
-
+    @Autowired
+    private AdminSessionCache adminSessionCache;
     @Override
-    public boolean save(SysDeptDO sysDept) {
+    public boolean createSysDept(SysDeptDO sysDept) {
         if (sysDept.getParentId() == null){
             sysDept.setParentId(0L);
         }
+        this.save(sysDept);
 
-        this.sysDeptMapper.insert(sysDept);
         if (sysDept.getParentId() == 0L) {
             sysDept.setLevel(1);
         } else {
@@ -71,11 +74,14 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDeptDO> im
 
     @Override
     public List<SysDeptDO> findNodes(SysDeptQueryVO sysDeptQueryVo) {
+
+
+        SysUserBO sysUser = adminSessionCache.getSysUser();
         //全部部门列表
-        if ("admin".equals(sysDeptQueryVo.getName())) {
+        if ("admin".equals(sysUser.getUsername())) {
             sysDeptQueryVo.setDeptId(null);
         } else {
-            if (StringUtils.isEmpty(sysDeptQueryVo.getDeptId())) {
+            if (StringUtils.isEmpty(sysUser.getDeptId())) {
                 return null;
             }
             sysDeptQueryVo.setDeptId(sysDeptQueryVo.getDeptId());

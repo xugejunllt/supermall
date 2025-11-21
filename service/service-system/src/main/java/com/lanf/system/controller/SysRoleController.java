@@ -63,7 +63,7 @@ public class SysRoleController {
         return Result.ok(role);
     }
 
-    @Log(title = "角色管理", businessType = BusinessType.INSERT)
+   // @Log(title = "角色管理", businessType = BusinessType.INSERT)
     @PreAuthorize("hasAuthority('bnt.sysRole.add')")
     @ApiOperation(value = "新增角色")
     @PostMapping("/save")
@@ -74,7 +74,7 @@ public class SysRoleController {
 
     }
 
-    @Log(title = "角色管理", businessType = BusinessType.UPDATE)
+    //@Log(title = "角色管理", businessType = BusinessType.UPDATE)
     @PreAuthorize("hasAuthority('bnt.sysRole.update')")
     @ApiOperation(value = "修改角色")
     @PostMapping("/update")
@@ -85,7 +85,7 @@ public class SysRoleController {
 
     }
 
-    @Log(title = "角色管理", businessType = BusinessType.DELETE)
+    //@Log(title = "角色管理", businessType = BusinessType.DELETE)
     @PreAuthorize("hasAuthority('bnt.sysRole.remove')")
     @ApiOperation(value = "删除角色")
     @DeleteMapping("/remove/{id}")
@@ -96,7 +96,7 @@ public class SysRoleController {
 
     }
 
-    @Log(title = "角色管理", businessType = BusinessType.DELETE)
+   // @Log(title = "角色管理", businessType = BusinessType.DELETE)
     @PreAuthorize("hasAuthority('bnt.sysRole.remove')")
     @ApiOperation(value = "根据id列表删除")
     @DeleteMapping("/batchRemove")
@@ -107,7 +107,7 @@ public class SysRoleController {
 
     }
 
-    @Log(title = "角色管理", businessType = BusinessType.ASSGIN)
+    //@Log(title = "角色管理", businessType = BusinessType.ASSGIN)
     @PreAuthorize("hasAuthority('bnt.sysRole.assignAuth')")
     @ApiOperation(value = "给角色分配权限")
     @PostMapping("/doAuth")

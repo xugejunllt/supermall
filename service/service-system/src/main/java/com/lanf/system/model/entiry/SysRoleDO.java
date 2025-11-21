@@ -23,6 +23,6 @@ public class SysRoleDO extends BaseEntity {
     private String description;
 
     @TableField( fill = FieldFill.INSERT)
-    private String  tenantCode;
+    private Long  tenantId;
 }
 

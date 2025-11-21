@@ -54,5 +54,6 @@ public class SysDeptDO extends BaseEntity {
     private List<SysDeptDO> children;
 
     @TableField( fill = FieldFill.INSERT)
-    private String  tenantCode;
+    private Long  tenantId;
+
 }

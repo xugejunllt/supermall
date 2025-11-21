@@ -24,6 +24,7 @@ public class SysRoleMenuDO extends BaseEntity {
     private Long menuId;
 
     @TableField( fill = FieldFill.INSERT)
-    private String  tenantCode;
+
+    private Long  tenantId;
 }
 

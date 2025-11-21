@@ -30,7 +30,8 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 
         if (tenantProperties.getFilterTables().contains(getTableName( metaObject) )) {
             //拦截的租户表 插入租户id
-            this.setFieldValByName("tenant_id", MerchantIdContext.getMerchantId(), metaObject);
+            Long merchantId = MerchantIdContext.getMerchantId();
+            this.setFieldValByName("tenantId",merchantId, metaObject);
         }
     }
 

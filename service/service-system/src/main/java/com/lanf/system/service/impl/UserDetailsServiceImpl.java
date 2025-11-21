@@ -3,6 +3,7 @@ package com.lanf.system.service.impl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.constant.constant.Constants;
+import com.lanf.security.utils.MerchantIdContext;
 import com.lanf.system.mapper.SysUserMapper;
 import com.lanf.system.model.bo.CustomUserBO;
 import com.lanf.system.model.entiry.MerchantDO;
@@ -48,7 +49,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if ( merchantDO == null){
             throw new UsernameNotFoundException("租户不存在！");
         }
-
+        MerchantIdContext.setMerchantId(merchantDO.getId());
         SysUserDO sysUser = sysUserService.lambdaQuery()
                 .eq(SysUserDO::getUsername,username)
                 .eq(SysUserDO::getTenantId,merchantDO.getId()).one();

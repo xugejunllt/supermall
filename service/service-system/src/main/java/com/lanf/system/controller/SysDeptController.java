@@ -62,16 +62,16 @@ public class SysDeptController {
     }
 
 
-    @Log(title = "部门管理", businessType = BusinessType.INSERT)
+   // @Log(title = "部门管理", businessType = BusinessType.INSERT)
     @PreAuthorize("hasAuthority('bnt.sysDept.add')")
     @ApiOperation(value = "新增部门")
     @PostMapping("save")
     public Result save(@RequestBody SysDeptDO sysDept) {
-        sysDeptService.save(sysDept);
+        sysDeptService.createSysDept(sysDept);
         return Result.ok();
     }
 
-    @Log(title = "部门管理", businessType = BusinessType.UPDATE)
+    //@Log(title = "部门管理", businessType = BusinessType.UPDATE)
     @PreAuthorize("hasAuthority('bnt.sysDept.update')")
     @ApiOperation(value = "修改部门")
     @PutMapping("update")
@@ -80,7 +80,7 @@ public class SysDeptController {
         return Result.ok();
     }
 
-    @Log(title = "部门管理", businessType = BusinessType.DELETE)
+   // @Log(title = "部门管理", businessType = BusinessType.DELETE)
     @PreAuthorize("hasAuthority('bnt.sysDept.remove')")
     @ApiOperation(value = "删除部门")
     @DeleteMapping("batchRemove")

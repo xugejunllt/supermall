@@ -15,7 +15,7 @@ public interface SysDeptService extends IService<SysDeptDO> {
      */
     public List<SysDeptDO> findNodes(SysDeptQueryVO sysDeptQueryVo);
     public List<Map> findSelectNodes();
-    public boolean save(SysDeptDO sysDept);
+    public boolean createSysDept(SysDeptDO sysDept);
     public boolean updateById(SysDeptDO sysDept);
     public List<SysDeptDO> findNodesByParent(String parentId);
 }

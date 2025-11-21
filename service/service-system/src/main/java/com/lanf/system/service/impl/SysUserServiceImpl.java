@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.MD5;
 
 import com.lanf.security.custom.IBCryptPasswordEncoder;
+import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.mapper.SysUserMapper;
 import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.entiry.SysDeptDO;
@@ -50,7 +51,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUserDO> im
     @Override
     public IPage<SysUserDO> selectPage(Page<SysUserDO> pageParam, SysUserQueryVO userQueryVo) {
         //只查询当前登录所属部门数据
-        SysUserBO sysUser = UserUtils.getUserInfo();
+        SysUserBO sysUser = AdminSessionCache.getSysUser();
+
         if ("admin".equals(sysUser.getUsername())) {
             userQueryVo.setDeptId(null);
         } else {

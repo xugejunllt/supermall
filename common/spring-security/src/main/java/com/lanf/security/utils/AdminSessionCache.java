@@ -1,5 +1,6 @@
 package com.lanf.security.utils;
 
+import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.redis.constant.CacheConstants;
 import com.lanf.redis.service.RedisCache;
@@ -30,7 +31,7 @@ public class AdminSessionCache {
         return redisCache.getCacheObject(tokenKey);
     }
 
-    public String getAuth(Integer channel, Long userId) {
+    public  String getAuth(Integer channel, Long userId) {
 
         String authKey = CacheConstants.getADMIN_AUTH(channel, userId);
 
@@ -55,11 +56,12 @@ public class AdminSessionCache {
 
     }
 
-    public SysUserBO getSysUser() {
+    public static SysUserBO getSysUser() {
 
         Long userId = UserIdContext.getUserId();
         String adminInfo = CacheConstants.getADMIN_INFO(userId);
-        String cacheObject = redisCache.getCacheObject(adminInfo);
+        RedisCache redisCache1 = BeanUtil.getBean(RedisCache.class);
+        String cacheObject = redisCache1.getCacheObject(adminInfo);
 
         return JsonUtils.toObject(cacheObject, SysUserBO.class);
 

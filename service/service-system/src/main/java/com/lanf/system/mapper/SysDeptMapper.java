@@ -11,8 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 
-@Repository
-@Mapper
+
 public interface SysDeptMapper extends BaseMapper<SysDeptDO> {
     @MapKey("id")
     public List<Map> findList(@Param("vo") SysDeptQueryVO sysDeptQueryVo);
