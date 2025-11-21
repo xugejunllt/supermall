@@ -75,7 +75,7 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
 
             LoginVO loginVo = new ObjectMapper().readValue(req.getInputStream(), LoginVO.class);
             Authentication authenticationToken = new UsernamePasswordAuthenticationToken(loginVo.getUsername(), loginVo.getPassword());
-
+            req.setAttribute(Constants.TENANT_CODE,loginVo.getTenantCode());
             return this.getAuthenticationManager().authenticate(authenticationToken);
         } catch (IOException e) {
             throw new RuntimeException(e);

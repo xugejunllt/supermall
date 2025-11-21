@@ -1,6 +1,8 @@
 package com.lanf.security.filter;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.JwtUtils;
 import com.lanf.constant.constant.Constants;
@@ -10,6 +12,7 @@ import com.lanf.web.exception.BizException;
 import com.lanf.web.result.Result;
 import com.lanf.web.utils.ResponseUtil;
 import io.jsonwebtoken.ExpiredJwtException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +29,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.lanf.security.code.SystemResultCodeEnum.TOKENEXPIRED;
 
@@ -35,6 +39,7 @@ import static com.lanf.security.code.SystemResultCodeEnum.TOKENEXPIRED;
  * @description 认证解析过滤器
  * @date 2023/2/27 10:23
  */
+@Slf4j
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private RedisTemplate redisTemplate;
@@ -50,7 +55,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
         if ("/system/admin/system/index/login".equals(request.getRequestURI())) {
             //如果是登录接口，直接放行 然后走账号密码拦截器
-
             chain.doFilter(request, response);
             return;
         }

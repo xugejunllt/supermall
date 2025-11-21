@@ -19,6 +19,6 @@ public class LoginVO {
      */
     private String password;
 
-
+    private String tenantCode;
 
 }

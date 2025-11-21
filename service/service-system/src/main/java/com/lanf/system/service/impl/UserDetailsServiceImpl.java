@@ -40,7 +40,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         HttpServletRequest request = WebUtil.getRequest();
-        String tenantCode = request.getHeader(Constants.TENANT_CODE);
+        String tenantCode = (String) request.getAttribute(Constants.TENANT_CODE);
         String chanel = request.getHeader(Constants.CHANEL);
         String  deviceId = request.getHeader(Constants.DEVICE_ID);
 
