@@ -84,7 +84,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUserDO> im
         }
 
         String pwd = customMd5PasswordEncoder.encode(sysUser.getPassword());
-        sysUser.setTenantCode(UserUtils.getTenantCode());
+       // sysUser.setTenantCode(UserUtils.getTenantCode());
         sysUser.setPassword(pwd);
         sysUser.setStatus(sysUser.getStatus());
         int result = this.sysUserMapper.insert(sysUser);

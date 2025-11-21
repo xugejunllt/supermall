@@ -7,11 +7,11 @@ import com.lanf.common.utils.*;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.IRedisException;
 import com.lanf.security.config.FilterPathConfig;
+import com.lanf.security.model.AdminCacheBO;
 import com.lanf.security.model.ValidateTokenBO;
-import com.lanf.security.utils.AdminSessionCache;
+import com.lanf.security.utils.*;
 import com.lanf.security.utils.JwtUtils;
 import com.lanf.security.utils.TokenUtils;
-import com.lanf.security.utils.UserContext;
 import com.lanf.web.code.CommonResultCodeEnum;
 import com.lanf.web.exception.BizException;
 import com.lanf.web.result.Result;
@@ -79,7 +79,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        chain.doFilter(request, response);
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            AdminContext.clear();
+        }
 
 
     }
@@ -103,8 +107,17 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             processSessionExpired();
 
         }
+
         //刷新token
         refreshToken(tokenBO);
+
+        //加入threadlocal中
+        AdminCacheBO adminCacheBO = new AdminCacheBO();
+        adminCacheBO.setUserName(tokenBO.getUserName());
+        adminCacheBO.setMerchantId(tokenBO.getMerchantId());
+        adminCacheBO.setUserId(tokenBO.getUserId());
+        AdminContext.set(adminCacheBO);
+
         //构建UsernamePasswordAuthenticationToken
         return  buildUsernamePasswordAuthenticationToken(  tokenBO);
     }

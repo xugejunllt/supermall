@@ -3,6 +3,7 @@ package com.lanf.system.controller;
 import com.google.gson.JsonObject;
 import com.lanf.common.utils.JwtUtils;
 
+import com.lanf.security.utils.AdminContext;
 import com.lanf.security.utils.TokenUtils;
 import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.entiry.SysI18nDO;
@@ -73,8 +74,8 @@ public class IndexController {
      */
     @GetMapping("/info")
     public Result info(HttpServletRequest request) {
-        String username = JwtUtils.getUsername(request.getHeader("token"));
-        Map<String, Object> map = sysUserService.getUserInfo(username);
+        Map<String, Object> map = sysUserService.getUserInfo(AdminContext.get().getUserName());
+
         return Result.ok(map);
     }
 
@@ -86,9 +87,8 @@ public class IndexController {
      */
     @GetMapping("/menuTree")
     public Result menuTree(HttpServletRequest request) {
-        String username = JwtUtils.getUsername(request.getHeader("token"));
 
-        List<SysMenuDO> menuList = sysMenuService.findUserMenuList(username);
+        List<SysMenuDO> menuList = sysMenuService.findUserMenuList(AdminContext.get().getUserName());
         return Result.ok(menuList);
     }
 
