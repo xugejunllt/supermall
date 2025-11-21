@@ -75,6 +75,7 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
 
             LoginVO loginVo = new ObjectMapper().readValue(req.getInputStream(), LoginVO.class);
             Authentication authenticationToken = new UsernamePasswordAuthenticationToken(loginVo.getUsername(), loginVo.getPassword());
+            //将租户code 透传到 自定义查找用户方法里 UserDetailsServiceImpl.loadUserByUsername
             req.setAttribute(Constants.TENANT_CODE,loginVo.getTenantCode());
             return this.getAuthenticationManager().authenticate(authenticationToken);
         } catch (IOException e) {

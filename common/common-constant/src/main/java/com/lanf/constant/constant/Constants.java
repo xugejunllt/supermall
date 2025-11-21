@@ -23,7 +23,7 @@ public class Constants {
     public static  final String DEVICE_ID = "deviceId";
     //refreshToken
     public static  final String REFRESH_TOKEN = "refreshToken";
-    public static  final String USER_TOKEN = "userToken";
+    public static  final String USER_TOKEN = "token";
     public static  final String TENANT_CODE = "tenantCode";
 
 
