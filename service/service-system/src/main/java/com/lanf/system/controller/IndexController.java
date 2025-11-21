@@ -102,9 +102,10 @@ public class IndexController {
      */
     @PostMapping("/logout")
     public Result logout() {
-        SysUserBO sysUser = UserUtils.getUserInfo();
-        redisTemplate.delete(sysUser.getUsername());
-        redisTemplate.delete(sysUser.getId() + "");
+
+        SysUserBO sysUser1 = AdminSessionCache.getSysUser();
+
+        adminSessionCache.cleanSession(sysUser1);
         return Result.ok();
     }
 

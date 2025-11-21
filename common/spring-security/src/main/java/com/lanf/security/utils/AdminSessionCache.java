@@ -107,14 +107,20 @@ public class AdminSessionCache {
         return cacheSessionBO;
     }
 
-    public void cleanSession(Integer channel, Long userId) {
+    public void cleanSession(SysUserBO sysUser1) {
 
-        String tokenKey = CacheConstants.getUSER_TOKEN_KEY(channel, userId);
-        String refreshTokenKey = CacheConstants.getUSER_REFRESH_TOKEN(channel, userId);
-        redisCache.deleteObject(tokenKey);
-        redisCache.deleteObject(refreshTokenKey);
+        Integer channel = sysUser1.getChannel();
+        String  deviceId = sysUser1.getDeviceId();
+        Long userId = sysUser1.getId();
+        String token = JwtUtils.createUserToken(userId, deviceId, CacheConstants.ADMIN_TOKEN_EXP_TIME);
+        String refreshToken = JwtUtils.createUserToken(userId, deviceId, CacheConstants.ADMIN_REFRESH_TOKEN_EXP_TIME);
+        String authKey = CacheConstants.getADMIN_AUTH(channel, userId);
+        String adminInfo = CacheConstants.getADMIN_INFO(userId);
 
-
+        redisCache.deleteObject(token);
+        redisCache.deleteObject(refreshToken);
+        redisCache.deleteObject(authKey);
+        redisCache.deleteObject(adminInfo);
     }
 
 
