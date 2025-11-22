@@ -65,6 +65,6 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "审核时间")
     private Date reviewTime;
     @TableField( fill = FieldFill.INSERT)
-    private String  tenantCode;
+    private Long  tenantId;
 
 }

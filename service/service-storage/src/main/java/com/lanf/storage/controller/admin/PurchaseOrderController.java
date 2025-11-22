@@ -1,4 +1,4 @@
-package com.lanf.storage.controller.purchase;
+package com.lanf.storage.controller.admin;
 
 
 import com.lanf.mybatis.base.PageResult;
@@ -22,12 +22,12 @@ import org.springframework.web.bind.annotation.*;
  * 采购单 前端控制器
  * </p>
  *
- * @author 江帅帅 Jss_forever
+ * @author
  * @since 2024-05-30
  */
 @Slf4j
 @RestController
-@RequestMapping("/purchaseOrder")
+@RequestMapping("/admin/purchaseOrder")
 public class PurchaseOrderController {
 
     @Autowired

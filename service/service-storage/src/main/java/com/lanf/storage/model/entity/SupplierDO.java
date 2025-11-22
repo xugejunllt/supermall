@@ -65,5 +65,5 @@ private static final long serialVersionUID=1L;
     private String alipayAccount;
 
     @TableField( fill = FieldFill.INSERT)
-    private String  tenantCode;
+    private Long  tenantId;
 }

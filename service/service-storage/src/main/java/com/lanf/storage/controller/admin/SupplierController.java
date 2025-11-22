@@ -1,4 +1,4 @@
-package com.lanf.storage.controller.supplier;
+package com.lanf.storage.controller.admin;
 
 
 import com.lanf.mybatis.base.PageResult;
@@ -26,7 +26,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/supplier")
+@RequestMapping("/admin/supplier")
 public class SupplierController {
 
     @Autowired
