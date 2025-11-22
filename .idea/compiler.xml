@@ -29,6 +29,7 @@
         <module name="service-goods (2)" />
         <module name="service-finance (2)" />
         <module name="service-storage (2)" />
+        <module name="common-biz-control" />
         <module name="common-fs (1)" />
         <module name="common-constant (2)" />
         <module name="api-gateway (1)" />

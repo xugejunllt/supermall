@@ -5,9 +5,13 @@ import com.lanf.common.utils.*;
 import com.lanf.constant.enums.SmsCodeEnum;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.lock.service.DistributedLocker;
+import com.lanf.messagemanager.client.model.base.BaseMqMessage;
+import com.lanf.messagemanager.client.model.dto.SendMqMessageDTO;
+import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.redis.constant.CacheConstants;
 import com.lanf.redis.service.RedisCache;
 import com.lanf.rocketmq.model.TopicName;
+import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.rocketmq.model.message.SendSmsDTO;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.model.CacheSessionBO;
@@ -36,6 +40,9 @@ import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Arrays;
 import java.util.List;
@@ -69,6 +76,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private LoginSecurityService loginSecurityService;
     @Autowired
     private IUserLevelService userLevelService;
+    @Autowired
+    private ISendMqMessageService sendMqMessageService;
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     @Override
     @DistributedLock(key = "#dto.phoneNumber")
@@ -78,12 +89,35 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         validateRegisterUser(dto);
         UserDO userDO = BeanCopyUtils.copyBean(dto, UserDO.class);
         fillUser(userDO);
-        this.save(userDO);
-        //发送mq 注册事件
+        //保存
+        SendMqMessageDTO sendMqMessageDTO = buildSendMqMessageDTO(dto);
 
+        transactionTemplate.execute(status -> {
+            try {
+                this.save(userDO);
+                sendMqMessageService.createSendMqMessage(sendMqMessageDTO);
+                // 如果一切正常，事务会自动提交
+                return null;
+            } catch (Exception e) {
+                // 发生异常时手动回滚
+                status.setRollbackOnly();
+                throw e;
+
+            }
+        });
+        //发送mq 注册事件
+        sendMqMessageService.sendMqMessage(sendMqMessageDTO);
 
     }
+    private SendMqMessageDTO buildSendMqMessageDTO(RegisterUserDTO dto){
 
+        SendSmsDTO messageContent = new SendSmsDTO();
+        String buildBizKey = EventCodeEnum.buildBizKey(dto.getPhoneNumber(), EventCodeEnum.USER_REGISTER.getCode());
+        messageContent.setBizKeyValue(buildBizKey);
+        messageContent.setPhone(dto.getPhoneNumber());
+
+        return new SendMqMessageDTO(TopicName.SEND_SMS_TOPIC,messageContent);
+    }
     private void fillUser(UserDO userDO) {
 
         userDO.setStatus(1);
@@ -113,7 +147,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         //校验是否已经注册过了
         List<UserDO> list = this.lambdaQuery().eq(UserDO::getPhoneNumber, phoneNumber).list();
-        if (list.size() > 1) {
+        if (!list.isEmpty()) {
             log.info("该手机号已被注册");
             throw new BizException("该手机号已被注册");
 
@@ -166,7 +200,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         String codeKey = String.format(CacheConstants.REGISTER_CODE_KEY, phoneNumber);
 
-        redisCache.setCacheObject(codeKey, code, 1);
+        redisCache.setCacheObject(codeKey, code, 1000000000);
 
     }
 

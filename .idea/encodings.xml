@@ -93,6 +93,8 @@
     <file url="file://$PROJECT_DIR$/api-gateway/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-biz-cache/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-biz-cache/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-biz-control/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-biz-control/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-constant/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-constant/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-elasticsearch/src/main/java" charset="UTF-8" />

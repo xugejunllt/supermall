@@ -87,7 +87,11 @@
             <artifactId>common-biz-cache</artifactId>
             <version>${common-biz-cache.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>message-manager-client</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>

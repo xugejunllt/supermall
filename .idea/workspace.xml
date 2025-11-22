@@ -4,14 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="def1266b-857e-4950-be4c-dbead49843e2" name="Changes" comment="" />
+    <list default="true" id="def1266b-857e-4950-be4c-dbead49843e2" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/resources/bootstrap.yml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/resources/bootstrap.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service/service-goods/src/main/java/com/lanf/goods/GoodsApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/service/service-goods/src/main/java/com/lanf/goods/GoodsApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service/service-goods/src/main/java/com/lanf/goods/controller/BaseGoodsController.java" beforeDir="false" afterPath="$PROJECT_DIR$/service/service-goods/src/main/java/com/lanf/goods/controller/admin/BaseGoodsController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service/service-goods/src/main/java/com/lanf/goods/controller/BaseGoodsSkuController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/service/service-goods/src/main/java/com/lanf/goods/model/entity/BaseGoodsDO.java" beforeDir="false" afterPath="$PROJECT_DIR$/service/service-goods/src/main/java/com/lanf/goods/model/entity/BaseGoodsDO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service/service-goods/src/main/java/com/lanf/goods/model/entity/BaseGoodsSkuDO.java" beforeDir="false" afterPath="$PROJECT_DIR$/service/service-goods/src/main/java/com/lanf/goods/model/entity/BaseGoodsSkuDO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service/service-storage/src/main/java/com/lanf/storage/mq/event/PaySuccessStorageEventListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/service/service-storage/src/main/java/com/lanf/storage/mq/event/PaySuccessStorageEventListener.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../item/mail" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MavenImportPreferences">
     <option name="generalSettings">
@@ -33,7 +41,8 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "D:/item2",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "D:/item2/mail",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0",

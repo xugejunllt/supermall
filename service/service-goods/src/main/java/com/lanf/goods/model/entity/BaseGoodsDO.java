@@ -34,6 +34,6 @@ private static final long serialVersionUID=1L;
 
 
     @TableField( fill = FieldFill.INSERT)
-    private String  tenantCode;
+    private Long  tenantId;
 
 }

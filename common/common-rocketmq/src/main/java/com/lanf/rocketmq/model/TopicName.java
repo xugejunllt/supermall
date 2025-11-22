@@ -3,6 +3,8 @@ package com.lanf.rocketmq.model;
 public class TopicName {
 
 
+    public static final int MAX_RECONSUME_TIMES = 2;
+
     /**
      * 订单状态变更
      */

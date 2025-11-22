@@ -1,6 +1,7 @@
-package com.lanf.goods.controller;
+package com.lanf.goods.controller.admin;
 
 
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.goods.model.dto.BaseGoodsAddDTO;
 import com.lanf.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.goods.model.vo.BaseGoodsByCodeQueryVO;
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/baseGoods")
+@RequestMapping("/admin/baseGoods")
 public class BaseGoodsController {
 
     @Autowired
@@ -34,7 +35,7 @@ public class BaseGoodsController {
     @GetMapping("/baseGoodsPage")
     public Result<PageResult<BaseGoodsPageVO>> baseGoodsPage(BaseGoodsPageQuery query) {
 
-        log.info("分页查询基础商品信息列表:query{}", query);
+        log.info("[{}]开始,入参:[{}]", "分页查询基础商品信息列表", JsonUtils.toJsonString(query));
 
         return Result.ok(baseGoodsService.baseGoodsPage(query));
     }

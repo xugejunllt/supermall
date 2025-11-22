@@ -1,8 +1,6 @@
 package com.lanf.storage.mq.event;
 
 
-import com.lanf.messagemanager.client.annotation.ConsumeMessage;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.PaySuccessEventMessage;
 import com.lanf.storage.service.storage.ISalesOutStockOrderService;
@@ -21,7 +19,7 @@ public class PaySuccessStorageEventListener implements RocketMQListener<PaySucce
 
     @Autowired
     private ISalesOutStockOrderService salesOutStockOrderService;
-    @ConsumeMessage
+
     @Override
     public void onMessage(PaySuccessEventMessage paySuccessEventMessage) {
 

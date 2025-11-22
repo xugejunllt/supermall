@@ -27,6 +27,8 @@ spring:
           - group: common
             data-id: filterPath.yaml
             refresh: true
+          - group: common
+            data-id: rocketmq.yaml
 server:
   port: 9006
   servlet:

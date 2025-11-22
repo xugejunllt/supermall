@@ -26,7 +26,7 @@ public class RegisterUserDTO implements Serializable {
     //头像
     private String headImageUrl;
 
-    @NotBlank( message = "注册渠道不能为空 ")
+    @NotNull( message = "注册渠道不能为空 ")
     //注册渠道 0: web 1:android 2:ios
     private Integer registerChannel;
 

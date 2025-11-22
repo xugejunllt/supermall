@@ -36,12 +36,10 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "sku图片")
     private String skuPictureAddress;
 
-
-
     @ApiModelProperty(value = "排序（影响展示顺序）")
     private Integer sort;
     @TableField( fill = FieldFill.INSERT)
-    private String  tenantCode;
+    private Long  tenantId;
 
 
 
