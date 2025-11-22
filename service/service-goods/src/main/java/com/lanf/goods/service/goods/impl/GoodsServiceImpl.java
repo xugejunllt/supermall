@@ -165,7 +165,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         msg.setUpdateTime(goodsDO.getUpdateTime());
         msg.setSearchWords(goodsDO.getName());
         //发送到mq
-        sendMqMessageService.sendMessage(TopicName.SAVE_GOODS_ES_TOPIC,msg);
+       // sendMqMessageService.sendMessage(TopicName.SAVE_GOODS_ES_TOPIC,msg);
 
     }
 

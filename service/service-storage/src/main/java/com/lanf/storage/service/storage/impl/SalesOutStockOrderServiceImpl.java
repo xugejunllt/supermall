@@ -8,7 +8,6 @@ import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.constant.enums.LogisticsTrackStatusEnum;
-import com.lanf.messagemanager.client.annotation.SendMessage;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
@@ -84,7 +83,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     @Autowired
     private ISendMqMessageService sendMqMessageService;
 
-    @SendMessage
+
     @Transactional
     @Override
     public void salesOutStockOrderAdd(Long orderId) {
@@ -226,7 +225,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
 
         return  warehouseDO.getId();
     }
-    @SendMessage
+
     @Transactional
     @Override
     public void outStock(OutStockDTO dto) {
@@ -285,14 +284,14 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             String finishContent = "打包完成";
             String key = salesOutStockOrderDO.getOrderId() + ":" + finishContent;
             OutStockFinishEventMessage message = new OutStockFinishEventMessage();
-            message.setBizKeyValue(key);
+
             // 更新订单状态
             message.setOrderId(salesOutStockOrderDO.getOrderId());
             //添加物流状态
             LogisticsTrackBathAddDTO logisticsTrackBathAddDTO = MessageBuildAdapter.buildLogisticsTrackAddDTO(salesOutStockOrderDO.getOrderId(), finishContent,
                     LogisticsTrackStatusEnum.PLACE_AN_ORDER_PLATFORM_INCOME.getCode());
             message.setLogisticsTrackBathAddDTO(logisticsTrackBathAddDTO);
-            sendMqMessageService.sendMessage(TopicName.OUT_STOCK_FINISH_EVENT_TOPIC, message);
+            //sendMqMessageService.sendMessage(TopicName.OUT_STOCK_FINISH_EVENT_TOPIC, message);
         }
 
 

@@ -27,6 +27,6 @@ private static final long serialVersionUID=1L;
     private String attributeValue;
 
     private Integer sort;
-    private Long shopId;
+    private Long tenantId;
 
 }

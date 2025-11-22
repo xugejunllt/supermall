@@ -1,4 +1,4 @@
-package com.lanf.goods.controller;
+package com.lanf.goods.controller.admin;
 
 
 import com.lanf.goods.model.dto.GoodsAttributeAddDTO;
@@ -25,7 +25,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/goodsAttribute")
+@RequestMapping("/admin/goodsAttribute")
 public class GoodsAttributeController {
 
     @Autowired

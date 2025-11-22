@@ -17,12 +17,14 @@ import com.lanf.goods.service.base.IBaseGoodsService;
 import com.lanf.goods.service.base.IBaseGoodsSkuService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.security.utils.MerchantIdContext;
 import com.lanf.storage.api.StorageApiService;
 import com.lanf.storage.model.vo.StockVO;
 import com.lanf.web.exception.BizException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Function;
@@ -44,6 +46,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
     @Autowired
     private StorageApiService storageApiService;
     @Override
+    @Transactional
     public void baseGoodsAdd(BaseGoodsAddDTO baseGoodsAdd) {
 
         BaseGoodsDO baseGoodsDO = new BaseGoodsDO();
@@ -65,6 +68,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
         this.save(baseGoodsDO);
         baseGoodsSkuSave.forEach(a -> {
             a.setGoodsId(baseGoodsDO.getId());
+            a.setTenantId(MerchantIdContext.getMerchantId());
         });
         baseGoodsSkuService.saveBatch(baseGoodsSkuSave);
 
