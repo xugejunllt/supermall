@@ -320,14 +320,11 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
 
         List<PurchaseOrderItemDO> purchaseOrderItemList = purchaseOrderItemService.lambdaQuery().
                 eq(PurchaseOrderItemDO::getPurchaseOrderId, id).list();
-        if (purchaseOrderItemList.isEmpty()) {
-            throw new BizException("采购单商品不存在");
-        }
+
         List<InOutStockOrderItemDO> storageOrderItemDetailsDOList = new ArrayList<>(purchaseOrderItemList.size());
         purchaseOrderItemList.forEach(a -> {
 
             InOutStockOrderItemDO storageOrderItemDetailsDO = new InOutStockOrderItemDO();
-            //待修改 远程调用查询商品名称
             storageOrderItemDetailsDO.setGoodsName(a.getGoodsName());
             storageOrderItemDetailsDO.setSkuCode(a.getSkuCode());
             storageOrderItemDetailsDO.setTotalQuantity(a.getQuantity());

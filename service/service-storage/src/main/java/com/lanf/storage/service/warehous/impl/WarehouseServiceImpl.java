@@ -33,11 +33,7 @@ public class WarehouseServiceImpl extends ServiceImpl<WarehouseMapper, Warehouse
         if (one != null) {
             throw new BizException("仓库名称重复");
         }
-        WarehouseDO one1 = this.lambdaQuery().one();
-        if (one1 != null) {
-            //仓库库存管理简化，一个租户只能添加一个仓库
-            throw new BizException("只能添加一个仓库");
-        }
+
         WarehouseDO warehouse1 = new WarehouseDO();
         BeanCopyUtils.copy(warehouse, warehouse1);
         warehouse1.setStatus(1);

@@ -24,6 +24,9 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "仓库编码")
     private String code;
 
+    //仓库组编码
+    private String groupCode;
+
     @ApiModelProperty(value = "仓库名称")
     private String name;
 
@@ -52,5 +55,5 @@ private static final long serialVersionUID=1L;
     private String email;
 
     @TableField( fill = FieldFill.INSERT)
-    private String  tenantCode;
+    private Long  tenantId;
 }

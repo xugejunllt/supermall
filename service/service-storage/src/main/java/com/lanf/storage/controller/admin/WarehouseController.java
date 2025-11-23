@@ -1,4 +1,4 @@
-package com.lanf.storage.controller.warehous;
+package com.lanf.storage.controller.admin;
 
 
 import com.lanf.mybatis.base.PageResult;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/warehouse")
+@RequestMapping("/admin/warehouse")
 public class WarehouseController {
 
     @Autowired

@@ -13,6 +13,10 @@ public class WarehouseAddDTO implements Serializable {
     @ApiModelProperty(value = "仓库名称")
     private String name;
 
+    //仓库组编码
+    @NotBlank(message = "仓库组编码不能为空")
+    private String groupCode;
+
     @NotBlank(message = "省不能为空")
     @ApiModelProperty(value = "省")
     private String province;

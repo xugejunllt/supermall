@@ -220,7 +220,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         String tenantCode = systemService.getTenantCodeByShopId(shopId).getData();
         ThreadLocalUtils.addIgnoreTableName(true);
         WarehouseDO warehouseDO = warehouseService.lambdaQuery().
-                eq(WarehouseDO::getTenantCode, tenantCode).one();
+               one();
 
 
         return  warehouseDO.getId();
