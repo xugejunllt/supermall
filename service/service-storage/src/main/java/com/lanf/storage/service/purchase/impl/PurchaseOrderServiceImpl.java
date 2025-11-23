@@ -7,6 +7,7 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.mapper.PurchaseOrderMapper;
 import com.lanf.storage.model.bo.CalculatePurchaseOrderMoneyBO;
@@ -73,7 +74,7 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         purchaseOrderAddCheck(purchaseOrderAdd);
 
         //构建PurchaseOrderItemAddBO
-        List<PurchaseOrderItemAddBO> purchaseOrderItemAddBOList = buildPurchaseOrderItemAddBO(purchaseOrderAdd.getPurchaseOrderItemAdd(),purchaseOrderAdd);
+        List<PurchaseOrderItemAddBO> purchaseOrderItemAddBOList = buildPurchaseOrderItemAddBO(purchaseOrderAdd.getPurchaseOrderItemAdd(), purchaseOrderAdd);
 
         //构建PurchaseOrderDO
         PurchaseOrderDO purchaseOrder = buildPurchaseOrderDO(purchaseOrderAdd);
@@ -120,7 +121,7 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
 
     }
 
-    private List<PurchaseOrderItemAddBO> buildPurchaseOrderItemAddBO(List<PurchaseOrderItemAddDTO> purchaseOrderItemAddList,PurchaseOrderAddDTO purchaseOrderAdd) {
+    private List<PurchaseOrderItemAddBO> buildPurchaseOrderItemAddBO(List<PurchaseOrderItemAddDTO> purchaseOrderItemAddList, PurchaseOrderAddDTO purchaseOrderAdd) {
 
         List<PurchaseOrderItemAddBO> purchaseOrderItemAddBOList =
                 BeanCopyUtils.copyBeanList(purchaseOrderItemAddList, PurchaseOrderItemAddBO.class);
@@ -231,70 +232,70 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
     }
 
     /**
-     * 审核
+     * 审核通过
      */
     @Transactional
     @Override
-    public void review(Long id, Integer status) {
+    public void auditApprove(Long id) {
+
+        validateAuditApprove(id);
+        /**
+         * 1.更新采购单状态
+         * 2.生成采购入库单
+         * 3.生成入库单商品明细
+         */
+
+        PurchaseInStockOrderDO purchaseStorageOrderSave = buildPurchaseInStockOrderDO(id);
+        List<InOutStockOrderItemDO> storageOrderItemDetailsList = buildStorageOrderItemDetailsDO(id);
+        PurchaseOrderDO purchaseOrderDO = buildPurchaseOrderUpdate(id);
+
+        //更新采购单状态 这里加version乐观锁更新
+        this.updateById(purchaseOrderDO);
+        //保存采购入库单
+        purchaseStorageOrderService.save(purchaseStorageOrderSave);
+        storageOrderItemDetailsList.forEach(a -> {
+            a.setInOutStockOrderId(purchaseStorageOrderSave.getId());
+        });
+        storageOrderItemDetailsService.saveBatch(storageOrderItemDetailsList);
+
+    }
+
+    private PurchaseInStockOrderDO buildPurchaseInStockOrderDO(Long id){
+
+        //预计入库数量
+        Integer expectStorageQuantity = findItemTotalQuantity(id);
+
+        PurchaseInStockOrderDO purchaseStorageOrderSave = new PurchaseInStockOrderDO();
+        purchaseStorageOrderSave.setCode(CodeGenerateUtils.generaCode());
+        purchaseStorageOrderSave.setPurchaseOrderId(id);
+        purchaseStorageOrderSave.setExpectStorageQuantity(expectStorageQuantity);
+        purchaseStorageOrderSave.setStorageStatus(0);
+
+        return  purchaseStorageOrderSave;
+    }
+    private void validateAuditApprove(Long id) {
 
         PurchaseOrderDO purchaseOrderDO = this.getById(id);
         if (purchaseOrderDO == null) {
             throw new BizException("采购单不存在");
         }
-        if (purchaseOrderDO.getStatus()!=0){
+        if (purchaseOrderDO.getStatus() != 0) {
             throw new BizException("重复审核");
         }
 
-        if (!(status == 1 || status == 2)) {
-            throw new BizException("不支持的状态");
-        }
-        if (status == 1) {
-            //审核通过
-
-            /**
-             * 1.更新采购单状态
-             * 2.生成采购入库单
-             * 3.生成入库单商品明细
-             */
-            WarehouseDO defaultWarehouse = storageManagerService.getDefaultWarehouse();
-            //预计入库数量
-            Integer expectStorageQuantity = findItemTotalQuantity(id);
-
-            PurchaseInStockOrderDO purchaseStorageOrderSave = new PurchaseInStockOrderDO();
-            purchaseStorageOrderSave.setCode(CodeGenerateUtils.generaCode());
-            purchaseStorageOrderSave.setPurchaseOrderId(id);
-            purchaseStorageOrderSave.setExpectStorageQuantity(expectStorageQuantity);
-            purchaseStorageOrderSave.setStorageStatus(0);
-            purchaseStorageOrderSave.setSupplierId(purchaseOrderDO.getSupplierId());
-            purchaseStorageOrderSave.setWarehouseId(defaultWarehouse.getId());
-
-            //
-            List<InOutStockOrderItemDO> storageOrderItemDetailsList = buildStorageOrderItemDetailsDO(id);
-            //保存
-            purchaseStorageOrderService.save(purchaseStorageOrderSave);
-            storageOrderItemDetailsList.forEach(a->{
-                a.setInOutStockOrderId(purchaseStorageOrderSave.getId());
-            });
-            storageOrderItemDetailsService.saveBatch(storageOrderItemDetailsList);
-            //更新采购单状态
-            purchaseOrderUpdate(id, status);
-        }
-        if (status == 2) {
-            //审核不通过
-            purchaseOrderUpdate(id, status);
-        }
 
     }
 
-    private void purchaseOrderUpdate(Long id, Integer status) {
+    private PurchaseOrderDO buildPurchaseOrderUpdate(Long id) {
 
         PurchaseOrderDO purchaseOrderUpdate = new PurchaseOrderDO();
         purchaseOrderUpdate.setId(id);
-        purchaseOrderUpdate.setStatus(status);
+        purchaseOrderUpdate.setStatus(1);
         purchaseOrderUpdate.setReviewTime(new Date());
-        purchaseOrderUpdate.setReviewer(UserUtils.getUserInfo().getName());
-        this.updateById(purchaseOrderUpdate);
+        purchaseOrderUpdate.setReviewer(AdminSessionCache.getSysUser().getName());
+        return purchaseOrderUpdate;
     }
+
 
     /**
      * 查找商品总数量
@@ -305,9 +306,7 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
 
         List<PurchaseOrderItemDO> purchaseOrderItemList = purchaseOrderItemService.lambdaQuery().
                 eq(PurchaseOrderItemDO::getPurchaseOrderId, id).list();
-        if (purchaseOrderItemList.isEmpty()) {
-            throw new BizException("采购单商品不存在");
-        }
+
         Integer expectStorageQuantity = 0;
         for (PurchaseOrderItemDO it : purchaseOrderItemList) {
             expectStorageQuantity += it.getQuantity();

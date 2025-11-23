@@ -1,4 +1,4 @@
-package com.lanf.storage.controller.storage;
+package com.lanf.storage.controller.admin;
 
 
 import com.lanf.mybatis.base.PageResult;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/purchaseInStockOrder")
+@RequestMapping("/admin/purchaseInStockOrder")
 public class PurchaseInStockOrderController {
 
     @Autowired

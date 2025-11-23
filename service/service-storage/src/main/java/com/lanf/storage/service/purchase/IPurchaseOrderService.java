@@ -28,6 +28,10 @@ public interface IPurchaseOrderService extends IService<PurchaseOrderDO> {
 
      PurchaseOrderDetailVO purchaseOrderDetail(Long id);
 
-     void review(Long id,Integer status);
+     /**
+      * 审核通过
+      * @param id
+      */
+     void auditApprove(Long id);
 
 }

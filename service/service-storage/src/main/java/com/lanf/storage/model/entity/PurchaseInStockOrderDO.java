@@ -38,15 +38,9 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "入库状态0:待入库,1:部分入库 2:已入库 ")
     private Integer storageStatus;
 
-    @ApiModelProperty(value = "仓库id")
-    private Long warehouseId;
-
-    @ApiModelProperty(value = "供应商id")
-    private Long supplierId;
-
     @ApiModelProperty(value = "备注")
     private String remarks;
 
     @TableField( fill = FieldFill.INSERT)
-    private String  tenantCode;
+    private Long  tenantId;
 }

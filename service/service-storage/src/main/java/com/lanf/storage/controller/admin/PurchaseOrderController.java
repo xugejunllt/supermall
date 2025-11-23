@@ -66,11 +66,11 @@ public class PurchaseOrderController {
     /**
      * 采购单审核
      */
-    @PostMapping("/review")
-    public Result review(@RequestBody ReviewDTO dto) {
+    @PostMapping("/auditApprove")
+    public Result auditApprove(@RequestBody ReviewDTO dto) {
 
-        log.info("采购单审核:dto{},", dto);
-        purchaseOrderService.review(dto.getId(), dto.getStatus());
+        log.info("采购单审核通过:dto{},", dto);
+        purchaseOrderService.auditApprove(dto.getId());
         return Result.ok();
     }
 

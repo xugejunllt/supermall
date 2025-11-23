@@ -92,8 +92,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         for (InStockItemDTO is : inStorageItemList) {
             enterQuantity += is.getActualQuantity();
         }
-        WarehouseDO warehouseDO = warehouseService.getById(storageOrderDO.getWarehouseId());
-        SupplierDO supplierDO = supplierService.getById(storageOrderDO.getSupplierId());
+        WarehouseDO warehouseDO = warehouseService.getById(null);
         //生成入库明细
         StorageFlowDO storageDetailsDO = buildStorageDetailsDO(warehouseDO, storageOrderDO, enterQuantity);
         //生成库存流水
@@ -312,21 +311,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         PageResult<PurchaseInStockOrderPageVO> pageResult = PageResult.toPageResult(page, PurchaseInStockOrderPageVO.class);
 
         List<PurchaseInStockOrderDO> records = purchaseStorageOrderPage.getRecords();
-        /**
-         * 填充关联属性
-         */
-        //用set接收 去重
-        Set<Long> supplierIdList = records.stream().map(PurchaseInStockOrderDO::getSupplierId).collect(Collectors.toSet());
-        Set<Long> warehouseIdList = records.stream().map(PurchaseInStockOrderDO::getWarehouseId).collect(Collectors.toSet());
-        Map<Long, SupplierDO> supplierMap = supplierService.lambdaQuery().in(SupplierDO::getId, supplierIdList).list().stream().
-                collect(Collectors.toMap(SupplierDO::getId, Function.identity()));
-        Map<Long, WarehouseDO> warehouseMap = warehouseService.lambdaQuery().in(WarehouseDO::getId, warehouseIdList).list().stream().
-                collect(Collectors.toMap(WarehouseDO::getId, Function.identity()));
 
-        pageResult.getRecords().forEach(vo -> {
-            vo.setSupplierName(supplierMap.get(vo.getSupplierId()).getName());
-            vo.setWarehouseName(warehouseMap.get(vo.getWarehouseId()).getName());
-        });
 
         return pageResult;
     }
@@ -344,10 +329,6 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
             throw new BizException("采购入库单商品不存在");
         }
 
-        SupplierDO supplierDO = supplierService.getById(storageOrderDO.getSupplierId());
-        WarehouseDO warehouseDO = warehouseService.getById(storageOrderDO.getWarehouseId());
-
-
         Integer totalExpectStorageQuantity = storageOrderDO.getExpectStorageQuantity();
         Integer totalActualStorageQuantity = storageOrderDO.getActualStorageQuantity();
         Integer totalActualSurplusQuantity = totalExpectStorageQuantity-totalActualStorageQuantity;
@@ -363,8 +344,6 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         purchaseStorageOrderDetailVO.setTotalActualSurplusQuantity(totalActualSurplusQuantity);
         purchaseStorageOrderDetailVO.setCode(storageOrderDO.getCode());
         purchaseStorageOrderDetailVO.setPurchaseStorageOrderItemDetailVOList(purchaseStorageOrderItemDetailVOList);
-        purchaseStorageOrderDetailVO.setSupplierName(supplierDO.getName());
-        purchaseStorageOrderDetailVO.setWarehouseName(warehouseDO.getName());
         purchaseStorageOrderDetailVO.setId(storageOrderDO.getId());
         return purchaseStorageOrderDetailVO;
     }
