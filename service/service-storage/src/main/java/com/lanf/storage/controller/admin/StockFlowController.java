@@ -1,4 +1,4 @@
-package com.lanf.storage.controller.stock;
+package com.lanf.storage.controller.admin;
 
 
 import com.lanf.mybatis.base.PageResult;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
-@RequestMapping("/stockFlow")
+@RequestMapping("/admin/stockFlow")
 public class StockFlowController {
 
     @Autowired

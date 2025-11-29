@@ -371,8 +371,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         Integer orderType = getOrderType(inOutStatus);
         storageDetailsDO.setOrderType(getOrderType(inOutStatus));
         storageDetailsDO.setBizNumber(salesOutStockOrderDO.getCode());
-        storageDetailsDO.setWarehousName(warehouseDO.getName());
-        storageDetailsDO.setShopId(salesOutStockOrderDO.getShopId());
         if (orderType == 0 || orderType == 3) {
             storageDetailsDO.setOutQuantity(outQuantity);
         } else {
@@ -395,13 +393,9 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         for (OutStockItemDTO is : inStorageItemList) {
             InOutStockOrderItemDO storageOrderItemDetailsDO = purchaseOrderItemDOMap.get(is.getId());
             StockFlowDO stockFlowDO = new StockFlowDO();
-            stockFlowDO.setBizOrderId(salesOutStockOrderDO.getId());
             stockFlowDO.setOrderType(orderType);
             stockFlowDO.setSkuCode(storageOrderItemDetailsDO.getSkuCode());
-            stockFlowDO.setGoodsName(storageOrderItemDetailsDO.getGoodsName());
             stockFlowDO.setBizNumber(salesOutStockOrderDO.getCode());
-            stockFlowDO.setWarehousName(warehouseDO.getName());
-            stockFlowDO.setShopId(salesOutStockOrderDO.getShopId());
             if (orderType == 0 || orderType == 3) {
                 stockFlowDO.setOutQuantity(is.getActualQuantity());
             } else {

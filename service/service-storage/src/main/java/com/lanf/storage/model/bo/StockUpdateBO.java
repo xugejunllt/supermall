@@ -17,8 +17,6 @@ public class StockUpdateBO implements Serializable {
     @ApiModelProperty(value = "可用库存")
     private Integer usableStock;
 
-    private Long eqVersion;
-
     private Long setVersion;
 
 }

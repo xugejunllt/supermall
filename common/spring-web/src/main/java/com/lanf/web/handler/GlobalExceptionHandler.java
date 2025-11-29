@@ -72,6 +72,7 @@ public class GlobalExceptionHandler {
     }
 
 
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
     public Result error(MethodArgumentNotValidException e) {

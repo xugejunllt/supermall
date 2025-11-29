@@ -28,7 +28,6 @@ public class StockFlowServiceImpl extends ServiceImpl<StockFlowMapper, StockFlow
     public PageResult<StockFlowDO> stockFlowPage(StockFlowPageQuery query) {
         IPage<StockFlowDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<StockFlowDO> companyPage = this.lambdaQuery().
-                eq(StockFlowDO::getShopId, UserUtils.getShopId()).
                 eq(!ObjectUtils.isEmpty(query.getBizNumber()), StockFlowDO::getBizNumber, query.getBizNumber()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);

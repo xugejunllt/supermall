@@ -9,7 +9,7 @@ import lombok.Data;
 
 /**
  * <p>
- * 出入库明细
+ * 仓库出入库明细
  * </p>
  *
  * @author
@@ -28,7 +28,6 @@ private static final long serialVersionUID=1L;
 
     private Integer orderType;
 
-
     @ApiModelProperty(value = "出入库单id")
     private String bizNumber;
 
@@ -37,6 +36,12 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "入库数量")
     private Integer inQuantity;
+
+    @ApiModelProperty(value = "仓库id")
+    private Long warehouseId;
+
+    @ApiModelProperty(value = "仓库名称")
+    private String warehouseName;
 
     @TableField( fill = FieldFill.INSERT)
     private Long  tenantId;

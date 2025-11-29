@@ -110,6 +110,11 @@
             <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
             <version>2.2.10.RELEASE</version> <!-- 根据你的Spring Boot版本选择合适版本 -->
         </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-lock</artifactId>
+            <version>${common-lock.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -21,10 +21,18 @@ public class StockDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
+    //`sku_code`, `warehouse_id` 唯一索引 用于并发控制
 
     @ApiModelProperty(value = "sku编码")
     private String skuCode;
 
+    private String goodsName;
+
+    @ApiModelProperty(value = "仓库名称")
+    private String warehouseName;
+
+    //单位
+    private String unit;
     @ApiModelProperty(value = "总库存")
     private Integer totalStock;
 
@@ -34,8 +42,15 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "可用库存")
     private Integer usableStock;
 
+    //版本号 乐观锁控制
+    private Long version;
+
+    @ApiModelProperty(value = "仓库id")
+    private Long warehouseId;
+
+
+
     @TableField( fill = FieldFill.INSERT)
     private Long  tenantId;
-
 
 }

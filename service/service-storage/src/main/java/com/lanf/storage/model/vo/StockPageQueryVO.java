@@ -23,6 +23,8 @@ public class StockPageQueryVO implements Serializable {
     private Integer usableStock;
     //商品单位
     private String unit;
+    @ApiModelProperty(value = "仓库名称")
+    private String warehouseName;
 
     private String goodsName;
 

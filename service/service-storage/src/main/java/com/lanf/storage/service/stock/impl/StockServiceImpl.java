@@ -54,22 +54,8 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             return PageResult.emptyResult(StockPageQueryVO.class);
         }
 
-        PageResult<StockPageQueryVO> pageResult = PageResult.toPageResult(page, StockPageQueryVO.class);
-        List<StockPageQueryVO> records = pageResult.getRecords();
 
-        List<String> skuCodeList = records.stream().map(StockPageQueryVO::getSkuCode).collect(Collectors.toList());
-        List<BaseGoodsBySkuCodeQueryVO> data = goodsApiService.baseGoodsBySkuCodeBathQuery(skuCodeList).getData();
-
-        Map<String, BaseGoodsBySkuCodeQueryVO> baseGoodsMap = data.stream()
-                .collect(Collectors.toMap(BaseGoodsBySkuCodeQueryVO::getSkuCode, Function.identity()));
-        records.forEach(a -> {
-            String skuCode = a.getSkuCode();
-            BaseGoodsBySkuCodeQueryVO queryVO = baseGoodsMap.get(skuCode);
-            a.setGoodsName(queryVO.getName());
-            a.setUnit(queryVO.getSkuName());
-
-        });
-        return pageResult;
+        return PageResult.toPageResult(page, StockPageQueryVO.class);
     }
 
     @Override

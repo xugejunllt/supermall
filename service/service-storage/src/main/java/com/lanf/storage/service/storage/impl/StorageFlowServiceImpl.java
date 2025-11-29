@@ -30,7 +30,6 @@ public class StorageFlowServiceImpl extends ServiceImpl<StorageFlowMapper, Stora
 
         IPage<StorageFlowDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<StorageFlowDO> companyPage = this.lambdaQuery().
-                eq(StorageFlowDO::getShopId, UserUtils.getShopId()).
                 eq(!ObjectUtils.isEmpty(query.getBizNumber()), StorageFlowDO::getBizNumber, query.getBizNumber()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
