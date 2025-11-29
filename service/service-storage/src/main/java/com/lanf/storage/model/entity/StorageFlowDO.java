@@ -1,5 +1,7 @@
 package com.lanf.storage.model.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
@@ -10,7 +12,7 @@ import lombok.Data;
  * 出入库明细
  * </p>
  *
- * @author 江帅帅 Jss_forever
+ * @author
  * @since 2024-06-07
  */
 @Data
@@ -27,11 +29,8 @@ private static final long serialVersionUID=1L;
     private Integer orderType;
 
 
-    @ApiModelProperty(value = "出入库单code")
+    @ApiModelProperty(value = "出入库单id")
     private String bizNumber;
-
-    @ApiModelProperty(value = "仓库名称")
-    private String warehousName;
 
     @ApiModelProperty(value = "出库数量")
     private Integer outQuantity;
@@ -39,8 +38,8 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "入库数量")
     private Integer inQuantity;
 
-    //店铺id
-    private Long shopId;
+    @TableField( fill = FieldFill.INSERT)
+    private Long  tenantId;
 
 
 

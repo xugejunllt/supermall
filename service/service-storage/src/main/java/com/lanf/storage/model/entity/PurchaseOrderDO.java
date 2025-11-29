@@ -56,7 +56,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "总计金额")
     private BigDecimal totalMoney;
 
-    @ApiModelProperty(value = "状态:0:审核中 1.审核通过 2:审核不通过,3.部分入库 4.已完成")
+    @ApiModelProperty(value = "状态:0:审核中 1.审核通过 2:审核不通过")
     private Integer status;
 
     @ApiModelProperty(value = "审核人")
