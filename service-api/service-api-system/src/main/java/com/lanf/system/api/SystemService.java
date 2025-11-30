@@ -1,7 +1,7 @@
 package com.lanf.system.api;
 
 import com.lanf.system.model.vo.ShopVO;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;

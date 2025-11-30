@@ -1,6 +1,6 @@
 package com.lanf.logistics.util;
 
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 @Service

@@ -3,7 +3,7 @@ package com.lanf.finance.controller.aip;
 import com.lanf.finance.model.dto.PayAccountDTO;
 import com.lanf.finance.model.vo.PayAccountApiVO;
 import com.lanf.finance.service.IPayAccountService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;

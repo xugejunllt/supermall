@@ -8,7 +8,7 @@ import com.lanf.log.type.BusinessType;
 import com.lanf.system.model.entiry.SysRoleDO;
 import com.lanf.system.model.vo.AssginMenuVO;
 import com.lanf.system.model.vo.SysRoleQueryVO;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import com.lanf.system.service.SysMenuService;
 import com.lanf.system.service.SysRoleService;
 import io.swagger.annotations.Api;

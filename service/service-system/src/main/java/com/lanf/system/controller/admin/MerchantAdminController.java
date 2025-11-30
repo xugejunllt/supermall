@@ -6,7 +6,7 @@ import com.lanf.mybatis.base.PageResult;
 import com.lanf.system.model.entiry.MerchantDO;
 import com.lanf.system.model.query.CompanyPageQuery;
 import com.lanf.system.service.merchant.IMerchantService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

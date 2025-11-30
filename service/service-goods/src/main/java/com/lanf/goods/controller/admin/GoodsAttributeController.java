@@ -7,7 +7,7 @@ import com.lanf.goods.model.entity.GoodsAttributeDO;
 import com.lanf.goods.service.base.IGoodsAttributeService;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

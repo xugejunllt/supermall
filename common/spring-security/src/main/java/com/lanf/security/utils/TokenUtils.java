@@ -3,7 +3,7 @@ package com.lanf.security.utils;
 import com.lanf.common.utils.JwtUtils;
 import com.lanf.constant.constant.Constants;
 import com.lanf.security.model.RefreshTokenTokenBO;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;

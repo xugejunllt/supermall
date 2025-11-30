@@ -12,7 +12,7 @@ import com.lanf.search.model.query.GoodsPageVO;
 import com.lanf.search.model.query.PageResult;
 import com.lanf.search.service.GoodsService;
 
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.MatchQueryBuilder;

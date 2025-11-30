@@ -1,6 +1,6 @@
-package com.lanf.web.result;
+package com.lanf.constant.result;
 
-import com.lanf.web.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonResultCodeEnum;
 import lombok.Data;
 
 /**

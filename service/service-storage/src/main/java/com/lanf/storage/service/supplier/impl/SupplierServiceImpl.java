@@ -12,7 +12,7 @@ import com.lanf.storage.model.dto.SupplierAddDTO;
 import com.lanf.storage.model.entity.SupplierDO;
 import com.lanf.storage.model.query.SupplierPageQuery;
 import com.lanf.storage.service.supplier.ISupplierService;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 

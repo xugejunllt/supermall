@@ -46,4 +46,4 @@ file:
   active: 2
   localPath: D:\file\localimages\
   localFileUrlPre: /download
-  domain: http://file.l2.ttut.cc
+  domain: http://localhost:9013

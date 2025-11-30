@@ -3,7 +3,7 @@ package com.lanf.system.controller;
 
 import com.lanf.system.model.vo.BaseAreaVO;
 import com.lanf.system.service.IBaseAreaService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

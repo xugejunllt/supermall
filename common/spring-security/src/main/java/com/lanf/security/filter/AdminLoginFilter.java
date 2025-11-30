@@ -9,7 +9,7 @@ import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.model.bo.CustomUserBO;
 import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.vo.LoginVO;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import com.lanf.web.utils.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,7 +23,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;

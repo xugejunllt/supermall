@@ -1,7 +1,7 @@
 package com.lanf.welfare.controller.app;
 
 
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import com.lanf.welfare.model.dto.ReceiveCouponDTO;
 import com.lanf.welfare.model.vo.ShopCouponVO;
 import com.lanf.welfare.service.biz.ICouponService;

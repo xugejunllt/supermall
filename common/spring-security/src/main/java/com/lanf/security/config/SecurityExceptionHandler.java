@@ -1,9 +1,8 @@
 package com.lanf.security.config;
 
 import com.lanf.common.utils.StackTraceUtil;
-import com.lanf.security.code.SystemResultCodeEnum;
-import com.lanf.web.code.CommonResultCodeEnum;
-import com.lanf.web.result.Result;
+import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.bind.annotation.ControllerAdvice;

@@ -4,7 +4,7 @@ import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
 import com.lanf.goods.model.vo.ApiGoodsSkuVO;
 import com.lanf.goods.model.vo.BaseGoodsBySkuCodeQueryVO;
 import com.lanf.goods.model.vo.EmptyCartVO;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;

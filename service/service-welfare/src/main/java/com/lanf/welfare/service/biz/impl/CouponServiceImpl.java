@@ -5,7 +5,7 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.security.utils.UserUtils;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import com.lanf.welfare.mapper.CouponMapper;
 import com.lanf.welfare.model.dto.ReceiveCouponDTO;
 import com.lanf.welfare.model.dto.UseCouponDTO;

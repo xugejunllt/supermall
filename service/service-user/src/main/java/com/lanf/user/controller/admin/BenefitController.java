@@ -9,7 +9,7 @@ import com.lanf.user.model.entity.BenefitDO;
 import com.lanf.user.model.query.BenefitPageQuery;
 import com.lanf.user.service.benefit.IBenefitService;
 import com.lanf.user.service.benefit.IUserLevelService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

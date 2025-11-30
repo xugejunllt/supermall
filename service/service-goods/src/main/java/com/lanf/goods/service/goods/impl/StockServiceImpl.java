@@ -13,7 +13,7 @@ import com.lanf.goods.service.goods.IStockService;
 import com.lanf.goods.service.goods.IUserStockFlowService;
 import com.lanf.rocketmq.model.message.UserStockAddMsg;
 import com.lanf.rocketmq.model.message.UserStockMsg;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

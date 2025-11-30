@@ -25,7 +25,7 @@ import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.api.StorageApiService;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

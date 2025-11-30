@@ -10,8 +10,7 @@ import com.lanf.goods.model.entity.GoodsBrandDO;
 import com.lanf.goods.service.goods.IGoodsBrandService;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtils;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

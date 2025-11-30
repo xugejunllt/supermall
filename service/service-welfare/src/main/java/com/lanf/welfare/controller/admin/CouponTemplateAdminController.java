@@ -2,7 +2,7 @@ package com.lanf.welfare.controller.admin;
 
 
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
 import com.lanf.welfare.model.query.CouponTemplatePageQuery2;

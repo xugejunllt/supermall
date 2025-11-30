@@ -6,11 +6,10 @@ import com.lanf.storage.model.dto.WarehouseAddDTO;
 import com.lanf.storage.model.entity.WarehouseDO;
 import com.lanf.storage.model.query.WarehousePageQuery;
 import com.lanf.storage.service.warehous.IWarehouseService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

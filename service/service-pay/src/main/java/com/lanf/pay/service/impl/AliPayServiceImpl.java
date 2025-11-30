@@ -19,7 +19,7 @@ import com.lanf.pay.model.dto.TransferAccountsDTO;
 import com.lanf.pay.model.vo.TradeOrderVO;
 import com.lanf.pay.service.AbstractPayService;
 import com.lanf.pay.service.config.AliPayConfig;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import com.lanf.web.utils.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

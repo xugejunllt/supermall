@@ -10,7 +10,7 @@ import com.lanf.user.model.dto.LevelBenefitDTO;
 import com.lanf.user.model.entity.UserLevelConfigDO;
 import com.lanf.user.model.enums.BenefitCodeEnum;
 import com.lanf.user.service.benefit.IUserLevelConfigService;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

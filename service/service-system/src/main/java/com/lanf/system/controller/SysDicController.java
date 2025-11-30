@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import com.lanf.system.model.entiry.SysDicDO;
 import com.lanf.system.model.vo.SysDicQueryVO;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import com.lanf.system.service.SysDicService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

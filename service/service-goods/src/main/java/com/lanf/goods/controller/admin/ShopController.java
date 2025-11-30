@@ -1,15 +1,12 @@
 package com.lanf.goods.controller.admin;
 
 
-import com.lanf.goods.model.dto.GoodsBrandAddDTO;
 import com.lanf.goods.model.dto.ShopDTO;
-import com.lanf.goods.model.entity.GoodsBrandDO;
 import com.lanf.goods.model.entity.ShopDO;
-import com.lanf.goods.service.goods.IGoodsBrandService;
 import com.lanf.goods.service.goods.IShopService;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

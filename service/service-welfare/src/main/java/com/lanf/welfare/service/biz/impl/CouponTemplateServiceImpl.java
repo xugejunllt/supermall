@@ -8,7 +8,7 @@ import com.lanf.mybatis.base.PageResult;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import com.lanf.welfare.mapper.CouponTemplateMapper;
 import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;

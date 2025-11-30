@@ -19,7 +19,7 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -8,7 +8,7 @@ import com.lanf.order.model.vo.OrderDetailVO2;
 import com.lanf.order.model.vo.OrderPageVO2;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.layout.InterfaceLayoutService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

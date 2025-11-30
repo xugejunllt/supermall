@@ -1,7 +1,7 @@
 package com.lanf.welfare.api;
 
 
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import com.lanf.welfare.model.dto.UseCouponDTO;
 import com.lanf.welfare.model.vo.CouponVO;
 import com.lanf.welfare.model.vo.UseCouponVO;

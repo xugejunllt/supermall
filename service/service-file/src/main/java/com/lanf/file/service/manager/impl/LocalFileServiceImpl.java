@@ -1,10 +1,10 @@
 package com.lanf.file.service.manager.impl;
 
+import com.lanf.constant.exception.BizException;
 import com.lanf.file.model.bo.FileUploadResultBO;
 import com.lanf.file.model.dto.FileUploadFileDTO;
 import com.lanf.file.service.manager.FileService;
 import com.lanf.file.service.manager.impl.config.FileConfig;
-import com.lanf.web.exception.BizException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;

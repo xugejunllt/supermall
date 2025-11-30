@@ -4,7 +4,7 @@ package com.lanf.user.controller.admin;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.user.model.dto.CreateUserLevelConfigDTO;
 import com.lanf.user.service.benefit.IUserLevelConfigService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

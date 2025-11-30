@@ -14,7 +14,7 @@ import com.lanf.user.model.enums.BenefitCodeEnum;
 import com.lanf.user.model.query.BenefitPageQuery;
 import com.lanf.user.service.benefit.IBenefitService;
 import com.lanf.user.service.benefit.manager.BenefitGrantServiceFactory;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

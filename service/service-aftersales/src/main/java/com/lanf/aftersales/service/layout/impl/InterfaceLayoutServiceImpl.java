@@ -27,7 +27,7 @@ import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.api.StorageApiService;
 import com.lanf.storage.model.dto.SalesInStockOrderAddDTO;
 import com.lanf.storage.model.dto.SalesInStockOrderItemAddDTO;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

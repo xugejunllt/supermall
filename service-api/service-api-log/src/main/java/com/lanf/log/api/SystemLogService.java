@@ -2,7 +2,7 @@ package com.lanf.log.api;
 
 import com.lanf.log.model.dto.SysLoginLogDTO;
 import com.lanf.log.model.dto.SysOperLogDTO;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;

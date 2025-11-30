@@ -5,7 +5,7 @@ import com.lanf.goods.model.dto.CartAddDTO;
 import com.lanf.goods.model.dto.ChangeCartQuantityDTO;
 import com.lanf.goods.model.vo.CartGoodsVO;
 import com.lanf.goods.service.goods.ICartService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

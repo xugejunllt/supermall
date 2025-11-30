@@ -7,10 +7,9 @@ import com.lanf.storage.model.query.SalesOutStockOrderPageQuery;
 import com.lanf.storage.model.vo.SalesOutStockOrderDetailVO;
 import com.lanf.storage.model.vo.SalesOutStockOrderPageVO;
 import com.lanf.storage.service.storage.ISalesOutStockOrderService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

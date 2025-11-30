@@ -16,7 +16,7 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.model.bo.SysUserBO;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

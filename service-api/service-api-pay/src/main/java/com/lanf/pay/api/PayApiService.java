@@ -1,13 +1,10 @@
 package com.lanf.pay.api;
 
-import com.lanf.pay.model.dto.ContrastPayOrderDTO;
 import com.lanf.pay.model.dto.CreatePayOrderDTO;
-import com.lanf.pay.model.dto.TradeOrderQuantitySumDTO;
 import com.lanf.pay.model.dto.TransferAccountsDTO;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
-import com.lanf.pay.model.query.TradeOrderQuery;
 import com.lanf.pay.model.vo.*;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;

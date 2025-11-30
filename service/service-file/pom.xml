@@ -13,10 +13,8 @@
     <version>${service-file.version}</version>
     <dependencies>
         <dependency>
-            <groupId>com.lanf</groupId>
-
-            <artifactId>spring-web</artifactId>
-            <version>${spring-web.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <dependency>

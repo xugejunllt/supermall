@@ -20,7 +20,7 @@ import com.lanf.user.service.benefit.IUserLevelDetailService;
 import com.lanf.user.service.benefit.IUserLevelService;
 import com.lanf.user.service.benefit.manager.BenefitGrantService;
 import com.lanf.user.service.benefit.manager.BenefitGrantServiceFactory;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;

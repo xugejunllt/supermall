@@ -6,7 +6,7 @@ import com.lanf.search.model.query.GoodsPageQuery;
 import com.lanf.search.model.query.GoodsPageVO;
 import com.lanf.search.model.query.PageResult;
 import com.lanf.search.service.GoodsService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

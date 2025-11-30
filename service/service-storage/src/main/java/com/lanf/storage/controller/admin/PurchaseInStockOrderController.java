@@ -7,10 +7,9 @@ import com.lanf.storage.model.query.PurchaseInStockOrderPageQuery;
 import com.lanf.storage.model.vo.PurchaseInStockOrderDetailVO;
 import com.lanf.storage.model.vo.PurchaseInStockOrderPageVO;
 import com.lanf.storage.service.storage.IPurchaseInStockOrderService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

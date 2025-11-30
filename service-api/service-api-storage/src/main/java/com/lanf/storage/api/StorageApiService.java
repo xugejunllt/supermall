@@ -2,7 +2,7 @@ package com.lanf.storage.api;
 
 import com.lanf.storage.model.dto.SalesInStockOrderAddDTO;
 import com.lanf.storage.model.vo.StockVO;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;

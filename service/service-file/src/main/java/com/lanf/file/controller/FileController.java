@@ -1,9 +1,9 @@
 package com.lanf.file.controller;
 
+import com.lanf.constant.result.Result;
 import com.lanf.file.model.bo.FileUploadResultBO;
 import com.lanf.file.model.dto.FileUploadFileDTO;
 import com.lanf.file.service.manager.FileService;
-import com.lanf.web.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,7 +31,6 @@ public class FileController {
 
        return Result.ok(fileService.uploadFile(dto));
     }
-
 
 
 

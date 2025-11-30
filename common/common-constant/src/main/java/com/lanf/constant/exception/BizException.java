@@ -1,5 +1,5 @@
-package com.lanf.web.exception;
-import com.lanf.web.code.CommonResultCodeEnum;
+package com.lanf.constant.exception;
+import com.lanf.constant.code.CommonResultCodeEnum;
 import lombok.Data;
 
 /**

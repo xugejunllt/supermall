@@ -1,6 +1,6 @@
 package com.lanf.web.utils;
 
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 

@@ -1,11 +1,9 @@
 package com.lanf.order.controller.app;
 
 
-import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.order.model.dto.CancelOrderDTO;
-import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.vo.OrderDetailVO;
@@ -13,13 +11,11 @@ import com.lanf.order.model.vo.OrderPageVO;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.layout.InterfaceLayoutService;
 import com.lanf.order.task.PromiseStatusCheckTask;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * <p>

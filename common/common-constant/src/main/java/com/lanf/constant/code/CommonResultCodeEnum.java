@@ -1,6 +1,5 @@
-package com.lanf.web.code;
+package com.lanf.constant.code;
 
-import com.lanf.web.exception.BizException;
 import lombok.Getter;
 
 /**

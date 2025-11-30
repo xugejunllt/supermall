@@ -1,7 +1,7 @@
 package com.lanf.web.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 

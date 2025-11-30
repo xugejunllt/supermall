@@ -20,7 +20,7 @@ import com.lanf.sms.service.manager.SmsManagerService;
 import com.lanf.sms.service.manager.SmsService;
 import com.lanf.sms.service.manager.impl.SmsFactory;
 import com.lanf.sms.service.manager.impl.config.SmsConfig;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

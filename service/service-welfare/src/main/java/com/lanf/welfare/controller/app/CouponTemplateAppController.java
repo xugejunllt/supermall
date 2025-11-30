@@ -1,10 +1,8 @@
 package com.lanf.welfare.controller.app;
 
 
-import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.web.result.Result;
-import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
+import com.lanf.constant.result.Result;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
 import com.lanf.welfare.model.query.CouponTemplatePageQuery;
 import com.lanf.welfare.service.biz.ICouponTemplateService;

@@ -4,7 +4,7 @@ import com.lanf.storage.model.dto.SalesInStockOrderAddDTO;
 import com.lanf.storage.model.vo.StockVO;
 import com.lanf.storage.service.stock.IStockService;
 import com.lanf.storage.service.storage.ISalesOutStockOrderService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;

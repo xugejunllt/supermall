@@ -8,7 +8,7 @@ import com.lanf.log.annotation.Log;
 import com.lanf.log.type.BusinessType;
 import com.lanf.system.model.entiry.SysUserDO;
 import com.lanf.system.model.vo.SysUserQueryVO;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import com.lanf.system.service.SysUserRoleService;
 import com.lanf.system.service.SysUserService;
 import io.swagger.annotations.Api;

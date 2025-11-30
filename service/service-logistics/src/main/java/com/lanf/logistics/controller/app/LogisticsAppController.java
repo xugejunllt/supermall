@@ -3,10 +3,9 @@ package com.lanf.logistics.controller.app;
 
 import com.lanf.common.utils.LogFormatUtils;
 import com.lanf.common.utils.LogInfo;
-import com.lanf.logistics.model.dto.LogisticsAddDTO;
 import com.lanf.logistics.model.vo.LogisticsVO;
 import com.lanf.logistics.service.ILogisticsService;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

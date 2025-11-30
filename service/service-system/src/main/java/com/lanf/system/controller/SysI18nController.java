@@ -7,7 +7,7 @@ import com.lanf.log.type.BusinessType;
 
 import com.lanf.system.model.entiry.SysI18nDO;
 import com.lanf.system.model.vo.SysI18nQueryVO;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import com.lanf.system.service.SysI18nService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

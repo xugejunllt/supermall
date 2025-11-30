@@ -11,7 +11,7 @@ import com.lanf.storage.model.dto.WarehouseAddDTO;
 import com.lanf.storage.model.entity.WarehouseDO;
 import com.lanf.storage.model.query.WarehousePageQuery;
 import com.lanf.storage.service.warehous.IWarehouseService;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 

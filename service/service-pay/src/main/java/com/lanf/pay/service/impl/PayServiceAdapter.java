@@ -7,9 +7,8 @@ import com.lanf.pay.model.bo.TransferAccountsBO;
 import com.lanf.pay.model.dto.TradeOrderDTO;
 import com.lanf.pay.model.dto.TransferAccountsDTO;
 import com.lanf.pay.model.vo.TradeOrderVO;
-import com.lanf.pay.model.vo.TransferAccountsVO;
 import com.lanf.pay.service.AbstractPayService;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;

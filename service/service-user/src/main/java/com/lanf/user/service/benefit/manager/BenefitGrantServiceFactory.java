@@ -5,7 +5,7 @@ import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.StackTraceUtil;
 import com.lanf.user.model.enums.BenefitCodeEnum;
 import com.lanf.user.service.benefit.IBenefitService;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

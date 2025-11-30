@@ -18,10 +18,9 @@ import com.lanf.order.service.IMainOrderService;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IPromiseOrderService;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;

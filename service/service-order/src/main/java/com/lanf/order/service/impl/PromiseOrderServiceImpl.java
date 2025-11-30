@@ -10,7 +10,7 @@ import com.lanf.pay.model.vo.OrderTradeVO;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.LiquidationDTO;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

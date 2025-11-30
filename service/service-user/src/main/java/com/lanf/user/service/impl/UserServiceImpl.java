@@ -33,7 +33,7 @@ import com.lanf.user.service.IUserLoginLogService;
 import com.lanf.user.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.user.service.benefit.IUserLevelService;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import com.lanf.web.utils.WebUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;

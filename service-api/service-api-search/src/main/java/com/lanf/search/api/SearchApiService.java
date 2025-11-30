@@ -2,13 +2,11 @@ package com.lanf.search.api;
 
 
 import com.lanf.search.model.dto.GoodsUpdateDTO;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.List;
 
 
 @Component

@@ -24,7 +24,7 @@ import com.lanf.logistics.service.IUseDeliveryAddressService;
 import com.lanf.logistics.service.manager.LogisticsManagerService;
 import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.model.message.PaySuccessEventMessage;
-import com.lanf.web.exception.BizException;
+import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

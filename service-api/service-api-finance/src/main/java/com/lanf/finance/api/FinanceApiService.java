@@ -3,7 +3,7 @@ package com.lanf.finance.api;
 
 import com.lanf.finance.model.dto.PayAccountDTO;
 import com.lanf.finance.model.vo.PayAccountApiVO;
-import com.lanf.web.result.Result;
+import com.lanf.constant.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
