@@ -41,8 +41,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "成本价格")
     private BigDecimal costPrice;
 
-    @ApiModelProperty(value = "商品库存")
-    private Integer stock;
+
     private Integer sort;
 
 

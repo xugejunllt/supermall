@@ -4,8 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lanf.common.utils.LogFormatUtils;
 import com.lanf.common.utils.LogInfo;
-import com.lanf.log.annotation.Log;
-import com.lanf.log.type.BusinessType;
 import com.lanf.system.model.entiry.SysUserDO;
 import com.lanf.system.model.vo.SysUserQueryVO;
 import com.lanf.constant.result.Result;
@@ -14,6 +12,7 @@ import com.lanf.system.service.SysUserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -58,7 +57,7 @@ public class SysUserController {
         return Result.ok(user);
     }
 
-    @Log(title = "用户管理", businessType = BusinessType.INSERT)
+    //@Log(title = "用户管理", businessType = BusinessType.INSERT)
     @PreAuthorize("hasAuthority('bnt.sysUser.add')")
     @ApiOperation(value = "保存用户")
     @PostMapping("/save")
@@ -68,7 +67,7 @@ public class SysUserController {
         return Result.ok();
     }
 
-    @Log(title = "用户管理", businessType = BusinessType.UPDATE)
+    //@Log(title = "用户管理", businessType = BusinessType.UPDATE)
     @PreAuthorize("hasAuthority('bnt.sysUser.update')")
     @ApiOperation(value = "更新用户")
     @PostMapping("/update")
@@ -77,7 +76,7 @@ public class SysUserController {
         return Result.ok();
     }
 
-    @Log(title = "用户管理", businessType = BusinessType.STATUS)
+    //@Log(title = "用户管理", businessType = BusinessType.STATUS)
     @PreAuthorize("hasAuthority('bnt.sysUser.update')")
     @ApiOperation(value = "更新状态")
     @GetMapping("updateStatus/{id}/{status}")
@@ -86,7 +85,7 @@ public class SysUserController {
         return Result.ok();
     }
 
-    @Log(title = "用户管理", businessType = BusinessType.DELETE)
+   // @Log(title = "用户管理", businessType = BusinessType.DELETE)
     @PreAuthorize("hasAuthority('bnt.sysUser.remove')")
     @ApiOperation(value = "根据id列表删除")
     @DeleteMapping("/batchRemove")

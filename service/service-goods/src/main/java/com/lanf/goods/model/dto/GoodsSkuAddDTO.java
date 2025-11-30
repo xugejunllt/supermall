@@ -26,8 +26,7 @@ public class GoodsSkuAddDTO implements Serializable {
     @ApiModelProperty(value = "成本价格")
     private BigDecimal costPrice;
 
-    @ApiModelProperty(value = "商品库存")
-    private Integer stock;
+
 
     private String skuNameJson;
     private String skuName;

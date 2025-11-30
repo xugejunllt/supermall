@@ -19,7 +19,10 @@ public class GoodsAddDTO implements Serializable {
     @ApiModelProperty(value = "商品名称")
     @NotBlank(message = "商品名称不能为空")
     private String name;
+
+    @NotNull(message ="店铺id不能为空" )
     private Long shopId;
+
     @ApiModelProperty(value = "副标题")
     @NotBlank(message = "副标题不能为空")
     private String title;
@@ -33,9 +36,6 @@ public class GoodsAddDTO implements Serializable {
     @NotNull(message ="品牌不能为空" )
     private Long brandId;
 
-    @ApiModelProperty(value = "上下架状态 0:上架 ,1:下架")
-    @NotNull(message ="上下架状态不能为空" )
-    private Integer upDownStatus;
 
     @NotEmpty(message = "商品sku不能为空")
     private List<GoodsSkuAddDTO> goodsSkuAddDTOList;

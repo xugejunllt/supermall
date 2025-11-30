@@ -8,6 +8,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.goods.mapper.GoodsMapper;
+import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.dto.*;
 import com.lanf.goods.model.entity.GoodsBrandDO;
 import com.lanf.goods.model.entity.GoodsCategoryDO;
@@ -16,10 +17,7 @@ import com.lanf.goods.model.entity.GoodsSkuDO;
 import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.query.UserGoodsPageQuery;
 import com.lanf.goods.model.vo.*;
-import com.lanf.goods.service.goods.IGoodsBrandService;
-import com.lanf.goods.service.goods.IGoodsCategoryService;
-import com.lanf.goods.service.goods.IGoodsService;
-import com.lanf.goods.service.goods.IGoodsSkuService;
+import com.lanf.goods.service.goods.*;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
@@ -30,6 +28,7 @@ import com.lanf.system.api.SystemService;
 import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.vo.ShopVO;
 import com.lanf.constant.exception.BizException;
+import com.lanf.web.utils.CndUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,9 +60,41 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     private SystemService systemService;
     @Autowired
     private ISendMqMessageService sendMqMessageService;
+    @Autowired
+    private IStockService stockService;
+    @Autowired
+    private CndUtils cndUtils;
+
     @Transactional
     @Override
     public void goodsAdd(GoodsAddDTO dto) {
+
+        checkGoodsAdd( dto);
+
+        /**
+         * 计算DB数据
+         */
+        GoodsDO goodsDO = BeanCopyUtils.copyBean(dto, GoodsDO.class);
+        List<GoodsSkuAddDTO> goodsSkuAddDTOList = getGoodsSkuAddDTOList(dto);
+        List<GoodsSkuDO> goodsDOS = BeanCopyUtils.copyBeanList(goodsSkuAddDTOList, GoodsSkuDO.class);
+        /**
+         * 初始化默认属性
+         */
+        //设置商品主图
+        String pit = IStringUtils.splitJoint(dto.getPictureAddressList(), ",");
+        goodsDO.setPictureAddress(pit);
+        //默认下架 手动进行上架
+        goodsDO.setUpDownStatus(1);
+        this.save(goodsDO);
+        goodsDOS.forEach(a -> {
+            a.setGoodsId(goodsDO.getId());
+
+        });
+        goodsSkuService.saveBatch(goodsDOS);
+
+    }
+
+    private void checkGoodsAdd(GoodsAddDTO dto){
 
         Long categoryId = dto.getCategoryId();
         Long brandId = dto.getBrandId();
@@ -88,33 +119,9 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             throw new BizException("商品品牌不存在");
 
         }
-        //校验库存是否足够
-        List<String> skuCodeList = goodsSkuAddDTOList1.stream().map(GoodsSkuAddDTO::getSkuCode).collect(Collectors.toList());
-//        List<StockVO> stockVOList = storageApiService.querySkuCodeList(skuCodeList).getData();
-//        Map<String, StockVO> stockVOMap = stockVOList.stream()
-//                .collect(Collectors.toMap(StockVO::getSkuCode, Function.identity()));
-//        goodsSkuAddDTOList1.forEach(a -> {
-//
-//            String skuCode = a.getSkuCode();
-//            Integer stock = a.getStock();
-//            StockVO stockVO = stockVOMap.get(skuCode);
-//            if (stockVO == null) {
-//                throw new BizException("商品" + skuCode + "库存不足");
-//            }
-//            if (stock > stockVO.getUsableStock()) {
-//                throw new BizException("商品" + skuCode + "超过最大库存");
-//            }
-//
-//        });
 
-        //
-        SysUserBO userInfo = UserUtils.getUserInfo();
-        GoodsDO goodsDO = new GoodsDO();
-        BeanCopyUtils.copy(dto, goodsDO);
-        //设置商品主图
-        String pit = IStringUtils.splitJoint(dto.getPictureAddressList(), ",");
-        goodsDO.setPictureAddress(pit);
-        goodsDO.setShopId(userInfo.getShopId());
+    }
+    private static List<GoodsSkuAddDTO> getGoodsSkuAddDTOList(GoodsAddDTO dto) {
         List<GoodsSkuAddDTO> goodsSkuAddDTOList = dto.getGoodsSkuAddDTOList();
         goodsSkuAddDTOList.forEach(a -> {
             List<SkuNameDTO> skuNameList = a.getSkuNameList();
@@ -133,16 +140,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             a.setSkuName(v1.toString());
 
         });
-        List<GoodsSkuDO> goodsDOS = BeanCopyUtils.copyBeanList(goodsSkuAddDTOList, GoodsSkuDO.class);
-
-        this.save(goodsDO);
-        goodsDOS.forEach(a -> {
-            a.setGoodsId(goodsDO.getId());
-
-        });
-        goodsSkuService.saveBatch(goodsDOS);
-        //发送到mq
-        sendToMq( goodsDO, goodsDOS);
+        return goodsSkuAddDTOList;
     }
 
     private void sendToMq(GoodsDO goodsDO,List<GoodsSkuDO> goodsDOS){
@@ -195,13 +193,31 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getGoodsId, id).list();
         GoodsCategoryDO categoryDO = goodsCategoryService.lambdaQuery().eq(BaseEntity::getId, goodsDO.getCategoryId()).eq(GoodsCategoryDO::getLevel, 3).one();
         GoodsBrandDO brandDO = goodsBrandService.getById(goodsDO.getBrandId());
+        List<String> skuCodes = goodsSkuDOList.stream().map(GoodsSkuDO::getSkuCode).collect(Collectors.toList());
+        Map<String, SkuCodeStockBO> stockBOMap = stockService.findBySkuCode(skuCodes);
+        List<GoodsSkuDetailVO> goodsSkuDetailVOList = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuDetailVO.class);
+
+
+        goodsSkuDetailVOList.forEach(a ->{
+            /**
+             * 添加库存
+             */
+            SkuCodeStockBO stockBO = stockBOMap.get(a.getSkuCode());
+            a.setStock(stockBO.getTotalStock());
+
+            /**
+             * 图片地址转成CDN地址
+             */
+            String skuPictureAddress =   cndUtils.replace(a.getSkuPictureAddress());
+            a.setSkuPictureAddress(skuPictureAddress);
+
+        });
+
         GoodsDetailVO goodsDetailVO = new GoodsDetailVO();
         BeanCopyUtils.copy(goodsDO, goodsDetailVO);
         goodsDetailVO.setCategoryName(categoryDO.getName());
         goodsDetailVO.setBrandName(brandDO.getName());
-        List<GoodsSkuDetailVO> goodsSkuDetailVOList = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuDetailVO.class);
         goodsDetailVO.setGoodsSkuDetailVOList(goodsSkuDetailVOList);
-
 
         return goodsDetailVO;
     }

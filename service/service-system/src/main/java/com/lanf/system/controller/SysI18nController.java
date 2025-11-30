@@ -2,8 +2,6 @@ package com.lanf.system.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.lanf.log.annotation.Log;
-import com.lanf.log.type.BusinessType;
 
 import com.lanf.system.model.entiry.SysI18nDO;
 import com.lanf.system.model.vo.SysI18nQueryVO;

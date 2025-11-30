@@ -1,7 +1,5 @@
 package com.lanf.system.controller;
 
-import com.lanf.log.annotation.Log;
-import com.lanf.log.type.BusinessType;
 import com.lanf.system.model.entiry.SysMenuDO;
 import com.lanf.constant.result.Result;
 import com.lanf.system.service.SysMenuService;

@@ -61,10 +61,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         GoodsDO goodsDO = goodsService.getById(goodsId);
 
 
-        Integer quantity = dto.getQuantity();
-        if (quantity > goodsSkuDO.getStock()) {
-            throw new BizException("商品库存不足");
-        }
+
         CartDO cartDO1 = this.lambdaQuery().eq(CartDO::getSkuId, skuId).one();
         if (cartDO1 == null) {
             //新增
@@ -72,13 +69,12 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
             cartDO.setUserId(UserUtils.getUserId());
             cartDO.setShopId(goodsDO.getShopId());
             cartDO.setSkuId(skuId);
-            cartDO.setQuantity(quantity);
             cartDO.setGoodsId(goodsSkuDO.getGoodsId());
             this.save(cartDO);
         } else {
             //累加更新
             boolean update = this.lambdaUpdate().
-                    set(CartDO::getQuantity, quantity + cartDO1.getQuantity()).
+                    set(CartDO::getQuantity, 0 + cartDO1.getQuantity()).
                     eq(BaseEntity::getId, cartDO1.getId()).
                     update();
             if (!update) {
@@ -140,9 +136,9 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
             Long skuId = cd.getSkuId();
             GoodsSkuDO goodsSkuDO = goodsSkuMap.get(skuId);
             Integer quantity = cd.getQuantity();
-            if (quantity > goodsSkuDO.getStock()) {
-                throw new BizException("商品" + goodsSkuDO.getSkuCode() + "库存不足");
-            }
+//            if (quantity > goodsSkuDO.getStock()) {
+//                throw new BizException("商品" + goodsSkuDO.getSkuCode() + "库存不足");
+//            }
         }
         //清空购物车
         this.removeByIds(cartIdLis);
@@ -152,12 +148,12 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
             Long skuId = cd.getSkuId();
             GoodsSkuDO goodsSkuDO = goodsSkuMap.get(skuId);
             Integer quantity = cd.getQuantity();
-            Integer surplusStock = goodsSkuDO.getStock() - quantity;
+            //Integer surplusStock = goodsSkuDO.getStock() - quantity;
             ThreadLocalUtils.addIgnoreTableName(true);
-            goodsSkuService.lambdaUpdate().set(GoodsSkuDO::getStock, surplusStock).
-                    eq(BaseEntity::getId, goodsSkuDO.getId()).
-
-                    update();
+//            goodsSkuService.lambdaUpdate().set(GoodsSkuDO::getStock, surplusStock).
+//                    eq(BaseEntity::getId, goodsSkuDO.getId()).
+//
+//                    update();
         }
         //构建返回信息
         List<Long> goodsIdList = goodsSkuDOList.stream().map(GoodsSkuDO::getGoodsId).collect(Collectors.toList());
