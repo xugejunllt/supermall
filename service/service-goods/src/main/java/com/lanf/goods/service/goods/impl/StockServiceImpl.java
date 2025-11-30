@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.goods.mapper.StockMapper;
+import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.bo.StockSaveOrUpdateBO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -78,6 +80,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
 
     }
+
 
     private StockSaveOrUpdateBO buildStockSaveOrUpdate(List<UserStockMsg> inStorageItemList, Long tenantId) {
 
@@ -144,6 +147,30 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         return stockFlowDOList;
 
+    }
+    @Override
+    public Map<String,SkuCodeStockBO> findBySkuCode(List<String> skuCode) {
+
+        List<StockDO> stockDOList = this.lambdaQuery().in(StockDO::getSkuCode, skuCode).list();
+
+        Map<String,SkuCodeStockBO> stockCount = new HashMap<>();
+
+        for (StockDO stockDO : stockDOList){
+
+            String skuCode1 = stockDO.getSkuCode();
+            SkuCodeStockBO skuCodeStockBO = stockCount.get(skuCode1);
+
+            if (skuCodeStockBO == null){
+                SkuCodeStockBO stockBO = new SkuCodeStockBO();
+                stockBO.setTotalStock(stockDO.getTotalStock());
+                stockCount.put(skuCode1,stockBO);
+             } else {
+                Integer count2 = skuCodeStockBO.getTotalStock()+stockDO.getTotalStock();
+                skuCodeStockBO.setTotalStock(count2);
+            }
+        }
+
+        return stockCount;
     }
 
 }

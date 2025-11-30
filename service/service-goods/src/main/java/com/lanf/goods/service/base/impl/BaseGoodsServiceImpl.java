@@ -7,6 +7,7 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.goods.mapper.BaseGoodsMapper;
+import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.dto.BaseGoodsAddDTO;
 import com.lanf.goods.model.dto.BaseGoodsSkuAddDTO;
 import com.lanf.goods.model.entity.BaseGoodsDO;
@@ -15,6 +16,7 @@ import com.lanf.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.goods.model.vo.*;
 import com.lanf.goods.service.base.IBaseGoodsService;
 import com.lanf.goods.service.base.IBaseGoodsSkuService;
+import com.lanf.goods.service.goods.IStockService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.security.utils.MerchantIdContext;
@@ -42,6 +44,8 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
 
     @Autowired
     private IBaseGoodsSkuService baseGoodsSkuService;
+    @Autowired
+    private IStockService stockService;
 
     @Override
     @Transactional
@@ -152,21 +156,13 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
         /**
          * 添加库存
          */
-//        List<StockVO> stockVOList = storageApiService.querySkuCodeList(skuCodeList).getData();
-//        Map<String,StockVO> stockVOMap = new HashMap<>();
-//        stockVOList.forEach(a ->{
-//            stockVOMap.put(a.getSkuCode(),a);
-//        });
-//        baseGoodsSkuByCodeQueryVOList.forEach(a ->{
-//            String skuCode = a.getSkuCode();
-//            StockVO stockVO = stockVOMap.get(skuCode);
-//            if (stockVO == null){
-//                a.setUsableStock(0);
-//            } else {
-//                a.setUsableStock(stockVO.getUsableStock());
-//            }
-//        });
-
+        // skuCodeList
+        Map<String, SkuCodeStockBO> stockBOMap = stockService.findBySkuCode(skuCodeList);
+        baseGoodsSkuByCodeQueryVOList.forEach(a ->{
+            String skuCode = a.getSkuCode();
+            SkuCodeStockBO stockBO = stockBOMap.get(skuCode);
+            a.setUsableStock(stockBO.getTotalStock());
+        });
         baseGoodsByCodeQueryVO.setAttributeSplit(attributeSplit.toString());
         baseGoodsByCodeQueryVO.setBaseGoodsSkuByCodeQueryVOList(baseGoodsSkuByCodeQueryVOList);
         return baseGoodsByCodeQueryVO;
@@ -211,7 +207,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
         List<BaseGoodsSkuDO> baseGoodsSkuDOList = baseGoodsSkuService.lambdaQuery().in(BaseGoodsSkuDO::getSkuCode, skuCodeList).list();
         if (baseGoodsSkuDOList.isEmpty()) {
 
-            return null;
+            return new ArrayList<>();
         }
         Set<Long> goodsIdSet = baseGoodsSkuDOList.stream().map(BaseGoodsSkuDO::getGoodsId).collect(Collectors.toSet());
         ThreadLocalUtils.addIgnoreTableName(true);
