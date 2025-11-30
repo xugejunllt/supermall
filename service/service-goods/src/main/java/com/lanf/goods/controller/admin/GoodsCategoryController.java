@@ -1,4 +1,4 @@
-package com.lanf.goods.controller;
+package com.lanf.goods.controller.admin;
 
 
 import com.lanf.goods.model.dto.GoodsCategoryAddDTO;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/goodsCategory")
+@RequestMapping("/admin/goodsCategory")
 public class GoodsCategoryController {
 
     @Autowired

@@ -36,7 +36,6 @@ public class GoodsCategoryServiceImpl extends ServiceImpl<GoodsCategoryMapper, G
 
         GoodsCategoryDO goodsCategoryDO = new GoodsCategoryDO();
         BeanCopyUtils.copy(dto, goodsCategoryDO);
-        goodsCategoryDO.setShopId(UserUtils.getShopId());
         this.save(goodsCategoryDO);
 
     }
@@ -48,8 +47,7 @@ public class GoodsCategoryServiceImpl extends ServiceImpl<GoodsCategoryMapper, G
         //查一级分类
         IPage<GoodsCategoryDO> pageResult = this.lambdaQuery().
                 eq(GoodsCategoryDO::getLevel, 1).
-                orderByDesc(GoodsCategoryDO::getUpdateTime).
-                eq(GoodsCategoryDO::getShopId, UserUtils.getShopId())
+                orderByDesc(GoodsCategoryDO::getUpdateTime)
                 .page(page);
         if (pageResult.getRecords().isEmpty()){
 

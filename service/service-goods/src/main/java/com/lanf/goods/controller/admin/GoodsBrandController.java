@@ -1,4 +1,4 @@
-package com.lanf.goods.controller;
+package com.lanf.goods.controller.admin;
 
 
 import com.lanf.goods.model.dto.GoodsBrandAddDTO;
@@ -20,12 +20,12 @@ import java.util.List;
  * 商品品牌 前端控制器
  * </p>
  *
- * @author 江帅帅 Jss_forever
+ * @author
  * @since 2024-06-11
  */
 @Slf4j
 @RestController
-@RequestMapping("/goodsBrand")
+@RequestMapping("/admin/goodsBrand")
 public class GoodsBrandController {
 
     @Autowired

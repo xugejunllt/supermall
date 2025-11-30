@@ -169,12 +169,10 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
     @Override
     public PageResult<GoodsPageVO> goodsPage(GoodsPageQuery query) {
-        Long shopId = UserUtils.getShopId();
         IPage<GoodsDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<GoodsDO> purchaseStorageOrderPage = this.lambdaQuery().
                 eq(!org.apache.commons.lang3.StringUtils.isEmpty(query.getCode()), GoodsDO::getCode, query.getCode()).
                 eq(!org.apache.commons.lang3.StringUtils.isEmpty(query.getName()), GoodsDO::getName, query.getName()).
-                eq(GoodsDO::getShopId,shopId).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
 

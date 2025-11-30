@@ -1,5 +1,7 @@
 package com.lanf.goods.model.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
@@ -26,7 +28,8 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "排序坐标，越大越靠前")
     private Integer sortIndex;
-    private Long shopId;
 
+    @TableField( fill = FieldFill.INSERT)
+    private Long  tenantId;
 
 }

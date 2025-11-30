@@ -37,7 +37,6 @@ public class GoodsBrandServiceImpl extends ServiceImpl<GoodsBrandMapper, GoodsBr
         }
         GoodsBrandDO goodsBrandDO = new GoodsBrandDO();
         BeanCopyUtils.copy(dto, goodsBrandDO);
-        goodsBrandDO.setShopId(UserUtils.getShopId());
         this.save(goodsBrandDO);
 
     }
@@ -47,7 +46,6 @@ public class GoodsBrandServiceImpl extends ServiceImpl<GoodsBrandMapper, GoodsBr
 
         IPage<GoodsBrandDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<GoodsBrandDO> pageResult = this.lambdaQuery().
-                eq(GoodsBrandDO::getShopId, UserUtils.getShopId()).
                 orderByDesc(GoodsBrandDO::getUpdateTime)
                 .page(page);
 
