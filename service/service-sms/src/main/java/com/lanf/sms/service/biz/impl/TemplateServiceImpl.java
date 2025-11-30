@@ -7,7 +7,7 @@ import com.lanf.common.utils.IStringUtils;
 import com.lanf.sms.mapper.TemplateMapper;
 import com.lanf.sms.model.bo.SendSmsResultBO;
 import com.lanf.sms.model.dto.BathSendSmsDTO;
-import com.lanf.rocketmq.model.message.SendSmsDTO;
+import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.sms.model.dto.StartSendSmsDTO;
 import com.lanf.sms.model.dto.TemplateAddDTO;
 import com.lanf.sms.model.entity.ChannelTemplateDO;
@@ -103,7 +103,7 @@ public class TemplateServiceImpl extends ServiceImpl<TemplateMapper, TemplateDO>
     }
 
     @Override
-    public void sendSms(SendSmsDTO dto) {
+    public void sendSms(SendSmsMsg dto) {
 
         String phone = dto.getPhone();
         //频率控制 一分钟1一次  redis key分布式锁 key:phone_code

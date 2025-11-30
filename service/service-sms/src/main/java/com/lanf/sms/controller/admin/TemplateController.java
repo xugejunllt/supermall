@@ -3,7 +3,7 @@ package com.lanf.sms.controller.admin;
 
 import com.lanf.constant.enums.SmsCodeEnum;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.message.SendSmsDTO;
+import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.sms.service.biz.ITemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ public class TemplateController {
     @GetMapping("/sendSms")
     public String send() {
 
-        SendSmsDTO dto  = new SendSmsDTO();
+        SendSmsMsg dto  = new SendSmsMsg();
         dto.setTemplateCode(SmsCodeEnum.SMS_CODE_1001.getCode());
         dto.setPhone("18320911824");
         dto.setParameterValueList(Arrays.asList("5546"));

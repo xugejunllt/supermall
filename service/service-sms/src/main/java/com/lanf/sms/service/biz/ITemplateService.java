@@ -2,7 +2,7 @@ package com.lanf.sms.service.biz;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.sms.model.dto.BathSendSmsDTO;
-import com.lanf.rocketmq.model.message.SendSmsDTO;
+import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.sms.model.dto.TemplateAddDTO;
 import com.lanf.sms.model.entity.TemplateDO;
 import com.lanf.sms.service.manager.SmsService;
@@ -21,7 +21,7 @@ public interface ITemplateService extends IService<TemplateDO> {
 
     void templateAdd(TemplateAddDTO dto);
     boolean bathSendSms(BathSendSmsDTO dto, SmsService smsService);
-    void sendSms(SendSmsDTO dto);
+    void sendSms(SendSmsMsg dto);
 
     /**
      *

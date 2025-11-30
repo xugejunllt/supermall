@@ -18,8 +18,7 @@ import com.lanf.goods.service.base.IBaseGoodsSkuService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.security.utils.MerchantIdContext;
-import com.lanf.storage.api.StorageApiService;
-import com.lanf.storage.model.vo.StockVO;
+
 import com.lanf.web.exception.BizException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +42,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
 
     @Autowired
     private IBaseGoodsSkuService baseGoodsSkuService;
-    @Autowired
-    private StorageApiService storageApiService;
+
     @Override
     @Transactional
     public void baseGoodsAdd(BaseGoodsAddDTO baseGoodsAdd) {
@@ -154,20 +152,20 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
         /**
          * 添加库存
          */
-        List<StockVO> stockVOList = storageApiService.querySkuCodeList(skuCodeList).getData();
-        Map<String,StockVO> stockVOMap = new HashMap<>();
-        stockVOList.forEach(a ->{
-            stockVOMap.put(a.getSkuCode(),a);
-        });
-        baseGoodsSkuByCodeQueryVOList.forEach(a ->{
-            String skuCode = a.getSkuCode();
-            StockVO stockVO = stockVOMap.get(skuCode);
-            if (stockVO == null){
-                a.setUsableStock(0);
-            } else {
-                a.setUsableStock(stockVO.getUsableStock());
-            }
-        });
+//        List<StockVO> stockVOList = storageApiService.querySkuCodeList(skuCodeList).getData();
+//        Map<String,StockVO> stockVOMap = new HashMap<>();
+//        stockVOList.forEach(a ->{
+//            stockVOMap.put(a.getSkuCode(),a);
+//        });
+//        baseGoodsSkuByCodeQueryVOList.forEach(a ->{
+//            String skuCode = a.getSkuCode();
+//            StockVO stockVO = stockVOMap.get(skuCode);
+//            if (stockVO == null){
+//                a.setUsableStock(0);
+//            } else {
+//                a.setUsableStock(stockVO.getUsableStock());
+//            }
+//        });
 
         baseGoodsByCodeQueryVO.setAttributeSplit(attributeSplit.toString());
         baseGoodsByCodeQueryVO.setBaseGoodsSkuByCodeQueryVOList(baseGoodsSkuByCodeQueryVOList);

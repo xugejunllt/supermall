@@ -6,6 +6,10 @@ public class TopicName {
     public static final int MAX_RECONSUME_TIMES = 2;
 
     /**
+     * 用户库存新增
+     */
+    public static final String USER_STOCK_ADD_TOPIC = "USER_STOCK_ADD_TOPIC";
+    /**
      * 订单状态变更
      */
     public static  final String ORDER_STATUS_CHANGE_TOPIC = "ORDER_STATUS_CHANGE_TOPIC";
@@ -115,6 +119,7 @@ public class TopicName {
     public static  final String OUT_STOCK_FINISH_LOGISTICS_EVENT_GROUP = "OUT_STOCK_FINISH_LOGISTICS_EVENT_GROUP";
     public static  final String PAY_SUCCESS_STORAGE_EVENT_GROUP = "PAY_SUCCESS_STORAGE_EVENT_GROUP";
     public static  final String SAVE_GOODS_ES__GROUP = "SAVE_GOODS_ES__GROUP";
+    public static final String USER_STOCK_ADD_GROUP = "USER_STOCK_ADD_GROUP";
 
 
 }

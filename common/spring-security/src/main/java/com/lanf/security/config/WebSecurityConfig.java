@@ -1,7 +1,6 @@
 package com.lanf.security.config;
 
 import com.lanf.common.utils.BeanUtil;
-import com.lanf.log.api.SystemLogService;
 import com.lanf.security.custom.IBCryptPasswordEncoder;
 import com.lanf.security.filter.TokenAuthenticationFilter;
 import com.lanf.security.filter.AdminLoginFilter;
@@ -52,8 +51,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private FilterPathConfig filterPathConfig;
 
 
-    @Autowired(required = false)
-    private SystemLogService systemLogService;
 
     @Autowired
     private AdminSessionCache adminSessionCache;

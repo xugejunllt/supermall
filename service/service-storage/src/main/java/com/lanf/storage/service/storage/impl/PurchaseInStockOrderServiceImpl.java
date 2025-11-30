@@ -4,10 +4,18 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.lock.aop.DistributedLock;
+import com.lanf.messagemanager.client.model.dto.SendMqMessageDTO;
+import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtils;
+import com.lanf.rocketmq.model.TopicName;
+import com.lanf.rocketmq.model.enums.EventCodeEnum;
+import com.lanf.rocketmq.model.message.SendSmsMsg;
+import com.lanf.rocketmq.model.message.UserStockAddMsg;
+import com.lanf.rocketmq.model.message.UserStockMsg;
+import com.lanf.security.utils.MerchantIdContext;
 import com.lanf.storage.mapper.PurchaseInStockOrderMapper;
 import com.lanf.storage.model.bo.StockSaveOrUpdateBO;
 import com.lanf.storage.model.bo.StockUpdateBO;
@@ -30,14 +38,11 @@ import com.lanf.web.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -69,7 +74,12 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
     @Lazy
     @Autowired
     private IPurchaseOrderService purchaseOrderService;
-
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+    @Autowired
+    private ISendMqMessageService sendMqMessageService;
+    
+    
     /**
      * 入库
      */
@@ -96,6 +106,14 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         Map<Long, WarehouseDO> warehouseDODOMap = warehouseDOList.stream()
                 .collect(Collectors.toMap(WarehouseDO::getId, Function.identity()));
 
+        //初始一个同步时间
+        inStorageItemList.forEach(a->{
+
+            Date date = new Date();
+            a.setSyncTime(date);
+
+        });
+
         //校验
         inStorageCheck(storageOrderDO, inStorageItemList, inStorageDTO);
 
@@ -116,61 +134,83 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         //更新入库单实际库存和状态
         PurchaseInStockOrderDO purchaseStorageOrderDOUpdate = buildPurchaseStorageOrderDO(storageOrderDO, enterQuantity);
         //更新商品库存
-
         StockSaveOrUpdateBO stockSaveOrUpdateBO = buildStockSaveOrUpdate(inStorageItemList, warehouseDODOMap);
         List<StockDO> stockSave = stockSaveOrUpdateBO.getStockSave();
         List<StockUpdateBO> stockUpdate = stockSaveOrUpdateBO.getStockUpdate();
-        //数据库操作
 
-        if (!stockUpdate.isEmpty()) {
-            //乐观锁更新 更新商品库存
-            stockUpdate.forEach(a -> {
-                boolean update = stockService.lambdaUpdate().
-                        eq(StockDO::getId, a.getId()).
-                        eq(StockDO::getVersion, a.getSetVersion()).
-                        set(StockDO::getTotalStock, a.getTotalStock()).
-                        set(StockDO::getVersion, a.getSetVersion() + 1).
-                        set(StockDO::getUsableStock, a.getUsableStock()).
-                        update();
-                if (!update) {
-                    log.info("更新库存失败");
-                    throw new BizException("更新库存失败");
+        /**
+         * 进行DB操作
+         */
+        SendMqMessageDTO sendMqMessageDTO = buildSendMqMessageDTO(inStorageDTO,warehouseDODOMap);
 
+        transactionTemplate.execute(status -> {
+            try {
+                if (!stockUpdate.isEmpty()) {
+                    //乐观锁更新 更新商品库存
+                    stockUpdate.forEach(a -> {
+                        boolean update = stockService.lambdaUpdate().
+                                eq(StockDO::getId, a.getId()).
+                                eq(StockDO::getVersion, a.getVersion()).
+                                set(StockDO::getTotalStock, a.getTotalStock()).
+                                set(StockDO::getVersion, a.getVersion() + 1).
+                                update();
+                        if (!update) {
+                            log.info("更新库存失败");
+                            throw new BizException("更新库存失败");
+
+                        }
+
+                    });
                 }
+                //更新入库单
+                this.updateById(purchaseStorageOrderDOUpdate);
+                //更新入库单item数量
+                storageOrderItemDetailsService.updateBatchById(storageOrderItemDetailsDOUpdate);
+                if (!stockSave.isEmpty()) {
+                    //保存库存
+                    stockService.saveBatch(stockSave);
+                }
+                //保存库存流水
+                stockFlowService.saveBatch(stockFlowList);
+                sendMqMessageService.createSendMqMessage(sendMqMessageDTO);
+                // 如果一切正常，事务会自动提交
+                return null;
+            } catch (Exception e) {
+                // 发生异常时手动回滚
+                status.setRollbackOnly();
+                throw e;
 
-            });
-        }
-        //更新入库单
-        this.updateById(purchaseStorageOrderDOUpdate);
-        //更新入库单item数量
-        storageOrderItemDetailsService.updateBatchById(storageOrderItemDetailsDOUpdate);
+            }
+        });
+        
+        //发送mq 注册事件
+        sendMqMessageService.sendMqMessage(sendMqMessageDTO);
+    }
+    private SendMqMessageDTO buildSendMqMessageDTO(InStockDTO inStorageDTO, Map<Long, WarehouseDO> warehouseDODOMap){
 
-        if (!stockSave.isEmpty()) {
-            //保存库存
+        Long purchaseInStockOrderId = inStorageDTO.getPurchaseInStockOrderId();
+        List<InStockItemDTO> inStorageItemList = inStorageDTO.getInStorageItemList();
 
-            stockService.saveBatch(stockSave);
-        }
+        UserStockAddMsg messageContent = new UserStockAddMsg();
+        List<UserStockMsg> userStockList = BeanCopyUtils.copyBeanList(inStorageItemList,UserStockMsg.class);
+        userStockList.forEach(a->{
+            WarehouseDO warehouseDO = warehouseDODOMap.get(a.getWarehouseId());
+            a.setWarehouseName(warehouseDO.getName());
 
-        //保存库存流水
-        stockFlowService.saveBatch(stockFlowList);
+        });
+
+        String uuid = UUID.randomUUID().toString();
+        //KEY purchaseInStockOrderId  + uuid
+        String buildBizKey = EventCodeEnum.buildBizKey(purchaseInStockOrderId+":"+uuid, EventCodeEnum.PURCHASE_ORDER_IN_STOCK.getCode());
+        messageContent.setBizKeyValue(buildBizKey);
+        messageContent.setUserStockList(userStockList);
+        messageContent.setTenantId(MerchantIdContext.getMerchantId());
+        messageContent.setPurchaseInStockOrderId(purchaseInStockOrderId);
+        return new SendMqMessageDTO(TopicName.USER_STOCK_ADD_TOPIC,messageContent);
     }
 
 
-    private PurchaseOrderDO buildPurchaseOrderDOUpdate(PurchaseInStockOrderDO storageOrderDO, Integer enterQuantity) {
 
-        Integer inStorageStatus = getInStorageStatus(storageOrderDO, enterQuantity);
-        Integer status = null;
-        if (inStorageStatus == 1) {
-            status = 3;
-        } else {
-            status = 4;
-        }
-        PurchaseOrderDO purchaseOrderDOUpdate = new PurchaseOrderDO();
-        purchaseOrderDOUpdate.setId(storageOrderDO.getPurchaseOrderId());
-        purchaseOrderDOUpdate.setStatus(status);
-
-        return purchaseOrderDOUpdate;
-    }
 
     private PurchaseInStockOrderDO buildPurchaseStorageOrderDO(PurchaseInStockOrderDO storageOrderDO, Integer enterQuantity) {
 
@@ -270,6 +310,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
             stockFlowDO.setWarehouseName(warehouseDO.getName());
             stockFlowDO.setInQuantity(is.getActualQuantity());
             stockFlowDO.setWarehouseId(warehouseDO.getId());
+            stockFlowDO.setSyncTime(is.getSyncTime());
             stockFlowList.add(stockFlowDO);
         }
         return stockFlowList;
@@ -300,7 +341,6 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
                 stock.setSkuCode(st.getSkuCode());
                 stock.setTotalStock(st.getActualQuantity());
                 stock.setLockStock(0);
-                stock.setUsableStock(st.getActualQuantity());
                 stock.setWarehouseId(warehouseDO.getId());
                 stock.setGoodsName(st.getGoodsName());
                 stock.setUnit(st.getUnit());
@@ -308,19 +348,23 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
                 stockDOSave.add(stock);
             } else {
                 //更新
-                Integer totalStock = stockDO.getTotalStock() + st.getActualQuantity();
-                Integer usableStock = stockDO.getUsableStock() + st.getActualQuantity();
-                StockUpdateBO stockUpdateBO = new StockUpdateBO();
-                stockUpdateBO.setTotalStock(totalStock);
-                stockUpdateBO.setUsableStock(usableStock);
-                stockUpdateBO.setId(stockDO.getId());
-                stockUpdateBO.setSetVersion(stockDO.getVersion());
+                StockUpdateBO stockUpdateBO = getStockUpdateBO(st, stockDO);
                 stockDOUpdate.add(stockUpdateBO);
             }
 
         }
         return new StockSaveOrUpdateBO(stockDOSave, stockDOUpdate);
 
+    }
+
+    private static StockUpdateBO getStockUpdateBO(InStockItemDTO st, StockDO stockDO) {
+        Integer totalStock = stockDO.getTotalStock() + st.getActualQuantity();
+        StockUpdateBO stockUpdateBO = new StockUpdateBO();
+        stockUpdateBO.setTotalStock(totalStock);
+        stockUpdateBO.setId(stockDO.getId());
+        stockUpdateBO.setVersion(stockDO.getVersion());
+
+        return stockUpdateBO;
     }
 
     @Override

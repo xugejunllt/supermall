@@ -3,11 +3,10 @@ package com.lanf.rocketmq.model.message;
 import com.lanf.messagemanager.client.model.base.BaseMqMessage;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class SendSmsDTO extends BaseMqMessage {
+public class SendSmsMsg extends BaseMqMessage {
 
 
 

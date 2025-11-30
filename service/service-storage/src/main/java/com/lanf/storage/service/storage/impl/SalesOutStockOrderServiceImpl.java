@@ -270,8 +270,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             stockUpdate.forEach(a -> {
                 stockService.lambdaUpdate().
                         eq(StockDO::getId, a.getId()).
-                        set(StockDO::getTotalStock, a.getTotalStock()).
-                        set(StockDO::getUsableStock, a.getUsableStock());
+                        set(StockDO::getTotalStock, a.getTotalStock());
 
             });
         }
@@ -337,7 +336,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             if (stockDO == null) {
                 throw new BizException("商品" + skuCode + "不存在");
             }
-            if (a.getActualQuantity() > stockDO.getUsableStock()) {
+            if (a.getActualQuantity() > stockDO.getTotalStock()) {
                 throw new BizException("商品" + skuCode + "库存不足");
             }
 
@@ -455,10 +454,8 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             Integer usableStock = null;
             if (inOutStatus == 0 || inOutStatus == 3) {
                 totalStock = stockDO.getTotalStock() - st.getActualQuantity();
-                usableStock = stockDO.getUsableStock() - st.getActualQuantity();
             } else {
                 totalStock = stockDO.getTotalStock() + st.getActualQuantity();
-                usableStock = stockDO.getUsableStock() + st.getActualQuantity();
             }
 
             StockUpdateBO stockUpdateBO = new StockUpdateBO();

@@ -5,14 +5,13 @@ import com.lanf.common.utils.*;
 import com.lanf.constant.enums.SmsCodeEnum;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.lock.service.DistributedLocker;
-import com.lanf.messagemanager.client.model.base.BaseMqMessage;
 import com.lanf.messagemanager.client.model.dto.SendMqMessageDTO;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.redis.constant.CacheConstants;
 import com.lanf.redis.service.RedisCache;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.EventCodeEnum;
-import com.lanf.rocketmq.model.message.SendSmsDTO;
+import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.model.CacheSessionBO;
 import com.lanf.security.utils.JwtUtils;
@@ -40,8 +39,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Arrays;
@@ -111,7 +108,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     }
     private SendMqMessageDTO buildSendMqMessageDTO(RegisterUserDTO dto){
 
-        SendSmsDTO messageContent = new SendSmsDTO();
+        SendSmsMsg messageContent = new SendSmsMsg();
         String buildBizKey = EventCodeEnum.buildBizKey(dto.getPhoneNumber(), EventCodeEnum.USER_REGISTER.getCode());
         messageContent.setBizKeyValue(buildBizKey);
         messageContent.setPhone(dto.getPhoneNumber());
@@ -207,7 +204,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private void sendCode(String code, String phoneNumber, String templateCode) {
 
         List<String> parameterValueList = Arrays.asList(code);
-        SendSmsDTO sendSmsDTO = new SendSmsDTO();
+        SendSmsMsg sendSmsDTO = new SendSmsMsg();
         sendSmsDTO.setTemplateCode(templateCode);
         sendSmsDTO.setPhone(phoneNumber);
         sendSmsDTO.setParameterValueList(parameterValueList);

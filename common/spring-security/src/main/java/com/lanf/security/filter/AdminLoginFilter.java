@@ -1,9 +1,7 @@
 package com.lanf.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lanf.common.utils.BeanUtil;
 import com.lanf.constant.constant.Constants;
-import com.lanf.log.api.SystemLogService;
 import com.lanf.security.code.SystemResultCodeEnum;
 import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.security.model.CacheSessionBO;
@@ -14,9 +12,7 @@ import com.lanf.system.model.vo.LoginVO;
 import com.lanf.web.result.Result;
 import com.lanf.web.utils.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.redis.core.RedisTemplate;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

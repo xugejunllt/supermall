@@ -3,6 +3,7 @@ package com.lanf.storage.model.dto;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @Data
 public class InStockItemDTO implements Serializable {
@@ -18,4 +19,6 @@ public class InStockItemDTO implements Serializable {
     private String goodsName;
     //商品单位
     private String unit;
+
+    private Date syncTime;
 }

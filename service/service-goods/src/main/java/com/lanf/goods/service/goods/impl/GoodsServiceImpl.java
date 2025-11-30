@@ -23,11 +23,9 @@ import com.lanf.goods.service.goods.IGoodsSkuService;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.GoodsAddMsg;
 import com.lanf.security.utils.UserUtils;
-import com.lanf.storage.api.StorageApiService;
-import com.lanf.storage.model.vo.StockVO;
+
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.vo.ShopVO;
@@ -58,8 +56,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     private IGoodsBrandService goodsBrandService;
     @Autowired
     private IGoodsSkuService goodsSkuService;
-    @Autowired
-    private StorageApiService storageApiService;
+
     @Autowired
     private SystemService systemService;
     @Autowired
@@ -93,22 +90,22 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         }
         //校验库存是否足够
         List<String> skuCodeList = goodsSkuAddDTOList1.stream().map(GoodsSkuAddDTO::getSkuCode).collect(Collectors.toList());
-        List<StockVO> stockVOList = storageApiService.querySkuCodeList(skuCodeList).getData();
-        Map<String, StockVO> stockVOMap = stockVOList.stream()
-                .collect(Collectors.toMap(StockVO::getSkuCode, Function.identity()));
-        goodsSkuAddDTOList1.forEach(a -> {
-
-            String skuCode = a.getSkuCode();
-            Integer stock = a.getStock();
-            StockVO stockVO = stockVOMap.get(skuCode);
-            if (stockVO == null) {
-                throw new BizException("商品" + skuCode + "库存不足");
-            }
-            if (stock > stockVO.getUsableStock()) {
-                throw new BizException("商品" + skuCode + "超过最大库存");
-            }
-
-        });
+//        List<StockVO> stockVOList = storageApiService.querySkuCodeList(skuCodeList).getData();
+//        Map<String, StockVO> stockVOMap = stockVOList.stream()
+//                .collect(Collectors.toMap(StockVO::getSkuCode, Function.identity()));
+//        goodsSkuAddDTOList1.forEach(a -> {
+//
+//            String skuCode = a.getSkuCode();
+//            Integer stock = a.getStock();
+//            StockVO stockVO = stockVOMap.get(skuCode);
+//            if (stockVO == null) {
+//                throw new BizException("商品" + skuCode + "库存不足");
+//            }
+//            if (stock > stockVO.getUsableStock()) {
+//                throw new BizException("商品" + skuCode + "超过最大库存");
+//            }
+//
+//        });
 
         //
         SysUserBO userInfo = UserUtils.getUserInfo();

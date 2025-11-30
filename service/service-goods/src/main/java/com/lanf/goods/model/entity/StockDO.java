@@ -1,7 +1,5 @@
-package com.lanf.storage.model.entity;
+package com.lanf.goods.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
@@ -9,46 +7,44 @@ import lombok.Data;
 
 /**
  * <p>
- * 
+ * 库存
  * </p>
  *
- * @author 江帅帅 Jss_forever
- * @since 2024-06-07
+ * @author jarven
+ * @since 2025-11-29
  */
 @Data
-@TableName("stock")
+@TableName("user_stock")
 public class StockDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
-    //`sku_code`, `warehouse_id` 唯一索引 用于并发控制
 
     @ApiModelProperty(value = "sku编码")
     private String skuCode;
 
+    @ApiModelProperty(value = "商品名称")
     private String goodsName;
 
-    @ApiModelProperty(value = "仓库名称")
-    private String warehouseName;
-
-    //单位
+    @ApiModelProperty(value = "单位")
     private String unit;
+
     @ApiModelProperty(value = "总库存")
     private Integer totalStock;
 
     @ApiModelProperty(value = "锁住的库存")
     private Integer lockStock;
 
-
-
-    //版本号 乐观锁控制
-    private Long version;
-
     @ApiModelProperty(value = "仓库id")
     private Long warehouseId;
 
+    @ApiModelProperty(value = "仓库名称")
+    private String warehouseName;
 
-    @TableField( fill = FieldFill.INSERT)
+    @ApiModelProperty(value = "版本号 乐观锁控制")
+    private Long version;
     private Long  tenantId;
+
+
 
 }

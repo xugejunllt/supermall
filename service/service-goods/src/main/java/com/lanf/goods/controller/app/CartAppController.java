@@ -5,7 +5,6 @@ import com.lanf.goods.model.dto.CartAddDTO;
 import com.lanf.goods.model.dto.ChangeCartQuantityDTO;
 import com.lanf.goods.model.vo.CartGoodsVO;
 import com.lanf.goods.service.goods.ICartService;
-import com.lanf.log.api.SystemLogService;
 import com.lanf.web.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +28,7 @@ public class CartAppController {
 
     @Autowired
     private ICartService cartService;
-    @Autowired
-    private SystemLogService systemLogService;
+
 
     @PostMapping("/cartAdd")
     public Result cartAdd(@Validated @RequestBody CartAddDTO dto) {
