@@ -9,15 +9,15 @@ import java.math.BigDecimal;
 
 /**
  * <p>
- * 
+ * sku变更版本
  * </p>
  *
- * @author 江帅帅 Jss_forever
- * @since 2024-06-11
+ * @author jarven
+ * @since 2025-12-05
  */
 @Data
-@TableName("goods_sku")
-public class GoodsSkuDO extends BaseEntity {
+@TableName("goods_sku_history_version")
+public class GoodsSkuHistoryVersionDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
@@ -30,6 +30,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "sku名称json")
     private String skuNameJson;
 
+    @ApiModelProperty(value = "sku名称")
     private String skuName;
 
     @ApiModelProperty(value = "sku图片")
@@ -41,10 +42,11 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "成本价格")
     private BigDecimal costPrice;
 
-
+    @ApiModelProperty(value = "sk展示排序码")
     private Integer sort;
 
     private Long version;
+
 
 
 }

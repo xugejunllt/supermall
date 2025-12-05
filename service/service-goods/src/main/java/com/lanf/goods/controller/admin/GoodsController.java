@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * <p>
  * 基础商品 前端控制器
@@ -31,7 +33,6 @@ public class GoodsController {
     private IGoodsService goodsService;
 
 
-
     @PostMapping("/goodsAdd")
     public Result goodsAdd(@Validated @RequestBody GoodsAddDTO dto) {
         log.info("添加商品:dto{}", dto);
@@ -39,6 +40,15 @@ public class GoodsController {
         goodsService.goodsAdd(dto);
         return Result.ok();
     }
+
+    @PostMapping("/upGoods")
+    public Result upGoods(@Validated @NotNull(message = "商品id不能为空") Long goodsId) {
+
+        log.info("上架商品:goodsId{}", goodsId);
+        goodsService.upGoods(goodsId);
+        return Result.ok();
+    }
+
 
     @GetMapping("/goodsPage")
     public Result<PageResult<GoodsPageVO>> goodsPage(GoodsPageQuery query) {
@@ -55,8 +65,6 @@ public class GoodsController {
 
         return Result.ok(goodsService.goodsDetail(id));
     }
-
-
 
 
     @PostMapping("/upDownStatus")

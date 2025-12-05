@@ -46,4 +46,10 @@ public interface IGoodsService extends IService<GoodsDO> {
      *
      */
     ApiGoodsSkuVO  checkAndQueryGoods(CheckAndQueryGoodsDTO dto);
+
+    /**
+     * 上架商品
+     *
+     */
+    void upGoods(Long goodsId);
 }

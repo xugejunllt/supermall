@@ -4,30 +4,25 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.JsonUtils;
 import com.lanf.common.utils.IStringUtils;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.goods.mapper.GoodsMapper;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.dto.*;
-import com.lanf.goods.model.entity.GoodsBrandDO;
-import com.lanf.goods.model.entity.GoodsCategoryDO;
-import com.lanf.goods.model.entity.GoodsDO;
-import com.lanf.goods.model.entity.GoodsSkuDO;
+import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.query.UserGoodsPageQuery;
 import com.lanf.goods.model.vo.*;
 import com.lanf.goods.service.goods.*;
+import com.lanf.lock.aop.DistributedLock;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.rocketmq.model.message.GoodsAddMsg;
-import com.lanf.security.utils.UserUtils;
-
 import com.lanf.system.api.SystemService;
-import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.vo.ShopVO;
-import com.lanf.constant.exception.BizException;
 import com.lanf.web.utils.CndUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,12 +59,20 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     private IStockService stockService;
     @Autowired
     private CndUtils cndUtils;
+    @Autowired
+    private IGoodsHistoryVersionService goodsHistoryVersionService;
+    @Autowired
+    private IGoodsSkuHistoryVersionService goodsSkuHistoryVersionService;
 
+    @Autowired
+    private IGoodsSyncEsRecordService goodsSyncEsRecordService;
+
+    @DistributedLock(key = "#dto.code")
     @Transactional
     @Override
     public void goodsAdd(GoodsAddDTO dto) {
 
-        checkGoodsAdd( dto);
+        validateAddGoods(dto);
 
         /**
          * 计算DB数据
@@ -80,21 +83,31 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         /**
          * 初始化默认属性
          */
+        //版本号 用于追随
+        Long version = 1L;
         //设置商品主图
         String pit = IStringUtils.splitJoint(dto.getPictureAddressList(), ",");
         goodsDO.setPictureAddress(pit);
         //默认下架 手动进行上架
         goodsDO.setUpDownStatus(1);
+        goodsDO.setVersion(version);
         this.save(goodsDO);
         goodsDOS.forEach(a -> {
             a.setGoodsId(goodsDO.getId());
-
+            a.setVersion(version);
         });
+        //构建历史记录
+        GoodsHistoryVersionDO goodsHistoryVersionDO = BeanCopyUtils.copyBean(goodsDO, GoodsHistoryVersionDO.class);
+        List<GoodsSkuHistoryVersionDO> goodsSkuHistoryVersionDOS = BeanCopyUtils.copyBeanList(goodsDOS, GoodsSkuHistoryVersionDO.class);
+
         goodsSkuService.saveBatch(goodsDOS);
+        goodsHistoryVersionService.save(goodsHistoryVersionDO);
+        goodsSkuHistoryVersionService.saveBatch(goodsSkuHistoryVersionDOS);
+
 
     }
 
-    private void checkGoodsAdd(GoodsAddDTO dto){
+    private void validateAddGoods(GoodsAddDTO dto) {
 
         Long categoryId = dto.getCategoryId();
         Long brandId = dto.getBrandId();
@@ -121,6 +134,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         }
 
     }
+
     private static List<GoodsSkuAddDTO> getGoodsSkuAddDTOList(GoodsAddDTO dto) {
         List<GoodsSkuAddDTO> goodsSkuAddDTOList = dto.getGoodsSkuAddDTOList();
         goodsSkuAddDTOList.forEach(a -> {
@@ -143,7 +157,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         return goodsSkuAddDTOList;
     }
 
-    private void sendToMq(GoodsDO goodsDO,List<GoodsSkuDO> goodsDOS){
+    private void sendToMq(GoodsDO goodsDO, List<GoodsSkuDO> goodsDOS) {
 
         //将sku集合根据sort进行升序，取第一条sku的价格
         Collections.sort(goodsDOS, Comparator.comparing(GoodsSkuDO::getSort));
@@ -160,7 +174,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         msg.setUpdateTime(goodsDO.getUpdateTime());
         msg.setSearchWords(goodsDO.getName());
         //发送到mq
-       // sendMqMessageService.sendMessage(TopicName.SAVE_GOODS_ES_TOPIC,msg);
+        // sendMqMessageService.sendMessage(TopicName.SAVE_GOODS_ES_TOPIC,msg);
 
     }
 
@@ -198,7 +212,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         List<GoodsSkuDetailVO> goodsSkuDetailVOList = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuDetailVO.class);
 
 
-        goodsSkuDetailVOList.forEach(a ->{
+        goodsSkuDetailVOList.forEach(a -> {
             /**
              * 添加库存
              */
@@ -208,7 +222,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             /**
              * 图片地址转成CDN地址
              */
-            String skuPictureAddress =   cndUtils.replace(a.getSkuPictureAddress());
+            String skuPictureAddress = cndUtils.replace(a.getSkuPictureAddress());
             a.setSkuPictureAddress(skuPictureAddress);
 
         });
@@ -482,6 +496,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         return apiGoodsSkuVO;
     }
 
+
     @Override
     public SkuDetailVO queryBySkuId(Long skuId) {
 
@@ -508,5 +523,89 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
         return skuDetailVO;
     }
+    @DistributedLock(key = "#goodsId")
+    @Transactional
+    @Override
+    public void upGoods(Long goodsId) {
+        validateUpGoods(goodsId);
+        GoodsDO goodsDO = this.getById(goodsId);
+        Long updateVersion = goodsDO.getVersion()+1;
+        Long goodsDOId = goodsDO.getId();
+        boolean saveGoodsSyncEsRecord = true;
+        Integer getUpDownStatus = 0;
+        GoodsSyncEsRecordDO one = goodsSyncEsRecordService.lambdaQuery()
+                .eq(GoodsSyncEsRecordDO::getGoodsId, goodsDOId)
+                .one();
+        List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getGoodsId, goodsDOId).list();
 
+        if (one != null){
+            saveGoodsSyncEsRecord = false;
+        }
+
+        //构建GoodsHistoryVersionDO
+        GoodsHistoryVersionDO goodsHistoryVersionDO = BeanCopyUtils.copyBean(goodsDO, GoodsHistoryVersionDO.class);
+        goodsHistoryVersionDO.setVersion(updateVersion);
+        goodsHistoryVersionDO.setUpDownStatus(getUpDownStatus);
+        //复制过来有值 赋值为null 每次自动生成
+        goodsHistoryVersionDO.setId(null);
+        List<GoodsSkuHistoryVersionDO> goodsSkuHistoryVersionDOS = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuHistoryVersionDO.class);
+        goodsSkuHistoryVersionDOS.forEach(a->{
+            a.setVersion(updateVersion);
+            a.setId(null);
+        });
+        /**
+         * 更新DB
+         */
+        boolean update = this.lambdaUpdate().set(GoodsDO::getUpDownStatus, getUpDownStatus)
+                .set(GoodsDO::getVersion, updateVersion)
+                .eq(BaseEntity::getId, goodsDO.getId())
+                .eq(GoodsDO::getVersion, goodsDO.getVersion()).update();
+        if ( !update){
+            throw new BizException("更新失败!");
+        }
+        boolean update2 = goodsSkuService.lambdaUpdate()
+                .set(GoodsSkuDO::getVersion, updateVersion)
+                .eq(GoodsSkuDO::getGoodsId, goodsDOId).update();
+        if ( !update2){
+            throw new BizException("更新失败!");
+        }
+
+        if (saveGoodsSyncEsRecord){
+            GoodsSyncEsRecordDO goodsSyncEsRecordDO = buildGoodsSyncEsRecordDO(goodsDOId, updateVersion);
+            goodsSyncEsRecordService.save(goodsSyncEsRecordDO);
+        } else {
+
+            boolean update1 = goodsSyncEsRecordService.lambdaUpdate().
+                    set(GoodsSyncEsRecordDO::getMaxVersion, updateVersion).
+                    eq(GoodsSyncEsRecordDO::getGoodsId, goodsDOId).update();
+            if ( !update1){
+                throw new BizException("更新失败!");
+            }
+        }
+        goodsHistoryVersionService.save(goodsHistoryVersionDO);
+        goodsSkuHistoryVersionService.saveBatch(goodsSkuHistoryVersionDOS);
+
+    }
+
+
+
+    private GoodsSyncEsRecordDO buildGoodsSyncEsRecordDO(Long goodsId,Long updateVersion){
+
+        GoodsSyncEsRecordDO goodsSyncEsRecordDO = new GoodsSyncEsRecordDO();
+        goodsSyncEsRecordDO.setGoodsId(goodsId);
+        goodsSyncEsRecordDO.setMaxVersion(updateVersion);
+
+        return goodsSyncEsRecordDO;
+    }
+
+    private void validateUpGoods(Long goodsId) {
+        GoodsDO goodsDO = this.getById(goodsId);
+        if (goodsDO == null) {
+            throw new BizException("商品不存在");
+        }
+        if (goodsDO.getUpDownStatus() != 1) {
+            throw new BizException("商品已上架");
+        }
+
+    }
 }
