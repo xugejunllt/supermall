@@ -1,10 +1,10 @@
 package com.lanf.search.mq;
 
-import com.lanf.messagemanager.client.annotation.ConsumeMessage;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.message.GoodsAddMsg;
-import com.lanf.search.service.GoodsService;
+import com.lanf.rocketmq.model.message.SyncGoodsInfoToEsMsg;
+import com.lanf.search.service.IGoodsInfoService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,20 +13,28 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RocketMQMessageListener(topic = TopicName.SAVE_GOODS_ES_TOPIC, consumerGroup = TopicName.SAVE_GOODS_ES__GROUP)
-public class GoodsListener implements RocketMQListener<GoodsAddMsg> {
+/**
+ * 使用顺序消费
+ */
+@RocketMQMessageListener(topic = TopicName.SAVE_GOODS_ES_TOPIC,
+        consumerGroup = TopicName.SAVE_GOODS_ES__GROUP,consumeMode = ConsumeMode.ORDERLY)
+public class GoodsListener implements RocketMQListener<SyncGoodsInfoToEsMsg> {
 
     @Autowired
-    private GoodsService goodsService;
+    private IGoodsInfoService goodsInfoService;
 
-    @ConsumeMessage
     @Override
-    public void onMessage(GoodsAddMsg message) {
+    public void onMessage(SyncGoodsInfoToEsMsg message) {
 
-        log.info("保存商品到ES:{}", message);
-        goodsService.addGoods(message);
-
-
+        log.info("添加数据B");
+        try {
+            goodsInfoService.saveGoodsInfo(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
+
+
+
 }

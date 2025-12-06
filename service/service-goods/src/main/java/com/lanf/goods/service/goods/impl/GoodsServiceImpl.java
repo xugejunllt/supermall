@@ -20,7 +20,11 @@ import com.lanf.lock.aop.DistributedLock;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.rocketmq.model.TopicName;
+import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.rocketmq.model.message.GoodsAddMsg;
+import com.lanf.rocketmq.model.message.SyncGoodsInfoToEsMsg;
+import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
 import com.lanf.web.utils.CndUtils;
@@ -68,6 +72,11 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
     @Autowired
     private IGoodsSyncEsRecordService goodsSyncEsRecordService;
+    @Autowired
+    private IShopService shopService;
+    @Autowired
+    private RocketMqClient rocketMqClient;
+
 
     @DistributedLock(key = "#dto.code")
     @Transactional
@@ -89,7 +98,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         List<String> extendedTagsList = IStringUtils.toList(dto.getExtendedTags(), ",");
         String extendedTags = JsonUtils.toJsonString(extendedTagsList);
         //图片地址处理
-        String pictureAddressList =  JsonUtils.toJsonString(dto.getPictureAddressList());
+        String pictureAddressList = JsonUtils.toJsonString(dto.getPictureAddressList());
         /**
          * 初始化属性
          */
@@ -534,13 +543,15 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
         return skuDetailVO;
     }
+
     @DistributedLock(key = "#goodsId")
     @Transactional
     @Override
     public void upGoods(Long goodsId) {
-        validateUpGoods(goodsId);
+
+        //validateUpGoods(goodsId);
         GoodsDO goodsDO = this.getById(goodsId);
-        Long updateVersion = goodsDO.getVersion()+1;
+        Long updateVersion = goodsDO.getVersion() + 1;
         Long goodsDOId = goodsDO.getId();
         boolean saveGoodsSyncEsRecord = true;
         Integer getUpDownStatus = 0;
@@ -549,7 +560,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
                 .one();
         List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getGoodsId, goodsDOId).list();
 
-        if (one != null){
+        if (one != null) {
             saveGoodsSyncEsRecord = false;
         }
 
@@ -560,7 +571,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         //复制过来有值 赋值为null 每次自动生成
         goodsHistoryVersionDO.setId(null);
         List<GoodsSkuHistoryVersionDO> goodsSkuHistoryVersionDOS = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuHistoryVersionDO.class);
-        goodsSkuHistoryVersionDOS.forEach(a->{
+        goodsSkuHistoryVersionDOS.forEach(a -> {
             a.setVersion(updateVersion);
             a.setId(null);
         });
@@ -571,17 +582,17 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
                 .set(GoodsDO::getVersion, updateVersion)
                 .eq(BaseEntity::getId, goodsDO.getId())
                 .eq(GoodsDO::getVersion, goodsDO.getVersion()).update();
-        if ( !update){
+        if (!update) {
             throw new BizException("更新失败!");
         }
         boolean update2 = goodsSkuService.lambdaUpdate()
                 .set(GoodsSkuDO::getVersion, updateVersion)
                 .eq(GoodsSkuDO::getGoodsId, goodsDOId).update();
-        if ( !update2){
+        if (!update2) {
             throw new BizException("更新失败!");
         }
 
-        if (saveGoodsSyncEsRecord){
+        if (saveGoodsSyncEsRecord) {
 
             log.info("新增同步ES记录");
             GoodsSyncEsRecordDO goodsSyncEsRecordDO = buildGoodsSyncEsRecordDO(goodsDOId, updateVersion);
@@ -591,18 +602,112 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             boolean update1 = goodsSyncEsRecordService.lambdaUpdate().
                     set(GoodsSyncEsRecordDO::getMaxVersion, updateVersion).
                     eq(GoodsSyncEsRecordDO::getGoodsId, goodsDOId).update();
-            if ( !update1){
+            if (!update1) {
                 throw new BizException("更新失败!");
             }
         }
         goodsHistoryVersionService.save(goodsHistoryVersionDO);
         goodsSkuHistoryVersionService.saveBatch(goodsSkuHistoryVersionDOS);
 
+        //商品数据同步到ES中
+        SyncGoodsInfoToEsMsg goodsInfoToEsMsg = buildSyncGoodsInfoToEsMsg(goodsId);
+        String key = goodsDOId+":"+updateVersion+":"+ EventCodeEnum.GOODS_TO_ES.getCode();
+        rocketMqClient.syncSendOrderly(TopicName.SAVE_GOODS_ES_TOPIC,
+                JsonUtils.toJsonString(goodsInfoToEsMsg),key);
+
     }
 
 
+    private SyncGoodsInfoToEsMsg buildSyncGoodsInfoToEsMsg(Long goodsId) {
 
-    private GoodsSyncEsRecordDO buildGoodsSyncEsRecordDO(Long goodsId,Long updateVersion){
+        /**
+         * 准备数据
+         */
+        GoodsDO goodsDO = this.getById(goodsId);
+        Long shopId = goodsDO.getShopId();
+        ShopDO shopDO = shopService.getById(shopId);
+        String pictureAddress = goodsDO.getPictureAddress();
+        //商品主图
+        String mainImage = getMainImage(pictureAddress);
+        //三级分类id
+        Long categoryId3 = goodsDO.getCategoryId();
+        GoodsCategoryDO category3 = goodsCategoryService.getById(categoryId3);
+        //2级分类id
+        Long categoryId2 = category3.getParentId();
+        GoodsCategoryDO category2 = goodsCategoryService.getById(categoryId2);
+        Long categoryId1 = category2.getParentId();
+        GoodsCategoryDO category1 = goodsCategoryService.getById(categoryId1);
+
+        GoodsBrandDO brandDO = goodsBrandService.getById(goodsDO.getBrandId());
+
+        List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getGoodsId, goodsId).list();
+        //列表页展示的sku 默认取第一个 当然可以新增字段标记展示
+        GoodsSkuDO firstGoodsSku = goodsSkuDOList.get(0);
+        List<SyncGoodsInfoToEsMsg.Attribute> attributes = buildAttribute(goodsSkuDOList);
+        List<String> promptWordLabel = JsonUtils.toList(goodsDO.getPromptWordLabel(), String.class);
+
+        List<String> extendedTags = JsonUtils.toList(goodsDO.getExtendedTags(), String.class);
+
+        /**
+         * 构建SyncGoodsInfoToEsMsg对象
+         */
+        SyncGoodsInfoToEsMsg goodsInfoToEsMsg = new SyncGoodsInfoToEsMsg();
+        goodsInfoToEsMsg.setGoodsId(goodsDO.getId());
+        goodsInfoToEsMsg.setGoodsName(goodsDO.getName());
+        goodsInfoToEsMsg.setSubTitle(goodsDO.getTitle());
+        goodsInfoToEsMsg.setShopId(goodsDO.getShopId());
+        goodsInfoToEsMsg.setShopName(shopDO.getName());
+        goodsInfoToEsMsg.setMainImage(mainImage);
+        goodsInfoToEsMsg.setFirstLevelCategoryId(category1.getId());
+        goodsInfoToEsMsg.setFirstLevelCategoryName(category1.getName());
+        goodsInfoToEsMsg.setSecondaryLevelCategoryId(category2.getId());
+        goodsInfoToEsMsg.setSecondaryLevelCategoryName(category2.getName());
+        goodsInfoToEsMsg.setThreeLevelCategoryId(category3.getId());
+        goodsInfoToEsMsg.setThreeLevelCategoryName(category3.getName());
+        goodsInfoToEsMsg.setBrandId(brandDO.getId());
+        goodsInfoToEsMsg.setBrandName(brandDO.getName());
+        goodsInfoToEsMsg.setUpDownStatus(goodsDO.getUpDownStatus());
+        goodsInfoToEsMsg.setTenantId(goodsDO.getTenantId());
+        goodsInfoToEsMsg.setVersion(goodsDO.getVersion());
+        goodsInfoToEsMsg.setSkuId(firstGoodsSku.getId());
+        goodsInfoToEsMsg.setSkuName(firstGoodsSku.getSkuName());
+        goodsInfoToEsMsg.setPrice(firstGoodsSku.getPrice().doubleValue());
+        goodsInfoToEsMsg.setAttributes(attributes);
+        goodsInfoToEsMsg.setPromptWordLabel(promptWordLabel);
+        goodsInfoToEsMsg.setExtendedTags(extendedTags);
+
+        return goodsInfoToEsMsg;
+    }
+
+    private List<SyncGoodsInfoToEsMsg.Attribute> buildAttribute(List<GoodsSkuDO> goodsSkuDOList) {
+
+        List<SyncGoodsInfoToEsMsg.Attribute> sku = new ArrayList<>();
+
+        goodsSkuDOList.forEach(a -> {
+            String skuNameJson = a.getSkuNameJson();
+            //SkuNameDTO
+            List<SkuNameDTO> list = JsonUtils.toList(skuNameJson, SkuNameDTO.class);
+
+            list.forEach(b -> {
+                SyncGoodsInfoToEsMsg.Attribute attribute = new SyncGoodsInfoToEsMsg.Attribute();
+                attribute.setAttrName(b.getAttribute());
+                attribute.setAttrValue(b.getDesc());
+                sku.add(attribute);
+            });
+
+        });
+
+        return sku;
+    }
+
+    private String getMainImage(String pictureAddress) {
+
+        List<String> list = JsonUtils.toList(pictureAddress, String.class);
+        //默认返回第一张图片
+        return list.get(0);
+    }
+
+    private GoodsSyncEsRecordDO buildGoodsSyncEsRecordDO(Long goodsId, Long updateVersion) {
 
         GoodsSyncEsRecordDO goodsSyncEsRecordDO = new GoodsSyncEsRecordDO();
         goodsSyncEsRecordDO.setGoodsId(goodsId);

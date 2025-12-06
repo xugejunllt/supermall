@@ -19,6 +19,10 @@ spring:
             data-id: redis.yaml
           - group: common
             data-id: rocketmq.yaml
+          - group: search
+            data-id: mysql.yaml
+          - group: common
+            data-id: tenant.yaml
 server:
   port: 9014
   servlet:

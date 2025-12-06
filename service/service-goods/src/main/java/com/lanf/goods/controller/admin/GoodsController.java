@@ -9,6 +9,7 @@ import com.lanf.goods.model.vo.GoodsPageVO;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.constant.result.Result;
+import com.lanf.security.utils.MerchantIdContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -45,6 +46,7 @@ public class GoodsController {
     public Result upGoods(@Validated @NotNull(message = "商品id不能为空") Long goodsId) {
 
         log.info("上架商品:goodsId{}", goodsId);
+        MerchantIdContext.setMerchantId(1441223317880180736L);
         goodsService.upGoods(goodsId);
         return Result.ok();
     }

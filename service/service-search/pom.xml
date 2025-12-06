@@ -43,11 +43,7 @@
             <artifactId>common-util</artifactId>
             <version>${common-util.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-redis</artifactId>
-            <version>${common-redos.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-rocketmq</artifactId>
@@ -57,6 +53,11 @@
             <groupId>com.lanf</groupId>
             <artifactId>service-api-search</artifactId>
             <version>${service-search.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-mybatis</artifactId>
+            <version>${common-mybatis.version}</version>
         </dependency>
     </dependencies>
 
