@@ -33,7 +33,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "副标题")
     private String title;
 
-    @ApiModelProperty(value = "图片地址，多个,用“，”隔开")
+    @ApiModelProperty(value = "图片地址")
     private String pictureAddress;
 
     @ApiModelProperty(value = "商品3级分类")
@@ -44,6 +44,10 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "上下架状态 0:上架 ,1:下架")
     private Integer upDownStatus;
+    //搜索提示词标签
+    private String promptWordLabel;
+    //扩展标签 用于展示
+    private String extendedTags;
     @TableField( fill = FieldFill.INSERT)
     private Long  tenantId;
 

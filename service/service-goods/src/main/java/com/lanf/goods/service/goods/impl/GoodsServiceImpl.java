@@ -24,6 +24,7 @@ import com.lanf.rocketmq.model.message.GoodsAddMsg;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
 import com.lanf.web.utils.CndUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
  * @author 江帅帅 Jss_forever
  * @since 2024-06-11
  */
+@Slf4j
 @Service
 public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implements IGoodsService {
 
@@ -80,17 +82,26 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         GoodsDO goodsDO = BeanCopyUtils.copyBean(dto, GoodsDO.class);
         List<GoodsSkuAddDTO> goodsSkuAddDTOList = getGoodsSkuAddDTOList(dto);
         List<GoodsSkuDO> goodsDOS = BeanCopyUtils.copyBeanList(goodsSkuAddDTOList, GoodsSkuDO.class);
+        //搜索标签 --转成json字符串
+        List<String> promptWordLabelList = IStringUtils.toList(dto.getPromptWordLabel(), ",");
+        String promptWordLabel = JsonUtils.toJsonString(promptWordLabelList);
+        //扩展表标签
+        List<String> extendedTagsList = IStringUtils.toList(dto.getExtendedTags(), ",");
+        String extendedTags = JsonUtils.toJsonString(extendedTagsList);
+        //图片地址处理
+        String pictureAddressList =  JsonUtils.toJsonString(dto.getPictureAddressList());
         /**
-         * 初始化默认属性
+         * 初始化属性
          */
         //版本号 用于追随
         Long version = 1L;
         //设置商品主图
-        String pit = IStringUtils.splitJoint(dto.getPictureAddressList(), ",");
-        goodsDO.setPictureAddress(pit);
+        goodsDO.setPictureAddress(pictureAddressList);
         //默认下架 手动进行上架
         goodsDO.setUpDownStatus(1);
         goodsDO.setVersion(version);
+        goodsDO.setPromptWordLabel(promptWordLabel);
+        goodsDO.setExtendedTags(extendedTags);
         this.save(goodsDO);
         goodsDOS.forEach(a -> {
             a.setGoodsId(goodsDO.getId());
@@ -571,10 +582,12 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         }
 
         if (saveGoodsSyncEsRecord){
+
+            log.info("新增同步ES记录");
             GoodsSyncEsRecordDO goodsSyncEsRecordDO = buildGoodsSyncEsRecordDO(goodsDOId, updateVersion);
             goodsSyncEsRecordService.save(goodsSyncEsRecordDO);
         } else {
-
+            log.info("更新同步ES记录");
             boolean update1 = goodsSyncEsRecordService.lambdaUpdate().
                     set(GoodsSyncEsRecordDO::getMaxVersion, updateVersion).
                     eq(GoodsSyncEsRecordDO::getGoodsId, goodsDOId).update();

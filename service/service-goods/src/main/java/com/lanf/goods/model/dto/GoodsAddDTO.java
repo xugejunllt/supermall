@@ -36,6 +36,14 @@ public class GoodsAddDTO implements Serializable {
     @NotNull(message ="品牌不能为空" )
     private Long brandId;
 
+    //搜索提示词标签
+    @NotEmpty(message = "搜索提示词标签不能为空")
+    //多个 用","隔开
+    private String promptWordLabel;
+    //扩展标签 用于展示
+    //多个 用","隔开
+    @NotEmpty(message = "扩展标签不能为空")
+    private String extendedTags;
 
     @NotEmpty(message = "商品sku不能为空")
     private List<GoodsSkuAddDTO> goodsSkuAddDTOList;

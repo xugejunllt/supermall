@@ -49,7 +49,10 @@ private static final long serialVersionUID=1L;
 
     private Long version;
 
-
+    //搜索提示词标签
+    private String promptWordLabel;
+    //扩展标签 用于展示
+    private String extendedTags;
 
 
 }
