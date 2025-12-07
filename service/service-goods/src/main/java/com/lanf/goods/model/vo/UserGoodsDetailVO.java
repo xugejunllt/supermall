@@ -1,5 +1,7 @@
 package com.lanf.goods.model.vo;
 
+import com.lanf.goods.model.bo.SkuAttributeBO;
+import com.lanf.goods.model.bo.UnitCodeSkuCodeBO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -20,10 +22,10 @@ public class UserGoodsDetailVO implements Serializable {
     private BigDecimal price;
 
     //属性
-    private List<SkuAttributeVO> skuAttributeVOList;
+    private List<SkuAttributeBO> skuAttributeVOList;
 
     //属性code -skuCde映射
-    private List<UnitCodeSkuCodeVO> unitCodeSkuCodeVOList;
+    private List<UnitCodeSkuCodeBO> unitCodeSkuCodeVOList;
 
     private List<GoodsSkuVO> goodsSkuVOList;
 

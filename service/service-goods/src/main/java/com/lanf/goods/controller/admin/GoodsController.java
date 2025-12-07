@@ -37,7 +37,6 @@ public class GoodsController {
     @PostMapping("/goodsAdd")
     public Result goodsAdd(@Validated @RequestBody GoodsAddDTO dto) {
         log.info("添加商品:dto{}", dto);
-        //throw new BizException("只允许管理员发布");
         goodsService.goodsAdd(dto);
         return Result.ok();
     }

@@ -1,4 +1,4 @@
-package com.lanf.goods.model.dto;
+package com.lanf.goods.model.bo;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-public class GoodsSkuAddDTO implements Serializable {
+public class GoodsSkuAddBO implements Serializable {
 
 
     @ApiModelProperty(value = "skuCode")
@@ -18,7 +18,7 @@ public class GoodsSkuAddDTO implements Serializable {
     @NotBlank(message = "sku图片不能为空")
     private String skuPictureAddress;
 
-    private List<SkuNameDTO> skuNameList;
+    private List<SkuNameBO> skuNameList;
 
     @ApiModelProperty(value = "价格")
     private BigDecimal price;
@@ -30,7 +30,8 @@ public class GoodsSkuAddDTO implements Serializable {
 
     private String skuNameJson;
     private String skuName;
-
+    //0:没有选中 ,1:默认选中
+    private Integer defaultSelect;
     private Integer sort;
 
 }

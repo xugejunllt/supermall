@@ -6,9 +6,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
 import com.lanf.goods.mapper.GoodsMapper;
-import com.lanf.goods.model.bo.SkuCodeStockBO;
-import com.lanf.goods.model.bo.SkuNameJsonBO;
-import com.lanf.goods.model.dto.*;
+import com.lanf.goods.model.bo.*;
+import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
+import com.lanf.goods.model.dto.GoodsAddDTO;
+import com.lanf.goods.model.dto.UpDownStatusDTO;
 import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.vo.*;
@@ -19,7 +20,6 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.EventCodeEnum;
-import com.lanf.rocketmq.model.message.GoodsAddMsg;
 import com.lanf.rocketmq.model.message.SyncGoodsInfoToEsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.system.api.SystemService;
@@ -85,8 +85,10 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
          * 计算DB数据
          */
         GoodsDO goodsDO = BeanCopyUtils.copyBean(dto, GoodsDO.class);
-        List<GoodsSkuAddDTO> goodsSkuAddDTOList = getGoodsSkuAddDTOList(dto);
+        Long goodsId = IdUtils.generateId();
+        List<GoodsSkuAddBO> goodsSkuAddDTOList = getGoodsSkuAddDTOList(dto);
         List<GoodsSkuDO> goodsDOS = BeanCopyUtils.copyBeanList(goodsSkuAddDTOList, GoodsSkuDO.class);
+
         //搜索标签 --转成json字符串
         List<String> promptWordLabelList = IStringUtils.toList(dto.getPromptWordLabel(), ",");
         String promptWordLabel = JsonUtils.toJsonString(promptWordLabelList);
@@ -95,11 +97,21 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         String extendedTags = JsonUtils.toJsonString(extendedTagsList);
         //图片地址处理
         String pictureAddressList = JsonUtils.toJsonString(dto.getPictureAddressList());
+        //版本号 用于追随
+        Long version = 1L;
+
         /**
          * 初始化属性
          */
-        //版本号 用于追随
-        Long version = 1L;
+
+        goodsDOS.forEach(a -> {
+            a.setGoodsId(goodsId);
+            a.setVersion(version);
+        });
+
+        //构建SkuAttributeBO  UnitCodeSkuCodeBO
+        List<SkuAttributeBO> skuAttributeVOS = buildSkuAttributeVO(goodsDOS);
+        List<UnitCodeSkuCodeBO> codeSkuCodeVOList = buildUnitCodeSkuCodeVOList(goodsDOS);
         //设置商品主图
         goodsDO.setPictureAddress(pictureAddressList);
         //默认下架 手动进行上架
@@ -107,18 +119,16 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         goodsDO.setVersion(version);
         goodsDO.setPromptWordLabel(promptWordLabel);
         goodsDO.setExtendedTags(extendedTags);
-        this.save(goodsDO);
-        goodsDOS.forEach(a -> {
-            a.setGoodsId(goodsDO.getId());
-            a.setVersion(version);
-        });
-        //将第一组sku设为默认 这里通常前端选择第一组sku 页面没有写所以这里写死
-        goodsDOS.get(0).setDefaultSelect(1);
-
-        //构建历史记录
+        goodsDO.setId(goodsId);
+        goodsDO.setSkuAttributeDetail(JsonUtils.toJsonString(skuAttributeVOS));
+        goodsDO.setUnitCodeSkuCode(JsonUtils.toJsonString(codeSkuCodeVOList));
+        /**
+         * 构建历史记录
+         */
         GoodsHistoryVersionDO goodsHistoryVersionDO = BeanCopyUtils.copyBean(goodsDO, GoodsHistoryVersionDO.class);
         List<GoodsSkuHistoryVersionDO> goodsSkuHistoryVersionDOS = BeanCopyUtils.copyBeanList(goodsDOS, GoodsSkuHistoryVersionDO.class);
 
+        this.save(goodsDO);
         goodsSkuService.saveBatch(goodsDOS);
         goodsHistoryVersionService.save(goodsHistoryVersionDO);
         goodsSkuHistoryVersionService.saveBatch(goodsSkuHistoryVersionDOS);
@@ -132,11 +142,11 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         Long brandId = dto.getBrandId();
         String name = dto.getName();
         String code = dto.getCode();
-        GoodsDO goods1 = this.lambdaQuery().eq(GoodsDO::getCode, code).one();
-//        if (goods1 != null) {
-//            throw new BizException("商品已发布");
-//        }
-        List<GoodsSkuAddDTO> goodsSkuAddDTOList1 = dto.getGoodsSkuAddDTOList();
+//        GoodsDO goods1 = this.lambdaQuery().eq(GoodsDO::getCode, code).one();
+////        if (goods1 != null) {
+////            throw new BizException("商品已发布");
+////        }
+        List<GoodsSkuAddBO> goodsSkuAddDTOList1 = dto.getGoodsSkuAddDTOList();
         GoodsDO goods = this.lambdaQuery().eq(GoodsDO::getName, name).one();
         if (goods != null) {
             throw new BizException("商品名称已存在");
@@ -154,16 +164,27 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
     }
 
-    private static List<GoodsSkuAddDTO> getGoodsSkuAddDTOList(GoodsAddDTO dto) {
-        List<GoodsSkuAddDTO> goodsSkuAddDTOList = dto.getGoodsSkuAddDTOList();
-        goodsSkuAddDTOList.forEach(a -> {
-            List<SkuNameDTO> skuNameList = a.getSkuNameList();
-            Collections.sort(skuNameList, Comparator.comparing(SkuNameDTO::getSort));
+    private static List<GoodsSkuAddBO> getGoodsSkuAddDTOList(GoodsAddDTO dto) {
+        List<GoodsSkuAddBO> goodsSkuAddDTOList = dto.getGoodsSkuAddDTOList();
+
+
+        for (int i = 0; i < goodsSkuAddDTOList.size(); i++){
+
+            boolean defaultSelect = i == 0;
+            GoodsSkuAddBO a = goodsSkuAddDTOList.get(i);
+            if (defaultSelect){
+                //将第一组sku设为默认 这里通常前端选择第一组sku 页面没有写所以这里写死
+                a.setDefaultSelect(1);
+            }
+
+            List<SkuNameBO> skuNameList = a.getSkuNameList();
+            Collections.sort(skuNameList, Comparator.comparing(SkuNameBO::getSort));
             /**
              * 给每个属性值添加一个唯一id 在商品详细页-sku组合选择时方便计算
              */
             skuNameList.forEach(b->{
                 b.setUnitId(IdUtils.generateId());
+                b.setDefaultSelect(defaultSelect?1:0);
             });
             /**
              *
@@ -184,30 +205,12 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             a.setSkuNameJson(skuNameJson);
             a.setSkuName(v1.toString());
 
-        });
+        }
+
         return goodsSkuAddDTOList;
     }
 
-    private void sendToMq(GoodsDO goodsDO, List<GoodsSkuDO> goodsDOS) {
 
-        //将sku集合根据sort进行升序，取第一条sku的价格
-        Collections.sort(goodsDOS, Comparator.comparing(GoodsSkuDO::getSort));
-        GoodsSkuDO goodsSkuDO = goodsDOS.get(0);
-        //构建GoodsAddMsg
-        GoodsAddMsg msg = new GoodsAddMsg();
-        msg.setGoodsId(goodsDO.getId());
-        msg.setCode(goodsDO.getCode());
-        msg.setName(goodsDO.getName());
-        msg.setUpDownStatus(goodsDO.getUpDownStatus());
-        msg.setPrice(goodsSkuDO.getPrice());
-        msg.setPicture(goodsSkuDO.getSkuPictureAddress());
-        msg.setCreateTime(goodsDO.getCreateTime());
-        msg.setUpdateTime(goodsDO.getUpdateTime());
-        msg.setSearchWords(goodsDO.getName());
-        //发送到mq
-        // sendMqMessageService.sendMessage(TopicName.SAVE_GOODS_ES_TOPIC,msg);
-
-    }
 
 
     @Override
@@ -286,8 +289,9 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
          */
         //获取默认选中的sku
         GoodsSkuDO defaultGoodsSkuDO = getDefaultGoodsSkuDO(goodsSkuDOList);
-        List<SkuAttributeVO> skuAttributeVOS = buildSkuAttributeVO(goodsSkuDOList);
-        List<UnitCodeSkuCodeVO> codeSkuCodeVOList = buildUnitCodeSkuCodeVOList(goodsSkuDOList);
+        List<SkuAttributeBO> skuAttributeVOS = JsonUtils.toList(goodsDO.getSkuAttributeDetail(), SkuAttributeBO.class);
+
+        List<UnitCodeSkuCodeBO> codeSkuCodeVOList = JsonUtils.toList(goodsDO.getUnitCodeSkuCode(), UnitCodeSkuCodeBO.class);
         List<GoodsSkuVO> goodsSkuVOS = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuVO.class);
 
         /**
@@ -307,19 +311,19 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     }
 
 
-    private List<UnitCodeSkuCodeVO> buildUnitCodeSkuCodeVOList(List<GoodsSkuDO> goodsSkuDOList){
+    private List<UnitCodeSkuCodeBO> buildUnitCodeSkuCodeVOList(List<GoodsSkuDO> goodsSkuDOList){
 
 
-        List<UnitCodeSkuCodeVO> unitCodeSkuCodeVOList = new ArrayList<>();
+        List<UnitCodeSkuCodeBO> unitCodeSkuCodeVOList = new ArrayList<>();
         goodsSkuDOList.forEach(a->{
 
             String skuNameJson = a.getSkuNameJson();
-            List<SkuNameJsonBO> nameJsonBOList2 = JsonUtils.toList(skuNameJson, SkuNameJsonBO.class);
+            List<SkuNameBO> nameJsonBOList2 = JsonUtils.toList(skuNameJson, SkuNameBO.class);
 
-            List<Long> unitIdList = nameJsonBOList2.stream().map(SkuNameJsonBO::getUnitId).collect(Collectors.toList());
+            List<Long> unitIdList = nameJsonBOList2.stream().map(SkuNameBO::getUnitId).collect(Collectors.toList());
             String unitCode = generateUnitCode(unitIdList);
 
-            UnitCodeSkuCodeVO unitCodeSkuCodeVO = new UnitCodeSkuCodeVO();
+            UnitCodeSkuCodeBO unitCodeSkuCodeVO = new UnitCodeSkuCodeBO();
             unitCodeSkuCodeVO.setUnitCode(unitCode);
             unitCodeSkuCodeVO.setSkuCode(a.getSkuCode());
             unitCodeSkuCodeVOList.add(unitCodeSkuCodeVO);
@@ -340,20 +344,20 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         return stringBuilder.substring(0,stringBuilder.length()-1);
     }
 
-    private List<SkuAttributeVO> buildSkuAttributeVO(List<GoodsSkuDO> goodsSkuDOList){
+    private List<SkuAttributeBO> buildSkuAttributeVO(List<GoodsSkuDO> goodsSkuDOList){
 
 
         /**
          * 解析所有 sku 的属性
          */
-        List<SkuNameJsonBO> allSkuNameJsonBOList = new ArrayList<>();
+        List<SkuNameBO> allSkuNameJsonBOList = new ArrayList<>();
         for (GoodsSkuDO skuDO : goodsSkuDOList) {
             String skuNameJson = skuDO.getSkuNameJson();
-            List<SkuNameJsonBO> nameJsonBOList2 = JsonUtils.toList(skuNameJson, SkuNameJsonBO.class);
+            List<SkuNameBO> nameJsonBOList2 = JsonUtils.toList(skuNameJson, SkuNameBO.class);
             allSkuNameJsonBOList.addAll(nameJsonBOList2);
         }
         //进行分组 key:属性名称 value:属性值
-        Map<String, List<SkuNameJsonBO>> groupByAttribute = groupByAttribute(allSkuNameJsonBOList);
+        Map<String, List<SkuNameBO>> groupByAttribute = groupByAttribute(allSkuNameJsonBOList);
 
         /**
          * 解析属性名称
@@ -361,14 +365,14 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         List<String> attributeNameSet = new ArrayList<>();
         //选取第一个sku属性进行解析
         String doSkuNameJson = goodsSkuDOList.get(0).getSkuNameJson();
-        List<SkuNameJsonBO> nameJsonBOList = JsonUtils.toList(doSkuNameJson, SkuNameJsonBO.class);
+        List<SkuNameBO> nameJsonBOList = JsonUtils.toList(doSkuNameJson, SkuNameBO.class);
         //按 sort进行降序 这样才能保证属性名称按顺序展示
-        nameJsonBOList.sort(Comparator.comparing(SkuNameJsonBO::getSort).reversed());
-        for (SkuNameJsonBO jsonBO : nameJsonBOList) {
+        nameJsonBOList.sort(Comparator.comparing(SkuNameBO::getSort).reversed());
+        for (SkuNameBO jsonBO : nameJsonBOList) {
             attributeNameSet.add(jsonBO.getAttribute());
         }
         attributeNameSet.forEach(a -> {
-            SkuAttributeVO skuAttributeVO = new SkuAttributeVO();
+            SkuAttributeBO skuAttributeVO = new SkuAttributeBO();
             skuAttributeVO.setAttributeName(a);
 
         });
@@ -376,12 +380,12 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         /**
          * 构建 SkuAttributeVO
          */
-        List<SkuAttributeVO> skuAttributeVOList = new ArrayList<>();
+        List<SkuAttributeBO> skuAttributeVOList = new ArrayList<>();
         for (String attributeName : attributeNameSet){
-            SkuAttributeVO skuAttributeVO = new SkuAttributeVO();
-            List<SkuNameJsonBO> skuNameJsonBOS = groupByAttribute.get(attributeName);
+            SkuAttributeBO skuAttributeVO = new SkuAttributeBO();
+            List<SkuNameBO> skuNameJsonBOS = groupByAttribute.get(attributeName);
             //此时 SkuAttributeDetailVO 没有defaultSelect值
-            List<SkuAttributeDetailVO> skuAttributeDetailVOS = BeanCopyUtils.copyBeanList(skuNameJsonBOS, SkuAttributeDetailVO.class);
+            List<SkuAttributeDetailBO> skuAttributeDetailVOS = BeanCopyUtils.copyBeanList(skuNameJsonBOS, SkuAttributeDetailBO.class);
             skuAttributeVO.setAttributeValue(skuAttributeDetailVOS);
             skuAttributeVO.setAttributeName(attributeName);
             skuAttributeVOList.add(skuAttributeVO);
@@ -390,13 +394,13 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         return skuAttributeVOList;
     }
 
-    public Map<String, List<SkuNameJsonBO>> groupByAttribute(List<SkuNameJsonBO> skuList) {
+    public Map<String, List<SkuNameBO>> groupByAttribute(List<SkuNameBO> skuList) {
 
 
         // 使用 groupingBy 进行分组
         return skuList.stream()
                 .collect(Collectors.groupingBy(
-                        SkuNameJsonBO::getAttribute,
+                        SkuNameBO::getAttribute,
                         Collectors.toList()
                 ));
     }
@@ -664,7 +668,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         goodsSkuDOList.forEach(a -> {
             String skuNameJson = a.getSkuNameJson();
             //SkuNameDTO
-            List<SkuNameDTO> list = JsonUtils.toList(skuNameJson, SkuNameDTO.class);
+            List<SkuNameBO> list = JsonUtils.toList(skuNameJson, SkuNameBO.class);
 
             list.forEach(b -> {
                 SyncGoodsInfoToEsMsg.Attribute attribute = new SyncGoodsInfoToEsMsg.Attribute();

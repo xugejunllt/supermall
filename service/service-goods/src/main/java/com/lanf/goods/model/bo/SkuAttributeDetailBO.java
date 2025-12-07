@@ -1,11 +1,11 @@
-package com.lanf.goods.model.vo;
+package com.lanf.goods.model.bo;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class SkuAttributeDetailVO implements Serializable {
+public class SkuAttributeDetailBO implements Serializable {
 
     //属性值
     private String desc;

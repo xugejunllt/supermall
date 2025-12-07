@@ -1,5 +1,6 @@
 package com.lanf.goods.model.dto;
 
+import com.lanf.goods.model.bo.GoodsSkuAddBO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -46,7 +47,7 @@ public class GoodsAddDTO implements Serializable {
     private String extendedTags;
 
     @NotEmpty(message = "商品sku不能为空")
-    private List<GoodsSkuAddDTO> goodsSkuAddDTOList;
+    private List<GoodsSkuAddBO> goodsSkuAddDTOList;
     @NotEmpty(message = "商品图片不能为空")
     private   List<String>  pictureAddressList;
 

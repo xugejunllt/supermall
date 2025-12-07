@@ -1,4 +1,4 @@
-package com.lanf.goods.model.vo;
+package com.lanf.goods.model.bo;
 
 import lombok.Data;
 
@@ -8,7 +8,7 @@ import java.io.Serializable;
  * 属性code -skuCde映射
  */
 @Data
-public class UnitCodeSkuCodeVO implements Serializable {
+public class UnitCodeSkuCodeBO implements Serializable {
 
 
     private String unitCode;

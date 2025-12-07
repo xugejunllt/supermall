@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class SkuNameJsonBO implements Serializable {
+public class SkuNameBO implements Serializable {
 
     //属性
     private String attribute;
@@ -15,4 +15,7 @@ public class SkuNameJsonBO implements Serializable {
     private Integer sort;
     //唯一id
     private Long unitId;
+
+    //0:没有选中 ,1:默认选中
+    private Integer defaultSelect;
 }

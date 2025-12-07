@@ -48,6 +48,11 @@ private static final long serialVersionUID=1L;
     private String promptWordLabel;
     //扩展标签 用于展示
     private String extendedTags;
+    //sku详细 加速详细读
+    private String skuAttributeDetail;
+    //属性code -skuCde映射 加速详细读
+    private String unitCodeSkuCode;
+
     @TableField( fill = FieldFill.INSERT)
     private Long  tenantId;
 
