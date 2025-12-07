@@ -88,5 +88,9 @@ spring:
           uri: lb://service-finance
           predicates:
             - Path=/finance/**
+        - id: service-search
+          uri: lb://service-search
+          predicates:
+            - Path=/search/**
 front:
   path: http://127.0.0.1:8420

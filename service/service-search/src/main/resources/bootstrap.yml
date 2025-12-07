@@ -23,6 +23,8 @@ spring:
             data-id: mysql.yaml
           - group: common
             data-id: tenant.yaml
+          - group: common
+            data-id: filterPath.yaml
 server:
   port: 9014
   servlet:

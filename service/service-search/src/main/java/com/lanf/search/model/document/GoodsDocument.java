@@ -10,6 +10,34 @@ import java.util.List;
 
 @Document(indexName = "goods_index", createIndex = false)
 public class GoodsDocument {
+    // 字段名称常量定义
+    public static final String GOODS_ID = "goodsId";
+    public static final String GOODS_NAME = "goodsName";
+    public static final String SUB_TITLE = "subTitle";
+    public static final String SHOP_ID = "shopId";
+    public static final String SHOP_NAME = "shopName";
+    public static final String MAIN_IMAGE = "mainImage";
+    public static final String FIRST_LEVEL_CATEGORY_ID = "firstLevelCategoryId";
+    public static final String FIRST_LEVEL_CATEGORY_NAME = "firstLevelCategoryName";
+    public static final String SECONDARY_LEVEL_CATEGORY_ID = "secondaryLevelCategoryId";
+    public static final String SECONDARY_LEVEL_CATEGORY_NAME = "secondaryLevelCategoryName";
+    public static final String THREE_LEVEL_CATEGORY_ID = "threeLevelCategoryId";
+    public static final String THREE_LEVEL_CATEGORY_NAME = "threeLevelCategoryName";
+    public static final String BRAND_ID = "brandId";
+    public static final String BRAND_NAME = "brandName";
+    public static final String UP_DOWN_STATUS = "upDownStatus";
+    public static final String SALES = "sales";
+    public static final String TENANT_ID = "tenantId";
+    public static final String VERSION = "version";
+    public static final String CREATE_TIME = "createTime";
+    public static final String UPDATE_TIME = "updateTime";
+    public static final String IS_DELETED = "isDeleted";
+    public static final String SKU_ID = "skuId";
+    public static final String SKU_NAME = "skuName";
+    public static final String PRICE = "price";
+    public static final String ATTRIBUTES = "attributes";
+    public static final String PROMPT_WORD_LABEL = "promptWordLabel";
+    public static final String EXTENDED_TAGS = "extendedTags";
 
     @Id
     //商品id

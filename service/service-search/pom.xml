@@ -24,19 +24,11 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-elasticsearch</artifactId>
             <version>${common-elasticsearch.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <version>${spring-web.version}</version>
-            <artifactId>spring-web</artifactId>
-        </dependency>
+
 
         <dependency>
             <groupId>com.lanf</groupId>
@@ -58,6 +50,16 @@
             <groupId>com.lanf</groupId>
             <artifactId>common-mybatis</artifactId>
             <version>${common-mybatis.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>spring-security</artifactId>
+            <version>${ispring-serurity.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-fs</artifactId>
+            <version>${common-fs.version}</version>
         </dependency>
     </dependencies>
 
