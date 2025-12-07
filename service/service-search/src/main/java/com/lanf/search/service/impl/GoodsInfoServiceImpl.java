@@ -45,8 +45,8 @@ public class GoodsInfoServiceImpl extends ServiceImpl<GoodsInfoMapper, GoodsInfo
         goodsDocument.setAttributes(filterAttribute(attributes));
 
         GoodsInfoDO goodsInfoDO = new GoodsInfoDO();
-        goodsInfoDO.setGoodsId(System.currentTimeMillis());
-        //goodsInfoDO.setGoodsId(msg.getGoodsId());
+        //goodsInfoDO.setGoodsId(System.currentTimeMillis());
+        goodsInfoDO.setGoodsId(msg.getGoodsId());
         goodsInfoDO.setVersion(goodsDocument.getVersion());
         goodsInfoDO.setGoodsInfo(JsonUtils.toJsonString(goodsDocument));
 

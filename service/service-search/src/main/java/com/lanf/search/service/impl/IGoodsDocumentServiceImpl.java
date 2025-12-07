@@ -6,6 +6,7 @@ import com.lanf.search.model.query.HomePageQuery;
 import com.lanf.search.model.vo.HomePageVO;
 import com.lanf.search.repository.GoodsRepository;
 import com.lanf.search.service.IGoodsDocumentService;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Component
 public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
 
@@ -40,15 +41,14 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
 
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
-        // 添加过滤条件
-        boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.IS_DELETED, 0));
         // 0上架
-        boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.UP_DOWN_STATUS, 0));
+       boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.UP_DOWN_STATUS, 0));
 
         // 设置查询和排序
         queryBuilder.withQuery(boolQuery)
                 .withSort(SortBuilders.fieldSort(GoodsDocument.UPDATE_TIME).order(SortOrder.DESC))
-                .withPageable(PageRequest.of(query.getPage(), query.getPageSize()));
+                //第一页页码 从0开始 所以-1
+                .withPageable(PageRequest.of(query.getPage()-1, query.getPageSize()));
 
         // 设置返回字段（提高查询性能）
    queryBuilder.withSourceFilter(new FetchSourceFilter(
@@ -72,9 +72,8 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
         List<HomePageVO> content = searchHits.getSearchHits().stream()
                 .map(hit -> convertToVO(hit.getContent()))
                 .collect(Collectors.toList());
-
         return new PageResult<>(content,
-                searchQuery.getPageable().getPageNumber(), searchHits.getTotalHits());
+                content.size(), searchHits.getTotalHits());
     }
 
     private HomePageVO convertToVO(GoodsDocument document) {
