@@ -1,11 +1,11 @@
-package com.lanf.goods.model.dto;
+package com.lanf.goods.model.bo;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class SkuNameDTO implements Serializable {
+public class SkuNameJsonBO implements Serializable {
 
     //属性
     private String attribute;

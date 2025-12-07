@@ -40,7 +40,8 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "成本价格")
     private BigDecimal costPrice;
-
+    //0:没有选中 ,1:默认选中
+    private Integer defaultSelect;
 
     private Integer sort;
 

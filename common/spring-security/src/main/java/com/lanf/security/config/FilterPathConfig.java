@@ -19,4 +19,5 @@ public class FilterPathConfig {
 
     private List<String> userNotTokenPath;
 
+    private List<String> autoIgnoreTenantPath;
 }

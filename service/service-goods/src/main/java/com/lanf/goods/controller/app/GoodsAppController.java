@@ -1,13 +1,10 @@
 package com.lanf.goods.controller.app;
 
 
-import com.lanf.goods.model.query.UserGoodsPageQuery;
+import com.lanf.constant.result.Result;
 import com.lanf.goods.model.vo.SkuDetailVO;
 import com.lanf.goods.model.vo.UserGoodsDetailVO;
-import com.lanf.goods.model.vo.UserGoodsPageVO;
 import com.lanf.goods.service.goods.IGoodsService;
-import com.lanf.mybatis.base.PageResult;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,13 +28,6 @@ public class GoodsAppController {
     private IGoodsService goodsService;
 
 
-    @GetMapping("/goodsPage")
-    public Result<PageResult<UserGoodsPageVO>> goodsPage(UserGoodsPageQuery query) {
-
-        log.info("用户分页查询商品列表:query{}", query);
-
-        return Result.ok(goodsService.userGoodsPage(query));
-    }
 
     @GetMapping("/goodsDetail")
     public Result<UserGoodsDetailVO> goodsDetail(Long id) {

@@ -28,7 +28,6 @@ public interface IGoodsService extends IService<GoodsDO> {
 
     GoodsDetailVO goodsDetail(Long id);
 
-    PageResult<UserGoodsPageVO> userGoodsPage(UserGoodsPageQuery query);
 
     UserGoodsDetailVO userGoodsDetail(Long id);
     SkuDetailVO  queryBySkuId(Long skuId);
