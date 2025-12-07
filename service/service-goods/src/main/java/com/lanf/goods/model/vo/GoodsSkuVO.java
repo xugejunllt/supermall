@@ -16,7 +16,7 @@ public class GoodsSkuVO implements Serializable {
 
     private BigDecimal price;
 
-
+    private Integer totalStock;
 
 
 

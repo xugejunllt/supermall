@@ -293,7 +293,13 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
         List<UnitCodeSkuCodeBO> codeSkuCodeVOList = JsonUtils.toList(goodsDO.getUnitCodeSkuCode(), UnitCodeSkuCodeBO.class);
         List<GoodsSkuVO> goodsSkuVOS = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuVO.class);
-
+        //添加库存
+        List<String> skuCodes = goodsSkuVOS.stream().map(GoodsSkuVO::getSkuCode).collect(Collectors.toList());
+        Map<String, SkuCodeStockBO> stockBOMap = stockService.findBySkuCode(skuCodes);
+        goodsSkuVOS.forEach(a->{
+            SkuCodeStockBO stockBO = stockBOMap.get(a.getSkuCode());
+            a.setTotalStock(stockBO.getTotalStock());
+        });
         /**
          * 构建返回数据
          */
