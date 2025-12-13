@@ -28,6 +28,12 @@ public class CacheConstants {
      * 用户地址缓存
      */
     public static final String ADDRESS = "user:address:%s"; //
+    /**
+     * 商品详情缓存
+     */
+    public static final String GOODS_DETAIL = "goods:detail:%s"; //
+
+
 
     /**
      * token过期时间 2个小时
@@ -41,6 +47,10 @@ public class CacheConstants {
 
     public static final int ADMIN_TOKEN_EXP_TIME = 5 * 24 * 60;
     public static final int ADMIN_REFRESH_TOKEN_EXP_TIME = 7 * 24 * 60;
+    /**
+     * 缓存时间7天
+     */
+    public static final int GOODS_DETAIL_EXP_TIME = 7 * 24 * 60;
 
     /**
      * 缓存时间1天
@@ -98,6 +108,14 @@ public class CacheConstants {
 
         return String.format(CacheConstants.ADMIN_USER_INFO, userId);
     }
+
+    public static String getGOODS_DETAIL( Long goodsId) {
+
+        return String.format(CacheConstants.GOODS_DETAIL, goodsId);
+    }
+
+
+
     /**
      * 登录用户 redis key
      */

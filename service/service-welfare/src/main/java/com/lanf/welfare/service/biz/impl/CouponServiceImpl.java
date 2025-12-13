@@ -2,10 +2,9 @@ package com.lanf.welfare.service.biz.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.security.utils.UserUtils;
-import com.lanf.constant.exception.BizException;
 import com.lanf.welfare.mapper.CouponMapper;
 import com.lanf.welfare.model.dto.ReceiveCouponDTO;
 import com.lanf.welfare.model.dto.UseCouponDTO;
@@ -49,7 +48,6 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         couponDO.setShopId(couponTemplate.getShopId());
         couponDO.setUserId(UserUtils.getUserId());
         couponDO.setTemplateId(couponTemplateId);
-        couponDO.setEndTime(couponTemplate.getEndTime());
         couponDO.setUsed(0);
         this.save(couponDO);
 
@@ -64,9 +62,9 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
 
             throw new BizException("优惠券不存在");
         }
-        if (new Date().getTime()>couponTemplate.getEndTime().getTime()){
-            throw new BizException("优惠券过期");
-        }
+//        if (new Date().getTime()>couponTemplate.getEndTime().getTime()){
+//            throw new BizException("优惠券过期");
+//        }
         Integer receiveCount = couponTemplate.getReceiveCount();
         List<CouponDO> couponDOList = this.lambdaQuery().eq(CouponDO::getTemplateId, couponTemplate.getId()).list();
         if (!couponDOList.isEmpty() && couponDOList.size()+1>receiveCount){
@@ -129,7 +127,9 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         if (!update){
             throw new BizException("更新失败");
         }
-        return new UseCouponVO(templateDO.getDiscountMoney(),templateDO.getShopId(),couponDO.getId());
+       // return new UseCouponVO(templateDO.getDiscountMoney(),templateDO.getShopId(),couponDO.getId());
+
+        return null;
     }
 
 
@@ -163,10 +163,10 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
 
             throw new BizException("优惠券模板不存在");
         }
-        BigDecimal meetMoney = templateDO.getMeetMoney();
-        if (BigDecimalUtils.compareTo(meetMoney,payMoney) == 1){
-            throw new BizException("不满足使用条件");
-        }
+//        BigDecimal meetMoney = templateDO.getMeetMoney();
+//        if (BigDecimalUtils.compareTo(meetMoney,payMoney) == 1){
+//            throw new BizException("不满足使用条件");
+//        }
 
 
     }

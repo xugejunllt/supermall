@@ -46,10 +46,9 @@ public class DistributedLockAspect {
 
         String lockKey = buildLockKey(joinPoint, distributedLock);
 
-        boolean locked = false;
         try {
             // 尝试获取锁
-            locked = distributedLocker.getLock(lockKey);
+            boolean locked = distributedLocker.getLock(lockKey);
 
             if (locked) {
                 return joinPoint.proceed();

@@ -89,7 +89,7 @@
         <common-start.version>1.0.0</common-start.version>
         <common-rocketmq.version>1.0.0</common-rocketmq.version>
         <common-biz-cache.version>1.0.0</common-biz-cache.version>
-        <common-lock.version>1.0.0</common-lock.version>
+        <common-lock.version>1.0.1</common-lock.version>
         <common-elasticsearch.version>1.0.0</common-elasticsearch.version>
         <common-shardingsphere.version>1.0.0</common-shardingsphere.version>
 

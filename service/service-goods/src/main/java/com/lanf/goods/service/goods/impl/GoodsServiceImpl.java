@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
+import com.lanf.goods.constant.code.CommonResultCodeEnum;
 import com.lanf.goods.mapper.GoodsMapper;
 import com.lanf.goods.model.bo.*;
 import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
@@ -15,9 +16,12 @@ import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.vo.*;
 import com.lanf.goods.service.goods.*;
 import com.lanf.lock.aop.DistributedLock;
+import com.lanf.lock.service.DistributedLocker;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.redis.constant.CacheConstants;
+import com.lanf.redis.service.RedisCache;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.rocketmq.model.message.SyncGoodsInfoToEsMsg;
@@ -72,7 +76,10 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     private IShopService shopService;
     @Autowired
     private RocketMqClient rocketMqClient;
-
+    @Autowired
+    private RedisCache redisCache;
+    @Autowired
+    private DistributedLocker distributedLocker;
 
     @DistributedLock(key = "#dto.code")
     @Transactional
@@ -168,11 +175,11 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         List<GoodsSkuAddBO> goodsSkuAddDTOList = dto.getGoodsSkuAddDTOList();
 
 
-        for (int i = 0; i < goodsSkuAddDTOList.size(); i++){
+        for (int i = 0; i < goodsSkuAddDTOList.size(); i++) {
 
             boolean defaultSelect = i == 0;
             GoodsSkuAddBO a = goodsSkuAddDTOList.get(i);
-            if (defaultSelect){
+            if (defaultSelect) {
                 //将第一组sku设为默认 这里通常前端选择第一组sku 页面没有写所以这里写死
                 a.setDefaultSelect(1);
             }
@@ -182,9 +189,9 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             /**
              * 给每个属性值添加一个唯一id 在商品详细页-sku组合选择时方便计算
              */
-            skuNameList.forEach(b->{
+            skuNameList.forEach(b -> {
                 b.setUnitId(IdUtils.generateId());
-                b.setDefaultSelect(defaultSelect?1:0);
+                b.setDefaultSelect(defaultSelect ? 1 : 0);
             });
             /**
              *
@@ -209,8 +216,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
         return goodsSkuAddDTOList;
     }
-
-
 
 
     @Override
@@ -280,6 +285,46 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     @Override
     public UserGoodsDetailVO userGoodsDetail(Long id) {
 
+        //从缓存获取
+        UserGoodsDetailVO detailVO = getCache(id);
+        if ( detailVO != null) {
+            log.info("从缓存获取商品详细");
+        }
+
+        if (detailVO == null) {
+            log.info("从DB获取商品详细");
+            //从DB加载
+            String key = "lock:userGoodsDetail:" + id;
+            try {
+
+                boolean lock = distributedLocker.getLock(key);
+                if (lock) {
+                    detailVO = buildUserGoodsDetailVO(id);
+                } else {
+                    CommonResultCodeEnum codeEnum = CommonResultCodeEnum.LOCK_FAIL;
+                    throw new BizException(codeEnum.getCode(), codeEnum.getMessage());
+                }
+                //加入缓存中
+                addCache(id, detailVO);
+            }  finally {
+                distributedLocker.unlock(key);
+            }
+        }
+        UserGoodsDetailVO goodsDetailVO = getCache(id);
+        List<GoodsSkuVO> goodsSkuVOS = goodsDetailVO.getGoodsSkuVOList();
+        //添加库存
+        List<String> skuCodes = goodsSkuVOS.stream().map(GoodsSkuVO::getSkuCode).collect(Collectors.toList());
+        Map<String, SkuCodeStockBO> stockBOMap = stockService.findBySkuCode(skuCodes);
+        goodsSkuVOS.forEach(a -> {
+            SkuCodeStockBO stockBO = stockBOMap.get(a.getSkuCode());
+            a.setTotalStock(stockBO.getTotalStock());
+        });
+
+        return goodsDetailVO;
+    }
+
+    private UserGoodsDetailVO buildUserGoodsDetailVO(Long id) {
+
         GoodsDO goodsDO = this.getById(id);
 
         List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().in(GoodsSkuDO::getGoodsId, id).list();
@@ -293,13 +338,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
         List<UnitCodeSkuCodeBO> codeSkuCodeVOList = JsonUtils.toList(goodsDO.getUnitCodeSkuCode(), UnitCodeSkuCodeBO.class);
         List<GoodsSkuVO> goodsSkuVOS = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuVO.class);
-        //添加库存
-        List<String> skuCodes = goodsSkuVOS.stream().map(GoodsSkuVO::getSkuCode).collect(Collectors.toList());
-        Map<String, SkuCodeStockBO> stockBOMap = stockService.findBySkuCode(skuCodes);
-        goodsSkuVOS.forEach(a->{
-            SkuCodeStockBO stockBO = stockBOMap.get(a.getSkuCode());
-            a.setTotalStock(stockBO.getTotalStock());
-        });
         /**
          * 构建返回数据
          */
@@ -316,12 +354,30 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         return goodsDetailVO;
     }
 
+    private void addCache(Long keyPrefix, UserGoodsDetailVO value) {
 
-    private List<UnitCodeSkuCodeBO> buildUnitCodeSkuCodeVOList(List<GoodsSkuDO> goodsSkuDOList){
+        redisCache.setCacheObject(CacheConstants.getGOODS_DETAIL(keyPrefix),
+                JsonUtils.toJsonString(value), CacheConstants.GOODS_DETAIL_EXP_TIME);
+    }
+
+    private UserGoodsDetailVO getCache(Long keyPrefix) {
+        String cache = redisCache.getCacheObject(CacheConstants.getGOODS_DETAIL(keyPrefix));
+        if (cache == null) {
+            return null;
+        }
+        return JsonUtils.toObject(cache, UserGoodsDetailVO.class);
+    }
+
+    private void deleteCache(Long keyPrefix) {
+        redisCache.deleteObject(CacheConstants.getGOODS_DETAIL(keyPrefix));
+    }
+
+
+    private List<UnitCodeSkuCodeBO> buildUnitCodeSkuCodeVOList(List<GoodsSkuDO> goodsSkuDOList) {
 
 
         List<UnitCodeSkuCodeBO> unitCodeSkuCodeVOList = new ArrayList<>();
-        goodsSkuDOList.forEach(a->{
+        goodsSkuDOList.forEach(a -> {
 
             String skuNameJson = a.getSkuNameJson();
             List<SkuNameBO> nameJsonBOList2 = JsonUtils.toList(skuNameJson, SkuNameBO.class);
@@ -338,7 +394,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         return unitCodeSkuCodeVOList;
     }
 
-    private String generateUnitCode(List<Long> unitIdList){
+    private String generateUnitCode(List<Long> unitIdList) {
 
         //根据id值进行升序
         Collections.sort(unitIdList);
@@ -347,10 +403,10 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             stringBuilder.append(unitId).append(",");
         }
         //移除了最后一个字符 即末尾不会有 ","
-        return stringBuilder.substring(0,stringBuilder.length()-1);
+        return stringBuilder.substring(0, stringBuilder.length() - 1);
     }
 
-    private List<SkuAttributeBO> buildSkuAttributeVO(List<GoodsSkuDO> goodsSkuDOList){
+    private List<SkuAttributeBO> buildSkuAttributeVO(List<GoodsSkuDO> goodsSkuDOList) {
 
 
         /**
@@ -387,7 +443,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
          * 构建 SkuAttributeVO
          */
         List<SkuAttributeBO> skuAttributeVOList = new ArrayList<>();
-        for (String attributeName : attributeNameSet){
+        for (String attributeName : attributeNameSet) {
             SkuAttributeBO skuAttributeVO = new SkuAttributeBO();
             List<SkuNameBO> skuNameJsonBOS = groupByAttribute.get(attributeName);
             //此时 SkuAttributeDetailVO 没有defaultSelect值
@@ -412,7 +468,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     }
 
 
-
     private GoodsSkuDO getDefaultGoodsSkuDO(List<GoodsSkuDO> goodsSkuDOList) {
         for (GoodsSkuDO goodsSkuDO : goodsSkuDOList) {
             if (goodsSkuDO.getDefaultSelect() == 1) {
@@ -432,11 +487,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         });
         return title + " " + skuDescJointBuffer;
     }
-
-
-
-
-
 
 
     @Override
@@ -599,9 +649,9 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
         //商品数据同步到ES中
         SyncGoodsInfoToEsMsg goodsInfoToEsMsg = buildSyncGoodsInfoToEsMsg(goodsId);
-        String key = goodsDOId+":"+updateVersion+":"+ EventCodeEnum.GOODS_TO_ES.getCode();
+        String key = goodsDOId + ":" + updateVersion + ":" + EventCodeEnum.GOODS_TO_ES.getCode();
         rocketMqClient.syncSendOrderly(TopicName.SAVE_GOODS_ES_TOPIC,
-                JsonUtils.toJsonString(goodsInfoToEsMsg),key);
+                JsonUtils.toJsonString(goodsInfoToEsMsg), key);
 
     }
 
