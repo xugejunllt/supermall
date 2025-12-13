@@ -32,7 +32,10 @@ public class CacheConstants {
      * 商品详情缓存
      */
     public static final String GOODS_DETAIL = "goods:detail:%s"; //
-
+    /**
+     * 店铺优惠券模板缓存
+     */
+    public static final String SHOP_COUPON = "coupon:list:%s"; //
 
 
     /**
@@ -51,7 +54,10 @@ public class CacheConstants {
      * 缓存时间7天
      */
     public static final int GOODS_DETAIL_EXP_TIME = 7 * 24 * 60;
-
+    /**
+     * 缓存时间7天
+     */
+    public static final int SHOP_COUPON_EXP_TIME = 7 * 24 * 60;
     /**
      * 缓存时间1天
      */
@@ -113,13 +119,13 @@ public class CacheConstants {
 
         return String.format(CacheConstants.GOODS_DETAIL, goodsId);
     }
+    public static String getSHOP_COUPON( Long shopId) {
+
+        return String.format(CacheConstants.SHOP_COUPON, shopId);
+    }
 
 
 
-    /**
-     * 登录用户 redis key
-     */
-    public static final String LOGIN_TOKEN_KEY = "login_tokens:";
 
 
 

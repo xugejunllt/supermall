@@ -69,8 +69,6 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "使用结束时间")
     private Date useEndTime;
 
-    @ApiModelProperty(value = "0:未过期,1:已过期")
-    private Integer expire;
 
     private Long tenantId;
 

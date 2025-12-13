@@ -9,9 +9,12 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.redis.constant.CacheConstants;
+import com.lanf.redis.service.RedisCache;
 import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.api.SystemService;
 import com.lanf.welfare.mapper.CouponTemplateMapper;
+import com.lanf.welfare.model.bo.CacheCouponTemplateListBO;
 import com.lanf.welfare.model.bo.DiscountUseConditionBO;
 import com.lanf.welfare.model.bo.FullDiscountUseConditionBO;
 import com.lanf.welfare.model.bo.NoConditionUseConditionBO;
@@ -19,16 +22,15 @@ import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
 import com.lanf.welfare.model.enums.CouponPurpose;
 import com.lanf.welfare.model.enums.CouponType;
-import com.lanf.welfare.model.query.CouponTemplatePageQuery;
 import com.lanf.welfare.model.query.CouponTemplatePageQuery2;
 import com.lanf.welfare.model.vo.CouponPurposeVO;
+import com.lanf.welfare.model.vo.CouponTemplateListVO;
 import com.lanf.welfare.service.biz.ICouponTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,7 +47,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     @Autowired
     private SystemService systemService;
-
+    @Autowired
+    private RedisCache redisCache;
 
     @DistributedLock(key = "#dto.adminUserId")//防止重复点击提交
     @Override
@@ -55,44 +58,44 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         CouponTemplateDO couponTemplate = new CouponTemplateDO();
         BeanCopyUtils.copy(dto, couponTemplate);
         //不同优惠卷类型 不同的使用条件
-        String useCondition = buildUseCondition( dto);
+        String useCondition = buildUseCondition(dto);
         Long shopId = dto.getShopId();
         CouponPurpose byCode = CouponPurpose.getByCode(dto.getPurpose());
 
-        if ( !CouponPurpose.SHOP.equals(byCode)) {
+        if (!CouponPurpose.SHOP.equals(byCode)) {
             //如果不是店铺优惠卷，-1默认所有店铺都能使用
             shopId = -1L;
         }
         couponTemplate.setUseCondition(useCondition);
         couponTemplate.setShopId(shopId);
-        couponTemplate.setExpire(0);
         couponTemplate.setRemainCount(dto.getTotalCount());
         this.save(couponTemplate);
 
     }
 
 
-    private String buildUseCondition( CouponTemplateAddDTO dto) {
+    private String buildUseCondition(CouponTemplateAddDTO dto) {
 
         Integer couponType = dto.getType();
 
         String useCondition = null;
-        if (CouponType.FULL.getCode().equals(couponType) ) {
+        if (CouponType.FULL.getCode().equals(couponType)) {
 
             useCondition = JsonUtils.toJsonString(dto.getFullDiscountUseCondition());
         }
-        if (CouponType.FIXED.getCode().equals(couponType) ) {
+        if (CouponType.FIXED.getCode().equals(couponType)) {
 
             useCondition = JsonUtils.toJsonString(dto.getNoConditionUseCondition());
 
         }
-        if (CouponType.DISCOUNT.getCode().equals(couponType) ) {
+        if (CouponType.DISCOUNT.getCode().equals(couponType)) {
             useCondition = JsonUtils.toJsonString(dto.getDiscountUseCondition());
 
         }
         return useCondition;
 
     }
+
     private void checkAdd(CouponTemplateAddDTO dto) {
 
         /**
@@ -117,7 +120,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         /**
          * 优惠卷用途权限校验
          */
-        if ( !platformTenant()) {
+        if (!platformTenant()) {
             if (!CouponPurpose.notPlatformCouponPurpose.contains(byCode)) {
                 log.info("没有权限");
                 throw new BizException("没有权限");
@@ -180,8 +183,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
          *
          */
         List<CouponPurpose> purposeList;
-        if ( platformTenant()){
-             log.info("平台管理员");
+        if (platformTenant()) {
+            log.info("平台管理员");
             purposeList = Arrays.asList(CouponPurpose.values());
 
         } else {
@@ -204,21 +207,105 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         String tenantCode = AdminSessionCache.getSysUser().getTenantCode();
         return Constants.ADMIN_TENANT_CODE.equals(tenantCode);
     }
-    @Override
-    public PageResult<CouponTemplateDO> couponTemplatePage(CouponTemplatePageQuery query) {
 
-        IPage<CouponTemplateDO> page = this.lambdaQuery().eq(CouponTemplateDO::getShopId, query.getShopId()).
-                page(PageResult.buildIPage(query, CouponTemplateDO.class));
-
-        return PageResult.toPageResult(page);
-    }
 
     @Override
-    public PageResult<CouponTemplateDO> couponTemplatePage2(CouponTemplatePageQuery2 query) {
+    public PageResult<CouponTemplateDO> couponTemplatePage(CouponTemplatePageQuery2 query) {
         IPage<CouponTemplateDO> page = this.lambdaQuery().
                 orderByDesc(BaseEntity::getUpdateTime).
                 page(PageResult.buildIPage(query, CouponTemplateDO.class));
 
         return PageResult.toPageResult(page);
     }
+
+    @Override
+    public List<CouponTemplateListVO> listCouponTemplate(Long shopId) {
+
+
+        List<CacheCouponTemplateListBO> cache = getCache(shopId);
+        if (cache == null) {
+
+            log.info("优惠卷模板缓存为空");
+            List<CacheCouponTemplateListBO> listVOList = loadDBCouponTemplateList(shopId);
+            setCache(shopId, listVOList);
+        }
+        List<CacheCouponTemplateListBO> templateListBOS = getCache(shopId);
+        if (templateListBOS != null) {
+
+            return BeanCopyUtils.copyBeanList(templateListBOS, CouponTemplateListVO.class);
+        }
+        return new ArrayList<>();
+    }
+
+    private List<CacheCouponTemplateListBO> loadDBCouponTemplateList(Long shopId) {
+
+        List<CouponTemplateDO> templateDOList = this.lambdaQuery()
+                //领取结束时间大于当前时间
+                .gt(CouponTemplateDO::getReceiveEndTime, new Date())
+                .gt(CouponTemplateDO::getRemainCount,0)
+                .eq(CouponTemplateDO::getShopId, shopId)
+                .eq(CouponTemplateDO::getPurpose, CouponPurpose.SHOP.getCode())
+                .list();
+        List<CacheCouponTemplateListBO> couponTemplateListBOList = new ArrayList<>();
+        for (CouponTemplateDO couponTemplateDO : templateDOList) {
+
+            Integer type = couponTemplateDO.getType();
+            String useCondition = couponTemplateDO.getUseCondition();
+            CacheCouponTemplateListBO cacheCouponTemplateListBO = BeanCopyUtils.copyBean(couponTemplateDO, CacheCouponTemplateListBO.class);
+
+            if (CouponType.DISCOUNT.getCode().equals(type)) {
+                DiscountUseConditionBO conditionBO = JsonUtils.toObject(useCondition, DiscountUseConditionBO.class);
+                cacheCouponTemplateListBO.setDiscountUseCondition(conditionBO);
+            }
+            if (CouponType.FULL.getCode().equals(type)) {
+                FullDiscountUseConditionBO conditionBO = JsonUtils.toObject(useCondition, FullDiscountUseConditionBO.class);
+                cacheCouponTemplateListBO.setFullDiscountUseCondition(conditionBO);
+            }
+            if (CouponType.FIXED.getCode().equals(type)) {
+                NoConditionUseConditionBO conditionBO = JsonUtils.toObject(useCondition, NoConditionUseConditionBO.class);
+                cacheCouponTemplateListBO.setNoConditionUseCondition(conditionBO);
+            }
+            couponTemplateListBOList.add(cacheCouponTemplateListBO);
+        }
+        return couponTemplateListBOList;
+
+    }
+
+    private List<CacheCouponTemplateListBO> getCache(Long shopId) {
+
+        String key = CacheConstants.getSHOP_COUPON(shopId);
+        String cache = redisCache.getCacheObject(key);
+        if (cache == null) {
+
+            return null;
+        }
+        List<CacheCouponTemplateListBO> templateListBOS = JsonUtils.toList(cache, CacheCouponTemplateListBO.class);
+        Iterator<CacheCouponTemplateListBO> iterator = templateListBOS.iterator();
+
+        while (iterator.hasNext()) {
+
+            CacheCouponTemplateListBO next = iterator.next();
+            if (next.getRemainCount() <1) {
+                //剩余数量小于1 不展示
+                iterator.remove();
+            }
+            if (System.currentTimeMillis() > next.getReceiveEndTime().getTime()){
+                //领取时间已结束 不展示
+                iterator.remove();
+            }
+
+        }
+
+        return templateListBOS;
+
+    }
+
+    private void setCache(Long shopId, List<CacheCouponTemplateListBO> list) {
+
+        String key = CacheConstants.getSHOP_COUPON(shopId);
+        redisCache.setCacheObject(key, JsonUtils.toJsonString(list));
+
+    }
+
+
 }

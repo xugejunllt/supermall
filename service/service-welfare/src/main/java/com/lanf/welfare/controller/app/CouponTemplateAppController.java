@@ -1,15 +1,17 @@
 package com.lanf.welfare.controller.app;
 
 
-import com.lanf.mybatis.base.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.welfare.model.entity.CouponTemplateDO;
-import com.lanf.welfare.model.query.CouponTemplatePageQuery;
+import com.lanf.welfare.model.vo.CouponTemplateListVO;
 import com.lanf.welfare.service.biz.ICouponTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * <p>
@@ -27,12 +29,12 @@ public class CouponTemplateAppController {
     @Autowired
     private ICouponTemplateService couponTemplateService;
 
-    @GetMapping("/couponTemplatePage")
-    public Result<PageResult<CouponTemplateDO>> couponTemplatePage(@Validated CouponTemplatePageQuery query) {
+    @GetMapping("/listCouponTemplate")
+    public Result< List<CouponTemplateListVO>> listCouponTemplateList(@Validated Long shopId) {
 
-        log.info("分页查询优惠券模板:{}:query",query);
+        log.info("查询优惠券模板列表:{}:query",shopId);
 
-        return Result.ok(couponTemplateService.couponTemplatePage(query));
+        return Result.ok(couponTemplateService.listCouponTemplate(shopId));
     }
 
 }

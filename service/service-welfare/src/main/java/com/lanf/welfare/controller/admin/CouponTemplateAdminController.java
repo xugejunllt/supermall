@@ -53,11 +53,11 @@ public class CouponTemplateAdminController {
     }
 
     @GetMapping("/couponTemplatePage")
-    public Result<PageResult<CouponTemplateDO>> couponTemplatePage2(@Validated CouponTemplatePageQuery2 query) {
+    public Result<PageResult<CouponTemplateDO>> couponTemplatePage(@Validated CouponTemplatePageQuery2 query) {
 
         log.info("分页查询优惠券模板:{}", query);
 
-        return Result.ok(couponTemplateService.couponTemplatePage2(query));
+        return Result.ok(couponTemplateService.couponTemplatePage(query));
     }
 
 }

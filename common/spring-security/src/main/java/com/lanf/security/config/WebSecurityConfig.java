@@ -1,15 +1,13 @@
 package com.lanf.security.config;
 
-import com.lanf.common.utils.BeanUtil;
 import com.lanf.security.custom.IBCryptPasswordEncoder;
-import com.lanf.security.filter.TokenAuthenticationFilter;
 import com.lanf.security.filter.AdminLoginFilter;
+import com.lanf.security.filter.TokenAuthenticationFilter;
 import com.lanf.security.utils.AdminSessionCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -129,7 +127,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         list.add("/temp/sysUser.xlsx");
         list.add("/img/**");
         list.add("/admin/system/index/getI18n");
-        list.addAll(filterPathConfig.getAdminNotTokenPath());
+        List<String> adminNotTokenPath = filterPathConfig.getAdminNotTokenPath();
+        list.addAll(adminNotTokenPath);
         String arr[] = list.toArray(new String[0]);
         web.ignoring().antMatchers(arr);
     }
