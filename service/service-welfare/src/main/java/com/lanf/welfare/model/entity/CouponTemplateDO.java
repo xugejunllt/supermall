@@ -41,6 +41,11 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "副标题")
     private String title;
+    /**
+     * 状态 0: 待发布 1：已发布 2：作废
+     * 作废 不能领取 也不能使用
+     */
+    private Integer status;
 
     @ApiModelProperty(value = " 0:满减劵,1:抵扣卷,2:固定金额券")
     private Integer type;
@@ -68,7 +73,7 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "使用结束时间")
     private Date useEndTime;
-
+    private Long version;
 
     private Long tenantId;
 
