@@ -1,6 +1,8 @@
 package com.lanf.welfare.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.lock.aop.DistributedLock;
+import com.lanf.redis.service.RedisCache;
 import com.lanf.welfare.mapper.CouponMapper;
 import com.lanf.welfare.model.dto.ReceiveShopCouponDTO;
 import com.lanf.welfare.model.entity.CouponDO;
@@ -22,9 +24,20 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
     @Autowired
     private ICouponTemplateService couponTemplateService;
 
+    @Autowired
+    private RedisCache redisCache;
 
+    private  CouponCacheService couponCacheService;
+
+    @DistributedLock(key = "#dto.userId")//防止重复领取
     @Override
     public void receiveShopCoupon(ReceiveShopCouponDTO dto) {
+
+
+
+
+
+
 
     }
 }

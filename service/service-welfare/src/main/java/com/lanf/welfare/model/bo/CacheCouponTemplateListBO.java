@@ -20,8 +20,8 @@ public class CacheCouponTemplateListBO implements Serializable {
     private Integer status;
 
     @ApiModelProperty(value = "副标题")
-    private String title;
 
+    private String title;
     @ApiModelProperty(value = " 0:满减劵,1:抵扣卷,2:固定金额券")
     private Integer type;
 

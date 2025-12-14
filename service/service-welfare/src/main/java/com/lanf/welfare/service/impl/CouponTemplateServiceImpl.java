@@ -11,6 +11,7 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.redis.constant.CacheConstants;
 import com.lanf.redis.service.RedisCache;
 import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.api.SystemService;
@@ -248,11 +249,80 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
 
         List<CacheCouponTemplateListBO> listVOList = buildCouponTemplateList( shopId);
-        filterCouponTemplateList(shopId, listVOList);
+        //过滤数量不足的优惠卷
+        filterNotCount(shopId, listVOList);
         if (IStringUtils.isEmpty(listVOList)) {
             return new ArrayList<>();
         }
+        //过滤领取时间已结束的优惠卷
+        filterEnded(  listVOList);
+        if (IStringUtils.isEmpty(listVOList)) {
+            return new ArrayList<>();
+        }
+//        //过滤已作废的优惠卷
+//        filterRevoke(listVOList);
+//        if (IStringUtils.isEmpty(listVOList)) {
+//            return new ArrayList<>();
+//        }
         return BeanCopyUtils.copyBeanList(listVOList, CouponTemplateListVO.class);
+    }
+
+    /**
+     * 过滤已作废的优惠卷模板
+     *
+     */
+    private void filterRevoke(List<CacheCouponTemplateListBO> listVOList) {
+
+
+        Set<Long> cacheSet = redisCache.getCacheSet(CacheConstants.COUPON_REVOKE);
+        if (IStringUtils.isEmpty(cacheSet)){
+            List<CouponTemplateRevokeDO> templateRevokeDOS = loadDBCouponTemplateRevokeDO();
+            if (IStringUtils.isEmpty(templateRevokeDOS)){
+                return;
+            }
+            Set<Long> templateIdSet = templateRevokeDOS.stream().
+                    map(CouponTemplateRevokeDO::getCouponTemplateId).
+                    collect(Collectors.toSet());
+            couponCacheService.setRevokeCouponCache(templateIdSet);
+
+        }
+        Set<Long> templateIdSet =  couponCacheService.getRevokeCouponCache();
+        //过滤正在废弃的优惠卷模板
+        listVOList.removeIf(next -> {
+            boolean contains = templateIdSet.contains(next.getId());
+            if (contains ){
+                log.info("正在废弃的优惠券:[{}]",next.getId());
+            }
+            return contains ;
+        } );
+    }
+
+    private List<CouponTemplateRevokeDO> loadDBCouponTemplateRevokeDO() {
+
+       return couponTemplateRevokeService.lambdaQuery().
+                eq(CouponTemplateRevokeDO::getStatus, 0).list();
+
+    }
+
+
+
+    /**
+     * 过滤超过领取时间优惠卷
+     *
+     */
+    private void filterEnded( List<CacheCouponTemplateListBO> listVOList){
+
+        Iterator<CacheCouponTemplateListBO> iterator = listVOList.iterator();
+
+        while (iterator.hasNext()) {
+
+            CacheCouponTemplateListBO next = iterator.next();
+            if ( System.currentTimeMillis() > next.getReceiveEndTime().getTime()){
+                log.info("优惠券已结束:[{}]",next.getId());
+                iterator.remove();
+            }
+
+        }
     }
 
     private List<CacheCouponTemplateListBO> buildCouponTemplateList(Long shopId) {
@@ -260,7 +330,6 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         List<CacheCouponTemplateListBO> listVOList = null;
         if (cache == null) {
 
-            log.info("优惠卷模板缓存为空");
             listVOList = loadDBCouponTemplateList(shopId);
             if (IStringUtils.isEmpty(listVOList)) {
 
@@ -275,9 +344,9 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
 
     /**
-     * 过滤展示的店铺优惠卷列表
+     * 过滤数量不足的优惠卷
      */
-    private void filterCouponTemplateList(Long shopId,
+    private void filterNotCount(Long shopId,
                                           List<CacheCouponTemplateListBO> listVOList) {
 
         /**
@@ -295,17 +364,16 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
             Integer remainCount = remainCountCacheMap.get(id.toString());
             if (remainCount == null) {
                 //告警
+                iterator.remove();
                 log.error("优惠卷剩余数量缓存为空[{}]", id);
             } else {
                 if (remainCount < 1) {
                     //剩余数量小于1 不展示
+                    log.info("优惠卷剩余数量小于1[{}]", id);
                     iterator.remove();
                 }
             }
-            if (System.currentTimeMillis() > next.getReceiveEndTime().getTime()) {
-                //领取时间已结束 不展示
-                iterator.remove();
-            }
+
 
         }
     }
@@ -338,6 +406,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     }
     private List<CacheCouponTemplateListBO> loadDBCouponTemplateList(Long shopId) {
 
+        log.info("从DB加载优惠券列表开始");
         List<CouponTemplateDO> templateDOList = this.lambdaQuery()
                 //领取结束时间大于当前时间
                 .gt(CouponTemplateDO::getReceiveEndTime, new Date())
@@ -347,6 +416,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                 .eq(CouponTemplateDO::getPurpose, CouponPurpose.SHOP.getCode())
                 .list();
         if (IStringUtils.isEmpty(templateDOList)) {
+            log.info("DB数据为空");
             return new ArrayList<>();
         }
         List<CacheCouponTemplateListBO> couponTemplateListBOList = new ArrayList<>();
@@ -418,6 +488,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         if (CouponPurpose.SHOP.getCode().equals(templateDO.getPurpose())) {
             //删除店铺优惠卷缓存
             couponCacheService.removeShopCouponCache(templateDO.getShopId());
+            couponCacheService.removeShopCouponRemainCountCache(templateDO.getShopId());
         }
 
     }

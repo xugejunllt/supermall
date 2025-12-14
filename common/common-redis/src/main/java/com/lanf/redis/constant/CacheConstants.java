@@ -36,7 +36,15 @@ public class CacheConstants {
      * 店铺优惠券模板缓存
      */
     public static final String SHOP_COUPON = "coupon:list:%s"; //
-    public static final String SHOP_COUPON_COUNT = "coupon:count:%s"; //
+    /**
+     * 优惠券模板剩余数量缓存
+     */
+    public static final String SHOP_COUPON_COUNT = "coupon:count:%s";
+    /**
+     * 优惠卷模板作废
+     *
+     */
+    public static final String COUPON_REVOKE = "coupon:revoke"; //
 
 
     /**
@@ -60,6 +68,7 @@ public class CacheConstants {
      */
     public static final int SHOP_COUPON_EXP_TIME = 7 * 24 * 60;
     public static final int SHOP_COUPON_COUNT_EXP_TIME = 7 * 24 * 60;
+    public static final int COUPON_REVOKE_EXP_TIME = 7 * 24 * 60;
 
     /**
      * 缓存时间1天
@@ -132,7 +141,10 @@ public class CacheConstants {
         return String.format(CacheConstants.SHOP_COUPON_COUNT, shopId);
     }
 
+    public static String getCOUPON_REVOKE() {
 
+        return String.format(CacheConstants.COUPON_REVOKE);
+    }
 
 
 

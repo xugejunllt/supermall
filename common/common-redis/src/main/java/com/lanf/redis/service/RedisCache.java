@@ -1,6 +1,7 @@
 package com.lanf.redis.service;
 
 import com.lanf.common.utils.StackTraceUtil;
+import com.lanf.constant.exception.BizException;
 import com.lanf.constant.exception.IRedisException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,7 +142,7 @@ public class RedisCache {
      *
      * @param key
      */
-    public Boolean deleteObject(final String key) {
+    public void deleteObject(final String key) {
 
         Boolean delete = null;
         try {
@@ -154,19 +155,9 @@ public class RedisCache {
             log.error("删除key失败,异常堆栈[{}]", StackTraceUtil.getStackTrace(e));
             throw new IRedisException("删除key失败");
         }
-        return Boolean.TRUE.equals(delete);
 
     }
 
-    /**
-     * 删除集合对象
-     *
-     * @param collection 多个对象
-     * @return
-     */
-    public boolean deleteObject(final Collection collection) {
-        return redisTemplate.delete(collection) > 0;
-    }
 
     /**
      * 缓存List数据
@@ -197,13 +188,17 @@ public class RedisCache {
      * @param dataSet 缓存的数据
      * @return 缓存数据的对象
      */
-    public <T> BoundSetOperations<String, T> setCacheSet(final String key, final Set<T> dataSet) {
-        BoundSetOperations<String, T> setOperation = redisTemplate.boundSetOps(key);
-        Iterator<T> it = dataSet.iterator();
-        while (it.hasNext()) {
-            setOperation.add(it.next());
+    public <T> void setCacheSet(final String key, final Set<T> dataSet) {
+
+
+        try {
+            BoundSetOperations<String, T> setOperation = redisTemplate.boundSetOps(key);
+            setOperation.add((T) dataSet.toArray());
+        } catch (Exception e) {
+            log.error("添加Set缓存失败,key[{}],set[{}]",key,dataSet, e);
+            throw new IRedisException("添加Set缓存失败");
         }
-        return setOperation;
+
     }
 
     public Long increment(String key){
@@ -225,7 +220,15 @@ public class RedisCache {
      * @return
      */
     public <T> Set<T> getCacheSet(final String key) {
-        return redisTemplate.opsForSet().members(key);
+
+        try {
+            return redisTemplate.opsForSet().members(key);
+
+        } catch (Exception e) {
+            log.error("获取set失败,key[{}],异常堆栈",key, e);
+            throw new BizException("获取set失败");
+        }
+
     }
 
     /**
@@ -252,7 +255,12 @@ public class RedisCache {
      * @return
      */
     public <T> Map<String, T> getCacheMap(final String key) {
-        return redisTemplate.opsForHash().entries(key);
+        try {
+            return redisTemplate.opsForHash().entries(key);
+        } catch (Exception e) {
+           log.error("获取map失败,key[{}],异常堆栈",key, e);
+           throw new IRedisException("获取map失败");
+        }
     }
 
     /**
@@ -274,7 +282,13 @@ public class RedisCache {
      * @return Hash中的对象
      */
     public <T> T getCacheMapValue(final String key, final String hKey) {
-        HashOperations<String, String, T> opsForHash = redisTemplate.opsForHash();
+        HashOperations<String, String, T> opsForHash = null;
+        try {
+            opsForHash = redisTemplate.opsForHash();
+        } catch (Exception e) {
+            log.error("获取Hash数据失败,key[{}],hKey[{}]",key,hKey, e);
+            throw new IRedisException("获取Hash数据失败");
+        }
         return opsForHash.get(key, hKey);
     }
 

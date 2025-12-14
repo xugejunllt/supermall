@@ -10,4 +10,6 @@ public class ReceiveShopCouponDTO implements Serializable {
     private Long couponTemplateId;
     //店铺id
     private Long shopId;
+
+    private Long userId;
 }
