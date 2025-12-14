@@ -3,6 +3,7 @@ package com.lanf.welfare.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
+import com.lanf.welfare.model.dto.CouponTemplateRevokeDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
 import com.lanf.welfare.model.query.CouponTemplatePageQuery2;
 import com.lanf.welfare.model.vo.CouponPurposeVO;
@@ -27,4 +28,9 @@ public interface ICouponTemplateService extends IService<CouponTemplateDO> {
 
     List<CouponTemplateListVO> listCouponTemplate(Long shopId);
 
+    /**
+     * 作废优惠卷模板
+     *
+     */
+    void couponTemplateRevoke(CouponTemplateRevokeDTO dto);
 }

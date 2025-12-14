@@ -20,8 +20,10 @@ import com.lanf.welfare.model.bo.DiscountUseConditionBO;
 import com.lanf.welfare.model.bo.FullDiscountUseConditionBO;
 import com.lanf.welfare.model.bo.NoConditionUseConditionBO;
 import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
+import com.lanf.welfare.model.dto.CouponTemplateRevokeDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
 import com.lanf.welfare.model.entity.CouponTemplateHistoryDO;
+import com.lanf.welfare.model.entity.CouponTemplateRevokeDO;
 import com.lanf.welfare.model.enums.CouponPurpose;
 import com.lanf.welfare.model.enums.CouponTemplateStatus;
 import com.lanf.welfare.model.enums.CouponType;
@@ -29,6 +31,7 @@ import com.lanf.welfare.model.query.CouponTemplatePageQuery2;
 import com.lanf.welfare.model.vo.CouponPurposeVO;
 import com.lanf.welfare.model.vo.CouponTemplateListVO;
 import com.lanf.welfare.service.ICouponTemplateHistoryService;
+import com.lanf.welfare.service.ICouponTemplateRevokeService;
 import com.lanf.welfare.service.ICouponTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +59,9 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     private RedisCache redisCache;
     @Autowired
     private ICouponTemplateHistoryService couponTemplateHistoryService;
+
+    @Autowired
+    private ICouponTemplateRevokeService couponTemplateRevokeService;
 
     @DistributedLock(key = "#dto.adminUserId")//防止重复点击提交
     @Transactional
@@ -256,6 +262,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         return new ArrayList<>();
     }
 
+
+
     private List<CacheCouponTemplateListBO> loadDBCouponTemplateList(Long shopId) {
 
         List<CouponTemplateDO> templateDOList = this.lambdaQuery()
@@ -313,9 +321,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                 //领取时间已结束 不展示
                 iterator.remove();
             }
-            if ( !CouponTemplateStatus.PUSH.getCode().equals(next.getStatus())){
-                iterator.remove();
-            }
+
         }
 
         return templateListBOS;
@@ -329,5 +335,56 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     }
 
+    private void removeCache(Long shopId) {
 
+        String key = CacheConstants.getSHOP_COUPON(shopId);
+        redisCache.deleteObject(key);
+
+    }
+
+    @Transactional
+    @Override
+    public void couponTemplateRevoke(CouponTemplateRevokeDTO dto) {
+
+        Long couponTemplateId = dto.getCouponTemplateId();
+        CouponTemplateDO templateDO = this.getById(couponTemplateId);
+        if (templateDO == null){
+            throw new BizException("数据不存在");
+        }
+        if ( !CouponTemplateStatus.PUSH.getCode().equals(templateDO.getStatus())){
+
+            throw new BizException("状态异常");
+        }
+        Long version = templateDO.getVersion();
+        Long updateVersion = version+1;
+        //构建历史记录
+        CouponTemplateHistoryDO templateHistoryDO = BeanCopyUtils.copyBean(templateDO, CouponTemplateHistoryDO.class);
+        templateHistoryDO.setCouponTemplateId(couponTemplateId);
+        templateHistoryDO.setVersion(updateVersion);
+        //构建 CouponTemplateRevokeDO
+        CouponTemplateRevokeDO couponTemplateRevokeDO = new CouponTemplateRevokeDO();
+        couponTemplateRevokeDO.setCouponTemplateId(couponTemplateId);
+        couponTemplateRevokeDO.setStatus(0);
+        couponTemplateRevokeDO.setCouponTemplateVersion(updateVersion);
+        /**
+         * 保存DB
+         */
+        boolean update = this.lambdaUpdate().
+                eq(CouponTemplateDO::getId, couponTemplateId)
+                .eq(CouponTemplateDO::getVersion, version)
+                .set(CouponTemplateDO::getStatus, CouponTemplateStatus.REVOKE.getCode())
+                .set(CouponTemplateDO::getVersion, updateVersion).update();
+        if (!update){
+            throw new BizException("更新失败");
+
+        }
+        couponTemplateHistoryService.save(templateHistoryDO);
+        couponTemplateRevokeService.save(couponTemplateRevokeDO);
+
+        if (CouponPurpose.SHOP.getCode().equals(templateDO.getPurpose())){
+            //删除店铺优惠卷缓存
+            removeCache(templateDO.getShopId());
+        }
+
+    }
 }

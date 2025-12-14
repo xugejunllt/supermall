@@ -5,6 +5,7 @@ import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
+import com.lanf.welfare.model.dto.CouponTemplateRevokeDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
 import com.lanf.welfare.model.query.CouponTemplatePageQuery2;
 import com.lanf.welfare.model.vo.CouponPurposeVO;
@@ -59,6 +60,18 @@ public class CouponTemplateAdminController {
 
         return Result.ok(couponTemplateService.couponTemplatePage(query));
     }
+    /**
+     * 撤销优惠券模板
+     */
+    @PostMapping("/revoke")
+    public Result<Void> revokeCouponTemplate(@RequestBody @Validated CouponTemplateRevokeDTO dto) {
+        
+        log.info("撤销优惠券模板[{}]",dto.getCouponTemplateId());
 
+       couponTemplateService.couponTemplateRevoke(dto);
+        
+        return Result.ok();
+        
+    }
 }
 

@@ -26,6 +26,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "0：作废中，1：已完成，当所有用户优惠卷已作废时变成已完成")
     private Integer status;
 
+    private Long couponTemplateVersion;
 
 
 

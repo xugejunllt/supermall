@@ -145,7 +145,7 @@ public class RedisCache {
             throw new IRedisException("删除key失败");
         }
 
-        return delete;
+        return Boolean.TRUE.equals(delete);
 
 
 
