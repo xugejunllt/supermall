@@ -378,6 +378,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
             throw new BizException("更新失败");
 
         }
+        //copy把id复制过来了 所以删除id
+        templateHistoryDO.setId(null);
         couponTemplateHistoryService.save(templateHistoryDO);
         couponTemplateRevokeService.save(couponTemplateRevokeDO);
 
