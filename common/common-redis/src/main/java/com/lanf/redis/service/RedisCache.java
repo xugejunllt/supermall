@@ -89,10 +89,16 @@ public class RedisCache {
         TimeUnit minutes = TimeUnit.MINUTES;
 
         try {
-            return redisTemplate.expire(key, timeout, minutes);
+            Boolean expire = redisTemplate.expire(key, timeout, minutes);
+            if (Boolean.FALSE.equals(expire)) {
+                //告警 人工处理
+                log.error("设置过期时间失败,key[{}],timeout[{}],timeUnit[{}]",key,
+                        timeout, minutes);
+            }
+            return expire;
         } catch (Exception e) {
-            log.error("设置过期时间失败,key[{}],timeout[{}],timeUnit[{}],异常堆栈[{}]",key,
-                    timeout, minutes, StackTraceUtil.getStackTrace(e));
+            log.error("设置过期时间失败,key[{}],timeout[{}],timeUnit[{}],异常堆栈",key,
+                    timeout, minutes,e);
             throw new IRedisException();
         }
 
@@ -135,19 +141,20 @@ public class RedisCache {
      *
      * @param key
      */
-    public boolean deleteObject(final String key) {
+    public Boolean deleteObject(final String key) {
 
         Boolean delete = null;
         try {
             delete = redisTemplate.delete(key);
+            if (Boolean.FALSE.equals(delete)) {
+                //告警 人工处理
+                log.error("删除key失败,key[{}]",key);
+            }
         } catch (Exception e) {
             log.error("删除key失败,异常堆栈[{}]", StackTraceUtil.getStackTrace(e));
             throw new IRedisException("删除key失败");
         }
-
         return Boolean.TRUE.equals(delete);
-
-
 
     }
 
@@ -228,9 +235,14 @@ public class RedisCache {
      * @param dataMap
      */
     public <T> void setCacheMap(final String key, final Map<String, T> dataMap) {
-        if (dataMap != null) {
+
+        try {
             redisTemplate.opsForHash().putAll(key, dataMap);
+        } catch (Exception e) {
+            log.error("添加map缓存失败,key[{}],map[{}]",key,dataMap, e);
+            throw new IRedisException("添加map缓存失败");
         }
+
     }
 
     /**

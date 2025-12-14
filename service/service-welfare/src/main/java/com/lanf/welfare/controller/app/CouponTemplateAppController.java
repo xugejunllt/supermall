@@ -29,12 +29,17 @@ public class CouponTemplateAppController {
     @Autowired
     private ICouponTemplateService couponTemplateService;
 
-    @GetMapping("/listCouponTemplate")
-    public Result< List<CouponTemplateListVO>> listCouponTemplateList(@Validated Long shopId) {
+    /**
+     * 查询店铺优惠券模板列表
+     * @param shopId
+     * @return
+     */
+    @GetMapping("/listShopCouponTemplate")
+    public Result< List<CouponTemplateListVO>> listShopCouponTemplate(@Validated Long shopId) {
 
         log.info("查询优惠券模板列表:{}:query",shopId);
 
-        return Result.ok(couponTemplateService.listCouponTemplate(shopId));
+        return Result.ok(couponTemplateService.listShopCouponTemplate(shopId));
     }
 
 }

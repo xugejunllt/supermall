@@ -3,6 +3,7 @@ package com.lanf.welfare.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
@@ -10,15 +11,11 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.redis.constant.CacheConstants;
 import com.lanf.redis.service.RedisCache;
 import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.api.SystemService;
 import com.lanf.welfare.mapper.CouponTemplateMapper;
-import com.lanf.welfare.model.bo.CacheCouponTemplateListBO;
-import com.lanf.welfare.model.bo.DiscountUseConditionBO;
-import com.lanf.welfare.model.bo.FullDiscountUseConditionBO;
-import com.lanf.welfare.model.bo.NoConditionUseConditionBO;
+import com.lanf.welfare.model.bo.*;
 import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
 import com.lanf.welfare.model.dto.CouponTemplateRevokeDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
@@ -62,6 +59,9 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     @Autowired
     private ICouponTemplateRevokeService couponTemplateRevokeService;
+
+    @Autowired
+    private CouponCacheService couponCacheService;
 
     @DistributedLock(key = "#dto.adminUserId")//防止重复点击提交
     @Transactional
@@ -244,36 +244,111 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     }
 
     @Override
-    public List<CouponTemplateListVO> listCouponTemplate(Long shopId) {
+    public List<CouponTemplateListVO> listShopCouponTemplate(Long shopId) {
 
 
-        List<CacheCouponTemplateListBO> cache = getCache(shopId);
+        List<CacheCouponTemplateListBO> listVOList = buildCouponTemplateList( shopId);
+        filterCouponTemplateList(shopId, listVOList);
+        if (IStringUtils.isEmpty(listVOList)) {
+            return new ArrayList<>();
+        }
+        return BeanCopyUtils.copyBeanList(listVOList, CouponTemplateListVO.class);
+    }
+
+    private List<CacheCouponTemplateListBO> buildCouponTemplateList(Long shopId) {
+        List<CacheCouponTemplateListBO> cache = couponCacheService.getShopCouponCache(shopId);
+        List<CacheCouponTemplateListBO> listVOList = null;
         if (cache == null) {
 
             log.info("优惠卷模板缓存为空");
-            List<CacheCouponTemplateListBO> listVOList = loadDBCouponTemplateList(shopId);
-            setCache(shopId, listVOList);
-        }
-        List<CacheCouponTemplateListBO> templateListBOS = getCache(shopId);
-        if (templateListBOS != null) {
+            listVOList = loadDBCouponTemplateList(shopId);
+            if (IStringUtils.isEmpty(listVOList)) {
 
-            return BeanCopyUtils.copyBeanList(templateListBOS, CouponTemplateListVO.class);
+                return new ArrayList<>();
+            }
+            couponCacheService.setShopCouponCache(shopId, listVOList);
         }
-        return new ArrayList<>();
+        listVOList = couponCacheService.getShopCouponCache(shopId);
+
+        return listVOList;
     }
 
 
+    /**
+     * 过滤展示的店铺优惠卷列表
+     */
+    private void filterCouponTemplateList(Long shopId,
+                                          List<CacheCouponTemplateListBO> listVOList) {
 
+        /**
+         * 过滤 优惠卷剩余数量不足的
+         */
+
+        // key 优惠卷id value:剩余数量
+        Map<String, Integer> remainCountCacheMap = buildShopCouponRemainCount( shopId);
+        Iterator<CacheCouponTemplateListBO> iterator = listVOList.iterator();
+
+        while (iterator.hasNext()) {
+
+            CacheCouponTemplateListBO next = iterator.next();
+            Long id = next.getId();
+            Integer remainCount = remainCountCacheMap.get(id.toString());
+            if (remainCount == null) {
+                //告警
+                log.error("优惠卷剩余数量缓存为空[{}]", id);
+            } else {
+                if (remainCount < 1) {
+                    //剩余数量小于1 不展示
+                    iterator.remove();
+                }
+            }
+            if (System.currentTimeMillis() > next.getReceiveEndTime().getTime()) {
+                //领取时间已结束 不展示
+                iterator.remove();
+            }
+
+        }
+    }
+
+
+    private Map<String, Integer> buildShopCouponRemainCount(Long shopId) {
+        // key:优惠卷id value:剩余数量
+        Map<String, Integer> remainCountCache = couponCacheService.getShopCouponRemainCountCache(shopId);
+        if (remainCountCache.isEmpty()) {
+
+            List<CacheCouponTemplateListBO> couponTemplateListBOList = loadDBCouponTemplateList(shopId);
+
+            if (IStringUtils.isEmpty(couponTemplateListBOList)) {
+                return new HashMap<>();
+            }
+            List<ShopCouponRemainCountCacheBO> couponRemainCountCacheBOList = couponTemplateListBOList.stream()
+                    .map(template -> {
+                        ShopCouponRemainCountCacheBO bo = new ShopCouponRemainCountCacheBO();
+                        bo.setCouponTemplateId(template.getId());
+                        bo.setRemainCount(template.getRemainCount());
+                        return bo;
+                    })
+                    .collect(Collectors.toList());
+
+            couponCacheService.setShopCouponRemainCountCache(shopId, couponRemainCountCacheBOList);
+
+        }
+        // key 优惠卷id value:剩余数量
+        return couponCacheService.getShopCouponRemainCountCache(shopId);
+    }
     private List<CacheCouponTemplateListBO> loadDBCouponTemplateList(Long shopId) {
 
         List<CouponTemplateDO> templateDOList = this.lambdaQuery()
                 //领取结束时间大于当前时间
                 .gt(CouponTemplateDO::getReceiveEndTime, new Date())
-                .gt(CouponTemplateDO::getRemainCount,0)
+                .gt(CouponTemplateDO::getRemainCount, 0)
                 .eq(CouponTemplateDO::getStatus, CouponTemplateStatus.PUSH.getCode())
                 .eq(CouponTemplateDO::getShopId, shopId)
                 .eq(CouponTemplateDO::getPurpose, CouponPurpose.SHOP.getCode())
                 .list();
+        if (IStringUtils.isEmpty(templateDOList)) {
+            return new ArrayList<>();
+        }
         List<CacheCouponTemplateListBO> couponTemplateListBOList = new ArrayList<>();
         for (CouponTemplateDO couponTemplateDO : templateDOList) {
 
@@ -299,64 +374,21 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     }
 
-    private List<CacheCouponTemplateListBO> getCache(Long shopId) {
-
-        String key = CacheConstants.getSHOP_COUPON(shopId);
-        String cache = redisCache.getCacheObject(key);
-        if (cache == null) {
-
-            return null;
-        }
-        List<CacheCouponTemplateListBO> templateListBOS = JsonUtils.toList(cache, CacheCouponTemplateListBO.class);
-        Iterator<CacheCouponTemplateListBO> iterator = templateListBOS.iterator();
-
-        while (iterator.hasNext()) {
-
-            CacheCouponTemplateListBO next = iterator.next();
-            if (next.getRemainCount() <1) {
-                //剩余数量小于1 不展示
-                iterator.remove();
-            }
-            if (System.currentTimeMillis() > next.getReceiveEndTime().getTime()){
-                //领取时间已结束 不展示
-                iterator.remove();
-            }
-
-        }
-
-        return templateListBOS;
-
-    }
-
-    private void setCache(Long shopId, List<CacheCouponTemplateListBO> list) {
-
-        String key = CacheConstants.getSHOP_COUPON(shopId);
-        redisCache.setCacheObject(key, JsonUtils.toJsonString(list));
-
-    }
-
-    private void removeCache(Long shopId) {
-
-        String key = CacheConstants.getSHOP_COUPON(shopId);
-        redisCache.deleteObject(key);
-
-    }
-
     @Transactional
     @Override
     public void couponTemplateRevoke(CouponTemplateRevokeDTO dto) {
 
         Long couponTemplateId = dto.getCouponTemplateId();
         CouponTemplateDO templateDO = this.getById(couponTemplateId);
-        if (templateDO == null){
+        if (templateDO == null) {
             throw new BizException("数据不存在");
         }
-        if ( !CouponTemplateStatus.PUSH.getCode().equals(templateDO.getStatus())){
+        if (!CouponTemplateStatus.PUSH.getCode().equals(templateDO.getStatus())) {
 
             throw new BizException("状态异常");
         }
         Long version = templateDO.getVersion();
-        Long updateVersion = version+1;
+        Long updateVersion = version + 1;
         //构建历史记录
         CouponTemplateHistoryDO templateHistoryDO = BeanCopyUtils.copyBean(templateDO, CouponTemplateHistoryDO.class);
         templateHistoryDO.setCouponTemplateId(couponTemplateId);
@@ -374,7 +406,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                 .eq(CouponTemplateDO::getVersion, version)
                 .set(CouponTemplateDO::getStatus, CouponTemplateStatus.REVOKE.getCode())
                 .set(CouponTemplateDO::getVersion, updateVersion).update();
-        if (!update){
+        if (!update) {
             throw new BizException("更新失败");
 
         }
@@ -383,9 +415,9 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         couponTemplateHistoryService.save(templateHistoryDO);
         couponTemplateRevokeService.save(couponTemplateRevokeDO);
 
-        if (CouponPurpose.SHOP.getCode().equals(templateDO.getPurpose())){
+        if (CouponPurpose.SHOP.getCode().equals(templateDO.getPurpose())) {
             //删除店铺优惠卷缓存
-            removeCache(templateDO.getShopId());
+            couponCacheService.removeShopCouponCache(templateDO.getShopId());
         }
 
     }

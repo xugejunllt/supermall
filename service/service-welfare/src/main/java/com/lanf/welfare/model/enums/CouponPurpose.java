@@ -11,8 +11,8 @@ public enum CouponPurpose {
 
 
     SHOP(0, "店铺优惠卷"),
-    USER_REGISTER(1, "用户注册"),
-    MEMBER_LEVEL_UPGRADE(2, "会员等级升级");
+    USER_REGISTER(1, "用户注册-全店铺使用"),
+    MEMBER_LEVEL_UPGRADE(2, "会员等级升级-全店铺使用");
 
     //非平台租户优惠卷类型code
     public static final List<CouponPurpose> notPlatformCouponPurpose = Arrays.asList(SHOP);

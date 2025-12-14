@@ -1,15 +1,8 @@
 package com.lanf.welfare.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.welfare.model.dto.ReceiveCouponDTO;
-import com.lanf.welfare.model.dto.UseCouponDTO;
+import com.lanf.welfare.model.dto.ReceiveShopCouponDTO;
 import com.lanf.welfare.model.entity.CouponDO;
-import com.lanf.welfare.model.vo.CouponVO;
-import com.lanf.welfare.model.vo.ShopCouponVO;
-import com.lanf.welfare.model.vo.UseCouponVO;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * <p>
@@ -20,5 +13,10 @@ import java.util.Set;
  * @since 2024-08-01
  */
 public interface ICouponService extends IService<CouponDO> {
+
+    /**
+     * 领取店铺优惠卷
+     */
+    void  receiveShopCoupon(ReceiveShopCouponDTO dto);
 
 }
