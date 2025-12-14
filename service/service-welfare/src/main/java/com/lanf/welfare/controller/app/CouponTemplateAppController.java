@@ -3,7 +3,7 @@ package com.lanf.welfare.controller.app;
 
 import com.lanf.constant.result.Result;
 import com.lanf.welfare.model.vo.CouponTemplateListVO;
-import com.lanf.welfare.service.biz.ICouponTemplateService;
+import com.lanf.welfare.service.ICouponTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

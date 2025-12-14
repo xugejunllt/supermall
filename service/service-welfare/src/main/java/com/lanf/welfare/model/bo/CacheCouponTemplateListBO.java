@@ -13,6 +13,11 @@ public class CacheCouponTemplateListBO implements Serializable {
     private Long id;
     @ApiModelProperty(value = "优惠券名称")
     private String name;
+    /**
+     * 状态 0: 待发布 1：已发布 2：作废
+     * 作废 不能领取 也不能使用
+     */
+    private Integer status;
 
     @ApiModelProperty(value = "副标题")
     private String title;

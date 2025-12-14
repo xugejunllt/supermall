@@ -1,8 +1,9 @@
-package com.lanf.welfare.service.biz.impl;
+package com.lanf.welfare.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
@@ -20,15 +21,19 @@ import com.lanf.welfare.model.bo.FullDiscountUseConditionBO;
 import com.lanf.welfare.model.bo.NoConditionUseConditionBO;
 import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
+import com.lanf.welfare.model.entity.CouponTemplateHistoryDO;
 import com.lanf.welfare.model.enums.CouponPurpose;
+import com.lanf.welfare.model.enums.CouponTemplateStatus;
 import com.lanf.welfare.model.enums.CouponType;
 import com.lanf.welfare.model.query.CouponTemplatePageQuery2;
 import com.lanf.welfare.model.vo.CouponPurposeVO;
 import com.lanf.welfare.model.vo.CouponTemplateListVO;
-import com.lanf.welfare.service.biz.ICouponTemplateService;
+import com.lanf.welfare.service.ICouponTemplateHistoryService;
+import com.lanf.welfare.service.ICouponTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,8 +54,11 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     private SystemService systemService;
     @Autowired
     private RedisCache redisCache;
+    @Autowired
+    private ICouponTemplateHistoryService couponTemplateHistoryService;
 
     @DistributedLock(key = "#dto.adminUserId")//防止重复点击提交
+    @Transactional
     @Override
     public void couponTemplateAdd(CouponTemplateAddDTO dto) {
 
@@ -66,11 +74,22 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
             //如果不是店铺优惠卷，-1默认所有店铺都能使用
             shopId = -1L;
         }
+        Long couponTemplateId = IdUtils.generateId();
         couponTemplate.setUseCondition(useCondition);
         couponTemplate.setShopId(shopId);
         couponTemplate.setRemainCount(dto.getTotalCount());
-        this.save(couponTemplate);
+        //默认已发布
+        couponTemplate.setStatus(CouponTemplateStatus.PUSH.getCode());
+        couponTemplate.setVersion(1L);
+        couponTemplate.setId(couponTemplateId);
+        /**
+         * 构建发布历史
+         */
+        CouponTemplateHistoryDO templateHistoryDO = BeanCopyUtils.copyBean(couponTemplate, CouponTemplateHistoryDO.class);
+        templateHistoryDO.setCouponTemplateId(couponTemplateId);
 
+        this.save(couponTemplate);
+        couponTemplateHistoryService.save(templateHistoryDO);
     }
 
 
@@ -243,6 +262,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                 //领取结束时间大于当前时间
                 .gt(CouponTemplateDO::getReceiveEndTime, new Date())
                 .gt(CouponTemplateDO::getRemainCount,0)
+                .eq(CouponTemplateDO::getStatus, CouponTemplateStatus.PUSH.getCode())
                 .eq(CouponTemplateDO::getShopId, shopId)
                 .eq(CouponTemplateDO::getPurpose, CouponPurpose.SHOP.getCode())
                 .list();
@@ -293,7 +313,9 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                 //领取时间已结束 不展示
                 iterator.remove();
             }
-
+            if ( !CouponTemplateStatus.PUSH.getCode().equals(next.getStatus())){
+                iterator.remove();
+            }
         }
 
         return templateListBOS;

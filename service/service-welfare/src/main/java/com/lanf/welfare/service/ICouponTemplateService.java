@@ -1,4 +1,4 @@
-package com.lanf.welfare.service.biz;
+package com.lanf.welfare.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.mybatis.base.PageResult;
