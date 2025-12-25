@@ -67,7 +67,7 @@ public class CacheConstants {
      * 缓存时间7天
      */
     public static final int SHOP_COUPON_EXP_TIME = 7 * 24 * 60;
-    public static final int SHOP_COUPON_COUNT_EXP_TIME = 7 * 24 * 60;
+    public static final long SHOP_COUPON_COUNT_EXP_TIME = 7 * 24 * 60;
     public static final int COUPON_REVOKE_EXP_TIME = 7 * 24 * 60;
 
     /**
@@ -136,7 +136,7 @@ public class CacheConstants {
         return String.format(CacheConstants.SHOP_COUPON, shopId);
     }
 
-    public static String getSHOP_COUPON_COUNT( Long shopId) {
+    public static String getSHOP_COUPON_COUNT(Long shopId) {
 
         return String.format(CacheConstants.SHOP_COUPON_COUNT, shopId);
     }

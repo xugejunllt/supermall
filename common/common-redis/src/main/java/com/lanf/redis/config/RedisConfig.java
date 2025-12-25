@@ -1,20 +1,12 @@
 package com.lanf.redis.config;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.*;
-
-import java.time.Duration;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @EnableCaching //开启缓存
 @Configuration  //配置类
@@ -25,11 +17,17 @@ public class RedisConfig extends CachingConfigurerSupport {
 
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
-
+        StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
         // 使用 StringRedisSerializer 来序列化和反序列化 redis 的 key 如果不配置 key在redis中乱码
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setHashKeySerializer(new StringRedisSerializer());
-
+        //所有类型key的序列化方式
+        template.setKeySerializer(stringRedisSerializer);
+        //用于序列化 Hash 中的字段名
+        template.setHashKeySerializer(stringRedisSerializer);
+        template.setValueSerializer(stringRedisSerializer);
+        //hash 类型的value 使用string类型
+        template.setHashValueSerializer(stringRedisSerializer);
+        // 其他类型（List/Set）的元素也使用这个序列化器
+        template.setDefaultSerializer(stringRedisSerializer);
 
         return template;
     }

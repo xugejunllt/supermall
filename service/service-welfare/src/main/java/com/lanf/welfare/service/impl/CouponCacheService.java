@@ -4,9 +4,12 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.redis.constant.CacheConstants;
 import com.lanf.redis.service.RedisCache;
 import com.lanf.welfare.model.bo.CacheCouponTemplateListBO;
+import com.lanf.welfare.model.bo.DeductShopCouponRemainCountCacheBO;
 import com.lanf.welfare.model.bo.ShopCouponRemainCountCacheBO;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -17,12 +20,67 @@ import java.util.Set;
 /**
  * 优惠券缓存服务  聚会优惠卷相关缓存
  */
+@Slf4j
 @Service
 @Data
 public class CouponCacheService {
 
     @Autowired
     private RedisCache redisCache;
+
+
+    /**
+     * 执行减一操作
+     * @param key Redis key
+     * @param hashField Hash字段
+     * @param expireTime 过期时间（秒）
+     * @return 操作后的值，null表示key不存在或字段不存在
+     * >0 扣减成功
+     * <=0 减操作失败
+     *
+     */
+
+    private static final String LUA_SCRIPT =
+                    "local key = KEYS[1] \n" +
+                    "local hashField = ARGV[1] \n" +
+                    "local expireTime = tonumber(ARGV[2]) \n" +
+                    "local refreshThreshold = 0.2 \n" +
+                    " \n" +
+                    "-- 1. 检查key是否存在 \n" +
+                    "if redis.call('exists', key) == 0 then \n" +
+                    "    return  tostring(-1) \n" +
+                    "end \n" +
+                    " \n" +
+                    "-- 2. 获取hash字段的值 \n" +
+                    "local  value = redis.call('hget', key,hashField) \n" +
+                    "if  not value then \n" +
+                    "    return tostring(-1) \n" +
+                    "end \n" +
+
+
+                    " \n" +
+                    "-- 3. 检查剩余过期时间 \n" +
+                    "local ttl = redis.call('ttl', key) \n" +
+
+                    "if ttl > 0 and ttl <= expireTime * refreshThreshold then \n" +
+                    "    -- 剩余时间小于等于20%，刷新过期时间 \n" +
+                    "    redis.call('expire', key, expireTime) \n" +
+                    "end \n" +
+                    " \n" +
+                    "-- 4. 处理value值 \n" +
+                    "local numValue = tonumber(value) \n"+
+
+                    "if numValue > 0 then \n" +
+                    "    -- value大于0，减1并更新 \n" +
+
+                    "    local newValue = numValue - 1 \n" +
+                    "    redis.call('hset', key, hashField, tostring(newValue)) \n" +
+                    "    return  tostring(1)  \n" +
+                    "else \n" +
+                    "    -- value小于等于0，返回原值 \n" +
+                    "    return   tostring(0) \n" +
+                    "end";
+
 
     /**
      * 获取店铺优惠券缓存
@@ -67,9 +125,9 @@ public class CouponCacheService {
     public void setShopCouponRemainCountCache(Long shopId, List<ShopCouponRemainCountCacheBO> boList) {
 
         // 构造Map缓存：key为couponTemplateId，value为remainCount
-        Map<String, Integer> remainCountMap = new HashMap<>();
+        Map<String, String> remainCountMap = new HashMap<>();
         for (ShopCouponRemainCountCacheBO bo : boList) {
-            remainCountMap.put(bo.getCouponTemplateId().toString(), bo.getRemainCount());
+            remainCountMap.put(bo.getCouponTemplateId().toString(), bo.getRemainCount().toString());
         }
         redisCache.setCacheMap(CacheConstants.getSHOP_COUPON_COUNT(shopId), remainCountMap);
         redisCache.expire(CacheConstants.getSHOP_COUPON_COUNT(shopId),
@@ -80,9 +138,44 @@ public class CouponCacheService {
     /**
      * 获取店铺优惠卷剩余数量缓存
      */
-    public Map<String, Integer> getShopCouponRemainCountCache(Long shopId) {
+    public Map<String, String> getShopCouponRemainCountCache(Long shopId) {
+
+
 
         return redisCache.getCacheMap(CacheConstants.getSHOP_COUPON_COUNT(shopId));
+
+    }
+
+    /**
+     * 扣减 缓存 hahs中的优惠卷剩余数量
+     *
+     *
+     *
+     */
+    public DeductShopCouponRemainCountCacheBO deductShopCouponRemainCountCache(Long shopId, Long couponTemplateId){
+
+        DefaultRedisScript<String > script = new DefaultRedisScript<>();
+        script.setScriptText(LUA_SCRIPT);
+        script.setResultType(String .class);
+        String  positive = redisCache.decrementIfPositive(script,
+                CacheConstants.getSHOP_COUPON_COUNT(shopId),
+                couponTemplateId.toString(), CacheConstants.SHOP_COUPON_COUNT_EXP_TIME);
+
+        DeductShopCouponRemainCountCacheBO bo = new DeductShopCouponRemainCountCacheBO();
+        log.info("剩余数量 positive:{}", positive);
+        if ( positive == null){
+            bo.setExist( false);
+        } else {
+            bo.setExist( true);
+//            bo.setDeductOk( positive > 0);
+
+
+        }
+        Integer cacheMapValue = redisCache.getCacheMapValue(CacheConstants.getSHOP_COUPON_COUNT(shopId), couponTemplateId.toString());
+        log.info("缓存MapValue cacheMapValue:{}", cacheMapValue);
+
+        return  bo;
+
 
     }
 

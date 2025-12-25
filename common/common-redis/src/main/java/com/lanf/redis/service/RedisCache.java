@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -262,7 +263,32 @@ public class RedisCache {
            throw new IRedisException("获取map失败");
         }
     }
+    /**
+     * 执行减一操作
+     * @param key Redis key
+     * @param hashField Hash字段
+     * @param expireTime 过期时间（秒）
+     * @return 操作后的值，null表示key不存在或字段不存在
+     * -1 key不存在
+     * 0 数量不足
+     * 1 成功
+     *
+     *
+     */
+    public String  decrementIfPositive(DefaultRedisScript<String > script,String key, String hashField,
+                                     Long  expireTime) {
 
+        try {
+            return (String) redisTemplate.execute(script,
+                    Collections.singletonList(key),
+                    hashField,
+                    String.valueOf(expireTime)
+            );
+        } catch (Exception e) {
+            log.error("执行Lua脚本失败,key[{}],hashField[{}],expireTime[{}],异常堆栈",key,hashField,expireTime,e);
+            throw new IRedisException("执行Lua脚本失败");
+        }
+    }
     /**
      * 往Hash中存入数据
      *

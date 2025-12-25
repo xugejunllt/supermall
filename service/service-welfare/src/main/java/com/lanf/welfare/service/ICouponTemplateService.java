@@ -38,4 +38,6 @@ public interface ICouponTemplateService extends IService<CouponTemplateDO> {
      *
      */
     void couponTemplateRevoke(CouponTemplateRevokeDTO dto);
+
+
 }

@@ -325,6 +325,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         }
     }
 
+
     private List<CacheCouponTemplateListBO> buildCouponTemplateList(Long shopId) {
         List<CacheCouponTemplateListBO> cache = couponCacheService.getShopCouponCache(shopId);
         List<CacheCouponTemplateListBO> listVOList = null;
@@ -354,19 +355,20 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
          */
 
         // key 优惠卷id value:剩余数量
-        Map<String, Integer> remainCountCacheMap = buildShopCouponRemainCount( shopId);
+        Map<String, String> remainCountCacheMap = buildShopCouponRemainCount( shopId);
         Iterator<CacheCouponTemplateListBO> iterator = listVOList.iterator();
 
         while (iterator.hasNext()) {
 
             CacheCouponTemplateListBO next = iterator.next();
             Long id = next.getId();
-            Integer remainCount = remainCountCacheMap.get(id.toString());
-            if (remainCount == null) {
+            String remainCounts = remainCountCacheMap.get(id.toString());
+            if (remainCounts == null) {
                 //告警
                 iterator.remove();
                 log.error("优惠卷剩余数量缓存为空[{}]", id);
             } else {
+                int remainCount = Integer.parseInt(remainCounts);
                 if (remainCount < 1) {
                     //剩余数量小于1 不展示
                     log.info("优惠卷剩余数量小于1[{}]", id);
@@ -379,9 +381,10 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     }
 
 
-    private Map<String, Integer> buildShopCouponRemainCount(Long shopId) {
+
+    private Map<String, String> buildShopCouponRemainCount(Long shopId) {
         // key:优惠卷id value:剩余数量
-        Map<String, Integer> remainCountCache = couponCacheService.getShopCouponRemainCountCache(shopId);
+        Map<String, String> remainCountCache = couponCacheService.getShopCouponRemainCountCache(shopId);
         if (remainCountCache.isEmpty()) {
 
             List<CacheCouponTemplateListBO> couponTemplateListBOList = loadDBCouponTemplateList(shopId);
@@ -399,10 +402,11 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                     .collect(Collectors.toList());
 
             couponCacheService.setShopCouponRemainCountCache(shopId, couponRemainCountCacheBOList);
+            remainCountCache = couponCacheService.getShopCouponRemainCountCache(shopId);
 
         }
         // key 优惠卷id value:剩余数量
-        return couponCacheService.getShopCouponRemainCountCache(shopId);
+        return remainCountCache;
     }
     private List<CacheCouponTemplateListBO> loadDBCouponTemplateList(Long shopId) {
 

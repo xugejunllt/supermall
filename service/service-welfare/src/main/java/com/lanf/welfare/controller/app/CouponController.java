@@ -1,9 +1,14 @@
 package com.lanf.welfare.controller.app;
 
 
+import com.lanf.constant.result.Result;
+import com.lanf.welfare.model.dto.ReceiveShopCouponDTO;
 import com.lanf.welfare.service.ICouponService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,6 +29,16 @@ public class CouponController {
     private ICouponService couponService;
 
 
+
+    /**
+     * 领取店铺优惠券
+     */
+    @PostMapping("/receiveShopCoupon")
+    public Result<Void> receiveShopCoupon(@RequestBody @Validated ReceiveShopCouponDTO dto) {
+        log.info("领取店铺优惠券:{}",dto);
+        couponService.receiveShopCoupon(dto);
+        return Result.ok();
+    }
 
 }
 
