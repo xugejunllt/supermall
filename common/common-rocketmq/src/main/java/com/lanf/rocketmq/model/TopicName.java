@@ -10,6 +10,10 @@ public class TopicName {
      */
     public static final String USER_STOCK_ADD_TOPIC = "USER_STOCK_ADD_TOPIC";
     /**
+     * 扣减优惠卷模板数量
+     */
+    public static final String DEDUCT_COUPON_TEMPLATE_COUNT_TOPIC = "DEDUCT_COUPON_TEMPLATE_COUNT_TOPIC";
+    /**
      * 订单状态变更
      */
     public static  final String ORDER_STATUS_CHANGE_TOPIC = "ORDER_STATUS_CHANGE_TOPIC";
@@ -120,6 +124,7 @@ public class TopicName {
     public static  final String PAY_SUCCESS_STORAGE_EVENT_GROUP = "PAY_SUCCESS_STORAGE_EVENT_GROUP";
     public static  final String SAVE_GOODS_ES__GROUP = "SAVE_GOODS_ES__GROUP";
     public static final String USER_STOCK_ADD_GROUP = "USER_STOCK_ADD_GROUP";
+    public static final String DEDUCT_COUPON_TEMPLATE_COUNT_GROUP = "DEDUCT_COUPON_TEMPLATE_COUNT_GROUP";
 
 
 }

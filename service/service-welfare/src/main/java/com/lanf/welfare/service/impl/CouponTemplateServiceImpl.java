@@ -13,6 +13,7 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.redis.constant.CacheConstants;
 import com.lanf.redis.service.RedisCache;
+import com.lanf.rocketmq.model.message.DeductCouponTemplateCountMsg;
 import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.api.SystemService;
 import com.lanf.welfare.mapper.CouponTemplateMapper;
@@ -382,7 +383,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
 
 
-    private Map<String, String> buildShopCouponRemainCount(Long shopId) {
+    public Map<String, String> buildShopCouponRemainCount(Long shopId) {
         // key:优惠卷id value:剩余数量
         Map<String, String> remainCountCache = couponCacheService.getShopCouponRemainCountCache(shopId);
         if (remainCountCache.isEmpty()) {
@@ -408,6 +409,9 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         // key 优惠卷id value:剩余数量
         return remainCountCache;
     }
+
+
+
     private List<CacheCouponTemplateListBO> loadDBCouponTemplateList(Long shopId) {
 
         log.info("从DB加载优惠券列表开始");
@@ -496,4 +500,29 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         }
 
     }
+    @Override
+    public void deductCouponTemplateCount(DeductCouponTemplateCountMsg message) {
+
+        Integer deductCount = message.getDeductCount();
+        Long couponTemplateId = message.getCouponTemplateId();
+
+        CouponTemplateDO templateDO = this.getById(couponTemplateId);
+        Long version = templateDO.getVersion();
+        Long updateVersion = version + 1;
+
+        boolean update = this.lambdaUpdate()
+                .eq(CouponTemplateDO::getId, couponTemplateId)
+                .eq(CouponTemplateDO::getVersion, version)
+                .ge(CouponTemplateDO::getRemainCount, deductCount)
+                .set(CouponTemplateDO::getRemainCount, templateDO.getRemainCount() - deductCount)
+                .set(CouponTemplateDO::getVersion, updateVersion)
+                .update();
+        if ( !update){
+            log.error("更新失败");
+            throw new BizException("更新失败");
+        }
+
+    }
+
+
 }

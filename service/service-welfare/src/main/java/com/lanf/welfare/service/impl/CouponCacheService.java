@@ -34,9 +34,11 @@ public class CouponCacheService {
      * @param key Redis key
      * @param hashField Hash字段
      * @param expireTime 过期时间（秒）
-     * @return 操作后的值，null表示key不存在或字段不存在
-     * >0 扣减成功
-     * <=0 减操作失败
+     *
+     *
+     * -1： key不存在
+     * 0：数量不足
+     * 1： 扣減成功
      *
      */
 
@@ -157,22 +159,13 @@ public class CouponCacheService {
         DefaultRedisScript<String > script = new DefaultRedisScript<>();
         script.setScriptText(LUA_SCRIPT);
         script.setResultType(String .class);
-        String  positive = redisCache.decrementIfPositive(script,
+        String  resultStatus = redisCache.decrementIfPositive(script,
                 CacheConstants.getSHOP_COUPON_COUNT(shopId),
                 couponTemplateId.toString(), CacheConstants.SHOP_COUPON_COUNT_EXP_TIME);
 
+
         DeductShopCouponRemainCountCacheBO bo = new DeductShopCouponRemainCountCacheBO();
-        log.info("剩余数量 positive:{}", positive);
-        if ( positive == null){
-            bo.setExist( false);
-        } else {
-            bo.setExist( true);
-//            bo.setDeductOk( positive > 0);
-
-
-        }
-        Integer cacheMapValue = redisCache.getCacheMapValue(CacheConstants.getSHOP_COUPON_COUNT(shopId), couponTemplateId.toString());
-        log.info("缓存MapValue cacheMapValue:{}", cacheMapValue);
+        bo.setResultStatus(Integer.parseInt(resultStatus));
 
         return  bo;
 

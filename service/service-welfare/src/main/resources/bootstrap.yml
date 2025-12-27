@@ -23,7 +23,7 @@ spring:
             data-id: filterPath.yaml
             refresh: true
           - group: common
-            data-id: seata.yaml
+            data-id: rocketmq.yaml
 server:
   port: 9015
   servlet:

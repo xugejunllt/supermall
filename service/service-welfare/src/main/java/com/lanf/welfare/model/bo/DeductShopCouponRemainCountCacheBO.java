@@ -8,9 +8,11 @@ import java.io.Serializable;
 @Data
 public class DeductShopCouponRemainCountCacheBO implements Serializable {
 
-    //key 是否存在
-    private Boolean exist;
-    // 优惠券是否扣减成功
-    private Boolean deductOk;
+    /**
+     * -1： key不存在
+     *  0：数量不足
+     *  1：扣減成功
+     */
+    private Integer resultStatus;
 
 }

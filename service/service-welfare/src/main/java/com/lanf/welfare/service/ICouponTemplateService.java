@@ -2,6 +2,7 @@ package com.lanf.welfare.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.rocketmq.model.message.DeductCouponTemplateCountMsg;
 import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
 import com.lanf.welfare.model.dto.CouponTemplateRevokeDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
@@ -10,6 +11,7 @@ import com.lanf.welfare.model.vo.CouponPurposeVO;
 import com.lanf.welfare.model.vo.CouponTemplateListVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -38,6 +40,16 @@ public interface ICouponTemplateService extends IService<CouponTemplateDO> {
      *
      */
     void couponTemplateRevoke(CouponTemplateRevokeDTO dto);
+    /**
+     * 构建优惠卷模板剩余数量 缓存
+     *
+     */
+     Map<String, String> buildShopCouponRemainCount(Long shopId);
 
-
+    /**
+     *
+     * 扣减优惠卷模板数量
+     *
+     */
+     void  deductCouponTemplateCount(DeductCouponTemplateCountMsg message);
 }

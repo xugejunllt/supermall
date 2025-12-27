@@ -2,6 +2,7 @@ package com.lanf.welfare.controller.app;
 
 
 import com.lanf.constant.result.Result;
+import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.model.dto.ReceiveShopCouponDTO;
 import com.lanf.welfare.service.ICouponService;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,9 @@ public class CouponController {
      */
     @PostMapping("/receiveShopCoupon")
     public Result<Void> receiveShopCoupon(@RequestBody @Validated ReceiveShopCouponDTO dto) {
+        dto.setUserId(UserIdContext.getUserId());
         log.info("领取店铺优惠券:{}",dto);
+
         couponService.receiveShopCoupon(dto);
         return Result.ok();
     }
