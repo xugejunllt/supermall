@@ -1,10 +1,9 @@
 package com.lanf.common.utils;
 
-import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.xml.internal.ws.util.UtilException;
+import com.lanf.constant.exception.UtilException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;

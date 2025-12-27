@@ -9,7 +9,7 @@ import com.lanf.goods.model.vo.GoodsPageVO;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.security.utils.MerchantIdContext;
+import com.lanf.common.utils.MerchantIdContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

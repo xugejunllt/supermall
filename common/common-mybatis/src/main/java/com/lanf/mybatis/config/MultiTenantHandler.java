@@ -2,7 +2,7 @@ package com.lanf.mybatis.config;
 
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
 import com.lanf.common.utils.AutoIgnoreTenantContext;
-import com.lanf.security.utils.MerchantIdContext;
+import com.lanf.common.utils.MerchantIdContext;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 

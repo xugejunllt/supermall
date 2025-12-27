@@ -12,7 +12,7 @@ import com.lanf.goods.service.base.IGoodsAttributeService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.MerchantIdContext;
+import com.lanf.common.utils.MerchantIdContext;
 import com.lanf.constant.exception.BizException;
 import org.springframework.stereotype.Service;
 

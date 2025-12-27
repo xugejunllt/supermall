@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.lanf</groupId>
         <artifactId>common</artifactId>
-        <version>${common-pom.version}</version>
+        <version>1.0.0</version>
     </parent>
     <artifactId>common-seata</artifactId>
     <version>${common-seata.version}</version>

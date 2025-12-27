@@ -2,7 +2,7 @@ package com.lanf.system.service.impl;
 
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.constant.Constants;
-import com.lanf.security.utils.MerchantIdContext;
+import com.lanf.common.utils.MerchantIdContext;
 import com.lanf.system.mapper.SysUserMapper;
 import com.lanf.system.model.bo.CustomUserBO;
 import com.lanf.system.model.entiry.MerchantDO;

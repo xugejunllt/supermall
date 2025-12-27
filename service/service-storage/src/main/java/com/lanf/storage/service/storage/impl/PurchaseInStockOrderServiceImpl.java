@@ -13,7 +13,7 @@ import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.rocketmq.model.message.UserStockAddMsg;
 import com.lanf.rocketmq.model.message.UserStockMsg;
-import com.lanf.security.utils.MerchantIdContext;
+import com.lanf.common.utils.MerchantIdContext;
 import com.lanf.storage.mapper.PurchaseInStockOrderMapper;
 import com.lanf.storage.model.bo.StockSaveOrUpdateBO;
 import com.lanf.storage.model.bo.StockUpdateBO;

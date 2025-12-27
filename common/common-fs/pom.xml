@@ -6,7 +6,7 @@
     <parent>
         <artifactId>common</artifactId>
         <groupId>com.lanf</groupId>
-        <version>${common-pom.version}</version>
+        <version>1.0.0</version>
     </parent>
     <artifactId>common-fs</artifactId>
     <version>${common-fs.version}</version>

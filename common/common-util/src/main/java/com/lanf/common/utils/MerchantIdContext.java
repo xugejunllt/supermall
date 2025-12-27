@@ -1,4 +1,4 @@
-package com.lanf.security.utils;
+package com.lanf.common.utils;
 
 
 /**

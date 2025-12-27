@@ -19,7 +19,7 @@ import com.lanf.goods.service.base.IBaseGoodsSkuService;
 import com.lanf.goods.service.goods.IStockService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.MerchantIdContext;
+import com.lanf.common.utils.MerchantIdContext;
 
 import com.lanf.constant.exception.BizException;
 import org.apache.commons.lang3.StringUtils;

@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.lanf</groupId>
         <artifactId>service-api</artifactId>
-        <version>${service-api-pom.version}</version>
+        <version>1.0.0</version>
     </parent>
 
 
