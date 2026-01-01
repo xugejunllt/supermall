@@ -3,35 +3,40 @@ package com.lanf.pay.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtils;
-import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.common.utils.IdUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.mapper.TradeOrderMapper;
 import com.lanf.pay.model.dto.CreatePayOrderDTO;
+import com.lanf.pay.model.dto.PlaceSinglePayOrderDTO;
 import com.lanf.pay.model.dto.TradeOrderQuantitySumDTO;
-import com.lanf.pay.model.entity.BathPayOrderDO;
 import com.lanf.pay.model.entity.PayOrderDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.entity.TradeOrderItemDO;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
 import com.lanf.pay.model.query.TradeOrderQuery;
-import com.lanf.pay.model.vo.*;
+import com.lanf.pay.model.vo.CreatePayOrderVO;
+import com.lanf.pay.model.vo.OrderTradeVO;
+import com.lanf.pay.model.vo.TradeOrderApiVO;
+import com.lanf.pay.model.vo.TradeOrderBathVO;
 import com.lanf.pay.service.IBathPayOrderService;
 import com.lanf.pay.service.IPayOrderService;
 import com.lanf.pay.service.ITradeOrderItemService;
 import com.lanf.pay.service.ITradeOrderService;
 import com.lanf.rocketmq.model.message.RefundDTO;
-import com.lanf.constant.exception.BizException;
-import com.lanf.constant.result.Result;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.dto.UseCouponDTO;
 import com.lanf.welfare.model.vo.UseCouponVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -56,122 +61,28 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
 
     @Override
+    public void placeSinglePayOrder(PlaceSinglePayOrderDTO dto) {
+
+        TradeOrderDO tradeOrderDO = BeanCopyUtils.copyBean(dto, TradeOrderDO.class);
+        tradeOrderDO.setBathPayOrderId(-1L);
+        tradeOrderDO.setOutTradeNo(dto.getOrderNumber());
+        tradeOrderDO.setPayStatus(0);
+        tradeOrderDO.setBathPay(0);
+        tradeOrderDO.setVersion(1L);
+
+        try {
+            this.save(tradeOrderDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("重复插入交易订单");
+            throw new BizException("重复插入交易订单");
+        }
+    }
+
+    @Override
     public CreatePayOrderVO createPayOrder(List<CreatePayOrderDTO> dto) {
 
-        dto.forEach(a -> {
 
-            List<TradeOrderDO> tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getBizOrderId, a.getBizOrderId()).list();
-            if (!tradeOrderDO.isEmpty()) {
-                throw new BizException("交易订单已存在");
-            }
-
-        });
-
-        List<TradeOrderDO> tradeOrderDOList = new ArrayList<>();
-        List<PayOrderDO> payOrderDOList = new ArrayList<>();
-        List<CreatePayOrderItemVO> createPayOrderItemVOList = new ArrayList<>();
-        BigDecimal totalMoney = new BigDecimal(0);
-        //实际支付总金额
-        BigDecimal totalActualPayMoney = new BigDecimal(0);
-        //批量支付单id
-        Long bathPayOrderId = IdUtils.generateId();
-        List<TradeOrderItemDO> tradeOrderItemDOList = new ArrayList<>();
-        //
-        //使用优惠券
-        Map<Long, UseCouponVO> useCouponVOMap = useCoupon(dto);
-
-        //////
-        for (CreatePayOrderDTO b : dto) {
-            /**
-             * 优惠信息
-             */
-            //优惠金额
-            List<BigDecimal> discountMoneyList = new ArrayList<>();
-            UseCouponVO useCouponVO = useCouponVOMap.get(b.getShopId());
-            if (useCouponVO != null) {
-                discountMoneyList.add(useCouponVO.getDiscountMoney());
-            }
-
-            /**
-             * 计算
-             */
-            BigDecimal orderMoney = b.getOrderMoney();
-
-            //实际订单支付金额
-            BigDecimal actualPayMoney = getActualPayMoney(discountMoneyList, orderMoney);
-            //构建TradeOrderDO
-            TradeOrderDO tradeOrderDO = new TradeOrderDO();
-            tradeOrderDOList.add(tradeOrderDO);
-            Long id = IdUtils.generateId();
-            tradeOrderDO.setId(id);
-            tradeOrderDO.setOrderNumber(CodeGenerateUtils.generateOrderNumber());
-            tradeOrderDO.setUserId(b.getUserId());
-            tradeOrderDO.setShopId(b.getShopId());
-            tradeOrderDO.setBizOrderId(b.getBizOrderId());
-            tradeOrderDO.setSource(b.getSource());
-            tradeOrderDO.setPlaceOrderTime(new Date());
-            tradeOrderDO.setOrderMoney(orderMoney);
-            tradeOrderDO.setPayStatus(0);
-            tradeOrderDO.setBathPayOrderId(bathPayOrderId);
-            /**
-             * 构建TradeOrderItemDO
-             */
-            TradeOrderItemDO tradeOrderItemDO = new TradeOrderItemDO();
-            tradeOrderItemDO.setTradeOrderId(id);
-            tradeOrderItemDO.setBizOrderId(b.getBizOrderId());
-            tradeOrderItemDO.setTradeMoney(actualPayMoney);
-            tradeOrderItemDO.setPayType(0);
-            tradeOrderItemDOList.add(tradeOrderItemDO);
-            if (useCouponVO != null) {
-                TradeOrderItemDO v2 = new TradeOrderItemDO();
-                v2.setTradeOrderId(id);
-                v2.setBizOrderId(useCouponVO.getCouponId());
-                v2.setTradeMoney(useCouponVO.getDiscountMoney());
-                v2.setPayType(1);
-                tradeOrderItemDOList.add(v2);
-            }
-
-            //构建PayOrderDO
-            PayOrderDO payOrderDO = new PayOrderDO();
-            payOrderDOList.add(payOrderDO);
-            payOrderDO.setOrderNumber(CodeGenerateUtils.generateOrderNumber());
-            payOrderDO.setUserId(b.getUserId());
-            payOrderDO.setShopId(b.getShopId());
-            payOrderDO.setPayStatus(0);
-            payOrderDO.setPayMoney(actualPayMoney);
-            payOrderDO.setTradeOrderId(id);
-            payOrderDO.setBizOrderId(b.getBizOrderId());
-            payOrderDO.setBathPayOrderId(bathPayOrderId);
-            //构建返回信息
-            CreatePayOrderItemVO createPayOrderItemVO = new CreatePayOrderItemVO();
-            createPayOrderItemVO.setShopId(b.getShopId());
-            createPayOrderItemVO.setTotalMoney(orderMoney);
-            createPayOrderItemVO.setActualPayMoney(actualPayMoney);
-            createPayOrderItemVOList.add(createPayOrderItemVO);
-            //实际支付总金额
-            totalActualPayMoney = BigDecimalUtils.add(totalActualPayMoney, actualPayMoney);
-        }
-        BathPayOrderDO bathPayOrderDO = new BathPayOrderDO();
-        CreatePayOrderDTO createPayOrderDTO = dto.get(0);
-        bathPayOrderDO.setUserId(createPayOrderDTO.getUserId());
-        bathPayOrderDO.setMainOrderId(createPayOrderDTO.getMainOrderId());
-        bathPayOrderDO.setBatchNo(CodeGenerateUtils.generateOrderNumber());
-        bathPayOrderDO.setBatchNum(payOrderDOList.size());
-        bathPayOrderDO.setBatchFee(totalActualPayMoney);
-        bathPayOrderDO.setId(bathPayOrderId);
-
-
-        //进行保存
-        this.saveBatch(tradeOrderDOList);
-        payOrderService.saveBatch(payOrderDOList);
-        bathPayOrderService.save(bathPayOrderDO);
-        tradeOrderItemService.saveBatch(tradeOrderItemDOList);
-        //构建返回信息
-        CreatePayOrderVO createPayOrderVO = new CreatePayOrderVO();
-        createPayOrderVO.setTotalMoney(totalMoney);
-        createPayOrderVO.setCreatePayOrderItemVOList(createPayOrderItemVOList);
-
-        return createPayOrderVO;
+        return null;
     }
 
     private BigDecimal getActualPayMoney(List<BigDecimal> discountMoneyList, BigDecimal orderMoney) {
@@ -224,8 +135,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     public OrderTradeVO queryOrderTradeByOrderId(Long orderId) {
 
         //查询用户下单支付的交易单
-        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getBizOrderId, orderId).eq(TradeOrderDO::getSource, 0)
-                .one();
+        TradeOrderDO tradeOrderDO = null;
         if (tradeOrderDO == null) {
             //即使交易没有完成 也不会报错
             return null;
@@ -261,10 +171,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeVO.setOrderId(orderId);
         tradeVO.setPayType(payOrderDO.getPayType());
         tradeVO.setPayMoney(payOrderDO.getPayMoney());
-        tradeVO.setOrderMoney(tradeOrderDO.getOrderMoney());
-        tradeVO.setSource(tradeOrderDO.getSource());
-        tradeVO.setPayFinishTime(payOrderDO.getPayFinishTime());
-        tradeVO.setDiscountMoney(tradeOrderDO.getDiscountMoney());
+//        tradeVO.setOrderMoney(tradeOrderDO.getOrderMoney());
+//        tradeVO.setSource(tradeOrderDO.getSource());
+//        tradeVO.setPayFinishTime(payOrderDO.getPayFinishTime());
+//        tradeVO.setDiscountMoney(tradeOrderDO.getDiscountMoney());
         tradeVO.setDiscountType(discountType);
         tradeVO.setDiscountTypeName(discountTypeName);
         tradeVO.setPayTypeName(getPayTypeName(payOrderDO.getPayType()));
@@ -304,20 +214,20 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Override
     public TradeOrderApiVO tradeOrderQuery(TradeOrderQuery query) {
 
-        Long orderId = query.getOrderId();
-        Integer source = query.getSource();
-
-        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getBizOrderId, orderId).eq(TradeOrderDO::getSource, source).one();
-        Long id = tradeOrderDO.getId();
-        PayOrderDO payOrderDO = payOrderService.lambdaQuery().eq(PayOrderDO::getTradeOrderId, id).one();
-
-        TradeOrderApiVO vo = new TradeOrderApiVO();
-        BeanCopyUtils.copy(tradeOrderDO, vo);
-        vo.setIncomeAccount(payOrderDO.getIncomeAccount());
-        vo.setAccountType(payOrderDO.getPayType());
-        vo.setActualPayMoney(payOrderDO.getPayMoney());
-        vo.setReceiptMoney(payOrderDO.getReceiptMoney());
-        return vo;
+//        Long orderId = query.getOrderId();
+//        Integer source = query.getSource();
+//
+//        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getBizOrderId, orderId).eq(TradeOrderDO::getSource, source).one();
+//        Long id = tradeOrderDO.getId();
+//        PayOrderDO payOrderDO = payOrderService.lambdaQuery().eq(PayOrderDO::getTradeOrderId, id).one();
+//
+//        TradeOrderApiVO vo = new TradeOrderApiVO();
+//        BeanCopyUtils.copy(tradeOrderDO, vo);
+//        vo.setIncomeAccount(payOrderDO.getIncomeAccount());
+//        vo.setAccountType(payOrderDO.getPayType());
+//        vo.setActualPayMoney(payOrderDO.getPayMoney());
+//        vo.setReceiptMoney(payOrderDO.getReceiptMoney());
+        return null;
     }
 
     /**
@@ -329,7 +239,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
 
         List<TradeOrderDO> tradeOrderDOList = this.lambdaQuery().select(BaseEntity::getId).
-                in(TradeOrderDO::getSource, dto.getSources()).
+                //in(TradeOrderDO::getSource, dto.getSources()).
                 eq(TradeOrderDO::getPayStatus, 2).list();
         List<Long> collect = tradeOrderDOList.stream().map(BaseEntity::getId).collect(Collectors.toList());
 

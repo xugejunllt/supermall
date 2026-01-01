@@ -4,6 +4,7 @@ import com.alipay.api.AlipayApiException;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.pay.model.bo.TradeStatusBO;
 import com.lanf.pay.model.dto.CreatePayOrderDTO;
+import com.lanf.pay.model.dto.PlaceSinglePayOrderDTO;
 import com.lanf.pay.model.dto.TradeOrderQuantitySumDTO;
 import com.lanf.pay.model.dto.TransferAccountsDTO;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
@@ -20,7 +21,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/payApi")
+@RequestMapping("/api/pay")
 public class OrderController {
 
     @Autowired
@@ -28,6 +29,14 @@ public class OrderController {
     @Autowired
     private PayServiceAdapter payServiceAdapter;
 
+
+    @PostMapping("/placeSinglePayOrder")
+    public Result<Void> placeSinglePayOrder(@RequestBody PlaceSinglePayOrderDTO dto)  {
+
+        log.info("下达单笔支付订单:dto{}", dto);
+        tradeOrderService.placeSinglePayOrder(dto);
+        return Result.ok();
+    }
 
     @PostMapping("/createPayOrder")
     public Result<CreatePayOrderVO> createPayOrder(@RequestBody List<CreatePayOrderDTO> dto) throws AlipayApiException {

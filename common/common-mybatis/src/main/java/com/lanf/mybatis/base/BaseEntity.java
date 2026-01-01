@@ -11,8 +11,10 @@ public class BaseEntity implements Serializable {
 
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
+
     @TableField( fill = FieldFill.INSERT)
     private Date createTime;
+
     @TableField( fill = FieldFill.INSERT_UPDATE)
     private Date updateTime;
 

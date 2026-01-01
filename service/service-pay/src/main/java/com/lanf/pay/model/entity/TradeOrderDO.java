@@ -23,40 +23,38 @@ public class TradeOrderDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
+
     @ApiModelProperty(value = "订单编号")
     private String orderNumber;
 
-    @ApiModelProperty(value = "用户id")
-    private Long userId;
-    //店铺id
-    private Long shopId;
-
-
-    @ApiModelProperty(value = "业务订单id")
-    private Long bizOrderId;
-    //批量支付单id
+    @ApiModelProperty(value = "批量支付单id")
     private Long bathPayOrderId;
 
-    /**
-     * 来源 0:订单支付 1订单退款、2充值、3提现 4.售后单退款 5:订单支付结算转账给平台
-     */
-    private Integer source;
+    @ApiModelProperty(value = "用户id")
+    private Long userId;
+
+    @ApiModelProperty(value = "订单id")
+    private Long orderId;
 
     @ApiModelProperty(value = "下单时间")
     private Date placeOrderTime;
 
-    @ApiModelProperty(value = "订单金额")
-    private BigDecimal orderMoney;
+    @ApiModelProperty(value = "交易订单号，与三方支付单唯一关联号。如果是单笔付款是订单编号，如果是批量付款，批量订单号")
+    private String outTradeNo;
 
-    @ApiModelProperty(value = "优惠金额")
-    private BigDecimal discountMoney;
+    @ApiModelProperty(value = "交易金额")
+    private BigDecimal tradeMoney;
 
-    // 支付状态 0:待支付 1.支付完成
+    @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
+    private Integer payType;
+
+    @ApiModelProperty(value = "支付状态 0:待支付 1.支付完成 3:已取消")
     private Integer payStatus;
 
-
-    @ApiModelProperty(value = "0：多笔订单支付 ，1：单笔支付")
+    @ApiModelProperty(value = "0:单笔付款，1：批量付款")
     private Integer bathPay;
+
+    private Long version;
 
 
 

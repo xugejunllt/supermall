@@ -1,28 +1,31 @@
 package com.lanf.pay.service;
 
-import com.lanf.common.utils.*;
+import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.constant.enums.LogisticsTrackStatusEnum;
-import com.lanf.messagemanager.client.annotation.SendMessage;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
-import com.lanf.messagemanager.client.utils.RocketMqClientUtils;
 import com.lanf.pay.model.bo.*;
 import com.lanf.pay.model.dto.*;
 import com.lanf.pay.model.entity.*;
 import com.lanf.pay.model.vo.TradeOrderVO;
 import com.lanf.pay.model.vo.TransferAccountsVO;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.message.*;
+import com.lanf.rocketmq.model.message.LiquidationDTO;
+import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
+import com.lanf.rocketmq.model.message.PaySuccessEventMessage;
 import com.lanf.rocketmq.util.MessageBuildAdapter;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 @Slf4j
 public abstract class AbstractPayService implements PayService {
@@ -50,7 +53,6 @@ public abstract class AbstractPayService implements PayService {
      *
      */
     @Override
-    @SendMessage
     public void payCallback(PayCallbackDTO dto) {
 
         //获取支付实现类
@@ -104,7 +106,7 @@ public abstract class AbstractPayService implements PayService {
             BathPayOrderDO bathPayOrderDO = bathPayOrderService.getById(bathPayOrderId);
             TradeOrderDO tradeOrderDO = tradeOrderService.getById(orderDO.getTradeOrderId());
             //累加时收金额
-            receiptMoney = BigDecimalUtils.add(bathPayOrderDO.getReceiptMoney(), resultVO.getReceiptMoney());
+           // receiptMoney = BigDecimalUtils.add(bathPayOrderDO.getReceiptMoney(), resultVO.getReceiptMoney());
             tradeOrderDOList = Arrays.asList(tradeOrderDO);
             orderDOList = Arrays.asList(orderDO);
             bathPay2 = 1;
@@ -115,7 +117,7 @@ public abstract class AbstractPayService implements PayService {
         //构建BathPayOrderDO
         BathPayOrderDO bathPayOrderDOUpdate = new BathPayOrderDO();
         bathPayOrderDOUpdate.setId(bathPayOrderId);
-        bathPayOrderDOUpdate.setReceiptMoney(receiptMoney);
+        //bathPayOrderDOUpdate.setReceiptMoney(receiptMoney);
         //构建TradeOrderDO
         List<TradeOrderDO> tradeOrderDOUpdtateList = new ArrayList<>();
         for (TradeOrderDO a : tradeOrderDOList) {
@@ -160,7 +162,7 @@ public abstract class AbstractPayService implements PayService {
 
             String key = a.getBizOrderId()+":"+finishContent+":"+source;
             PaySuccessEventMessage message = new PaySuccessEventMessage();
-            message.setBizKeyValue(key);
+            //message.setBizKeyValue(key);
             //订单更新
             message.setOrderId(a.getBizOrderId());
             //进行结算
@@ -179,7 +181,7 @@ public abstract class AbstractPayService implements PayService {
                     finishContent, LogisticsTrackStatusEnum.PLACE_AN_ORDER_BUS_INCOME.getCode());
             message.setLogisticsTrackBathAddDTO(logisticsTrackBathAddDTO);
 
-            sendMqMessageService.sendMessage(TopicName.PAY_SUCCESS_EVENT_TOPIC,message);
+           // sendMqMessageService.sendMessage(TopicName.PAY_SUCCESS_EVENT_TOPIC,message);
 
         });
 

@@ -9,18 +9,17 @@ import java.math.BigDecimal;
 
 /**
  * <p>
- * 批量支付订单
+ * 批量交易订单
  * </p>
  *
- * @author 江帅帅 Jss_forever
- * @since 2024-06-15
+ * @author jarven
+ * @since 2025-12-28
  */
 @Data
-@TableName("bath_pay_order")
-public class BathPayOrderDO extends BaseEntity {
+@TableName("bath_trade_order")
+public class BathTradeOrderDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
-
 
 
     @ApiModelProperty(value = "用户id")
@@ -37,6 +36,7 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "付款总金额")
     private BigDecimal batchFee;
+
 
 
 

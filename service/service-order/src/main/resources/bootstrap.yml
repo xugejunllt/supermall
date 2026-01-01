@@ -28,8 +28,7 @@ spring:
             refresh: true
           - group: common
             data-id: rocketmq.yaml
-          - group: common
-            data-id: seata.yaml
+
 
 
 

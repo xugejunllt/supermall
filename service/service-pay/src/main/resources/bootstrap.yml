@@ -26,8 +26,7 @@ spring:
             data-id: filterPath.yaml
           - group: common
             data-id: rocketmq.yaml
-          - group: common
-            data-id: seata.yaml
+
 server:
   port: 9008
   servlet:

@@ -3,7 +3,7 @@ package com.lanf.order.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.common.utils.DateUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.mapper.MainOrderMapper;
 import com.lanf.order.model.dto.CreateOrderDTO;
@@ -18,12 +18,10 @@ import com.lanf.order.service.IMainOrderService;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IPromiseOrderService;
-import com.lanf.constant.exception.BizException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,7 +63,7 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
         List<OrderItemDO> orderItemDOList = new ArrayList<>();
         List<PromiseOrderDO> promiseOrderDOList = new ArrayList<>();
         for (OrderDO a : orderDOList) {
-            a.setCreateTimeFormat(DateUtils.format(new Date(),DateUtils.DATE));
+           // a.setCreateTimeFormat(DateUtils.format(new Date(),DateUtils.DATE));
             a.setStatus(0);
             a.setOrderNumber(CodeGenerateUtils.generateOrderNumber());
             //

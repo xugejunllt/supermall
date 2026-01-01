@@ -8,12 +8,11 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
-import com.lanf.constant.enums.LogisticsTrackStatusEnum;
+import com.lanf.constant.exception.BizException;
 import com.lanf.logistics.api.LogisticsApiService;
 import com.lanf.logistics.model.vo.LogisticsTrackStatusVO;
 import com.lanf.logistics.model.vo.LogisticsTrackVO;
 import com.lanf.logistics.model.vo.LogisticsVO;
-import com.lanf.messagemanager.client.annotation.SendMessage;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
@@ -36,13 +35,10 @@ import com.lanf.pay.model.vo.OrderTradeVO;
 import com.lanf.pay.model.vo.TradeOrderBathVO;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderDTO;
-import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
-import com.lanf.rocketmq.util.MessageBuildAdapter;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
-import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -203,7 +199,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         this.updateById(orderDOUpdate);
 
     }
-    @SendMessage
+
     @Override
     public void signFor(SignForDTO dto) {
 
@@ -236,9 +232,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
          * 发送mq给物流服务
          */
         String finishContent = "您的订单已签收";
-        LogisticsTrackBathAddDTO bathAddDTO = MessageBuildAdapter.buildLogisticsTrackAddDTO(dto.getOrderId(), finishContent, LogisticsTrackStatusEnum.SIGNED_FOR.getCode());
-        bathAddDTO.setBizKeyValue(dto.getOrderId()+":"+finishContent);
-        sendMqMessageService.sendMessage(TopicName.BATH_ADD_LOGISTICS_TRACK_TOPIC,bathAddDTO);
+//        LogisticsTrackBathAddDTO bathAddDTO = MessageBuildAdapter.buildLogisticsTrackAddDTO(dto.getOrderId(), finishContent, LogisticsTrackStatusEnum.SIGNED_FOR.getCode());
+//        bathAddDTO.setBizKeyValue(dto.getOrderId()+":"+finishContent);
+//        sendMqMessageService.sendMessage(TopicName.BATH_ADD_LOGISTICS_TRACK_TOPIC,bathAddDTO);
 
     }
 
@@ -640,7 +636,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     private LambdaQueryChainWrapper<OrderDO> buildLambdaQueryChainWrapper(ContrastBillOrderQuery query) {
 
 
-        return this.lambdaQuery().select(BaseEntity::getId).eq(OrderDO::getCreateTimeFormat, query.getCreateTimeFormat());
+        return this.lambdaQuery().select(BaseEntity::getId);
     }
 
     @Override

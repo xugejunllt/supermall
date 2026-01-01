@@ -2,10 +2,7 @@ package com.lanf.welfare.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.IStringUtils;
-import com.lanf.common.utils.IdUtils;
-import com.lanf.common.utils.JsonUtils;
+import com.lanf.common.utils.*;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.lock.aop.DistributedLock;
@@ -505,11 +502,13 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
         Integer deductCount = message.getDeductCount();
         Long couponTemplateId = message.getCouponTemplateId();
+        try {
 
+        AutoIgnoreTenantContext.setAutoIgnoreMark(true);
         CouponTemplateDO templateDO = this.getById(couponTemplateId);
         Long version = templateDO.getVersion();
         Long updateVersion = version + 1;
-
+        //护理多租户字段
         boolean update = this.lambdaUpdate()
                 .eq(CouponTemplateDO::getId, couponTemplateId)
                 .eq(CouponTemplateDO::getVersion, version)
@@ -517,11 +516,14 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                 .set(CouponTemplateDO::getRemainCount, templateDO.getRemainCount() - deductCount)
                 .set(CouponTemplateDO::getVersion, updateVersion)
                 .update();
+
         if ( !update){
             log.error("更新失败");
             throw new BizException("更新失败");
         }
-
+        } finally {
+            AutoIgnoreTenantContext.removeAutoIgnoreMark();
+        }
     }
 
 

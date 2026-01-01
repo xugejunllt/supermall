@@ -19,7 +19,6 @@ import com.lanf.welfare.service.ICouponTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Date;
@@ -48,7 +47,6 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
     @Autowired
     private ISendMqMessageService sendMqMessageService;
 
-    @Transactional
     @DistributedLock(key = "#dto.userId")//防止重复领取
     @Override
     public void receiveShopCoupon(ReceiveShopCouponDTO dto) {
@@ -75,7 +73,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
 
             }
         });
-        //发送mq 注册事件
+        //发送mq 扣減DB优惠卷模板数量
         sendMqMessageService.sendMqMessage(sendMqMessageDTO);
     }
 
@@ -166,7 +164,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         //每个用户领取数量限制
         Integer receiveCount = templateDO.getReceiveCount();
         List<CouponDO> couponDOList = this.lambdaQuery().eq(CouponDO::getUserId, dto.getUserId()).list();
-        if ( couponDOList.size() > receiveCount+1){
+        if ( couponDOList.size() >= receiveCount){
             log.warn("超出领取数量限制");
             throw new BizException("超出领取数量限制");
         }

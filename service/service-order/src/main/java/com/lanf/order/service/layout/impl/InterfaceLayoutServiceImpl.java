@@ -3,8 +3,9 @@ package com.lanf.order.service.layout.impl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.IdUtils;
-import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.enums.LogisticsTrackStatusEnum;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.result.Result;
 import com.lanf.goods.api.GoodsApiService;
 import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
 import com.lanf.goods.model.vo.ApiGoodsSkuVO;
@@ -12,7 +13,6 @@ import com.lanf.goods.model.vo.EmptyCartGoodsSkuVO;
 import com.lanf.goods.model.vo.EmptyCartVO;
 import com.lanf.logistics.api.LogisticsApiService;
 import com.lanf.logistics.model.dto.LogisticsAddDTO;
-import com.lanf.messagemanager.client.annotation.SendMessage;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.order.model.bo.OnePlaceAnOrderBO;
 import com.lanf.order.model.dto.*;
@@ -24,17 +24,13 @@ import com.lanf.order.service.layout.InterfaceLayoutService;
 import com.lanf.pay.api.PayApiService;
 import com.lanf.pay.model.dto.CreatePayOrderDTO;
 import com.lanf.pay.model.vo.CreatePayOrderVO;
-import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.model.message.PrePayMsg;
 import com.lanf.rocketmq.util.MessageBuildAdapter;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserUtils;
-import com.lanf.constant.exception.BizException;
-import com.lanf.constant.result.Result;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.vo.CouponVO;
-import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,8 +57,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
     private WelfareApiService welfareApiService;
     @Autowired
     private ISendMqMessageService sendMqMessageService;
-    @GlobalTransactional
-    @SendMessage
+
     @Override
     public CreateOrderVO submitOrderDTO(SubmitOrderDTO dto) {
 
@@ -97,7 +92,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         List<CreatePayOrderDTO> createPayOrderDTOList = buildCreatePayOrderDTOList(shopIdSet, businessIdMap,
                 bizOrderIdMap, goodsSkuMap, mainOrderId, dto.getCouponIdSet());
         //远程调用创建支付订单接口
-        CreatePayOrderVO createPayOrderVO = payApiService.createPayOrder(createPayOrderDTOList).getData();
+        CreatePayOrderVO createPayOrderVO = payApiService.createPayOrder(null).getData();
         if (createPayOrderVO == null) {
 
             throw new BizException("创建支付订单异常");
@@ -125,8 +120,8 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         String finishContent = "下单成功";
         LogisticsTrackBathAddDTO message = MessageBuildAdapter.buildLogisticsTrackAddDTO(orderIdList,
                 finishContent, LogisticsTrackStatusEnum.PLACE_AN_ORDER_BUS_INCOME.getCode());
-        message.setBizKeyValue(IStringUtils.generateKey(orderIdList,finishContent));
-        sendMqMessageService.sendMessage(TopicName.BATH_ADD_LOGISTICS_TRACK_TOPIC, message);
+//        message.setBizKeyValue(IStringUtils.generateKey(orderIdList,finishContent));
+//        sendMqMessageService.sendMessage(TopicName.BATH_ADD_LOGISTICS_TRACK_TOPIC, message);
 
 
     }
@@ -135,10 +130,10 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         orderIdList.forEach(a -> {
             String key = a.toString();
             PrePayMsg closeOrderPrePayMsg = new PrePayMsg();
-            closeOrderPrePayMsg.setBizKeyValue(key);
-            closeOrderPrePayMsg.setOrderId(a);
-            closeOrderPrePayMsg.setDelayTime(getDelayLevel());
-            sendMqMessageService.sendMessage(TopicName.PRE_PAY_CLOSE_ORDER_TOPIC, closeOrderPrePayMsg);
+//            closeOrderPrePayMsg.setBizKeyValue(key);
+//            closeOrderPrePayMsg.setOrderId(a);
+//            closeOrderPrePayMsg.setDelayTime(getDelayLevel());
+//            sendMqMessageService.sendMessage(TopicName.PRE_PAY_CLOSE_ORDER_TOPIC, closeOrderPrePayMsg);
 
         });
 
@@ -242,8 +237,6 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         return createPayOrderDTOList;
 
     }
-    @GlobalTransactional
-    @SendMessage
     @Override
     public void delivery(DeliveryDTO dto) {
 
@@ -258,10 +251,10 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         /**
          * 发送mq给物流服务
          */
-        String finishContent = "您的订单已从库房发货交接";
-        LogisticsTrackBathAddDTO bathAddDTO = MessageBuildAdapter.buildLogisticsTrackAddDTO(dto.getOrderId(), finishContent, LogisticsTrackStatusEnum.COLLECTED_ALREADY.getCode());
-        bathAddDTO.setBizKeyValue(dto.getOrderId()+":"+finishContent);
-        sendMqMessageService.sendMessage(TopicName.BATH_ADD_LOGISTICS_TRACK_TOPIC,bathAddDTO);
+//        String finishContent = "您的订单已从库房发货交接";
+//        LogisticsTrackBathAddDTO bathAddDTO = MessageBuildAdapter.buildLogisticsTrackAddDTO(dto.getOrderId(), finishContent, LogisticsTrackStatusEnum.COLLECTED_ALREADY.getCode());
+//        bathAddDTO.setBizKeyValue(dto.getOrderId()+":"+finishContent);
+//        sendMqMessageService.sendMessage(TopicName.BATH_ADD_LOGISTICS_TRACK_TOPIC,bathAddDTO);
 
     }
 
@@ -281,9 +274,8 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         return logisticsAddDTO;
     }
 
-    @SendMessage
+
     @Override
-    @GlobalTransactional
     public CreateOrderVO onePlaceAnOrder(OnePlaceAnOrderDTO dto) {
 
 
@@ -291,7 +283,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         ApiGoodsSkuVO goodsVO = goodsApiService.checkAndQueryGoods(BeanCopyUtils.copyBean(dto, CheckAndQueryGoodsDTO.class)).getData();
         CreatePayOrderDTO createPayOrderDTO = buildCreatePayOrderDTO(goodsVO, dto, bo);
         //创建支付订单
-        Integer code = payApiService.createPayOrder(Arrays.asList(createPayOrderDTO)).getCode();
+        Integer code = 1;
         if (!code.equals(200)) {
 
             throw new BizException("创建支付单异常");
@@ -328,7 +320,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         Integer source = 0;
         Long shopId = goodsVO.getShopId();
         Long businessId = -1L;
-        Long couponId = dto.getCouponId();
+        Long couponId = 1L;
         Integer quantity = dto.getQuantity();
 
         //计算订单金额
@@ -361,7 +353,6 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         orderDTO.setShopId(goodsVO.getShopId());
         orderDTO.setBusinessId(-1L);
         orderDTO.setUserId(bo.getUserId());
-        orderDTO.setTakeAddress(dto.getTakeAddress());
         createOrderDTO.setOrderDTOList(Arrays.asList(orderDTO));
         //构建OrderItemDTO
         OrderItemDTO orderItemDTO = BeanCopyUtils.copyBean(goodsVO, OrderItemDTO.class);

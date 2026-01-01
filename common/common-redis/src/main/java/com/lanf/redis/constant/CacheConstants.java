@@ -51,11 +51,11 @@ public class CacheConstants {
      * token过期时间 2个小时
      */
     //public static final int TOKEN_EXP_TIME = 2 * 60;
-    public static final int TOKEN_EXP_TIME = 5 * 24 * 60;
+    public static final int TOKEN_EXP_TIME = 10000 * 24 * 60;
     /**
      * 刷新token过期时间 7天
      */
-    public static final int REFRESH_TOKEN_EXP_TIME = 7 * 24 * 60;
+    public static final int REFRESH_TOKEN_EXP_TIME = 100 * 24 * 60;
 
     public static final int ADMIN_TOKEN_EXP_TIME = 5 * 24 * 60;
     public static final int ADMIN_REFRESH_TOKEN_EXP_TIME = 7 * 24 * 60;

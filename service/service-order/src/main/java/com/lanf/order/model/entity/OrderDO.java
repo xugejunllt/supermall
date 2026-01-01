@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * <p>
@@ -25,27 +26,40 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "店铺id")
     private Long shopId;
 
-
-    /**
-     *订单状态
-     * 0:待付款, 1:待出库 2：已出库 3：已发货，4：已完成，5：已关闭 6.已取消
-     *
-     */
-    private Integer status;
-
     @ApiModelProperty(value = "用户id")
     private Long userId;
 
     @ApiModelProperty(value = "订单编号")
     private String orderNumber;
 
-    @ApiModelProperty(value = "订单总金额")
-    private BigDecimal totalMoney;
-    //实际支付金额
-    private BigDecimal actualPayMoney;
+    @ApiModelProperty(value = "收货地址id")
+    private Long addressId;
+
     @ApiModelProperty(value = "收货地址")
     private String takeAddress;
 
-    private String createTimeFormat;
+    @ApiModelProperty(value = "订单金额")
+    private BigDecimal totalMoney;
+
+    @ApiModelProperty(value = "实付金额")
+    private BigDecimal actualPayMoney;
+
+    @ApiModelProperty(value = "优惠金额")
+    private BigDecimal discountAmount;
+
+    @ApiModelProperty(value = "下单时间")
+    private Date placeOrderTime;
+
+    @ApiModelProperty(value = "优惠信息")
+    private String discountInfo;
+
+    @ApiModelProperty(value = "0:待付款, 1:待出库 2：已出库 3：已发货，4：已完成，5：已关闭 6.已取消")
+    private Integer status;
+
+    @ApiModelProperty(value = "版本号")
+    private Long version;
+
+
+
 
 }
