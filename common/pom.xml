@@ -28,5 +28,6 @@
         <module>common-elasticsearch</module>
         <module>common-shardingsphere</module>
         <module>common-biz-control</module>
+        <module>common-hmily</module>
     </modules>
 </project>

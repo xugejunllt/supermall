@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>service-aftersales</artifactId>
-    <version>${service-aftersales.version}</version>
+    <version>1.0.0</version>
 
     <dependencies>
 
