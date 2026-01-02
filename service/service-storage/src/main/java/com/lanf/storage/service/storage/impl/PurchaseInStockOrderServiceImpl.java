@@ -123,7 +123,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         List<InOutStockOrderItemDO> storageOrderItemDetailsDOUpdate = buildStorageOrderItemDetailsDO(inStorageItemList,
                 purchaseOrderItemDOMap);
         //更新商品库存
-        StockSaveOrUpdateBO stockSaveOrUpdateBO = buildStockSaveOrUpdate(inStorageItemList, warehouseDODOMap)
+        StockSaveOrUpdateBO stockSaveOrUpdateBO = buildStockSaveOrUpdate(inStorageItemList, warehouseDODOMap);
         //生成库存流水
         List<StockFlowDO> stockFlowList = buildStockFlowDO(inStorageItemList, purchaseOrderItemDOMap,
                 storageOrderDO, warehouseDODOMap,stockSaveOrUpdateBO.getStockDOIdMap());
