@@ -51,12 +51,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         singlePayOrderDTO.setTradeMoney(new BigDecimal(1));
         singlePayOrderDTO.setPayType(0);
         payApiService.placeSinglePayOrder(singlePayOrderDTO);
-        return doPlaceOrder( orderDTO);
-    }
-    @Override
-    public PlaceOrderVO doPlaceOrder(PlaceOrderDTO orderDTO) {
-
-
         return null;
     }
 

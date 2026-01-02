@@ -136,10 +136,8 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             String key = a.getWarehouseId() + a.getSkuCode();
             UserStockMsg userStockMsg = stockDOMap.get(key);
 
-            a.setOrderType(4);
+            a.setOrderType(0);
             a.setBizNumber(message.getPurchaseInStockOrderId().toString());
-            a.setEventType(2);
-            a.setTenantId(message.getTenantId());
             a.setInQuantity(userStockMsg.getActualQuantity());
 
 

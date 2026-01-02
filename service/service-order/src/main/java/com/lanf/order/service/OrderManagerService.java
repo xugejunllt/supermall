@@ -11,5 +11,4 @@ public interface OrderManagerService {
      */
     PlaceOrderVO placeOrder(PlaceOrderDTO orderDTO);
 
-    PlaceOrderVO doPlaceOrder(PlaceOrderDTO orderDTO);
 }

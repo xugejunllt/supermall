@@ -9,7 +9,6 @@ import java.util.List;
 public class UserStockAddMsg extends BaseMqMessage {
 
 
-    private Long  tenantId;
 
     private Long purchaseInStockOrderId;
 
