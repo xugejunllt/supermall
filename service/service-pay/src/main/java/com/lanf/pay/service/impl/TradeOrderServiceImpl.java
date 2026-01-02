@@ -27,6 +27,8 @@ import com.lanf.rocketmq.model.message.RefundDTO;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.dto.UseCouponDTO;
 import com.lanf.welfare.model.vo.UseCouponVO;
+import lombok.extern.slf4j.Slf4j;
+import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
  * @author 江帅帅 Jss_forever
  * @since 2024-06-14
  */
+@Slf4j
 @Service
 public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOrderDO> implements ITradeOrderService {
 
@@ -59,10 +62,20 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Autowired
     private WelfareApiService welfareApiService;
 
-
+    @HmilyTCC(confirmMethod = "confirmPlaceSinglePayOrder", cancelMethod = "cancelPlaceSinglePayOrder")
     @Override
     public void placeSinglePayOrder(PlaceSinglePayOrderDTO dto) {
+        log.info("下单开始");
+        String orderNumber = dto.getOrderNumber();
+        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getOrderNumber, orderNumber).one();
+        if (tradeOrderDO != null) {
+            throw new BizException("重复下单");
+        }
 
+    }
+    public void confirmPlaceSinglePayOrder(PlaceSinglePayOrderDTO dto){
+
+        log.info("confirmPlaceSinglePayOrder");
         TradeOrderDO tradeOrderDO = BeanCopyUtils.copyBean(dto, TradeOrderDO.class);
         tradeOrderDO.setBathPayOrderId(-1L);
         tradeOrderDO.setOutTradeNo(dto.getOrderNumber());
@@ -73,10 +86,20 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         try {
             this.save(tradeOrderDO);
         } catch (DuplicateKeyException e) {
+            /**
+             * 不报错
+             */
             log.warn("重复插入交易订单");
-            throw new BizException("重复插入交易订单");
+
         }
     }
+    public void cancelPlaceSinglePayOrder(PlaceSinglePayOrderDTO dto){
+        log.info("cancelPlaceSinglePayOrder");
+
+    }
+
+
+
 
     @Override
     public CreatePayOrderVO createPayOrder(List<CreatePayOrderDTO> dto) {

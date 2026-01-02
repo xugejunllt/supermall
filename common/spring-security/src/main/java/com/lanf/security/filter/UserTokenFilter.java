@@ -39,6 +39,9 @@ public class UserTokenFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response1, FilterChain chain) {
 
         HttpServletRequest request1 = (HttpServletRequest) request;
+
+        String header = request1.getHeader("_HMILY_TRANSACTION_CONTEXT");
+        log.info("请求头[{}]", header);
         log.info("请求路径[{}]", request1.getRequestURI());
 
         HttpServletResponse response = (HttpServletResponse) response1;

@@ -23,5 +23,9 @@ public class PlaceOrderDTO implements java.io.Serializable{
 
     @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
     private Integer payType;
+    /**
+     * 填充字段
+     */
+    private Long orderId;
 
 }

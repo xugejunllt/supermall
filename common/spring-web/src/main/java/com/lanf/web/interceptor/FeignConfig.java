@@ -1,14 +1,9 @@
 package com.lanf.web.interceptor;
 
 
-import com.lanf.constant.constant.Constants;
-import com.lanf.web.utils.WebUtil;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.StringUtils;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author tanlingfei
@@ -24,14 +19,14 @@ public class FeignConfig implements RequestInterceptor {
     public void apply(RequestTemplate requestTemplate) {
 
 
-        HttpServletRequest request = WebUtil.getRequest();
-        if (request != null) {
-            //添加admin token
-            String token = request.getHeader(Constants.USER_TOKEN);
-            if (!StringUtils.isEmpty(token)) {
-                requestTemplate.header(Constants.USER_TOKEN, token);
-            }
-        }
+//        HttpServletRequest request = WebUtil.getRequest();
+//        if (request != null) {
+//            //添加admin token
+//            String token = request.getHeader(Constants.USER_TOKEN);
+//            if (!StringUtils.isEmpty(token)) {
+//                requestTemplate.header(Constants.USER_TOKEN, token);
+//            }
+//        }
 
     }
 }

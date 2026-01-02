@@ -5,6 +5,7 @@ import com.lanf.pay.model.dto.PlaceSinglePayOrderDTO;
 import com.lanf.pay.model.dto.TransferAccountsDTO;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
 import com.lanf.pay.model.vo.*;
+import org.dromara.hmily.annotation.Hmily;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +19,7 @@ import java.util.List;
 @FeignClient(name = "service-pay",url = "localhost:9008") //调用的服务名称
 public interface PayApiService {
 
-
+    @Hmily
     @PostMapping("/pay/api/pay/placeSinglePayOrder")
     public Result<CreatePayOrderVO> placeSinglePayOrder(@RequestBody PlaceSinglePayOrderDTO dto);
 
