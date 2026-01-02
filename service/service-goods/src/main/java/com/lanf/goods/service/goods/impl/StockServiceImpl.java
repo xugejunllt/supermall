@@ -125,44 +125,62 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
     private List<UserStockSyncRecordDO> buildUserStockFlowDO(UserStockAddMsg message) {
 
-
         List<UserStockMsg> inStorageItemList = message.getUserStockList();
+
+        List<String> skuCodeList = inStorageItemList.stream().map(UserStockMsg::getSkuCode).collect(Collectors.toList());
+
+        List<StockDO> stockDOlist = this.lambdaQuery().in(StockDO::getSkuCode, skuCodeList).list();
+
+        //key: WarehouseId+SkuCode
+        Map<String, StockDO> stockDOMap2 = stockDOlist.stream()
+                .collect(Collectors.toMap(a -> a.getWarehouseId() + a.getSkuCode(), Function.identity()));
+
+
         List<UserStockSyncRecordDO> stockFlowDOList = BeanCopyUtils.copyBeanList(inStorageItemList, UserStockSyncRecordDO.class);
         Map<String, UserStockMsg> stockDOMap = inStorageItemList.stream()
                 .collect(Collectors.toMap(a -> a.getWarehouseId() + a.getSkuCode(), Function.identity()));
 
         stockFlowDOList.forEach(a -> {
+
             String key = a.getWarehouseId() + a.getSkuCode();
             UserStockMsg userStockMsg = stockDOMap.get(key);
+            StockDO stockDO = stockDOMap2.get(key);
+            if (stockDO == null) {
 
+                a.setBeforeQuantity(0);
+                a.setAfterQuantity(userStockMsg.getActualQuantity());
+            } else {
+                a.setBeforeQuantity(stockDO.getTotalStock());
+                a.setAfterQuantity(stockDO.getTotalStock() + userStockMsg.getActualQuantity());
+            }
             a.setOrderType(0);
             a.setBizNumber(message.getPurchaseInStockOrderId().toString());
             a.setInQuantity(userStockMsg.getActualQuantity());
-
 
         });
 
         return stockFlowDOList;
 
     }
+
     @Override
-    public Map<String,SkuCodeStockBO> findBySkuCode(List<String> skuCode) {
+    public Map<String, SkuCodeStockBO> findBySkuCode(List<String> skuCode) {
 
         List<StockDO> stockDOList = this.lambdaQuery().in(StockDO::getSkuCode, skuCode).list();
 
-        Map<String,SkuCodeStockBO> stockCount = new HashMap<>();
+        Map<String, SkuCodeStockBO> stockCount = new HashMap<>();
 
-        for (StockDO stockDO : stockDOList){
+        for (StockDO stockDO : stockDOList) {
 
             String skuCode1 = stockDO.getSkuCode();
             SkuCodeStockBO skuCodeStockBO = stockCount.get(skuCode1);
 
-            if (skuCodeStockBO == null){
+            if (skuCodeStockBO == null) {
                 SkuCodeStockBO stockBO = new SkuCodeStockBO();
                 stockBO.setTotalStock(stockDO.getTotalStock());
-                stockCount.put(skuCode1,stockBO);
-             } else {
-                Integer count2 = skuCodeStockBO.getTotalStock()+stockDO.getTotalStock();
+                stockCount.put(skuCode1, stockBO);
+            } else {
+                Integer count2 = skuCodeStockBO.getTotalStock() + stockDO.getTotalStock();
                 skuCodeStockBO.setTotalStock(count2);
             }
         }

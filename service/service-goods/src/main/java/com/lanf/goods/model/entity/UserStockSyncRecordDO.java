@@ -30,6 +30,14 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "关联的出入库单id")
     private String bizNumber;
+    /**
+     * 变更前的数量
+     */
+    private Integer beforeQuantity;
+    /**
+     *  变更后的数量
+     */
+    private Integer afterQuantity;
 
     @ApiModelProperty(value = "出库数量")
     private Integer outQuantity;
