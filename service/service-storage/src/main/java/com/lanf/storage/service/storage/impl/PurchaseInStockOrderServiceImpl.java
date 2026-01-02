@@ -122,13 +122,13 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         //构建更新StorageOrderItemDetailsDO
         List<InOutStockOrderItemDO> storageOrderItemDetailsDOUpdate = buildStorageOrderItemDetailsDO(inStorageItemList,
                 purchaseOrderItemDOMap);
-
+        //更新商品库存
+        StockSaveOrUpdateBO stockSaveOrUpdateBO = buildStockSaveOrUpdate(inStorageItemList, warehouseDODOMap)
         //生成库存流水
-        List<StockFlowDO> stockFlowList = buildStockFlowDO(inStorageItemList, purchaseOrderItemDOMap, storageOrderDO, warehouseDODOMap);
+        List<StockFlowDO> stockFlowList = buildStockFlowDO(inStorageItemList, purchaseOrderItemDOMap,
+                storageOrderDO, warehouseDODOMap,stockSaveOrUpdateBO.getStockDOIdMap());
         //更新入库单实际库存和状态
         PurchaseInStockOrderDO purchaseStorageOrderDOUpdate = buildPurchaseStorageOrderDO(storageOrderDO, enterQuantity);
-        //更新商品库存
-        StockSaveOrUpdateBO stockSaveOrUpdateBO = buildStockSaveOrUpdate(inStorageItemList, warehouseDODOMap);
         List<StockDO> stockSave = stockSaveOrUpdateBO.getStockSave();
         List<StockUpdateBO> stockUpdate = stockSaveOrUpdateBO.getStockUpdate();
 
@@ -288,14 +288,16 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
 
 
     private List<StockFlowDO> buildStockFlowDO(List<InStockItemDTO> inStorageItemList, Map<Long,
-            InOutStockOrderItemDO> purchaseOrderItemDOMap, PurchaseInStockOrderDO storageOrderDO, Map<Long, WarehouseDO> warehouseDODOMap) {
+            InOutStockOrderItemDO> purchaseOrderItemDOMap, PurchaseInStockOrderDO storageOrderDO,
+                                               Map<Long, WarehouseDO> warehouseDODOMap,Map<String,Long> stockDOIdMap) {
 
         List<StockFlowDO> stockFlowList = new ArrayList<>();
         for (InStockItemDTO is : inStorageItemList) {
-
+            String key = is.getWarehouseId() + is.getSkuCode();
             WarehouseDO warehouseDO = warehouseDODOMap.get(is.getWarehouseId());
             InOutStockOrderItemDO storageOrderItemDetailsDO = purchaseOrderItemDOMap.get(is.getId());
             StockFlowDO stockFlowDO = new StockFlowDO();
+            stockFlowDO.setStockId(stockDOIdMap.get(key));
             stockFlowDO.setOrderType(4);
             stockFlowDO.setSkuCode(storageOrderItemDetailsDO.getSkuCode());
             stockFlowDO.setBizNumber(storageOrderDO.getId().toString());
@@ -322,14 +324,17 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
 
         List<StockDO> stockDOSave = new ArrayList<>();
         List<StockUpdateBO> stockDOUpdate = new ArrayList<>();
-
+        //key: WarehouseId+SkuCode value: stockDOId
+        Map<String,Long> stockDOIdMap = new HashMap<>();
         for (InStockItemDTO st : inStorageItemList) {
             String key = st.getWarehouseId() + st.getSkuCode();
             StockDO stockDO = stockDOMap.get(key);
             if (stockDO == null) {
                 WarehouseDO warehouseDO = warehouseDODOMap.get(st.getWarehouseId());
+                Long id = IdUtils.generateId();
                 //新增
                 StockDO stock = new StockDO();
+                stock.setId(id);
                 stock.setSkuCode(st.getSkuCode());
                 stock.setTotalStock(st.getActualQuantity());
                 stock.setLockStock(0);
@@ -338,14 +343,18 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
                 stock.setUnit(st.getUnit());
                 stock.setWarehouseName(warehouseDO.getName());
                 stockDOSave.add(stock);
+                //
+                stockDOIdMap.put(key, id);
             } else {
                 //更新
                 StockUpdateBO stockUpdateBO = getStockUpdateBO(st, stockDO);
                 stockDOUpdate.add(stockUpdateBO);
+                stockDOIdMap.put(key, stockDO.getId());
+
             }
 
         }
-        return new StockSaveOrUpdateBO(stockDOSave, stockDOUpdate);
+        return new StockSaveOrUpdateBO(stockDOSave, stockDOUpdate,stockDOIdMap);
 
     }
 

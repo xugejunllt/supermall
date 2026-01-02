@@ -7,8 +7,6 @@ import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.Date;
-
 /**
  * <p>
  * 库存流水
@@ -24,6 +22,7 @@ public class StockFlowDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
+    private Long stockId;
 
     /**
      * 0:销售单出库 1:销售单换货入库 2:销售退货退款入库 3:销售单换货出库 4.采购入库
