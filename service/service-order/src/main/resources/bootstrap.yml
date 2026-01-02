@@ -40,3 +40,22 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
 
+org:
+  dromara:
+    hmily :
+      #序列化
+      serializer: kryo
+      #rpc超时时间，单位秒
+      recoverDelayTime: 30
+      #重试次数
+      retryMax: 5
+      scheduledDelay: 30
+      scheduledThreadMax:  10
+      repositorySupport: db
+      #是否是发起方
+      started: true
+      hmilyDbConfig:
+        driverClassName: com.mysql.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/hmily?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+        username: root
+        password: 123456
