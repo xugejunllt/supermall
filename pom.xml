@@ -100,7 +100,7 @@
         <common-pom.version>1.0.0</common-pom.version>
         <service-pom.version>1.0.0</service-pom.version>
         <service-api-pom.version>1.0.0</service-api-pom.version>
-
+        <common-hmily.version>1.0.0</common-hmily.version>
     </properties>
 
     <!--配置dependencyManagement锁定依赖的版本-->

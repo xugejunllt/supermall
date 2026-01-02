@@ -8,8 +8,8 @@
     </parent>
     <packaging>pom</packaging>
     <artifactId>common-hmily</artifactId>
-    <version>1.0.0</version>
-  <dependencies>
+    <version>${common-hmily.version}</version>
+    <dependencies>
 
       <dependency>
           <groupId>org.dromara</groupId>
