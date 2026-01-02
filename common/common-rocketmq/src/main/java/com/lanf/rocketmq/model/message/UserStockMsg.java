@@ -3,12 +3,12 @@ package com.lanf.rocketmq.model.message;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
 
 @Data
 public class UserStockMsg implements Serializable {
 
 
+    private Long stockFlowId;
     //sku编码
     private String skuCode;
 
@@ -27,6 +27,10 @@ public class UserStockMsg implements Serializable {
     //新增库存数量
     private Integer actualQuantity;
 
-    //同步时间,用于与仓储库存对账
-    private Date syncTime;
+
+    /**
+     * 填充字段
+     */
+    private Long userStockId;
+
 }

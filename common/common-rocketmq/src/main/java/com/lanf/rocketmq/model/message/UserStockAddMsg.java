@@ -10,7 +10,7 @@ public class UserStockAddMsg extends BaseMqMessage {
 
 
 
-    private Long purchaseInStockOrderId;
+
 
     private List<UserStockMsg> userStockList;
 

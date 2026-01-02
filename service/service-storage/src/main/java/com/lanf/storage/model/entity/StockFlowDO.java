@@ -48,8 +48,7 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "仓库名称")
     private String warehouseName;
-    //同步时间,用于与用户库存对账
-    private Date syncTime;
+
 
     @TableField( fill = FieldFill.INSERT)
     private Long  tenantId;

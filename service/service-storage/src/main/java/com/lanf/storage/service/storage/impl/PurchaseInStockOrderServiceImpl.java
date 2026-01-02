@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.IdUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.messagemanager.client.model.dto.SendMqMessageDTO;
@@ -103,17 +104,13 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         Map<Long, WarehouseDO> warehouseDODOMap = warehouseDOList.stream()
                 .collect(Collectors.toMap(WarehouseDO::getId, Function.identity()));
 
-        //初始一个同步时间
-        inStorageItemList.forEach(a->{
-
-            Date date = new Date();
-            a.setSyncTime(date);
-
-        });
 
         //校验
         inStorageCheck(storageOrderDO, inStorageItemList, inStorageDTO);
-
+        /**
+         * 提前生成流水id
+         */
+        inStorageDTO.getInStorageItemList().forEach(a-> a.setStockFlowId(IdUtils.generateId()));
         /**
          * 计算DB数据
          */
@@ -201,7 +198,6 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         String buildBizKey = EventCodeEnum.buildBizKey(purchaseInStockOrderId+":"+uuid, EventCodeEnum.PURCHASE_ORDER_IN_STOCK.getCode());
         messageContent.setBizKeyValue(buildBizKey);
         messageContent.setUserStockList(userStockList);
-        messageContent.setPurchaseInStockOrderId(purchaseInStockOrderId);
         return new SendMqMessageDTO(TopicName.USER_STOCK_ADD_TOPIC,messageContent);
     }
 
@@ -306,7 +302,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
             stockFlowDO.setWarehouseName(warehouseDO.getName());
             stockFlowDO.setInQuantity(is.getActualQuantity());
             stockFlowDO.setWarehouseId(warehouseDO.getId());
-            stockFlowDO.setSyncTime(is.getSyncTime());
+            stockFlowDO.setId(is.getStockFlowId());
             stockFlowList.add(stockFlowDO);
         }
         return stockFlowList;

@@ -3,6 +3,7 @@ package com.lanf.goods.service.goods.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.IdUtils;
 import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.bo.StockSaveOrUpdateBO;
@@ -45,6 +46,14 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @Override
     public void addUserStock(UserStockAddMsg message) {
         log.info("新增用户库存");
+        /**
+         * 预生成userStockId
+         */
+        List<UserStockMsg> userStockList = message.getUserStockList();
+        userStockList.forEach(a -> {
+            long generated = IdUtils.generateId();
+            a.setUserStockId(generated);
+        });
         StockSaveOrUpdateBO stockSaveOrUpdateBO = buildStockSaveOrUpdate(message.getUserStockList());
         List<UserStockSyncRecordDO> stockFlowDOList = buildUserStockFlowDO(message);
         List<StockDO> stockSave = stockSaveOrUpdateBO.getStockSave();
@@ -107,6 +116,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 stock.setGoodsName(st.getGoodsName());
                 stock.setUnit(st.getUnit());
                 stock.setWarehouseName(st.getWarehouseName());
+                stock.setId(st.getUserStockId());
                 stockDOSave.add(stock);
             } else {
                 //更新
@@ -146,17 +156,16 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             UserStockMsg userStockMsg = stockDOMap.get(key);
             StockDO stockDO = stockDOMap2.get(key);
             if (stockDO == null) {
-
+                a.setUserStockId(userStockMsg.getUserStockId());
                 a.setBeforeQuantity(0);
                 a.setAfterQuantity(userStockMsg.getActualQuantity());
             } else {
+                a.setUserStockId(stockDO.getId());
                 a.setBeforeQuantity(stockDO.getTotalStock());
                 a.setAfterQuantity(stockDO.getTotalStock() + userStockMsg.getActualQuantity());
             }
             a.setOrderType(0);
-            a.setBizNumber(message.getPurchaseInStockOrderId().toString());
             a.setInQuantity(userStockMsg.getActualQuantity());
-
         });
 
         return stockFlowDOList;

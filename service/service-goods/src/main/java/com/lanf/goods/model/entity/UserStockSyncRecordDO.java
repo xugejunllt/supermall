@@ -5,8 +5,6 @@ import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.Date;
-
 /**
  * <p>
  * 与仓储库存同步记录
@@ -22,14 +20,18 @@ public class UserStockSyncRecordDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
+    private Long userStockId;
+    /**
+     * 仓储库存id
+     */
+    private Long stockFlowId;
+
     @ApiModelProperty(value = "0:采购入库")
     private Integer orderType;
 
     @ApiModelProperty(value = "商品sku编码")
     private String skuCode;
 
-    @ApiModelProperty(value = "关联的出入库单id")
-    private String bizNumber;
     /**
      * 变更前的数量
      */
@@ -50,8 +52,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "仓库名称")
     private String warehouseName;
 
-    //同步时间,用于与仓储库存对账
-    private Date syncTime;
+
 
 
 
