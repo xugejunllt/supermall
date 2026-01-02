@@ -7,10 +7,10 @@ import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.bo.StockSaveOrUpdateBO;
 import com.lanf.goods.model.entity.StockDO;
-import com.lanf.goods.model.entity.UserStockFlowDO;
+import com.lanf.goods.model.entity.UserStockSyncRecordDO;
 import com.lanf.goods.service.goods.IStockService;
 
-import com.lanf.goods.service.goods.IUserStockFlowService;
+import com.lanf.goods.service.goods.IUserStockSyncRecordService;
 import com.lanf.rocketmq.model.message.UserStockAddMsg;
 import com.lanf.rocketmq.model.message.UserStockMsg;
 import com.lanf.constant.exception.BizException;
@@ -39,14 +39,14 @@ import java.util.stream.Collectors;
 public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implements IStockService {
 
     @Autowired
-    private IUserStockFlowService userStockFlowService;
+    private IUserStockSyncRecordService userStockFlowService;
 
     @Transactional(rollbackFor = {Exception.class})
     @Override
     public void addUserStock(UserStockAddMsg message) {
         log.info("新增用户库存");
-        StockSaveOrUpdateBO stockSaveOrUpdateBO = buildStockSaveOrUpdate(message.getUserStockList(), message.getTenantId());
-        List<UserStockFlowDO> stockFlowDOList = buildUserStockFlowDO(message);
+        StockSaveOrUpdateBO stockSaveOrUpdateBO = buildStockSaveOrUpdate(message.getUserStockList());
+        List<UserStockSyncRecordDO> stockFlowDOList = buildUserStockFlowDO(message);
         List<StockDO> stockSave = stockSaveOrUpdateBO.getStockSave();
         List<StockDO> stockUpdate = stockSaveOrUpdateBO.getStockUpdate();
         if (!stockUpdate.isEmpty()) {
@@ -82,7 +82,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     }
 
 
-    private StockSaveOrUpdateBO buildStockSaveOrUpdate(List<UserStockMsg> inStorageItemList, Long tenantId) {
+    private StockSaveOrUpdateBO buildStockSaveOrUpdate(List<UserStockMsg> inStorageItemList) {
 
         List<String> skuCodeList = inStorageItemList.stream().map(UserStockMsg::getSkuCode).collect(Collectors.toList());
 
@@ -107,7 +107,6 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 stock.setGoodsName(st.getGoodsName());
                 stock.setUnit(st.getUnit());
                 stock.setWarehouseName(st.getWarehouseName());
-                stock.setTenantId(tenantId);
                 stockDOSave.add(stock);
             } else {
                 //更新
@@ -124,11 +123,11 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
     }
 
-    private List<UserStockFlowDO> buildUserStockFlowDO(UserStockAddMsg message) {
+    private List<UserStockSyncRecordDO> buildUserStockFlowDO(UserStockAddMsg message) {
 
 
         List<UserStockMsg> inStorageItemList = message.getUserStockList();
-        List<UserStockFlowDO> stockFlowDOList = BeanCopyUtils.copyBeanList(inStorageItemList, UserStockFlowDO.class);
+        List<UserStockSyncRecordDO> stockFlowDOList = BeanCopyUtils.copyBeanList(inStorageItemList, UserStockSyncRecordDO.class);
         Map<String, UserStockMsg> stockDOMap = inStorageItemList.stream()
                 .collect(Collectors.toMap(a -> a.getWarehouseId() + a.getSkuCode(), Function.identity()));
 

@@ -9,15 +9,15 @@ import java.util.Date;
 
 /**
  * <p>
- * 库存流水
+ * 与仓储库存同步记录
  * </p>
  *
  * @author jarven
  * @since 2025-11-29
  */
 @Data
-@TableName("user_stock_flow")
-public class UserStockFlowDO extends BaseEntity {
+@TableName("user_stock_sync_record")
+public class UserStockSyncRecordDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 

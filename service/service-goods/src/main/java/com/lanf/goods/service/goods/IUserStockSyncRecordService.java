@@ -1,7 +1,7 @@
 package com.lanf.goods.service.goods;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.goods.model.entity.UserStockFlowDO;
+import com.lanf.goods.model.entity.UserStockSyncRecordDO;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.lanf.goods.model.entity.UserStockFlowDO;
  * @author jarven
  * @since 2025-11-29
  */
-public interface IUserStockFlowService extends IService<UserStockFlowDO> {
+public interface IUserStockSyncRecordService extends IService<UserStockSyncRecordDO> {
 
 }

@@ -1,7 +1,7 @@
 package com.lanf.goods.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lanf.goods.model.entity.UserStockFlowDO;
+import com.lanf.goods.model.entity.UserStockSyncRecordDO;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.lanf.goods.model.entity.UserStockFlowDO;
  * @author jarven
  * @since 2025-11-29
  */
-public interface UserStockFlowMapper extends BaseMapper<UserStockFlowDO> {
+public interface UserStockSyncRecordMapper extends BaseMapper<UserStockSyncRecordDO> {
 
 }
