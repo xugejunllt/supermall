@@ -1,0 +1,38 @@
+package com.lanf.goods.model.entity;
+
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.mybatis.base.BaseEntity;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
+/**
+ * <p>
+ * tcc操作记录 用于去重
+ * </p>
+ *
+ * @author jarven
+ * @since 2026-01-03
+ */
+@Data
+@TableName("tcc_operation")
+public class TccOperationDO extends BaseEntity {
+
+private static final long serialVersionUID=1L;
+
+    /**
+     * 参与者事务id
+     */
+    private Long participantId;
+
+    @ApiModelProperty(value = "业务唯一key")
+    private String bizKey;
+
+    @ApiModelProperty(value = "阶段 0: try  1:confirm, 2：cancel阶段")
+    private Integer status;
+
+    private Long version;
+
+
+
+
+}

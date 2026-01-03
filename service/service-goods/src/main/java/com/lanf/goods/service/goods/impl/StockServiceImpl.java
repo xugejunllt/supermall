@@ -12,6 +12,7 @@ import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
 import com.lanf.goods.model.entity.UserStockSyncRecordDO;
 import com.lanf.goods.service.goods.IStockService;
+import com.lanf.goods.service.goods.ITccOperationService;
 import com.lanf.goods.service.goods.IUserStockFlowService;
 import com.lanf.goods.service.goods.IUserStockSyncRecordService;
 import com.lanf.rocketmq.model.message.UserStockAddMsg;
@@ -19,7 +20,6 @@ import com.lanf.rocketmq.model.message.UserStockMsg;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +47,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
     @Autowired
     private IUserStockFlowService userStockFlowService;
+    @Autowired
+    private ITccOperationService tccOperationService;
+
     @Transactional(rollbackFor = {Exception.class})
     @Override
     public void addUserStock(UserStockAddMsg message) {
@@ -201,10 +204,13 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         return stockCount;
     }
+    @Transactional
     @HmilyTCC(confirmMethod = "confirmDeductStock", cancelMethod = "cancelDeductStock")
     @Override
     public void deductStock(DeductStockDTO deductStockDTO) {
         log.info("扣减库存开始");
+
+
         String skuCode = deductStockDTO.getSkuCode();
 
         List<StockDO> stockDOList = this.lambdaQuery().eq(StockDO::getSkuCode, skuCode).list();
@@ -224,20 +230,18 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             log.info("库存不足");
             throw new BizException("库存不足");
         }
-        UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery().
-                eq(UserStockFlowDO::getUserStockId, stockDO.getId()).
-                eq(UserStockFlowDO::getOrderId, deductStockDTO.getOrderId()).one();
-        if ( stockFlowDO != null){
-            log.info("库存流水已存在");
 
-           throw new BizException("库存流水已存在");
-        }
         Long updateVersion = stockDO.getVersion()+1;
         //扣减后的剩余总库存
         Integer  updateTotalStock = totalStock - deductStockDTO.getQuantity();
         //冻结库存
         Integer updateLockStock = stockDO.getLockStock() + deductStockDTO.getQuantity();
 
+        String bizKey = generateDeductStockBizKey(deductStockDTO.getOrderId(),stockDO.getId(),0);
+        /**
+         * DB操作
+         */
+        tccOperationService.tryOperation(bizKey);
         boolean update = this.lambdaUpdate().
                 eq(StockDO::getId, stockDO.getId()).
                 eq(StockDO::getVersion, stockDO.getVersion()).
@@ -259,31 +263,17 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         String skuCode = deductStockDTO.getSkuCode();
         StockDO stockDO = findStockDO(skuCode);
-        Long stockDOId = stockDO.getId();
-        UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery().
-                eq(UserStockFlowDO::getUserStockId, stockDOId).
-                eq(UserStockFlowDO::getOrderId, deductStockDTO.getOrderId()).one();
-        if ( stockFlowDO != null){
-            log.info("库存流水已存在");
-            /**
-             * 这里不抛异常
-             */
-            return;
-        }
         Long updateVersion = stockDO.getVersion()+1;
         //扣减冻结库存
         Integer lockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
         UserStockFlowDO userStockFlowDO = buildUserStockFlowDO(deductStockDTO, stockDO);
-
-        try {
-            userStockFlowService.save(userStockFlowDO);
-        } catch (DuplicateKeyException e) {
-            /**
-             * 避免重复插入库存流水
-             */
-             log.info("库存流水已存在");
-             return;
+        String bizKey = generateDeductStockBizKey(deductStockDTO.getOrderId(), stockDO.getId(), 0);
+        boolean operation = tccOperationService.confirmOperation(bizKey);
+        if ( !operation){
+            log.info("confirm已执行");
+            return;
         }
+        userStockFlowService.save(userStockFlowDO);
         boolean update = this.lambdaUpdate().
                 eq(StockDO::getId, stockDO.getId()).
                 eq(StockDO::getVersion, stockDO.getVersion()).
@@ -296,22 +286,32 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         }
     }
 
+    /**
+     *
+     * 生成库存流水业务key
+     *
+     *
+     */
+    private String generateDeductStockBizKey(Long orderId,Long userStockId,Integer eventType) {
+
+        return orderId+":"+userStockId+":"+eventType;
+    }
     private UserStockFlowDO buildUserStockFlowDO(DeductStockDTO deductStockDTO,StockDO stockDO) {
 
         //总库存 = 可使用+已冻结
         Integer totalStock = stockDO.getUsableStock()+ deductStockDTO.getQuantity();
+        Integer eventType = 0;
         UserStockFlowDO userStockFlowDO = new UserStockFlowDO();
         userStockFlowDO.setUserStockId(stockDO.getId());
         userStockFlowDO.setOrderId(deductStockDTO.getOrderId());
-        userStockFlowDO.setEventType(0);
+        userStockFlowDO.setEventType(eventType);
         // 总库存 = 可使用+已冻结
         userStockFlowDO.setBeforeQuantity(totalStock);
         userStockFlowDO.setAfterQuantity(totalStock - deductStockDTO.getQuantity());
         userStockFlowDO.setOutQuantity(deductStockDTO.getQuantity());
-
         return userStockFlowDO;
     }
-
+    @Transactional
     public void cancelDeductStock(DeductStockDTO deductStockDTO) {
 
         log.info("cancelDeductStock[{}]", deductStockDTO);
@@ -323,7 +323,15 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         Integer  updateUsableStock = usableStock + deductStockDTO.getQuantity();
         //冻结库存
         Integer updateLockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
-
+        String bizKey = generateDeductStockBizKey(deductStockDTO.getOrderId(),stockDO.getId(),0);
+        /**
+         * DB操作
+         */
+        boolean operation = tccOperationService.cancelOperation(bizKey);
+        if ( !operation){
+            log.info("cancel已执行");
+            return;
+        }
         boolean update = this.lambdaUpdate().
                 eq(StockDO::getId, stockDO.getId()).
                 eq(StockDO::getVersion, stockDO.getVersion()).
