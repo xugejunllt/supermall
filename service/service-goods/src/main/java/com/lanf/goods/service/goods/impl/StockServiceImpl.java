@@ -317,17 +317,6 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         log.info("cancelDeductStock[{}]", deductStockDTO);
         String skuCode = deductStockDTO.getSkuCode();
         StockDO stockDO = findStockDO(skuCode);
-        UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery().
-                eq(UserStockFlowDO::getUserStockId, stockDO.getId()).
-                eq(UserStockFlowDO::getOrderId, deductStockDTO.getOrderId()).one();
-        if ( stockFlowDO != null){
-            log.info("库存流水已存在");
-            /**
-             * 这里不抛异常
-             */
-            return;
-        }
-
         Integer usableStock = stockDO.getUsableStock();
         Long updateVersion = stockDO.getVersion()+1;
         //扣减后的剩余总库存
