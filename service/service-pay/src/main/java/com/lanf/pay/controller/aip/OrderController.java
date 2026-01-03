@@ -21,7 +21,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/pay")
+@RequestMapping("/api")
 public class OrderController {
 
     @Autowired

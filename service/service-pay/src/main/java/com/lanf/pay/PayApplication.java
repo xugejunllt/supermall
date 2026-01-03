@@ -1,8 +1,6 @@
 package com.lanf.pay;
 
-import com.lanf.common.utils.BeanUtil;
 import com.lanf.messagemanager.client.model.SendMqMessageDO;
-import org.dromara.hmily.springcloud.feign.HmilyFeignInterceptor;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,9 +19,7 @@ public class PayApplication {
     public static void main(String[] args) {
 
         SpringApplication.run(PayApplication.class, args);
-        HmilyFeignInterceptor bean = BeanUtil.getBean(HmilyFeignInterceptor.class);
 
-        System.out.println("获取的bean是"+ bean);
     }
 
 }

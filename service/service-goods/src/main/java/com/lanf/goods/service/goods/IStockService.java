@@ -2,6 +2,7 @@ package com.lanf.goods.service.goods;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
+import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.rocketmq.model.message.UserStockAddMsg;
 
@@ -23,5 +24,12 @@ public interface IStockService extends IService<StockDO> {
 
     //key:skuCode
     Map<String,SkuCodeStockBO> findBySkuCode(List<String> skuCode);
+
+    /**
+     * 扣减库存
+     *
+     */
+    void deductStock(DeductStockDTO deductStockDTO);
+
 
 }

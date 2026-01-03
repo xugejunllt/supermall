@@ -1,22 +1,25 @@
 package com.lanf.goods.service.goods.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.IdUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.bo.StockSaveOrUpdateBO;
+import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.entity.StockDO;
+import com.lanf.goods.model.entity.UserStockFlowDO;
 import com.lanf.goods.model.entity.UserStockSyncRecordDO;
 import com.lanf.goods.service.goods.IStockService;
-
+import com.lanf.goods.service.goods.IUserStockFlowService;
 import com.lanf.goods.service.goods.IUserStockSyncRecordService;
 import com.lanf.rocketmq.model.message.UserStockAddMsg;
 import com.lanf.rocketmq.model.message.UserStockMsg;
-import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,8 +43,10 @@ import java.util.stream.Collectors;
 public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implements IStockService {
 
     @Autowired
-    private IUserStockSyncRecordService userStockFlowService;
+    private IUserStockSyncRecordService userStockSyncRecordService;
 
+    @Autowired
+    private IUserStockFlowService userStockFlowService;
     @Transactional(rollbackFor = {Exception.class})
     @Override
     public void addUserStock(UserStockAddMsg message) {
@@ -66,7 +71,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 boolean update = this.lambdaUpdate().
                         eq(StockDO::getId, a.getId()).
                         eq(StockDO::getVersion, a.getVersion()).
-                        set(StockDO::getTotalStock, a.getTotalStock()).
+                        set(StockDO::getUsableStock, a.getUsableStock()).
                         set(StockDO::getVersion, a.getVersion() + 1).
                         update();
                 if (!update) {
@@ -83,7 +88,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             log.info("批量保存");
             this.saveBatch(stockSave);
         }
-        userStockFlowService.saveBatch(stockFlowDOList);
+        userStockSyncRecordService.saveBatch(stockFlowDOList);
 
         log.info("新增用户库存完成");
 
@@ -110,7 +115,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 //新增
                 StockDO stock = new StockDO();
                 stock.setSkuCode(st.getSkuCode());
-                stock.setTotalStock(st.getActualQuantity());
+                stock.setUsableStock(st.getActualQuantity());
                 stock.setLockStock(0);
                 stock.setWarehouseId(st.getWarehouseId());
                 stock.setGoodsName(st.getGoodsName());
@@ -120,9 +125,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 stockDOSave.add(stock);
             } else {
                 //更新
-                Integer totalStock = stockDO.getTotalStock() + st.getActualQuantity();
+                Integer totalStock = stockDO.getUsableStock() + st.getActualQuantity();
                 StockDO stockUpdateBO = new StockDO();
-                stockUpdateBO.setTotalStock(totalStock);
+                stockUpdateBO.setUsableStock(totalStock);
                 stockUpdateBO.setId(stockDO.getId());
                 stockUpdateBO.setVersion(stockDO.getVersion());
                 stockDOUpdate.add(stockUpdateBO);
@@ -161,8 +166,8 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 a.setAfterQuantity(userStockMsg.getActualQuantity());
             } else {
                 a.setUserStockId(stockDO.getId());
-                a.setBeforeQuantity(stockDO.getTotalStock());
-                a.setAfterQuantity(stockDO.getTotalStock() + userStockMsg.getActualQuantity());
+                a.setBeforeQuantity(stockDO.getUsableStock());
+                a.setAfterQuantity(stockDO.getUsableStock() + userStockMsg.getActualQuantity());
             }
             a.setOrderType(0);
             a.setInQuantity(userStockMsg.getActualQuantity());
@@ -186,15 +191,178 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
             if (skuCodeStockBO == null) {
                 SkuCodeStockBO stockBO = new SkuCodeStockBO();
-                stockBO.setTotalStock(stockDO.getTotalStock());
+                stockBO.setTotalStock(stockDO.getUsableStock());
                 stockCount.put(skuCode1, stockBO);
             } else {
-                Integer count2 = skuCodeStockBO.getTotalStock() + stockDO.getTotalStock();
+                Integer count2 = skuCodeStockBO.getTotalStock() + stockDO.getUsableStock();
                 skuCodeStockBO.setTotalStock(count2);
             }
         }
 
         return stockCount;
+    }
+    @HmilyTCC(confirmMethod = "confirmDeductStock", cancelMethod = "cancelDeductStock")
+    @Override
+    public void deductStock(DeductStockDTO deductStockDTO) {
+        log.info("扣减库存开始");
+        String skuCode = deductStockDTO.getSkuCode();
+
+        List<StockDO> stockDOList = this.lambdaQuery().eq(StockDO::getSkuCode, skuCode).list();
+        if (stockDOList.isEmpty()) {
+            log.info("库存不存在");
+            throw new BizException("库存不存在");
+        }
+
+        /**
+         *
+         * 可能多个仓库 skucode 暂时取其中一个
+         *
+         */
+        StockDO stockDO = findStockDO(skuCode);
+        Integer totalStock = stockDO.getUsableStock();
+        if (totalStock < deductStockDTO.getQuantity()) {
+            log.info("库存不足");
+            throw new BizException("库存不足");
+        }
+        UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery().
+                eq(UserStockFlowDO::getUserStockId, stockDO.getId()).
+                eq(UserStockFlowDO::getOrderId, deductStockDTO.getOrderId()).one();
+        if ( stockFlowDO != null){
+            log.info("库存流水已存在");
+
+           throw new BizException("库存流水已存在");
+        }
+        Long updateVersion = stockDO.getVersion()+1;
+        //扣减后的剩余总库存
+        Integer  updateTotalStock = totalStock - deductStockDTO.getQuantity();
+        //冻结库存
+        Integer updateLockStock = stockDO.getLockStock() + deductStockDTO.getQuantity();
+
+        boolean update = this.lambdaUpdate().
+                eq(StockDO::getId, stockDO.getId()).
+                eq(StockDO::getVersion, stockDO.getVersion()).
+                set(StockDO::getUsableStock, updateTotalStock).
+                set(StockDO::getLockStock, updateLockStock).
+                set(StockDO::getVersion, updateVersion).
+                update();
+        if (!update) {
+            log.info("扣减库存失败");
+            throw new BizException("扣减库存失败");
+        }
+
+    }
+
+    @Transactional
+    public void confirmDeductStock(DeductStockDTO deductStockDTO) {
+
+        log.info("confirmDeductStock[{}]", deductStockDTO);
+
+        String skuCode = deductStockDTO.getSkuCode();
+        StockDO stockDO = findStockDO(skuCode);
+        Long stockDOId = stockDO.getId();
+        UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery().
+                eq(UserStockFlowDO::getUserStockId, stockDOId).
+                eq(UserStockFlowDO::getOrderId, deductStockDTO.getOrderId()).one();
+        if ( stockFlowDO != null){
+            log.info("库存流水已存在");
+            /**
+             * 这里不抛异常
+             */
+            return;
+        }
+        Long updateVersion = stockDO.getVersion()+1;
+        //扣减冻结库存
+        Integer lockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
+        UserStockFlowDO userStockFlowDO = buildUserStockFlowDO(deductStockDTO, stockDO);
+
+        try {
+            userStockFlowService.save(userStockFlowDO);
+        } catch (DuplicateKeyException e) {
+            /**
+             * 避免重复插入库存流水
+             */
+             log.info("库存流水已存在");
+             return;
+        }
+        boolean update = this.lambdaUpdate().
+                eq(StockDO::getId, stockDO.getId()).
+                eq(StockDO::getVersion, stockDO.getVersion()).
+                set(StockDO::getLockStock, lockStock).
+                set(StockDO::getVersion, updateVersion).
+                update();
+        if (!update) {
+            log.info("解冻失败");
+            throw new BizException("解冻失败");
+        }
+    }
+
+    private UserStockFlowDO buildUserStockFlowDO(DeductStockDTO deductStockDTO,StockDO stockDO) {
+
+        //总库存 = 可使用+已冻结
+        Integer totalStock = stockDO.getUsableStock()+ deductStockDTO.getQuantity();
+        UserStockFlowDO userStockFlowDO = new UserStockFlowDO();
+        userStockFlowDO.setUserStockId(stockDO.getId());
+        userStockFlowDO.setOrderId(deductStockDTO.getOrderId());
+        userStockFlowDO.setEventType(0);
+        // 总库存 = 可使用+已冻结
+        userStockFlowDO.setBeforeQuantity(totalStock);
+        userStockFlowDO.setAfterQuantity(totalStock - deductStockDTO.getQuantity());
+        userStockFlowDO.setOutQuantity(deductStockDTO.getQuantity());
+
+        return userStockFlowDO;
+    }
+
+    public void cancelDeductStock(DeductStockDTO deductStockDTO) {
+
+        log.info("cancelDeductStock[{}]", deductStockDTO);
+        String skuCode = deductStockDTO.getSkuCode();
+        StockDO stockDO = findStockDO(skuCode);
+        UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery().
+                eq(UserStockFlowDO::getUserStockId, stockDO.getId()).
+                eq(UserStockFlowDO::getOrderId, deductStockDTO.getOrderId()).one();
+        if ( stockFlowDO != null){
+            log.info("库存流水已存在");
+            /**
+             * 这里不抛异常
+             */
+            return;
+        }
+
+        Integer usableStock = stockDO.getUsableStock();
+        Long updateVersion = stockDO.getVersion()+1;
+        //扣减后的剩余总库存
+        Integer  updateUsableStock = usableStock + deductStockDTO.getQuantity();
+        //冻结库存
+        Integer updateLockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
+
+        boolean update = this.lambdaUpdate().
+                eq(StockDO::getId, stockDO.getId()).
+                eq(StockDO::getVersion, stockDO.getVersion()).
+                set(StockDO::getUsableStock, updateUsableStock).
+                set(StockDO::getLockStock, updateLockStock).
+                set(StockDO::getVersion, updateVersion).
+                update();
+        if (!update) {
+            log.info("cancelDeductStock失败");
+            throw new BizException("cancelDeductStock失败");
+        }
+
+
+    }
+
+    private StockDO findStockDO(String  skuCode){
+        List<StockDO> stockDOList = this.lambdaQuery().eq(StockDO::getSkuCode, skuCode).list();
+        if (stockDOList.isEmpty()) {
+            log.info("库存不存在");
+            throw new BizException("库存不存在");
+        }
+        /**
+         *
+         * 可能多个仓库 skucode 暂时取其中一个
+         *
+         */
+
+        return stockDOList.get(0);
     }
 
 }

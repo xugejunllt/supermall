@@ -29,8 +29,8 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "单位")
     private String unit;
 
-    @ApiModelProperty(value = "总库存")
-    private Integer totalStock;
+    @ApiModelProperty(value = "可使用库存")
+    private Integer usableStock;
 
     @ApiModelProperty(value = "锁住的库存")
     private Integer lockStock;

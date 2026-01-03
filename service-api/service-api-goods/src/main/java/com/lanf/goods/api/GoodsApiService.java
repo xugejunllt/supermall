@@ -1,6 +1,7 @@
 package com.lanf.goods.api;
 
 import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
+import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.vo.ApiGoodsSkuVO;
 import com.lanf.goods.model.vo.BaseGoodsBySkuCodeQueryVO;
 import com.lanf.goods.model.vo.EmptyCartVO;
@@ -10,12 +11,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Set;
 
 @Component
 @FeignClient(name = "service-goods",url = "localhost:9005") //调用的服务名称
 public interface GoodsApiService {
+
+
+    @PostMapping("/goods/api/deductStock")
+    public Result<Void> deductStock(@RequestBody @Valid DeductStockDTO deductStockDTO);
 
     @PostMapping("/goods/goodsApi/emptyCart")
     public Result<EmptyCartVO> emptyCart(@RequestBody Set<Long> cartIdLis);
