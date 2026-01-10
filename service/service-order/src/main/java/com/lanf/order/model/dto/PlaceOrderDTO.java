@@ -1,15 +1,14 @@
 package com.lanf.order.model.dto;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
 public class PlaceOrderDTO implements java.io.Serializable{
 
-    //skuid
-    private Long skuId;
+    private String skuCode;
     //收货地址id
     private Long addressId;
     //店铺id
@@ -21,11 +20,15 @@ public class PlaceOrderDTO implements java.io.Serializable{
     //订单编号
     private  String orderNumber;
 
-    @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
+    //支付类型 0支付宝 1微信 2银联
     private Integer payType;
-    /**
-     * 填充字段
-     */
-    private Long orderId;
+    //订单总金额
+    private BigDecimal totalPrice;
+
+
+
+
+
+
 
 }

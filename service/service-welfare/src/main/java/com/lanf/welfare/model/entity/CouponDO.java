@@ -28,10 +28,10 @@ public class CouponDO extends BaseEntity {
     private Long userId;
 
     /**
-     * 用途 0:店铺优惠卷,1:注册发放 ,2:会员等级升级
+     * 优惠券的发放类型 0:店铺优惠卷, 1:注册发放 , 2:会员等级升级
      * 1、2只能由平台管理员发放
      */
-    private Integer purpose;
+    private Integer couponType;
 
     @ApiModelProperty(value = "店铺id")
     private Long shopId;

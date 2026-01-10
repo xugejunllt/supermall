@@ -1,7 +1,6 @@
 package com.lanf.order.controller.app;
 
 
-import com.lanf.common.utils.IdUtils;
 import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
@@ -57,8 +56,6 @@ public class OrderController {
 
 
         log.info("立即下单[{}]", orderDTO);
-        Long orderId = IdUtils.generateId();
-        orderDTO.setOrderId(orderId);
         return Result.ok(orderManagerService.placeOrder(orderDTO));
 
     }

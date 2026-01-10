@@ -85,7 +85,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         CouponDO couponDO = new CouponDO();
         couponDO.setCouponTemplateId(couponTemplateId);
         couponDO.setUserId(dto.getUserId());
-        couponDO.setPurpose(templateDO.getPurpose());
+        couponDO.setCouponType(templateDO.getCouponType());
         couponDO.setShopId(templateDO.getShopId());
         couponDO.setName(templateDO.getName());
         couponDO.setTitle(templateDO.getTitle());
