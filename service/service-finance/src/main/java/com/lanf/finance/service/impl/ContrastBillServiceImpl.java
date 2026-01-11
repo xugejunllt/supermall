@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.finance.mapper.ContrastBillMapper;
 import com.lanf.finance.model.bo.ContrastOrderStatusBO;
@@ -176,11 +176,11 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
         BigDecimal orderMoney = new BigDecimal(0);
         for (OrderItemVO a : orderVO.getInOutStockOrderItemDTOList()) {
 
-            orderMoney = BigDecimalUtils.multiply(a.getUnitPrice(), new BigDecimal(a.getQuantity())).
+            orderMoney = BigDecimalUtil.multiply(a.getUnitPrice(), new BigDecimal(a.getQuantity())).
                     add(orderMoney);
 
         }
-        if (BigDecimalUtils.compareTo(orderTradeVO.getOrderMoney(), orderMoney) != 0) {
+        if (BigDecimalUtil.compareTo(orderTradeVO.getOrderMoney(), orderMoney) != 0) {
             //订单金额计算错误
             trackDO.setResultStatus(1);
             trackDO.setContent("订单金额计算错误");
@@ -192,8 +192,8 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
 
         }
         //支付金额
-        BigDecimal payMoney = BigDecimalUtils.subtract(orderMoney, orderTradeVO.getDiscountMoney());
-        if (BigDecimalUtils.compareTo(orderTradeVO.getPayMoney(), payMoney) != 0) {
+        BigDecimal payMoney = BigDecimalUtil.subtract(orderMoney, orderTradeVO.getDiscountMoney());
+        if (BigDecimalUtil.compareTo(orderTradeVO.getPayMoney(), payMoney) != 0) {
             //订单金额计算错误
             trackDO.setResultStatus(1);
             trackDO.setContent("支付金额计算错误");
@@ -204,7 +204,7 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
 
         }
         BigDecimal totalAmount = statusVO.getTotalAmount();
-        if (BigDecimalUtils.compareTo(orderTradeVO.getPayMoney(), totalAmount) != 0) {
+        if (BigDecimalUtil.compareTo(orderTradeVO.getPayMoney(), totalAmount) != 0) {
             trackDO.setResultStatus(1);
             trackDO.setContent("支付订单支付金额与支付平台支付金额不一致");
             return false;
@@ -214,7 +214,7 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
 
         }
         BigDecimal receiptAmount = statusVO.getReceiptAmount();
-        if (BigDecimalUtils.compareTo(orderTradeVO.getReceiptMoney(), receiptAmount) != 0) {
+        if (BigDecimalUtil.compareTo(orderTradeVO.getReceiptMoney(), receiptAmount) != 0) {
             trackDO.setResultStatus(1);
             trackDO.setContent("支付订单实收金额与支付平台实收金额不一致");
             return false;
@@ -353,7 +353,7 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
             if (a.getIncome().equals(0)) {
                 hasIncome1 = true;
                 BigDecimal incomeMoney = a.getIncomeMoney();
-                if (BigDecimalUtils.compareTo(incomeMoney, orderTradeVO.getPayMoney()) != 0) {
+                if (BigDecimalUtil.compareTo(incomeMoney, orderTradeVO.getPayMoney()) != 0) {
                     contrastBillTrackDO.setResultStatus(1);
                     contrastBillTrackDO.setContent("清算单平台收入金额错误");
 
@@ -368,9 +368,9 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
             if (a.getIncome().equals(1)) {
 
                 BigDecimal incomeMoney = a.getIncomeMoney();
-                BigDecimal incomeMoney2 = BigDecimalUtils.subtract(orderTradeVO.getPayMoney(), orderTradeVO.getReceiptMoney());
+                BigDecimal incomeMoney2 = BigDecimalUtil.subtract(orderTradeVO.getPayMoney(), orderTradeVO.getReceiptMoney());
                 hasIncome2 = true;
-                if (BigDecimalUtils.compareTo(incomeMoney, incomeMoney2) != 0) {
+                if (BigDecimalUtil.compareTo(incomeMoney, incomeMoney2) != 0) {
                     contrastBillTrackDO.setResultStatus(1);
                     contrastBillTrackDO.setContent("清算单平台支出金额错误");
 
@@ -442,7 +442,7 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
             Long liquidationFlowId = settlementFlowDO.getLiquidationFlowId();
             LiquidationFlowDO liquidationFlowDO = liquidationMap.get(liquidationFlowId);
             BigDecimal incomeMoney = liquidationFlowDO.getIncomeMoney();
-            if (BigDecimalUtils.compareTo(incomeMoney, a.getIncomeMoney()) != 0) {
+            if (BigDecimalUtil.compareTo(incomeMoney, a.getIncomeMoney()) != 0) {
                 contrastBillTrackDO.setResultStatus(1);
                 contrastBillTrackDO.setContent("结算单" + a.getId() + "资金流水金额错误");
                 return false;

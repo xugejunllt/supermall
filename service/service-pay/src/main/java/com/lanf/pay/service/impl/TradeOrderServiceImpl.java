@@ -2,7 +2,7 @@ package com.lanf.pay.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.BaseEntity;
@@ -112,7 +112,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         BigDecimal actualPayMoney = orderMoney;
         for (BigDecimal a : discountMoneyList) {
-            actualPayMoney = BigDecimalUtils.subtract(orderMoney, a);
+            actualPayMoney = BigDecimalUtil.subtract(orderMoney, a);
         }
 
         return actualPayMoney;

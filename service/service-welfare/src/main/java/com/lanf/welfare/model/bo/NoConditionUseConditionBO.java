@@ -2,6 +2,8 @@ package com.lanf.welfare.model.bo;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * 无门槛惠卷使用条件
  *
@@ -11,7 +13,7 @@ public class NoConditionUseConditionBO implements java.io.Serializable{
 
 
     //优惠金额
-    private Double discountMoney;
+    private BigDecimal discountMoney;
 
 
 }

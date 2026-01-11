@@ -3,7 +3,7 @@ package com.lanf.finance.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.constant.constant.Constants;
 import com.lanf.finance.mapper.MoneyFlowMapper;
@@ -100,10 +100,10 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
             BigDecimal afterRemainMoney = null;
             if (flowDO.getIncome().equals(0)) {
                 //收入
-                afterRemainMoney = BigDecimalUtils.add(incomeMoney, payAccountDO.getRemainMoney());
+                afterRemainMoney = BigDecimalUtil.add(incomeMoney, payAccountDO.getRemainMoney());
             } else {
                 //支出
-                afterRemainMoney = BigDecimalUtils.subtract(payAccountDO.getRemainMoney(), incomeMoney);
+                afterRemainMoney = BigDecimalUtil.subtract(payAccountDO.getRemainMoney(), incomeMoney);
             }
 
             String incomeSubjectName = null;
@@ -145,7 +145,7 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
         this.saveBatch(moneyFlowDOList);
         moneyFlowDOList.forEach(a -> {
 
-            BigDecimal changeMoney = BigDecimalUtils.subtract(a.getAfterRemainMoney(), a.getBeforeRemainMoney());
+            BigDecimal changeMoney = BigDecimalUtil.subtract(a.getAfterRemainMoney(), a.getBeforeRemainMoney());
             int updated = moneyFlowMapper.updateRemainMoney(changeMoney, a.getAccountType(), a.getIncomeAccount());
             if (updated < 1) {
                 throw new BizException("更新账户余额异常");
@@ -347,11 +347,11 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
         double incomeSumMoney = moneyFlowMapper.sumIncomeMoney(shopId, startTime, endTime, 0, incomeAccount);
         //支出金额
         double payOutSumMoney = moneyFlowMapper.sumIncomeMoney(shopId, startTime, endTime, 1, incomeAccount);
-        BigDecimal changeSumMoney = BigDecimalUtils.subtract(new BigDecimal(incomeSumMoney), new BigDecimal(payOutSumMoney));
+        BigDecimal changeSumMoney = BigDecimalUtil.subtract(new BigDecimal(incomeSumMoney), new BigDecimal(payOutSumMoney));
         AccountMoneySumVO vo = new AccountMoneySumVO();
-        vo.setIncomeSumMoney( BigDecimalUtils.scale(new BigDecimal(incomeSumMoney)));
-        vo.setPayOutSumMoney( BigDecimalUtils.scale(new BigDecimal(payOutSumMoney)));
-        vo.setChangeSumMoney(BigDecimalUtils.scale(changeSumMoney));
+        vo.setIncomeSumMoney( BigDecimalUtil.scale(new BigDecimal(incomeSumMoney)));
+        vo.setPayOutSumMoney( BigDecimalUtil.scale(new BigDecimal(payOutSumMoney)));
+        vo.setChangeSumMoney(BigDecimalUtil.scale(changeSumMoney));
 
         return vo;
     }

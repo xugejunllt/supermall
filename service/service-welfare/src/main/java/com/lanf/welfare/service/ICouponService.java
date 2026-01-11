@@ -1,8 +1,10 @@
 package com.lanf.welfare.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
 import com.lanf.welfare.model.dto.ReceiveShopCouponDTO;
 import com.lanf.welfare.model.entity.CouponDO;
+import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
 
 /**
  * <p>
@@ -19,4 +21,10 @@ public interface ICouponService extends IService<CouponDO> {
      */
     void  receiveShopCoupon(ReceiveShopCouponDTO dto);
 
+    /**
+     * 计算优惠券金额
+     *
+     *
+     */
+    CalculateDiscountAmountVO calculateDiscountAmount(CalculateDiscountAmountDTO dto);
 }

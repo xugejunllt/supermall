@@ -1,7 +1,7 @@
 package com.lanf.storage.service.storage.impl.manager.impl;
 
 
-import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.storage.model.bo.CalculatePurchaseOrderItemMoneyBO;
 import com.lanf.storage.model.bo.CalculatePurchaseOrderMoneyBO;
 import com.lanf.storage.model.dto.CalculatePurchaseOrderItemMoneyDTO;
@@ -37,7 +37,7 @@ public class StorageAdapterImpl implements StorageAdapter {
         for (CalculatePurchaseOrderItemMoneyDTO purchaseOrderItemMoney : purchaseOrderItemMoneyList) {
             //计算商品项目总金额
             BigDecimal totalMoney = calculateItemTotalMoney(purchaseOrderItemMoney);
-            allItemTotalMoney = BigDecimalUtils.add(allItemTotalMoney, totalMoney);
+            allItemTotalMoney = BigDecimalUtil.add(allItemTotalMoney, totalMoney);
             //
             CalculatePurchaseOrderItemMoneyBO calculatePurchaseOrderItemMoneyBO = new CalculatePurchaseOrderItemMoneyBO();
             calculatePurchaseOrderItemMoneyBO.setSkuCode(purchaseOrderItemMoney.getSkuCode());
@@ -52,7 +52,7 @@ public class StorageAdapterImpl implements StorageAdapter {
         BigDecimal totalMoney = new BigDecimal(0);
 
         //运费+其他费用+商品项目总金额
-        totalMoney = BigDecimalUtils.add(totalMoney, calculatePurchaseOrderMoney.getFreight()).
+        totalMoney = BigDecimalUtil.add(totalMoney, calculatePurchaseOrderMoney.getFreight()).
                 add(calculatePurchaseOrderMoney.getOtherFreight()).add(allItemTotalMoney);
         //赋值
         calculatePurchaseOrderMoneyBO.setPurchaseOrderTotalMoney(totalMoney);
@@ -66,7 +66,7 @@ public class StorageAdapterImpl implements StorageAdapter {
 
 
         //数量x销售单价
-        BigDecimal totalMoney = BigDecimalUtils.multiply(new BigDecimal(purchaseOrderItemMoney.getQuantity()),
+        BigDecimal totalMoney = BigDecimalUtil.multiply(new BigDecimal(purchaseOrderItemMoney.getQuantity()),
                 purchaseOrderItemMoney.getSalesUnitPrice());
 
         return totalMoney;

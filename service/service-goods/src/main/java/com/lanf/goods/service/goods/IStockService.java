@@ -3,7 +3,9 @@ package com.lanf.goods.service.goods;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.dto.DeductStockDTO;
+import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.entity.StockDO;
+import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.rocketmq.model.message.UserStockAddMsg;
 
 import java.util.List;
@@ -30,6 +32,13 @@ public interface IStockService extends IService<StockDO> {
      *
      */
     void deductStock(DeductStockDTO deductStockDTO);
+
+    /**
+     *  判断库存是否充足
+     *
+     *
+     */
+    StockEnoughVO isStockEnough(StockEnoughDTO dto);
 
 
 }

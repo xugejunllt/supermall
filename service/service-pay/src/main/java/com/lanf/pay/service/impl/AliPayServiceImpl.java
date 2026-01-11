@@ -8,7 +8,7 @@ import com.alipay.api.domain.*;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.*;
 import com.alipay.api.response.*;
-import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.pay.model.bo.ReturnMoneyBO;
 import com.lanf.pay.model.bo.TradeStatusBO;
@@ -172,7 +172,7 @@ public class AliPayServiceImpl extends AbstractPayService {
             // 设置商家侧唯一订单号
             model.setOutBizNo(dto.getOutBizNo());
             // 设置订单总金额
-            model.setTransAmount(BigDecimalUtils.format(dto.getTransAmount()));
+            model.setTransAmount(BigDecimalUtil.format(dto.getTransAmount()));
             // 设置描述特定的业务场景
             model.setBizScene("DIRECT_TRANSFER");
             // 设置业务产品码

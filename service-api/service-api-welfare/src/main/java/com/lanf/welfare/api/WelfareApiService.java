@@ -2,7 +2,9 @@ package com.lanf.welfare.api;
 
 
 import com.lanf.constant.result.Result;
+import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
 import com.lanf.welfare.model.dto.UseCouponDTO;
+import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
 import com.lanf.welfare.model.vo.CouponVO;
 import com.lanf.welfare.model.vo.UseCouponVO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -17,6 +19,15 @@ import java.util.Set;
 @Component
 @FeignClient(name = "service-welfare",url = "localhost:9014") //调用的服务名称
 public interface WelfareApiService {
+
+    /**
+     * 优惠券计算
+     *
+     *
+     */
+    @PostMapping("/welfare/api/calculateDiscountAmount")
+    public Result<CalculateDiscountAmountVO> calculateDiscountAmount(@RequestBody
+                                                                         CalculateDiscountAmountDTO dto);
 
 
     @PostMapping("/welfare/api/bathUseCoupon")

@@ -2,7 +2,7 @@ package com.lanf.finance.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.bizcache.service.BizCacheService;
-import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.finance.model.entity.LiquidationDO;
 import com.lanf.finance.model.entity.LiquidationFlowDO;
@@ -106,7 +106,7 @@ public class LiquidationServiceImpl extends ServiceImpl<LiquidationMapper, Liqui
             liquidationFlowDO.setPayFinishTime(dto.getPayFinishTime());
             liquidationFlowDOList.add(liquidationFlowDO);
             //平台支出
-            BigDecimal incomeMoney2 = BigDecimalUtils.subtract(payMoney, dto.getReceiptMoney());
+            BigDecimal incomeMoney2 = BigDecimalUtil.subtract(payMoney, dto.getReceiptMoney());
             LiquidationFlowDO liquidationFlowDO2 = init();
             liquidationFlowDO2.setLiquidationId(liquidationId);
             liquidationFlowDO2.setRate(rate);
@@ -127,11 +127,11 @@ public class LiquidationServiceImpl extends ServiceImpl<LiquidationMapper, Liqui
             log.info("订单履约完成,进行结算");
             //结算，转账给商家
             ShopVO shopVO = systemService.shopQuery(Arrays.asList(dto.getShopId())).getData().get(0);
-            BigDecimal busRate = BigDecimalUtils.subtract(new BigDecimal(100), rate).
+            BigDecimal busRate = BigDecimalUtil.subtract(new BigDecimal(100), rate).
                     multiply(new BigDecimal(0.01));
             String incomeAccount = getBusAccount(dto, shopVO.getBusinessId());
             //平台支出 费率*支付金额
-            BigDecimal incomeMoney = BigDecimalUtils.multiply(payMoney, busRate);
+            BigDecimal incomeMoney = BigDecimalUtil.multiply(payMoney, busRate);
             TransferAccountsDTO transferAccountsDTO = new TransferAccountsDTO();
             transferAccountsDTO.setUserId(shopVO.getBusinessId());
             transferAccountsDTO.setShopId(dto.getShopId());

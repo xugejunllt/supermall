@@ -1,7 +1,7 @@
 package com.lanf.order.service.layout.impl;
 
 import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.constant.enums.LogisticsTrackStatusEnum;
 import com.lanf.constant.exception.BizException;
@@ -219,8 +219,8 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
             List<EmptyCartGoodsSkuVO> emptyCartGoodsSkuVOS = goodsSkuMap.get(a);
             BigDecimal orderMoney = new BigDecimal(0);
             for (EmptyCartGoodsSkuVO vo : emptyCartGoodsSkuVOS) {
-                BigDecimal v2 = BigDecimalUtils.multiply(vo.getPrice(), new BigDecimal(vo.getQuantity()));
-                orderMoney = BigDecimalUtils.add(orderMoney, v2);
+                BigDecimal v2 = BigDecimalUtil.multiply(vo.getPrice(), new BigDecimal(vo.getQuantity()));
+                orderMoney = BigDecimalUtil.add(orderMoney, v2);
             }
             CreatePayOrderDTO createPayOrderDTO = new CreatePayOrderDTO();
             createPayOrderDTO.setShopId(a);
@@ -324,7 +324,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         Integer quantity = dto.getQuantity();
 
         //计算订单金额
-        BigDecimal orderMoney = BigDecimalUtils.multiply(goodsVO.getPrice(), new BigDecimal(quantity));
+        BigDecimal orderMoney = BigDecimalUtil.multiply(goodsVO.getPrice(), new BigDecimal(quantity));
 
         CreatePayOrderDTO createPayOrderDTO = new CreatePayOrderDTO();
         createPayOrderDTO.setMainOrderId(onePlaceAnOrderBO.getMainOrderId());

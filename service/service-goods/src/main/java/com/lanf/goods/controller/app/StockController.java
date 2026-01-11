@@ -1,0 +1,31 @@
+package com.lanf.goods.controller.app;
+
+import com.lanf.constant.result.Result;
+import com.lanf.goods.model.dto.StockEnoughDTO;
+import com.lanf.goods.model.vo.StockEnoughVO;
+import com.lanf.goods.service.goods.IStockService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@Slf4j
+@RestController
+@RequestMapping("/app/stock")
+public class StockController {
+
+    @Autowired
+    private IStockService stockService;
+
+    @PostMapping("/isStockEnough")
+    public Result<StockEnoughVO> isStockEnough(@RequestBody @Validated StockEnoughDTO dto) {
+
+        log.info("商品库存是否充足:{}", dto);
+
+        return Result.ok(stockService.isStockEnough(dto));
+    }
+
+}

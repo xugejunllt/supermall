@@ -1,6 +1,6 @@
 package com.lanf.file.service.manager.impl;
 
-import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.constant.exception.BizException;
 import com.lanf.file.model.dto.FileUploadDTO;
 import com.lanf.file.model.dto.FileUploadFileDTO;
@@ -76,7 +76,7 @@ public class FileManagerServiceImpl implements FileManagerService {
     }
     private int toM(int byteSize ){
 
-        BigDecimal v2 = BigDecimalUtils.divide(new BigDecimal(byteSize), new BigDecimal(1024*1024));
+        BigDecimal v2 = BigDecimalUtil.divide(new BigDecimal(byteSize), new BigDecimal(1024*1024));
 
         return  v2.intValue();
     }

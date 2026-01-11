@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapp
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.constant.exception.BizException;
@@ -174,7 +174,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                 itemVO.setUnit(b.getSkuName());
                 itemVO.setSkuCode(b.getSkuCode());
                 itemVO.setGoodsTitle(b.getGoodsTitle());
-                itemVO.setTotalMoney(BigDecimalUtils.multiply(new BigDecimal(b.getQuantity()), b.getUnitPrice()));
+                itemVO.setTotalMoney(BigDecimalUtil.multiply(new BigDecimal(b.getQuantity()), b.getUnitPrice()));
                 inOutStockOrderItemDTOList.add(itemVO);
                 expectOutQuantity += b.getQuantity();
             }

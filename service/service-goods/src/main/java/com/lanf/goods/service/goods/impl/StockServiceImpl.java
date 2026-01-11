@@ -8,9 +8,11 @@ import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.bo.StockSaveOrUpdateBO;
 import com.lanf.goods.model.dto.DeductStockDTO;
+import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
 import com.lanf.goods.model.entity.UserStockSyncRecordDO;
+import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.service.goods.IStockService;
 import com.lanf.goods.service.goods.ITccOperationService;
 import com.lanf.goods.service.goods.IUserStockFlowService;
@@ -256,6 +258,8 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
     }
 
+
+
     @Transactional
     public void confirmDeductStock(DeductStockDTO deductStockDTO) {
 
@@ -361,5 +365,19 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         return stockDOList.get(0);
     }
+    @Override
+    public StockEnoughVO isStockEnough(StockEnoughDTO dto) {
 
+        StockDO stockDO = findStockDO(dto.getSkuCode());
+        Boolean enough = true;
+        if (stockDO.getUsableStock() < dto.getQuantity()) {
+            log.info("库存不足");
+            enough = false;
+        }
+        StockEnoughVO stockEnoughVO = new StockEnoughVO();
+        stockEnoughVO.setSkuId(stockDO.getId());
+        stockEnoughVO.setEnough(enough);
+
+        return stockEnoughVO;
+    }
 }
