@@ -8,6 +8,7 @@ import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.mapper.TradeOrderMapper;
 import com.lanf.pay.model.dto.CreatePayOrderDTO;
+import com.lanf.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.pay.model.dto.PlaceSinglePayOrderDTO;
 import com.lanf.pay.model.dto.TradeOrderQuantitySumDTO;
 import com.lanf.pay.model.entity.PayOrderDO;
@@ -23,7 +24,9 @@ import com.lanf.pay.service.IBathPayOrderService;
 import com.lanf.pay.service.IPayOrderService;
 import com.lanf.pay.service.ITradeOrderItemService;
 import com.lanf.pay.service.ITradeOrderService;
+import com.lanf.pay.utils.PryServiceUtils;
 import com.lanf.rocketmq.model.message.RefundDTO;
+import com.lanf.tcc.service.ITccOperationService;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.dto.UseCouponDTO;
 import com.lanf.welfare.model.vo.UseCouponVO;
@@ -61,16 +64,60 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private ITradeOrderItemService tradeOrderItemService;
     @Autowired
     private WelfareApiService welfareApiService;
+    @Autowired
+    private ITccOperationService tccOperationService;
+
+    @HmilyTCC(confirmMethod = "confirmCreateTradeOrder", cancelMethod = "cancelCreateTradeOrder")
+    @Override
+    public void createTradeOrder(CreateTradeOrderDTO dto) {
+
+        log.info("createTradeOrder");
+    }
+
+    @Transactional
+    public void confirmCreateTradeOrder(CreateTradeOrderDTO dto){ 
+        log.info("confirmCreateTradeOrder:{}",dto);
+        z
+        TradeOrderDO tradeOrderDO = buildTradeOrderDO(dto);
+        try {
+            this.save(tradeOrderDO);
+        } catch (DuplicateKeyException e) {
+            /**
+             * 不报错
+             */
+            log.warn("重复插入交易订单");
+
+        }
+    }
+
+
+    private static TradeOrderDO buildTradeOrderDO(CreateTradeOrderDTO dto) {
+        String outTradeNo = PryServiceUtils.generateOutTradeNo(dto.getOrderId());
+
+        TradeOrderDO tradeOrderDO = new TradeOrderDO();
+        tradeOrderDO.setId(dto.getTradeOrderId());
+        tradeOrderDO.setBathPayOrderId(-1L);
+        tradeOrderDO.setUserId(dto.getUserId());
+        tradeOrderDO.setOrderId(dto.getOrderId());
+        tradeOrderDO.setOutTradeNo(outTradeNo);
+        tradeOrderDO.setTradeMoney(dto.getTradeMoney());
+        tradeOrderDO.setPayType(dto.getPayType());
+        tradeOrderDO.setPayStatus(0);
+        tradeOrderDO.setBathPay(0);
+        tradeOrderDO.setVersion(1L);
+        return tradeOrderDO;
+    }
+
 
     @HmilyTCC(confirmMethod = "confirmPlaceSinglePayOrder", cancelMethod = "cancelPlaceSinglePayOrder")
     @Override
     public void placeSinglePayOrder(PlaceSinglePayOrderDTO dto) {
-        log.info("下单开始");
-        String orderNumber = dto.getOrderNumber();
-        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getOrderNumber, orderNumber).one();
-        if (tradeOrderDO != null) {
-            throw new BizException("重复下单");
-        }
+//        log.info("下单开始");
+//        String orderNumber = dto.getOrderNumber();
+//        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getOrderNumber, orderNumber).one();
+//        if (tradeOrderDO != null) {
+//            throw new BizException("重复下单");
+//        }
 
     }
     public void confirmPlaceSinglePayOrder(PlaceSinglePayOrderDTO dto){

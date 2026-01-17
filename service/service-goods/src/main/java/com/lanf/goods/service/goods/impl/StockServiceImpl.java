@@ -351,7 +351,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
          */
         boolean operation = tccOperationService.cancelOperation(bizKey);
         if ( !operation){
-            log.info("cancel已执行");
+
             return;
         }
         boolean update = this.lambdaUpdate().

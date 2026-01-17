@@ -47,7 +47,13 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
         }
 
     }
-
+    /**
+     *
+     *
+     *
+     * 只有当 所有try执行成功后，才会执行confirm
+     *
+     */
     @Override
     public boolean confirmOperation(String bizKey) {
 
@@ -69,13 +75,20 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
         return true;
     }
 
+    /**
+     *
+     *
+     *
+     * 只有当 try被执行后，才会被调用，即hmily_transaction_participant已经有记录了
+     *
+     */
     @Override
     public boolean cancelOperation(String bizKey) {
 
         TccOperationDO one = this.lambdaQuery().eq(TccOperationDO::getBizKey, bizKey).one();
+
         if (one == null) {
-            log.info("try阶段未执行");
-            throw new BizException("try阶段未执行");
+            throw new BizException("tcc操作记录不存在");
         }
 
         if (one.getStatus() == 2 ) {
@@ -86,7 +99,9 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
             log.info("confirm已执行");
             return false;
         }
-
+        /**
+         * 隐含条件 当 status = 0时 才能更新
+         */
         boolean update = this.lambdaUpdate().eq(BaseEntity::getId, one.getId()).
                 eq(TccOperationDO::getVersion, one.getVersion()).
                 set(TccOperationDO::getStatus, 2).

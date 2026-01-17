@@ -2,6 +2,7 @@ package com.lanf.pay.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.pay.model.dto.CreatePayOrderDTO;
+import com.lanf.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.pay.model.dto.PlaceSinglePayOrderDTO;
 import com.lanf.pay.model.dto.TradeOrderQuantitySumDTO;
 import com.lanf.pay.model.entity.TradeOrderDO;
@@ -25,24 +26,34 @@ import java.util.List;
  */
 public interface ITradeOrderService extends IService<TradeOrderDO> {
 
+
+    /**
+     * 创建交易订单
+     *
+     */
+    void createTradeOrder(CreateTradeOrderDTO dto);
+
+
     /**
      * 下达单笔支付订单
      *
      */
+    @Deprecated
     void  placeSinglePayOrder(PlaceSinglePayOrderDTO dto);
 
-
+    @Deprecated
     CreatePayOrderVO createPayOrder(List<CreatePayOrderDTO> dto);
-
+    @Deprecated
     OrderTradeVO queryOrderTradeByOrderId(Long orderId);
 
     /**
      * 进行退款
      *
      */
+    @Deprecated
     void  refund(RefundDTO dto);
 
-
+    @Deprecated
     TradeOrderApiVO tradeOrderQuery(TradeOrderQuery query);
 
     /**
@@ -51,6 +62,7 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
      * 统计交易单数量
      *
      */
+    @Deprecated
     Integer tradeOrderQuantitySum(TradeOrderQuantitySumDTO dto);
 
     /**
@@ -58,6 +70,7 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
      *
      *
      */
+    @Deprecated
     List<TradeOrderBathVO> tradeOrderBathQuery(TradeOrderBathQuery query);
 
 }

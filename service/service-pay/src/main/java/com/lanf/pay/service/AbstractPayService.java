@@ -1,7 +1,6 @@
 package com.lanf.pay.service;
 
 import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.constant.enums.LogisticsTrackStatusEnum;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
@@ -204,14 +203,14 @@ public abstract class AbstractPayService implements PayService {
         log.info("开始进行转账:{}", dto);
 
 
-        if (BigDecimalUtil.compareTo(dto.getTransAmount(), transferLowMoney) != 1) {
-            //转账金额小于最低转账金额
-            log.info("转账金额小于最低转账金额");
-            TransferAccountsVO transferAccountsVO = new TransferAccountsVO();
-            transferAccountsVO.setStatus(1);
-            transferAccountsVO.setPayFinishTime(new Date());
-            return transferAccountsVO;
-        }
+//        if (BigDecimalUtil.compareTo(dto.getTransAmount(), transferLowMoney) != 1) {
+//            //转账金额小于最低转账金额
+//            log.info("转账金额小于最低转账金额");
+//            TransferAccountsVO transferAccountsVO = new TransferAccountsVO();
+//            transferAccountsVO.setStatus(1);
+//            transferAccountsVO.setPayFinishTime(new Date());
+//            return transferAccountsVO;
+//        }
         Integer payType = dto.getPayType();
 
 
