@@ -89,6 +89,11 @@
             <artifactId>common-rocketmq</artifactId>
             <version>${common-pom.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-hmily</artifactId>
+            <version>${common-hmily.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

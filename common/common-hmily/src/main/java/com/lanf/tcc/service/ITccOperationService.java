@@ -1,7 +1,7 @@
-package com.lanf.goods.service.goods;
+package com.lanf.tcc.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.goods.model.entity.TccOperationDO;
+import com.lanf.tcc.model.TccOperationDO;
 
 /**
  * <p>

@@ -2,6 +2,7 @@ package com.lanf.goods.controller.aip;
 
 import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.DeductStockDTO;
+import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.service.base.IBaseGoodsService;
 import com.lanf.goods.service.goods.ICartService;
 import com.lanf.goods.service.goods.IGoodsService;
@@ -33,10 +34,10 @@ public class GoodsApiController {
      * 扣减库存
      */
     @PostMapping("/deductStock")
-    public Result<Void> deductStock(@RequestBody @Valid DeductStockDTO deductStockDTO) {
+    public Result<DeductStockVO> deductStock(@RequestBody @Valid DeductStockDTO deductStockDTO) {
         log.info("扣减库存开始[{}]", deductStockDTO);
-        stockService.deductStock(deductStockDTO);
-        return Result.ok();
+
+        return Result.ok(stockService.deductStock(deductStockDTO));
 
     }
 

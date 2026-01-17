@@ -7,28 +7,38 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.messagemanager.client.model.dto.SendMqMessageDTO;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
+import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.rocketmq.model.message.DeductCouponTemplateCountMsg;
+import com.lanf.tcc.service.ITccOperationService;
 import com.lanf.welfare.mapper.CouponMapper;
 import com.lanf.welfare.model.bo.DeductShopCouponRemainCountCacheBO;
 import com.lanf.welfare.model.bo.DiscountInfoBO;
 import com.lanf.welfare.model.bo.FullDiscountUseConditionBO;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
 import com.lanf.welfare.model.dto.ReceiveShopCouponDTO;
+import com.lanf.welfare.model.dto.UseMultipleCouponDTO2;
 import com.lanf.welfare.model.entity.CouponDO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
+import com.lanf.welfare.model.entity.OrderCouponDO;
 import com.lanf.welfare.model.enums.CouponTemplateStatus;
 import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
 import com.lanf.welfare.service.ICouponService;
 import com.lanf.welfare.service.ICouponTemplateService;
+import com.lanf.welfare.service.IOrderCouponService;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +62,11 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
     private TransactionTemplate transactionTemplate;
     @Autowired
     private ISendMqMessageService sendMqMessageService;
+    @Autowired
+    private ITccOperationService tccOperationService;
+    @Autowired
+    private IOrderCouponService orderCouponService;
+
 
     @DistributedLock(key = "#dto.userId")//防止重复领取
     @Override
@@ -182,14 +197,14 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
     @Override
     public CalculateDiscountAmountVO calculateDiscountAmount(CalculateDiscountAmountDTO dto) {
 
-        // 查询可使用的优惠券
-        List<CouponDO> availableCoupons = this.lambdaQuery()
-                .eq(CouponDO::getUserId, dto.getUserId())           // 指定用户
-                .eq(CouponDO::getStatus, 0)                         // 状态为可用（未使用）
-                .ge(CouponDO::getUseStartTime, new Date())          // 使用开始时间小于等于当前时间
-                .le(CouponDO::getUseEndTime, new Date())            // 使用结束时间大于等于当前时间
-                .list();
 
+        return calculateDiscountAmount( dto,null);
+    }
+
+    private CalculateDiscountAmountVO calculateDiscountAmount(CalculateDiscountAmountDTO dto,List<Long> couponIds){
+
+        // 查询可使用的优惠券
+        List<CouponDO> availableCoupons = findAvailableCoupons(dto.getUserId(), couponIds);
         if (availableCoupons.isEmpty()){
             log.info("无可用优惠券");
             CalculateDiscountAmountVO vo = new CalculateDiscountAmountVO();
@@ -197,32 +212,26 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
             return vo;
         }
         // 进一步根据订单金额筛选满足使用条件的优惠券，并确保每种type只保留一个
-        List<CouponDO> filteredCoupons = availableCoupons.stream()
-                .filter(coupon -> isCouponUsable(coupon, dto.getTotalAmount()))
-                .collect(Collectors.groupingBy(CouponDO::getType))   // 按type分组
-                .values()                                           // 获取每组的集合
-                .stream()                                           // 对每组进行处理
-                .map(typeGroup -> typeGroup.get(0))                 // 每组只取第一个优惠券
-                .collect(Collectors.toList());
+        List<CouponDO> filteredCoupons = filterCouponsByOrderAmountAndType(availableCoupons, dto.getTotalAmount());
 
-        if (filteredCoupons.isEmpty()){
-            log.info("没有满足条件的优惠券");
-            CalculateDiscountAmountVO vo = new CalculateDiscountAmountVO();
-            vo.setTotalDiscountAmount(new BigDecimal(0));
-            return vo;
-        }
-        //折扣信息
-        List<DiscountInfoBO> discountInfoBOS = buildDiscountInfoBOList(filteredCoupons);
-        //计算优惠总金额
-        BigDecimal totalDiscountAmount = calculateTotalDiscountAmount(discountInfoBOS);
-        // 构建返回结果
-        CalculateDiscountAmountVO result = new CalculateDiscountAmountVO();
-        result.setTotalDiscountAmount(totalDiscountAmount);
-        result.setDiscountInfoBOList(discountInfoBOS);
-
-        return result;
+        return buildCalculateDiscountAmountResult(filteredCoupons);
     }
-
+    /**
+     * 查询用户可用的优惠券列表
+     *
+     * @param userId 用户ID
+     * @param couponIds 优惠券ID列表（可选）
+     * @return 可用优惠券列表
+     */
+    private List<CouponDO> findAvailableCoupons(Long userId, List<Long> couponIds) {
+        return this.lambdaQuery()
+                .eq(CouponDO::getUserId, userId)                        // 指定用户
+                .eq(CouponDO::getStatus, 0)                             // 状态为可用（未使用）
+                .ge(CouponDO::getUseStartTime, new Date())              // 使用开始时间小于等于当前时间
+                .le(CouponDO::getUseEndTime, new Date())                // 使用结束时间大于等于当前时间
+                .in(couponIds != null && !couponIds.isEmpty(), CouponDO::getId, couponIds)
+                .list();
+    }
     private List<DiscountInfoBO> buildDiscountInfoBOList(List<CouponDO> coupons){
 
         List<DiscountInfoBO> list = new ArrayList<>();
@@ -236,7 +245,46 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         }
         return list;
     }
+    /**
+     * 根据订单金额筛选满足使用条件的优惠券，并确保每种type只保留一个
+     *
+     * @param availableCoupons 可用优惠券列表
+     * @param orderAmount 订单金额
+     * @return 筛选后的优惠券列表
+     */
+    private List<CouponDO> filterCouponsByOrderAmountAndType(List<CouponDO> availableCoupons, BigDecimal orderAmount) {
+        return availableCoupons.stream()
+                .filter(coupon -> isCouponUsable(coupon, orderAmount))
+                .collect(Collectors.groupingBy(CouponDO::getType))   // 按type分组
+                .values()                                           // 获取每组的集合
+                .stream()                                           // 对每组进行处理
+                .map(typeGroup -> typeGroup.get(0))                 // 每组只取第一个优惠券
+                .collect(Collectors.toList());
+    }
 
+    /**
+     * 构建计算折扣金额的结果对象
+     *
+     * @param filteredCoupons 筛选后的优惠券列表
+     * @return 计算折扣金额结果对象
+     */
+    private CalculateDiscountAmountVO buildCalculateDiscountAmountResult(List<CouponDO> filteredCoupons) {
+        if (filteredCoupons.isEmpty()) {
+            log.info("没有满足条件的优惠券");
+
+            return null;
+        }
+        //折扣信息
+        List<DiscountInfoBO> discountInfoBOS = buildDiscountInfoBOList(filteredCoupons);
+        //计算优惠总金额
+        BigDecimal totalDiscountAmount = calculateTotalDiscountAmount(discountInfoBOS);
+        // 构建返回结果
+        CalculateDiscountAmountVO result = new CalculateDiscountAmountVO();
+        result.setTotalDiscountAmount(totalDiscountAmount);
+        result.setDiscountInfoBOList(discountInfoBOS);
+
+        return result;
+    }
     private BigDecimal parseDiscountAmount(CouponDO coupon){
 
         if (coupon.getType() == 0){
@@ -279,6 +327,115 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         }
 
         return false;
+    }
+
+    @Transactional
+    @HmilyTCC(confirmMethod = "confirmUseMultipleCoupon", cancelMethod = "cancelUseMultipleCoupon")
+    @Override
+    public CalculateDiscountAmountVO useMultipleCoupon(UseMultipleCouponDTO2 dto) {
+
+        List<Long> couponIds = dto.getCouponIds();
+
+        List<CouponDO> availableCoupons = findAvailableCoupons(dto.getUserId(), couponIds);
+
+        if (availableCoupons.size() != couponIds.size()){
+            throw new BizException("优惠券不存在");
+        }
+        // 进一步根据订单金额筛选满足使用条件的优惠券，并确保每种type只保留一个
+        List<CouponDO> filteredCoupons = filterCouponsByOrderAmountAndType(availableCoupons, dto.getTotalAmount());
+        CalculateDiscountAmountVO amountResult = buildCalculateDiscountAmountResult(filteredCoupons);
+
+        if (amountResult == null){
+            return null;
+        }
+        /**
+         * 冻结优惠卷
+         */
+        Map<Long, CouponDO> couponDOMap = availableCoupons.stream()
+                .collect(Collectors.toMap(CouponDO::getId, coupon -> coupon));
+        List<Long> useCouponIds = amountResult.getDiscountInfoBOList().stream()
+                .map(DiscountInfoBO::getCouponId).collect(Collectors.toList());
+
+        String bizKey = buildUseMultipleCouponBizKey(dto.getOrderId());
+
+        List<OrderCouponDO> couponDOList = new ArrayList<>();
+        tccOperationService.tryOperation(bizKey);
+        for (Long couponId : useCouponIds){
+            CouponDO couponDO = couponDOMap.get(couponId);
+
+            boolean update = this.lambdaUpdate()
+                    .eq(CouponDO::getId, couponId)
+                    .eq(CouponDO::getVersion, couponDO.getVersion())
+                    .set(CouponDO::getStatus, 1)
+                    .set(CouponDO::getVersion, couponDO.getVersion() + 1)
+                    .update();
+            if ( !update){
+                throw new BizException("优惠卷更新失败");
+            }
+            OrderCouponDO orderCouponDO = new OrderCouponDO();
+            orderCouponDO.setCouponId(couponId);
+            orderCouponDO.setOrderId(dto.getOrderId());
+            couponDOList.add(orderCouponDO);
+        }
+        orderCouponService.saveBatch(couponDOList);
+
+        return amountResult;
+    }
+    /**
+     * 构建业务键用于TCC事务操作
+     *
+     * @param orderId 订单ID
+     * @return 业务键
+     */
+    private String buildUseMultipleCouponBizKey(Long orderId) {
+        return "useMultipleCoupon:" + orderId;
+    }
+    public void confirmUseMultipleCoupon(UseMultipleCouponDTO2 dto) {
+        
+        log.info("confirmUseMultipleCoupon:{}", dto);
+        String bizKey = buildUseMultipleCouponBizKey(dto.getOrderId());
+        tccOperationService.confirmOperation(bizKey);
+
+
+    }
+    @Transactional
+    public void cancelUseMultipleCoupon(UseMultipleCouponDTO2 dto) {
+        
+        log.info("cancelUseMultipleCoupon:{}", dto);
+
+        List<OrderCouponDO> couponDOList = orderCouponService.lambdaQuery().eq(OrderCouponDO::getOrderId, dto.getOrderId())
+                .list();
+
+        List<Long> orderCouponIds = couponDOList.stream().map(OrderCouponDO::getId).collect(Collectors.toList());
+        List<Long> couponIds = couponDOList.stream().map(OrderCouponDO::getCouponId).collect(Collectors.toList());
+        List<CouponDO> couponDOList1 = this.lambdaQuery()
+                .in(BaseEntity::getId, couponIds)
+                .eq(CouponDO::getStatus, 1)
+                .list();
+        /**
+         * DB操作
+         */
+        String bizKey = buildUseMultipleCouponBizKey(dto.getOrderId());
+
+        boolean operation = tccOperationService.cancelOperation(bizKey);
+        if ( !operation){
+            log.info("cancel已执行");
+            return;
+        }
+        for (CouponDO couponDO : couponDOList1){
+            boolean update = this.lambdaUpdate()
+                    .eq(CouponDO::getId, couponDO.getId())
+                    .eq(CouponDO::getVersion, couponDO.getVersion())
+                    .set(CouponDO::getStatus, 0)
+                    .set(CouponDO::getVersion, couponDO.getVersion() + 1)
+                    .update();
+            if ( !update){
+                throw new BizException("优惠卷更新失败");
+            }
+        }
+        orderCouponService.removeByIds(orderCouponIds);
+
+
     }
 
 }

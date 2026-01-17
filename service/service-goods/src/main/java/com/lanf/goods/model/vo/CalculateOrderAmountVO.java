@@ -1,5 +1,6 @@
 package com.lanf.goods.model.vo;
 
+import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -19,4 +20,6 @@ public class CalculateOrderAmountVO implements Serializable {
     /**
      * 优惠卷信息
      */
+    private CalculateDiscountAmountVO calculateDiscountAmountVO;
+
 }

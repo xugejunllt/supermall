@@ -5,6 +5,7 @@ import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.entity.StockDO;
+import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.rocketmq.model.message.UserStockAddMsg;
 
@@ -31,7 +32,7 @@ public interface IStockService extends IService<StockDO> {
      * 扣减库存
      *
      */
-    void deductStock(DeductStockDTO deductStockDTO);
+    DeductStockVO deductStock(DeductStockDTO deductStockDTO);
 
     /**
      *  判断库存是否充足

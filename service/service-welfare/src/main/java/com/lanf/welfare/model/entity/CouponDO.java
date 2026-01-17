@@ -42,7 +42,9 @@ public class CouponDO extends BaseEntity {
     @ApiModelProperty(value = "副标题")
     private String title;
 
+
     @ApiModelProperty(value = "状态 0: 待使用 1：已使用 2：作废 作废 不能使用")
+
     private Integer status;
 
     @ApiModelProperty(value = " 0:满减劵,1:抵扣卷,2:固定金额券")

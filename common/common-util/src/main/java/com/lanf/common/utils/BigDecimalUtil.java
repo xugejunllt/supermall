@@ -81,14 +81,15 @@ public class BigDecimalUtil {
      * 减法运算
      */
     public static BigDecimal subtract(BigDecimal a, BigDecimal b) {
-        return safeValue(a).subtract(safeValue(b));
+        return safeValue(a).subtract(safeValue(b)).setScale(DEFAULT_DIV_SCALE, DEFAULT_ROUNDING_MODE);
     }
 
     /**
      * 乘法运算
      */
     public static BigDecimal multiply(BigDecimal a, BigDecimal b) {
-        return safeValue(a).multiply(safeValue(b));
+
+        return safeValue(a).multiply(safeValue(b)).setScale(DEFAULT_DIV_SCALE, DEFAULT_ROUNDING_MODE);
     }
 
     /**

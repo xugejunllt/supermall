@@ -6,7 +6,7 @@
         <artifactId>common</artifactId>
         <version>1.0.0</version>
     </parent>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <artifactId>common-hmily</artifactId>
     <version>${common-hmily.version}</version>
     <dependencies>
@@ -58,6 +58,10 @@
           <version>30.1.1-jre</version>
       </dependency>
 
-
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-mybatis</artifactId>
+            <version>${common-mybatis.version}</version>
+        </dependency>
   </dependencies>
 </project>

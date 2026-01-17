@@ -10,4 +10,5 @@ public class OrderInitParamsBO implements Serializable {
 
     private Long orderId;
 
+    private Long userId;
 }

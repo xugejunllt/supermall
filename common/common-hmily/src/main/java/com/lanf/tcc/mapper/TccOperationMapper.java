@@ -1,7 +1,7 @@
-package com.lanf.goods.mapper;
+package com.lanf.tcc.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lanf.goods.model.entity.TccOperationDO;
+import com.lanf.tcc.model.TccOperationDO;
 
 /**
  * <p>

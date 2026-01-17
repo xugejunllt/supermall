@@ -4,6 +4,7 @@ package com.lanf.welfare.api;
 import com.lanf.constant.result.Result;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
 import com.lanf.welfare.model.dto.UseCouponDTO;
+import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
 import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
 import com.lanf.welfare.model.vo.CouponVO;
 import com.lanf.welfare.model.vo.UseCouponVO;
@@ -28,6 +29,14 @@ public interface WelfareApiService {
     @PostMapping("/welfare/api/calculateDiscountAmount")
     public Result<CalculateDiscountAmountVO> calculateDiscountAmount(@RequestBody
                                                                          CalculateDiscountAmountDTO dto);
+    /**
+     * 使用多张优惠卷
+     *
+     *
+     */
+    @PostMapping("/welfare/api/useMultipleCoupon")
+    public Result<CalculateDiscountAmountVO> useMultipleCoupon(@RequestBody
+                                                               UseMultipleCouponDTO dto);
 
 
     @PostMapping("/welfare/api/bathUseCoupon")

@@ -1,11 +1,13 @@
 package com.lanf.goods.api;
 
+import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
 import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.vo.ApiGoodsSkuVO;
 import com.lanf.goods.model.vo.BaseGoodsBySkuCodeQueryVO;
+import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.EmptyCartVO;
-import com.lanf.constant.result.Result;
+import org.dromara.hmily.annotation.Hmily;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,9 +21,9 @@ import java.util.Set;
 @FeignClient(name = "service-goods",url = "localhost:9005") //调用的服务名称
 public interface GoodsApiService {
 
-
+    @Hmily
     @PostMapping("/goods/api/deductStock")
-    public Result<Void> deductStock(@RequestBody @Valid DeductStockDTO deductStockDTO);
+    public Result<DeductStockVO> deductStock(@RequestBody @Valid DeductStockDTO deductStockDTO);
 
     @PostMapping("/goods/goodsApi/emptyCart")
     public Result<EmptyCartVO> emptyCart(@RequestBody Set<Long> cartIdLis);

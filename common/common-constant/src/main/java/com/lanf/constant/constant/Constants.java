@@ -1,8 +1,6 @@
 package com.lanf.constant.constant;
 
 
-import java.util.Locale;
-
 /**
  * 通用常量信息
  * 
@@ -14,6 +12,8 @@ public class Constants {
      * 平台租户编码
      */
     public static final String ADMIN_TENANT_CODE = "IKXHHIYJBLAXHFIVPEN";
+
+    public static final String TCC_MAPPER_PAGE = "com.lanf.tcc.mapper";
 
 
     /**

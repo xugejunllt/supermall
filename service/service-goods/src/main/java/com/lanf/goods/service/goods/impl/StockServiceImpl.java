@@ -9,22 +9,27 @@ import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.bo.StockSaveOrUpdateBO;
 import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
+import com.lanf.goods.model.entity.GoodsSkuDO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
 import com.lanf.goods.model.entity.UserStockSyncRecordDO;
+import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.StockEnoughVO;
+import com.lanf.goods.service.goods.IGoodsSkuService;
 import com.lanf.goods.service.goods.IStockService;
-import com.lanf.goods.service.goods.ITccOperationService;
 import com.lanf.goods.service.goods.IUserStockFlowService;
 import com.lanf.goods.service.goods.IUserStockSyncRecordService;
+import com.lanf.goods.utils.ProductServiceUtils;
 import com.lanf.rocketmq.model.message.UserStockAddMsg;
 import com.lanf.rocketmq.model.message.UserStockMsg;
+import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +56,8 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     private IUserStockFlowService userStockFlowService;
     @Autowired
     private ITccOperationService tccOperationService;
+    @Autowired
+    private IGoodsSkuService goodsSkuService;
 
     @Transactional(rollbackFor = {Exception.class})
     @Override
@@ -209,7 +216,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @Transactional
     @HmilyTCC(confirmMethod = "confirmDeductStock", cancelMethod = "cancelDeductStock")
     @Override
-    public void deductStock(DeductStockDTO deductStockDTO) {
+    public DeductStockVO deductStock(DeductStockDTO deductStockDTO) {
         log.info("扣减库存开始");
 
 
@@ -255,10 +262,21 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             log.info("扣减库存失败");
             throw new BizException("扣减库存失败");
         }
-
+        return buildDeductStockVO( skuCode, deductStockDTO.getQuantity());
     }
 
 
+    private DeductStockVO buildDeductStockVO(String skuCode,Integer  quantity) {
+
+        GoodsSkuDO goodsSkuDO = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getSkuCode, skuCode)
+                .one();
+        //订单总金额
+        BigDecimal totalAmount =  ProductServiceUtils.calculateTotalAmount(goodsSkuDO.getPrice(), quantity);
+        DeductStockVO deductStockVO = new DeductStockVO();
+        deductStockVO.setTotalAmount(totalAmount);
+
+        return deductStockVO;
+    }
 
     @Transactional
     public void confirmDeductStock(DeductStockDTO deductStockDTO) {

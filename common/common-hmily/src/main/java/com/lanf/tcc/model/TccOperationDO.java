@@ -1,4 +1,4 @@
-package com.lanf.goods.model.entity;
+package com.lanf.tcc.model;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
