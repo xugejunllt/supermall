@@ -18,7 +18,7 @@ import com.lanf.welfare.model.bo.DiscountInfoBO;
 import com.lanf.welfare.model.bo.FullDiscountUseConditionBO;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
 import com.lanf.welfare.model.dto.ReceiveShopCouponDTO;
-import com.lanf.welfare.model.dto.UseMultipleCouponDTO2;
+import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
 import com.lanf.welfare.model.entity.CouponDO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
 import com.lanf.welfare.model.entity.OrderCouponDO;
@@ -332,7 +332,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
     @Transactional
     @HmilyTCC(confirmMethod = "confirmUseMultipleCoupon", cancelMethod = "cancelUseMultipleCoupon")
     @Override
-    public CalculateDiscountAmountVO useMultipleCoupon(UseMultipleCouponDTO2 dto) {
+    public CalculateDiscountAmountVO useMultipleCoupon(UseMultipleCouponDTO dto) {
 
         List<Long> couponIds = dto.getCouponIds();
 
@@ -390,7 +390,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
     private String buildUseMultipleCouponBizKey(Long orderId) {
         return "useMultipleCoupon:" + orderId;
     }
-    public void confirmUseMultipleCoupon(UseMultipleCouponDTO2 dto) {
+    public void confirmUseMultipleCoupon(UseMultipleCouponDTO dto) {
         
         log.info("confirmUseMultipleCoupon:{}", dto);
         String bizKey = buildUseMultipleCouponBizKey(dto.getOrderId());
@@ -399,7 +399,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
 
     }
     @Transactional
-    public void cancelUseMultipleCoupon(UseMultipleCouponDTO2 dto) {
+    public void cancelUseMultipleCoupon(UseMultipleCouponDTO dto) {
         
         log.info("cancelUseMultipleCoupon:{}", dto);
 
