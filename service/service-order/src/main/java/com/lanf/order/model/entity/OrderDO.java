@@ -31,8 +31,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "订单编号")
     private String orderNumber;
 
-    @ApiModelProperty(value = "收货地址")
-    private String takeAddress;
+
 
     @ApiModelProperty(value = "订单金额")
     private BigDecimal totalMoney;
@@ -45,7 +44,8 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "优惠信息")
     private String discountInfo;
-
+    @ApiModelProperty(value = "收货地址")
+    private String takeAddress;
     @ApiModelProperty(value = "0:待付款, 1:待出库 2：已出库 3：已发货，4：已完成，5：已关闭 6.已取消")
     private Integer status;
 

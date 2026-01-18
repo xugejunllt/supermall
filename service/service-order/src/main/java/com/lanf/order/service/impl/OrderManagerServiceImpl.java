@@ -10,17 +10,18 @@ import com.lanf.goods.model.bo.GoodsSkuBO;
 import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.lock.aop.DistributedLock;
+import com.lanf.order.api.OrderApiService;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.order.model.dto.PlaceOrderDTO;
 import com.lanf.order.model.vo.PlaceOrderVO;
-import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.pay.api.PayApiService;
 import com.lanf.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.api.WelfareApiService;
+import com.lanf.welfare.model.bo.DiscountInfoBO;
 import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
 import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
 import lombok.extern.slf4j.Slf4j;
@@ -29,13 +30,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Slf4j
 @Service
 public class OrderManagerServiceImpl implements OrderManagerService {
 
-    @Autowired
-    private IOrderService orderService;
+
 
     @Autowired
     private PayApiService payApiService;
@@ -45,6 +46,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     @Autowired
     private WelfareApiService welfareApiService;
+    @Autowired
+    private OrderApiService orderApiService;
 
     /**
      *立即下单
@@ -78,6 +81,22 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         createOrder(orderDTO, orderInitParamsBO, deductStockVO, tradeMoney, amountVO);
         return null;
     }
+
+    /**
+     * 空方法 让tcc框架调用
+     *
+     */
+    public  void  confirmPlaceOrder(PlaceOrderDTO orderDTO){
+
+    }
+    /**
+     * 空方法 让tcc框架调用
+     *
+     */
+    public  void  cancelPlaceOrder(PlaceOrderDTO orderDTO){
+
+    }
+
 
     /**
      * 创建订单项
@@ -114,19 +133,21 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private void createOrder(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, DeductStockVO deductStockVO,
                              BigDecimal tradeMoney, CalculateDiscountAmountVO amountVO) {
 
+        List<DiscountInfoBO> discountInfoBOS = amountVO != null ? amountVO.getDiscountInfoBOList() : null;
         OrderItemDTO orderItem = createOrderItem(orderInitParamsBO, orderDTO, deductStockVO);
         BigDecimal discountAmount = getDiscountAmount(amountVO);
         CreateOrderDTO createOrderDTO = new CreateOrderDTO();
+        createOrderDTO.setOrderId(orderInitParamsBO.getOrderId());
         createOrderDTO.setShopId(orderDTO.getShopId());
         createOrderDTO.setUserId(orderInitParamsBO.getUserId());
         createOrderDTO.setOrderNumber(orderDTO.getOrderNumber());
         createOrderDTO.setTotalMoney(deductStockVO.getTotalAmount());
         createOrderDTO.setActualPayMoney(tradeMoney);
         createOrderDTO.setDiscountAmount(discountAmount);
-        createOrderDTO.setDiscountInfoBO(amountVO.getDiscountInfoBOList());
+        createOrderDTO.setDiscountInfoBO(discountInfoBOS);
         createOrderDTO.setTakeAddressBO(orderDTO.getTakeAddress());
         createOrderDTO.setOrderItem(orderItem);
-        orderService.createOrder(createOrderDTO);
+        orderApiService.createOrder(createOrderDTO);
     }
     /**
      * 创建支付订单
@@ -136,11 +157,11 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      */
     private void createPayOrder(OrderInitParamsBO orderInitParamsBO, PlaceOrderDTO orderDTO, BigDecimal tradeMoney) {
         CreateTradeOrderDTO dto = new CreateTradeOrderDTO();
-        dto.setBizKeyPrx(orderInitParamsBO.getBizKeyPrx());
         dto.setUserId(orderInitParamsBO.getUserId());
         dto.setOrderId(orderInitParamsBO.getOrderId());
         dto.setTradeMoney(tradeMoney);
         dto.setPayType(orderDTO.getPayType());
+        dto.setTradeOrderId(orderInitParamsBO.getOrderId());
         RpcResultParser.parseResult(payApiService.createPayOrder(dto));
 
     }
@@ -202,7 +223,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private OrderInitParamsBO initParams(String orderNumber){
 
         OrderInitParamsBO  orderInitParamsBO = new OrderInitParamsBO();
-
+        orderInitParamsBO.setTradeOrderId(IdUtils.generateId());
         orderInitParamsBO.setOrderId(IdUtils.generateId());
         orderInitParamsBO.setUserId(UserIdContext.getUserId());
         orderInitParamsBO.setBizKeyPrx(orderNumber);

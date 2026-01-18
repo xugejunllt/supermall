@@ -1,5 +1,6 @@
 package com.lanf.order.controller.aip;
 
+import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
 import com.lanf.order.model.vo.OrderVO;
 import com.lanf.order.model.vo.OrderVO2;
@@ -7,19 +8,31 @@ import com.lanf.order.service.IOrderService;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/orderApi")
+@RequestMapping("/api")
 public class OrderApiController {
 
 
     @Autowired
     private IOrderService orderService;
 
+
+    @PostMapping("/createOrder")
+    public Result<Void> createOrder(@Validated @RequestBody CreateOrderDTO dto) {
+
+        log.info("创建一笔订单:dto{}", dto);
+        orderService.createOrder(dto);
+        return Result.ok();
+    }
+
+
+    @Deprecated
     @PostMapping("/queryByOrderId")
     public Result<List<OrderVO>> queryByOrderId(@RequestBody List<Long> orderIdList) {
 
@@ -27,7 +40,7 @@ public class OrderApiController {
 
         return Result.ok(orderService.queryByOrderId(orderIdList));
     }
-
+    @Deprecated
     @PostMapping("/contrastBillOrderCountQuery")
     public Result<Integer> contrastBillOrderCountQuery(@RequestBody ContrastBillOrderQuery query) {
 
@@ -35,6 +48,7 @@ public class OrderApiController {
 
         return Result.ok(orderService.contrastBillOrderCountQuery(query));
     }
+    @Deprecated
     @PostMapping("/contrastBillOrderIdQuery")
     public Result<List<Long>> contrastBillOrderIdQuery(@RequestBody ContrastBillOrderQuery query) {
 
@@ -42,7 +56,7 @@ public class OrderApiController {
 
         return Result.ok(orderService.contrastBillOrderIdQuery(query));
     }
-
+    @Deprecated
     @GetMapping("/queryById2")
     public Result<OrderVO2> queryById2(@RequestParam("id") Long id) {
 

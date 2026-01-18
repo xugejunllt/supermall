@@ -11,6 +11,8 @@ import java.util.List;
 @Data
 public class CreateOrderDTO implements Serializable {
 
+
+    private Long orderId;
     @ApiModelProperty(value = "店铺id")
     private Long shopId;
 

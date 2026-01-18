@@ -181,10 +181,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
 
             List<OrderItemDTO> orderItemDTOS = BeanCopyUtils.copyBeanList(goodsSkuVOS, OrderItemDTO.class);
             orderItemDTOS.forEach(d -> {
-                d.setSkuId(d.getId());
-                d.setUnitPrice(d.getPrice());
-                //skuid与id重名了
-                d.setId(null);
+
             });
             orderDTO.setOrderItemDTOList(orderItemDTOS);
 

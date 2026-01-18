@@ -4,10 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.BigDecimalUtil;
-import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.common.utils.DateUtils;
+import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
 import com.lanf.logistics.api.LogisticsApiService;
 import com.lanf.logistics.model.vo.LogisticsTrackStatusVO;
@@ -20,6 +17,7 @@ import com.lanf.order.mapper.OrderMapper;
 import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.dto.SignForDTO;
+import com.lanf.order.model.dto.TakeAddressDTO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.entity.PromiseOrderDO;
@@ -40,8 +38,11 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
+import com.lanf.welfare.model.bo.DiscountInfoBO;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,23 +86,49 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         return CodeGenerateUtils.generateOrderNumber();
     }
 
-    @Transactional
+
     @Override
+    @HmilyTCC(confirmMethod = "confirmCreateOrder", cancelMethod = "cancelCreateOrder")
     public void createOrder(CreateOrderDTO dto) {
 
+       log.info("confirmCreateOrder");
+
+    }
+    @Transactional
+    public void confirmCreateOrder(CreateOrderDTO dto) {
         log.info("创建订单开始:{}",dto);
 
+        Long orderId = dto.getOrderId();
+        OrderDO aDo = this.getById(orderId);
+        if (aDo != null) {
+            log.info("订单已存在");
+            return;
+        }
+        List<DiscountInfoBO> discountInfoBO = dto.getDiscountInfoBO();
+        TakeAddressDTO takeAddressBO = dto.getTakeAddressBO();
+        String discountInfo = !IStringUtils.isEmpty(discountInfoBO) ? JsonUtils.toJsonString(discountInfoBO) : null;
+        String takeAddress = JsonUtils.toJsonString(takeAddressBO);
         OrderDO orderDO = BeanCopyUtils.copyBean(dto, OrderDO.class);
+        orderDO.setId(orderId);
         orderDO.setStatus(0);
+        orderDO.setDiscountInfo(discountInfo);
+        orderDO.setTakeAddress(takeAddress);
         orderDO.setVersion(1L);
 
         OrderItemDO orderItemDO = BeanCopyUtils.copyBean(dto.getOrderItem(), OrderItemDO.class);
+        try {
+
+            this.save(orderDO);
+        } catch (DuplicateKeyException e) {
+            log.info("订单已存在");
+        }
         orderItemService.save(orderItemDO);
-        this.save(orderDO);
 
     }
+    public void cancelCreateOrder(CreateOrderDTO dto) {
 
-
+        log.info("cancelCreateOrder");
+    }
 
     @Transactional
     @Override

@@ -7,6 +7,8 @@ import java.io.Serializable;
 @Data
 public class OrderInitParamsBO implements Serializable {
 
+    private Long tradeOrderId;
+
     private String bizKeyPrx;
 
     private Long orderId;

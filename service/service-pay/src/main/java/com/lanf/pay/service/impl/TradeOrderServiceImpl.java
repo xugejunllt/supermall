@@ -31,6 +31,7 @@ import com.lanf.welfare.model.vo.UseCouponVO;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,34 +69,30 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Override
     public void createTradeOrder(CreateTradeOrderDTO dto) {
 
-        String bizKey = generateCreateTradeOrderBizKey(dto.getBizKeyPrx());
-        tccOperationService.tryOperation(bizKey);
+       log.info("createTradeOrder");
     }
 
-    private String generateCreateTradeOrderBizKey(String bizKeyPrx) {
-
-        return bizKeyPrx+":createTradeOrder";
-    }
 
     @Transactional
-    public void confirmCreateTradeOrder(CreateTradeOrderDTO dto){ 
-        log.info("confirmCreateTradeOrder:{}",dto);
+    public void confirmCreateTradeOrder(CreateTradeOrderDTO dto){
 
-        TradeOrderDO tradeOrderDO = buildTradeOrderDO(dto);
-        String bizKey = generateCreateTradeOrderBizKey(dto.getBizKeyPrx());
-        boolean operation = tccOperationService.confirmOperation(bizKey);
-        if ( !operation){
-            log.info("confirm已执行");
+        log.info("confirmCreateTradeOrder:{}",dto);
+        TradeOrderDO tradeOrderDO1 = this.getById(dto.getTradeOrderId());
+        if (tradeOrderDO1 != null) {
+            log.info("交易单已存在");
             return;
         }
-        this.save(tradeOrderDO);
+        TradeOrderDO tradeOrderDO = buildTradeOrderDO(dto);
+        try {
+            this.save(tradeOrderDO);
+        } catch (DuplicateKeyException e) {
+           log.info("交易单已存在");
+        }
 
     }
     public void cancelCreateTradeOrder(CreateTradeOrderDTO dto){
 
-        log.info("cancelCreateTradeOrder:{}",dto);
-        String bizKey = generateCreateTradeOrderBizKey(dto.getBizKeyPrx());
-        tccOperationService.cancelOperation(bizKey);
+        log.info("cancelCreateTradeOrder");
 
     }
 
