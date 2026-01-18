@@ -2,6 +2,7 @@ package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.OrderDO;
@@ -23,6 +24,13 @@ import java.util.List;
 public interface IOrderService extends IService<OrderDO> {
 
     String getOrderNumber();
+
+    /**
+     * 创建一笔订单
+     *
+     */
+
+    void createOrder(CreateOrderDTO dto);
 
     /**
      * 订单支付成功处理

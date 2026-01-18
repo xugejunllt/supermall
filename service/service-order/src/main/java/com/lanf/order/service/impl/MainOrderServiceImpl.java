@@ -6,7 +6,7 @@ import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.mapper.MainOrderMapper;
-import com.lanf.order.model.dto.CreateOrderDTO;
+import com.lanf.order.model.dto.CreateOrderDTO2;
 import com.lanf.order.model.dto.OrderDTO;
 import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.order.model.entity.MainOrderDO;
@@ -46,7 +46,7 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
 
 
     @Override
-    public CreateOrderVO createOrder(CreateOrderDTO dto) {
+    public CreateOrderVO createOrder(CreateOrderDTO2 dto) {
 
         String orderNumber = dto.getOrderNumber();
         MainOrderDO orderDO = this.lambdaQuery().eq(MainOrderDO::getOrderNumber, orderNumber).one();

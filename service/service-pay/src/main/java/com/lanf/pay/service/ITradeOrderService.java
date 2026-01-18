@@ -3,7 +3,6 @@ package com.lanf.pay.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.pay.model.dto.CreatePayOrderDTO;
 import com.lanf.pay.model.dto.CreateTradeOrderDTO;
-import com.lanf.pay.model.dto.PlaceSinglePayOrderDTO;
 import com.lanf.pay.model.dto.TradeOrderQuantitySumDTO;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
@@ -34,12 +33,7 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
     void createTradeOrder(CreateTradeOrderDTO dto);
 
 
-    /**
-     * 下达单笔支付订单
-     *
-     */
-    @Deprecated
-    void  placeSinglePayOrder(PlaceSinglePayOrderDTO dto);
+
 
     @Deprecated
     CreatePayOrderVO createPayOrder(List<CreatePayOrderDTO> dto);

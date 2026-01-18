@@ -1,5 +1,6 @@
 package com.lanf.order.model.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.List;
@@ -21,7 +22,8 @@ public class PlaceOrderDTO implements java.io.Serializable{
 
     //支付类型 0支付宝 1微信 2银联
     private Integer payType;
-
+    @ApiModelProperty(value = "收货地址")
+    private TakeAddressDTO takeAddress;
 
 
 

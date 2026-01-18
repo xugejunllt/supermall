@@ -1,18 +1,25 @@
 package com.lanf.order.service.impl;
 
 
+import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IdUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.goods.api.GoodsApiService;
+import com.lanf.goods.model.bo.GoodsSkuBO;
 import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.order.model.bo.OrderInitParamsBO;
+import com.lanf.order.model.dto.CreateOrderDTO;
+import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.order.model.dto.PlaceOrderDTO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.pay.api.PayApiService;
+import com.lanf.pay.model.dto.CreateTradeOrderDTO;
+import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
 import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
@@ -44,12 +51,12 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      *
      *
      */
-    @HmilyTCC(confirmMethod = "confirmDoPlaceOrder", cancelMethod = "cancelDoPlaceOrder")
+    @HmilyTCC(confirmMethod = "confirmPlaceOrder", cancelMethod = "cancelPlaceOrder")
     @DistributedLock(key = "#orderDTO.orderNumber")
     @Override
     public PlaceOrderVO placeOrder(PlaceOrderDTO orderDTO) {
 
-        OrderInitParamsBO orderInitParamsBO = initParams();
+        OrderInitParamsBO orderInitParamsBO = initParams( orderDTO.getOrderNumber());
         /**
          * 扣减库存
          */
@@ -57,21 +64,127 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         /**
          * 使用优惠卷
          */
-        useMultipleCoupon( orderDTO,  orderInitParamsBO, deductStockVO.getTotalAmount());
-
+        CalculateDiscountAmountVO amountVO = useMultipleCoupon(orderDTO, orderInitParamsBO,
+                deductStockVO.getTotalAmount());
+        /**
+         * 创建交易单
+         */
+        BigDecimal tradeMoney = calculateActualPayment(deductStockVO.getTotalAmount(), amountVO);
+        createPayOrder(orderInitParamsBO, orderDTO, tradeMoney);
+        /**
+         * 创建订单
+         *
+         */
+        createOrder(orderDTO, orderInitParamsBO, deductStockVO, tradeMoney, amountVO);
         return null;
     }
 
-    private void useMultipleCoupon(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, BigDecimal totalAmount){
+    /**
+     * 创建订单项
+     * @param orderInitParamsBO 订单初始化参数
+     * @param orderDTO 下单请求参数
+     * @param deductStockVO 扣减库存结果
+     * @return 订单项对象
+     */
+    private OrderItemDTO createOrderItem(OrderInitParamsBO orderInitParamsBO, PlaceOrderDTO orderDTO, DeductStockVO deductStockVO) {
+
+        GoodsSkuBO goodsSkuBO = deductStockVO.getGoodsSkuBO();
+        OrderItemDTO orderItem = new OrderItemDTO();
+        orderItem.setOrderId(orderInitParamsBO.getOrderId());
+        orderItem.setGoodsId(goodsSkuBO.getGoodsId());
+        orderItem.setGoodsName(goodsSkuBO.getGoodsName());
+        orderItem.setGoodsTitle(goodsSkuBO.getGoodsTitle());
+        orderItem.setSkuId(goodsSkuBO.getSkuId());
+        orderItem.setSkuName(goodsSkuBO.getSkuName());
+        orderItem.setSkuPictureAddress(goodsSkuBO.getSkuPictureAddress());
+        orderItem.setQuantity(orderDTO.getQuantity());
+        orderItem.setUnitPrice(goodsSkuBO.getPrice());
+        orderItem.setGoodsVersion(goodsSkuBO.getGoodsVersion());
+        orderItem.setSkuVersion(goodsSkuBO.getSkuVersion());
+        return orderItem;
+    }
+    /**
+     * 创建订单
+     * @param orderDTO 下单请求参数
+     * @param orderInitParamsBO 订单初始化参数
+     * @param deductStockVO 扣减库存结果
+     * @param tradeMoney 实际支付金额
+     * @param amountVO 优惠券计算结果
+     */
+    private void createOrder(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, DeductStockVO deductStockVO,
+                             BigDecimal tradeMoney, CalculateDiscountAmountVO amountVO) {
+
+        OrderItemDTO orderItem = createOrderItem(orderInitParamsBO, orderDTO, deductStockVO);
+        BigDecimal discountAmount = getDiscountAmount(amountVO);
+        CreateOrderDTO createOrderDTO = new CreateOrderDTO();
+        createOrderDTO.setShopId(orderDTO.getShopId());
+        createOrderDTO.setUserId(orderInitParamsBO.getUserId());
+        createOrderDTO.setOrderNumber(orderDTO.getOrderNumber());
+        createOrderDTO.setTotalMoney(deductStockVO.getTotalAmount());
+        createOrderDTO.setActualPayMoney(tradeMoney);
+        createOrderDTO.setDiscountAmount(discountAmount);
+        createOrderDTO.setDiscountInfoBO(amountVO.getDiscountInfoBOList());
+        createOrderDTO.setTakeAddressBO(orderDTO.getTakeAddress());
+        createOrderDTO.setOrderItem(orderItem);
+        orderService.createOrder(createOrderDTO);
+    }
+    /**
+     * 创建支付订单
+     * @param orderInitParamsBO 订单初始化参数
+     * @param orderDTO 下单请求参数
+     * @param tradeMoney 交易金额
+     */
+    private void createPayOrder(OrderInitParamsBO orderInitParamsBO, PlaceOrderDTO orderDTO, BigDecimal tradeMoney) {
+        CreateTradeOrderDTO dto = new CreateTradeOrderDTO();
+        dto.setBizKeyPrx(orderInitParamsBO.getBizKeyPrx());
+        dto.setUserId(orderInitParamsBO.getUserId());
+        dto.setOrderId(orderInitParamsBO.getOrderId());
+        dto.setTradeMoney(tradeMoney);
+        dto.setPayType(orderDTO.getPayType());
+        RpcResultParser.parseResult(payApiService.createPayOrder(dto));
+
+    }
+
+    /**
+     * 从优惠券计算结果中获取折扣金额
+     * @param amountVO 优惠券计算结果
+     * @return 折扣金额
+     */
+    private BigDecimal getDiscountAmount(CalculateDiscountAmountVO amountVO) {
+        return amountVO != null ? amountVO.getTotalDiscountAmount() : BigDecimal.ZERO;
+    }
+    /**
+     * 计算订单实际支付金额
+     * @param totalAmount 商品总金额
+     * @param amountVO 优惠券计算结果，包含折扣金额
+     * @return 实际支付金额
+     */
+    private BigDecimal calculateActualPayment(BigDecimal totalAmount, CalculateDiscountAmountVO amountVO) {
+        BigDecimal discountAmount = getDiscountAmount(amountVO);
+        BigDecimal actualPayment = BigDecimalUtil.subtract(totalAmount, discountAmount);
+        validatePaymentAmount(actualPayment);
+        return actualPayment;
+    }
+    /**
+     * 校验实际支付金额是否小于0
+     * @param actualPayment 实际支付金额
+     */
+    private void validatePaymentAmount(BigDecimal actualPayment) {
+        if (BigDecimalUtil.lt(actualPayment, BigDecimal.ZERO)) {
+            throw new BizException("实际支付金额不能小于0");
+        }
+    }
+
+    private CalculateDiscountAmountVO useMultipleCoupon(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, BigDecimal totalAmount){
         UseMultipleCouponDTO dto = new UseMultipleCouponDTO();
         dto.setOrderId(orderInitParamsBO.getOrderId());
         dto.setUserId(orderInitParamsBO.getUserId());
         dto.setShopId(orderDTO.getShopId());
         dto.setTotalAmount(totalAmount);
         dto.setCouponIds(orderDTO.getCouponIds());
-        CalculateDiscountAmountVO amountVO = RpcResultParser.parseResult(welfareApiService.useMultipleCoupon(dto));
+        dto.setBizKeyPrx(orderInitParamsBO.getBizKeyPrx() );
 
-
+        return RpcResultParser.parseResult(welfareApiService.useMultipleCoupon(dto));
     }
     private DeductStockVO  deductStock( PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO){
 
@@ -80,18 +193,19 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         deductStockDTO.setOrderId(orderInitParamsBO.getOrderId());
         deductStockDTO.setSkuCode(orderDTO.getSkuCode());
         deductStockDTO.setQuantity(orderDTO.getQuantity());
-
+        deductStockDTO.setBizKeyPrx(orderInitParamsBO.getBizKeyPrx() );
         return RpcResultParser.parseResult(goodsApiService.deductStock(deductStockDTO));
 
 
     }
 
-    private OrderInitParamsBO initParams(){
+    private OrderInitParamsBO initParams(String orderNumber){
 
         OrderInitParamsBO  orderInitParamsBO = new OrderInitParamsBO();
 
         orderInitParamsBO.setOrderId(IdUtils.generateId());
-        orderInitParamsBO.setUserId(IdUtils.generateId());
+        orderInitParamsBO.setUserId(UserIdContext.getUserId());
+        orderInitParamsBO.setBizKeyPrx(orderNumber);
         return orderInitParamsBO;
     }
 

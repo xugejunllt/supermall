@@ -3,7 +3,7 @@ package com.lanf.welfare.controller.api;
 
 import com.lanf.constant.result.Result;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
-import com.lanf.welfare.model.dto.UseMultipleCouponDTO2;
+import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
 import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
 import com.lanf.welfare.service.ICouponService;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ public class WelfareApiController {
      * 使用多张优惠卷
      */
     @PostMapping("/useMultipleCoupon")
-    public Result<CalculateDiscountAmountVO> useMultipleCoupon(@RequestBody @Validated UseMultipleCouponDTO2 dto) {
+    public Result<CalculateDiscountAmountVO> useMultipleCoupon(@RequestBody @Validated UseMultipleCouponDTO dto) {
 
         log.info("计算可使用优惠卷优惠信息:{}",dto);
         return Result.ok( couponService.useMultipleCoupon(dto));

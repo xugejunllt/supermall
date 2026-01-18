@@ -5,20 +5,15 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.goods.mapper.StockMapper;
+import com.lanf.goods.model.bo.GoodsSkuBO;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.bo.StockSaveOrUpdateBO;
 import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
-import com.lanf.goods.model.entity.GoodsSkuDO;
-import com.lanf.goods.model.entity.StockDO;
-import com.lanf.goods.model.entity.UserStockFlowDO;
-import com.lanf.goods.model.entity.UserStockSyncRecordDO;
+import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.StockEnoughVO;
-import com.lanf.goods.service.goods.IGoodsSkuService;
-import com.lanf.goods.service.goods.IStockService;
-import com.lanf.goods.service.goods.IUserStockFlowService;
-import com.lanf.goods.service.goods.IUserStockSyncRecordService;
+import com.lanf.goods.service.goods.*;
 import com.lanf.goods.utils.ProductServiceUtils;
 import com.lanf.rocketmq.model.message.UserStockAddMsg;
 import com.lanf.rocketmq.model.message.UserStockMsg;
@@ -58,6 +53,8 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     private ITccOperationService tccOperationService;
     @Autowired
     private IGoodsSkuService goodsSkuService;
+    @Autowired
+    private IGoodsService goodsService;
 
     @Transactional(rollbackFor = {Exception.class})
     @Override
@@ -246,7 +243,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         //冻结库存
         Integer updateLockStock = stockDO.getLockStock() + deductStockDTO.getQuantity();
 
-        String bizKey = generateDeductStockBizKey(deductStockDTO.getOrderId(),stockDO.getId(),0);
+        String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
         /**
          * DB操作
          */
@@ -270,12 +267,32 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         GoodsSkuDO goodsSkuDO = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getSkuCode, skuCode)
                 .one();
+
+        Long goodsId = goodsSkuDO.getGoodsId();
+        GoodsDO goodsDO = goodsService.getById(goodsId);
+
         //订单总金额
         BigDecimal totalAmount =  ProductServiceUtils.calculateTotalAmount(goodsSkuDO.getPrice(), quantity);
+        GoodsSkuBO goodsSkuBO = buildGoodsSkuBO(goodsSkuDO, goodsDO);
         DeductStockVO deductStockVO = new DeductStockVO();
         deductStockVO.setTotalAmount(totalAmount);
-
+        deductStockVO.setGoodsSkuBO(goodsSkuBO);
         return deductStockVO;
+    }
+
+    private  GoodsSkuBO buildGoodsSkuBO(GoodsSkuDO goodsSkuDO, GoodsDO goodsDO) {
+        GoodsSkuBO goodsSkuBO = new GoodsSkuBO();
+        goodsSkuBO.setSkuId(goodsSkuDO.getId());
+        goodsSkuBO.setGoodsId(goodsSkuDO.getGoodsId());
+        goodsSkuBO.setGoodsName(goodsDO.getName());
+        goodsSkuBO.setSkuCode(goodsSkuDO.getSkuCode());
+        goodsSkuBO.setSkuName(goodsSkuDO.getSkuName());
+        goodsSkuBO.setSkuPictureAddress(goodsSkuDO.getSkuPictureAddress());
+        goodsSkuBO.setPrice(goodsSkuDO.getPrice());
+        goodsSkuBO.setSkuVersion(goodsSkuDO.getVersion());
+        goodsSkuBO.setGoodsVersion(goodsDO.getVersion());
+        goodsSkuBO.setGoodsTitle(goodsDO.getTitle());
+        return goodsSkuBO;
     }
 
     @Transactional
@@ -289,7 +306,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         //扣减冻结库存
         Integer lockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
         UserStockFlowDO userStockFlowDO = buildUserStockFlowDO(deductStockDTO, stockDO);
-        String bizKey = generateDeductStockBizKey(deductStockDTO.getOrderId(), stockDO.getId(), 0);
+        String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
         boolean operation = tccOperationService.confirmOperation(bizKey);
         if ( !operation){
             log.info("confirm已执行");
@@ -314,9 +331,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
      *
      *
      */
-    private String generateDeductStockBizKey(Long orderId,Long userStockId,Integer eventType) {
+    private String generateDeductStockBizKey(String bizKeyPrx) {
 
-        return orderId+":"+userStockId+":"+eventType;
+        return bizKeyPrx+":"+"deductStockBizKey";
     }
     private UserStockFlowDO buildUserStockFlowDO(DeductStockDTO deductStockDTO,StockDO stockDO) {
 
@@ -345,7 +362,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         Integer  updateUsableStock = usableStock + deductStockDTO.getQuantity();
         //冻结库存
         Integer updateLockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
-        String bizKey = generateDeductStockBizKey(deductStockDTO.getOrderId(),stockDO.getId(),0);
+        String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
         /**
          * DB操作
          */
@@ -387,7 +404,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     public StockEnoughVO isStockEnough(StockEnoughDTO dto) {
 
         StockDO stockDO = findStockDO(dto.getSkuCode());
-        Boolean enough = true;
+        boolean enough = true;
         if (stockDO.getUsableStock() < dto.getQuantity()) {
             log.info("库存不足");
             enough = false;

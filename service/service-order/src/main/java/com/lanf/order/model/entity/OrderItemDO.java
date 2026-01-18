@@ -33,18 +33,23 @@ private static final long serialVersionUID=1L;
 
     private String goodsTitle;
 
-    private String skuCode;
     @ApiModelProperty(value = "skuId")
     private Long skuId;
 
     @ApiModelProperty(value = "sku名称")
     private String skuName;
+
     private String skuPictureAddress;
+
     @ApiModelProperty(value = "数量")
     private Integer quantity;
 
     @ApiModelProperty(value = "单价")
     private BigDecimal unitPrice;
+    //商品版本
+    private Long goodsVersion;
+    //sku 版本
+    private Long skuVersion;
 
 
 

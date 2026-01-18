@@ -92,7 +92,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         List<CreatePayOrderDTO> createPayOrderDTOList = buildCreatePayOrderDTOList(shopIdSet, businessIdMap,
                 bizOrderIdMap, goodsSkuMap, mainOrderId, dto.getCouponIdSet());
         //远程调用创建支付订单接口
-        CreatePayOrderVO createPayOrderVO = payApiService.createPayOrder(null).getData();
+        CreatePayOrderVO createPayOrderVO = null;
         if (createPayOrderVO == null) {
 
             throw new BizException("创建支付订单异常");
@@ -100,7 +100,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         /**
          * 创建订单
          */
-        CreateOrderDTO createOrderDTO = buildCreateOrderDTO(dto, mainOrderId, goodsSkuMap, shopIdSet, bizOrderIdMap,
+        CreateOrderDTO2 createOrderDTO = buildCreateOrderDTO(dto, mainOrderId, goodsSkuMap, shopIdSet, bizOrderIdMap,
                 businessIdMap);
         //调用本地接口创建订单
         CreateOrderVO createOrderVO = mainOrderService.createOrder(createOrderDTO);
@@ -159,10 +159,10 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         return goodsSkuMap;
     }
 
-    private CreateOrderDTO buildCreateOrderDTO(SubmitOrderDTO dto, Long mainOrderId, Map<Long, List<EmptyCartGoodsSkuVO>>
+    private CreateOrderDTO2 buildCreateOrderDTO(SubmitOrderDTO dto, Long mainOrderId, Map<Long, List<EmptyCartGoodsSkuVO>>
             goodsSkuMap, Set<Long> shopIdSet, Map<Long, Long> bizOrderIdMap, Map<Long, Long> businessIdMap) {
 
-        CreateOrderDTO createOrderDTO = new CreateOrderDTO();
+        CreateOrderDTO2 createOrderDTO = new CreateOrderDTO2();
         createOrderDTO.setOrderNumber(dto.getOrderNumber());
         createOrderDTO.setMainOrderId(mainOrderId);
         List<OrderDTO> orderDTOList = new ArrayList<>();
@@ -288,7 +288,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
 
             throw new BizException("创建支付单异常");
         }
-        CreateOrderDTO createOrderDTO = buildCreateOrderDTO(dto, goodsVO, bo);
+        CreateOrderDTO2 createOrderDTO = buildCreateOrderDTO(dto, goodsVO, bo);
         CreateOrderVO createOrderVO = mainOrderService.createOrder(createOrderDTO);
 
         /**
@@ -340,9 +340,9 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
 
     }
 
-    private CreateOrderDTO buildCreateOrderDTO(OnePlaceAnOrderDTO dto, ApiGoodsSkuVO goodsVO, OnePlaceAnOrderBO bo) {
+    private CreateOrderDTO2 buildCreateOrderDTO(OnePlaceAnOrderDTO dto, ApiGoodsSkuVO goodsVO, OnePlaceAnOrderBO bo) {
 
-        CreateOrderDTO createOrderDTO = new CreateOrderDTO();
+        CreateOrderDTO2 createOrderDTO = new CreateOrderDTO2();
 
         createOrderDTO.setTotalMoney(new BigDecimal(1));
         createOrderDTO.setOrderNumber(dto.getOrderNumber());

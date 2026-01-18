@@ -6,7 +6,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 /**
  * <p>
@@ -32,9 +31,6 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "订单编号")
     private String orderNumber;
 
-    @ApiModelProperty(value = "收货地址id")
-    private Long addressId;
-
     @ApiModelProperty(value = "收货地址")
     private String takeAddress;
 
@@ -46,9 +42,6 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "优惠金额")
     private BigDecimal discountAmount;
-
-    @ApiModelProperty(value = "下单时间")
-    private Date placeOrderTime;
 
     @ApiModelProperty(value = "优惠信息")
     private String discountInfo;

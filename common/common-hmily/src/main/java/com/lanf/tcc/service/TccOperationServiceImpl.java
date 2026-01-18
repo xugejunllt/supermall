@@ -42,6 +42,11 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
         try {
             this.save(tccOperationDO);
         } catch (DuplicateKeyException e) {
+            /**
+             * 数据库压力大时  tcc_operation根据bizKey分表
+             * 提高性能
+             */
+
             log.info("bizKey重复");
             throw new BizException("bizKey重复");
         }
@@ -78,8 +83,8 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
     /**
      *
      *
-     *
-     * 只有当 try被执行后，才会被调用，即hmily_transaction_participant已经有记录了
+     *在准备执行try时前  hmily_transaction_participant写入记录
+     * 当hmily_transaction_participant记录存在记录时 下面就会被调用
      *
      */
     @Override
@@ -88,7 +93,19 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
         TccOperationDO one = this.lambdaQuery().eq(TccOperationDO::getBizKey, bizKey).one();
 
         if (one == null) {
-            throw new BizException("tcc操作记录不存在");
+            /**
+             *
+             * 防悬挂
+             *
+             * try 执行时 刚好服务挂了 此时tcc事务状态为 开始执行try状态
+             *
+             * 而实际try方法并没有执行 如果抛出异常 tcc方法会一直调用
+             * 直到达到最大重试次数 人工去比对tcc全部事务与tcc_operation
+             * 记录 如果tcc_operation无记录 则忽略不处理
+             *
+             */
+           log.error("try阶段未执行");
+           throw new BizException("try阶段未执行");
         }
 
         if (one.getStatus() == 2 ) {

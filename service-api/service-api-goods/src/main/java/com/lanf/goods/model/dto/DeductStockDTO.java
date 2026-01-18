@@ -10,6 +10,9 @@ import java.io.Serializable;
 @Data
 public class DeductStockDTO implements Serializable {
 
+    @NotBlank(message = "业务key前缀不能为空")
+    private String bizKeyPrx;
+
     @NotNull(message = "订单id不能为空")
     private Long orderId;
 

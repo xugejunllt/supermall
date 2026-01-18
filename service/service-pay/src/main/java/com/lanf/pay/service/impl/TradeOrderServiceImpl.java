@@ -1,7 +1,6 @@
 package com.lanf.pay.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
@@ -9,7 +8,6 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.mapper.TradeOrderMapper;
 import com.lanf.pay.model.dto.CreatePayOrderDTO;
 import com.lanf.pay.model.dto.CreateTradeOrderDTO;
-import com.lanf.pay.model.dto.PlaceSinglePayOrderDTO;
 import com.lanf.pay.model.dto.TradeOrderQuantitySumDTO;
 import com.lanf.pay.model.entity.PayOrderDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
@@ -33,7 +31,6 @@ import com.lanf.welfare.model.vo.UseCouponVO;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,31 +68,41 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Override
     public void createTradeOrder(CreateTradeOrderDTO dto) {
 
-        log.info("createTradeOrder");
+        String bizKey = generateCreateTradeOrderBizKey(dto.getBizKeyPrx());
+        tccOperationService.tryOperation(bizKey);
+    }
+
+    private String generateCreateTradeOrderBizKey(String bizKeyPrx) {
+
+        return bizKeyPrx+":createTradeOrder";
     }
 
     @Transactional
     public void confirmCreateTradeOrder(CreateTradeOrderDTO dto){ 
         log.info("confirmCreateTradeOrder:{}",dto);
-        z
+
         TradeOrderDO tradeOrderDO = buildTradeOrderDO(dto);
-        try {
-            this.save(tradeOrderDO);
-        } catch (DuplicateKeyException e) {
-            /**
-             * 不报错
-             */
-            log.warn("重复插入交易订单");
-
+        String bizKey = generateCreateTradeOrderBizKey(dto.getBizKeyPrx());
+        boolean operation = tccOperationService.confirmOperation(bizKey);
+        if ( !operation){
+            log.info("confirm已执行");
+            return;
         }
-    }
+        this.save(tradeOrderDO);
 
+    }
+    public void cancelCreateTradeOrder(CreateTradeOrderDTO dto){
+
+        log.info("cancelCreateTradeOrder:{}",dto);
+        String bizKey = generateCreateTradeOrderBizKey(dto.getBizKeyPrx());
+        tccOperationService.cancelOperation(bizKey);
+
+    }
 
     private static TradeOrderDO buildTradeOrderDO(CreateTradeOrderDTO dto) {
         String outTradeNo = PryServiceUtils.generateOutTradeNo(dto.getOrderId());
 
         TradeOrderDO tradeOrderDO = new TradeOrderDO();
-        tradeOrderDO.setId(dto.getTradeOrderId());
         tradeOrderDO.setBathPayOrderId(-1L);
         tradeOrderDO.setUserId(dto.getUserId());
         tradeOrderDO.setOrderId(dto.getOrderId());
@@ -109,41 +116,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
 
-    @HmilyTCC(confirmMethod = "confirmPlaceSinglePayOrder", cancelMethod = "cancelPlaceSinglePayOrder")
-    @Override
-    public void placeSinglePayOrder(PlaceSinglePayOrderDTO dto) {
-//        log.info("下单开始");
-//        String orderNumber = dto.getOrderNumber();
-//        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getOrderNumber, orderNumber).one();
-//        if (tradeOrderDO != null) {
-//            throw new BizException("重复下单");
-//        }
-
-    }
-    public void confirmPlaceSinglePayOrder(PlaceSinglePayOrderDTO dto){
-
-        log.info("confirmPlaceSinglePayOrder");
-        TradeOrderDO tradeOrderDO = BeanCopyUtils.copyBean(dto, TradeOrderDO.class);
-        tradeOrderDO.setBathPayOrderId(-1L);
-        tradeOrderDO.setOutTradeNo(dto.getOrderNumber());
-        tradeOrderDO.setPayStatus(0);
-        tradeOrderDO.setBathPay(0);
-        tradeOrderDO.setVersion(1L);
-
-        try {
-            this.save(tradeOrderDO);
-        } catch (DuplicateKeyException e) {
-            /**
-             * 不报错
-             */
-            log.warn("重复插入交易订单");
-
-        }
-    }
-    public void cancelPlaceSinglePayOrder(PlaceSinglePayOrderDTO dto){
-        log.info("cancelPlaceSinglePayOrder");
-
-    }
 
 
 

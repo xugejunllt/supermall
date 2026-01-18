@@ -17,6 +17,7 @@ import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.order.mapper.OrderMapper;
+import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.OrderDO;
@@ -83,6 +84,25 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
         return CodeGenerateUtils.generateOrderNumber();
     }
+
+    @Transactional
+    @Override
+    public void createOrder(CreateOrderDTO dto) {
+
+        log.info("创建订单开始:{}",dto);
+
+        OrderDO orderDO = BeanCopyUtils.copyBean(dto, OrderDO.class);
+        orderDO.setStatus(0);
+        orderDO.setVersion(1L);
+
+        OrderItemDO orderItemDO = BeanCopyUtils.copyBean(dto.getOrderItem(), OrderItemDO.class);
+        orderItemService.save(orderItemDO);
+        this.save(orderDO);
+
+    }
+
+
+
     @Transactional
     @Override
     public void orderPaySuccess(Long orderId) {
@@ -172,7 +192,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                 OrderItemVO itemVO = new OrderItemVO();
                 BeanCopyUtils.copy(b, itemVO);
                 itemVO.setUnit(b.getSkuName());
-                itemVO.setSkuCode(b.getSkuCode());
+
                 itemVO.setGoodsTitle(b.getGoodsTitle());
                 itemVO.setTotalMoney(BigDecimalUtil.multiply(new BigDecimal(b.getQuantity()), b.getUnitPrice()));
                 inOutStockOrderItemDTOList.add(itemVO);
