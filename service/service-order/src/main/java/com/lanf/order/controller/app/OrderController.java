@@ -1,6 +1,7 @@
 package com.lanf.order.controller.app;
 
 
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
@@ -21,6 +22,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>
@@ -56,6 +59,7 @@ public class OrderController {
 
 
         log.info("立即下单[{}]", orderDTO);
+
         return Result.ok(orderManagerService.placeOrder(orderDTO));
 
     }

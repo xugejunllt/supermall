@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 @Component
-@FeignClient(name = "service-pay",url = "localhost:9008") //调用的服务名称
+@FeignClient(name = "service-pay",url = "localhost:9009") //调用的服务名称
 public interface PayApiService {
 
     @Hmily

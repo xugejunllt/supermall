@@ -21,6 +21,7 @@ import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +54,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     private ITccOperationService tccOperationService;
     @Autowired
     private IGoodsSkuService goodsSkuService;
+    @Lazy
     @Autowired
     private IGoodsService goodsService;
 

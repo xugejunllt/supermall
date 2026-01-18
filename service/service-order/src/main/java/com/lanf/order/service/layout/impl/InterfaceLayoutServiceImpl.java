@@ -356,7 +356,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         orderItemDTO.setSkuId(goodsVO.getId());
         orderItemDTO.setQuantity(dto.getQuantity());
         //copy把skuId复制
-        orderItemDTO.setId(null);
+
         orderItemDTO.setUnitPrice(goodsVO.getPrice());
         orderDTO.setOrderItemDTOList(Arrays.asList(orderItemDTO));
 

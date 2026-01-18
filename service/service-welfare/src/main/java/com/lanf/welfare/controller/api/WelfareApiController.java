@@ -37,7 +37,7 @@ public class WelfareApiController {
     @PostMapping("/useMultipleCoupon")
     public Result<CalculateDiscountAmountVO> useMultipleCoupon(@RequestBody @Validated UseMultipleCouponDTO dto) {
 
-        log.info("计算可使用优惠卷优惠信息:{}",dto);
+        log.info("使用多张优惠卷:{}",dto);
         return Result.ok( couponService.useMultipleCoupon(dto));
     }
 

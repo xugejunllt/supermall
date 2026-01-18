@@ -7,5 +7,5 @@ import java.io.Serializable;
 @Data
 public class PlaceOrderVO implements Serializable {
 
-
+    private Long orderId;
 }

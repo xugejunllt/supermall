@@ -338,8 +338,9 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
 
         List<CouponDO> availableCoupons = findAvailableCoupons(dto.getUserId(), couponIds);
 
-        if (availableCoupons.size() != couponIds.size()){
-            throw new BizException("优惠券不存在");
+        if (availableCoupons.isEmpty()){
+            log.info("没有可用的优惠券");
+            return null;
         }
         // 进一步根据订单金额筛选满足使用条件的优惠券，并确保每种type只保留一个
         List<CouponDO> filteredCoupons = filterCouponsByOrderAmountAndType(availableCoupons, dto.getTotalAmount());
@@ -405,7 +406,9 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
 
         List<OrderCouponDO> couponDOList = orderCouponService.lambdaQuery().eq(OrderCouponDO::getOrderId, dto.getOrderId())
                 .list();
-
+        if (couponDOList.isEmpty()){
+            return;
+        }
         List<Long> orderCouponIds = couponDOList.stream().map(OrderCouponDO::getId).collect(Collectors.toList());
         List<Long> couponIds = couponDOList.stream().map(OrderCouponDO::getCouponId).collect(Collectors.toList());
         List<CouponDO> couponDOList1 = this.lambdaQuery()

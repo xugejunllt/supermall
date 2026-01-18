@@ -8,18 +8,17 @@ import com.alipay.api.domain.*;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.*;
 import com.alipay.api.response.*;
-import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.pay.model.bo.CallbackResultBO;
 import com.lanf.pay.model.bo.ReturnMoneyBO;
 import com.lanf.pay.model.bo.TradeStatusBO;
 import com.lanf.pay.model.bo.TransferAccountsBO;
 import com.lanf.pay.model.dto.TradeOrderDTO;
-import com.lanf.pay.model.bo.CallbackResultBO;
 import com.lanf.pay.model.dto.TransferAccountsDTO;
 import com.lanf.pay.model.vo.TradeOrderVO;
 import com.lanf.pay.service.AbstractPayService;
 import com.lanf.pay.service.config.AliPayConfig;
-import com.lanf.constant.exception.BizException;
 import com.lanf.web.utils.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,10 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -172,7 +174,7 @@ public class AliPayServiceImpl extends AbstractPayService {
             // 设置商家侧唯一订单号
             model.setOutBizNo(dto.getOutBizNo());
             // 设置订单总金额
-            model.setTransAmount(BigDecimalUtil.format(dto.getTransAmount()));
+            //model.setTransAmount(BigDecimalUtil.format(dto.getTransAmount()));
             // 设置描述特定的业务场景
             model.setBizScene("DIRECT_TRANSFER");
             // 设置业务产品码

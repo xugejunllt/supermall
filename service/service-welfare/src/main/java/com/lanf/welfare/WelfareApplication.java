@@ -5,12 +5,14 @@ import com.lanf.messagemanager.client.model.SendMqMessageDO;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @MapperScan(basePackages = {"com.lanf.welfare.mapper",
         SendMqMessageDO.MAN_SCAN_PACKAGE, Constants.TCC_MAPPER_PAGE})
-@SpringBootApplication(scanBasePackages="com.lanf")
+@SpringBootApplication(scanBasePackages="com.lanf",exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 @EnableDiscoveryClient  //nacos注册
 @EnableFeignClients(basePackages = {"com.lanf.log.api","com.lanf.system.api"})
 public class WelfareApplication {

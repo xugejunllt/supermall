@@ -1,5 +1,6 @@
 package com.lanf.pay;
 
+import com.lanf.constant.constant.Constants;
 import com.lanf.messagemanager.client.model.SendMqMessageDO;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -9,7 +10,7 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@MapperScan(basePackages = {"com.lanf.pay.mapper", SendMqMessageDO.MAN_SCAN_PACKAGE})
+@MapperScan(basePackages = {"com.lanf.pay.mapper", SendMqMessageDO.MAN_SCAN_PACKAGE, Constants.TCC_MAPPER_PAGE})
 @SpringBootApplication(scanBasePackages="com.lanf",exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 //@ImportResource({"classpath:applicationContext.xml"})
 

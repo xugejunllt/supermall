@@ -2,6 +2,7 @@ package com.lanf.order.service.impl;
 
 
 import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.RpcResultParser;
@@ -79,7 +80,12 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          *
          */
         createOrder(orderDTO, orderInitParamsBO, deductStockVO, tradeMoney, amountVO);
-        return null;
+        /**
+         * 构建返回结果
+         */
+        PlaceOrderVO vo = new PlaceOrderVO();
+        vo.setOrderId(orderInitParamsBO.getOrderId());
+        return vo;
     }
 
     /**
@@ -147,7 +153,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         createOrderDTO.setDiscountInfoBO(discountInfoBOS);
         createOrderDTO.setTakeAddressBO(orderDTO.getTakeAddress());
         createOrderDTO.setOrderItem(orderItem);
-        orderApiService.createOrder(createOrderDTO);
+        RpcResultParser.parseResult(orderApiService.createOrder(createOrderDTO));
+
     }
     /**
      * 创建支付订单
@@ -197,6 +204,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
     private CalculateDiscountAmountVO useMultipleCoupon(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, BigDecimal totalAmount){
+        if (IStringUtils.isEmpty(orderDTO.getCouponIds())){
+            return null;
+        }
         UseMultipleCouponDTO dto = new UseMultipleCouponDTO();
         dto.setOrderId(orderInitParamsBO.getOrderId());
         dto.setUserId(orderInitParamsBO.getUserId());

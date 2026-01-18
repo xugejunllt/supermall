@@ -28,7 +28,7 @@ spring:
             data-id: rocketmq.yaml
 
 server:
-  port: 9008
+  port: 9009
   servlet:
     context-path: /pay
 mybatis-plus:

@@ -1,14 +1,20 @@
 package com.lanf.web.config;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
@@ -35,5 +41,20 @@ public class JacksonConfig {
         objectMapper.setDateFormat(dateFormat);
         return new MappingJackson2HttpMessageConverter(objectMapper);
     }
- 
+    @Bean
+    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
+        return builder -> {
+            builder.deserializerByType(Long.class, new JsonDeserializer<Long>() {
+                @Override
+                public Long deserialize(JsonParser p, DeserializationContext ctxt)
+                        throws IOException {
+                    // 处理数字和字符串
+                    if (p.currentToken() == JsonToken.VALUE_STRING) {
+                        return Long.valueOf(p.getText());
+                    }
+                    return p.getLongValue();
+                }
+            });
+        };
+    }
 }
