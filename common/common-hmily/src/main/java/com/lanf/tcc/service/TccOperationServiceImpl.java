@@ -63,7 +63,12 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
     public boolean confirmOperation(String bizKey) {
 
         TccOperationDO one = this.lambdaQuery().eq(TccOperationDO::getBizKey, bizKey).one();
-
+        if (one == null){
+            /**
+             * try 阶段 操作DB时 已经return了表示执行成功
+             */
+            return false;
+        }
         if (one.getStatus() == 1){
             log.info("confirm重复执行");
             return false;

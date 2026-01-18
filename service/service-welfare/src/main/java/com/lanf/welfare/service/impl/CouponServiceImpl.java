@@ -392,23 +392,26 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         return "useMultipleCoupon:" + orderId;
     }
     public void confirmUseMultipleCoupon(UseMultipleCouponDTO dto) {
-        
-        log.info("confirmUseMultipleCoupon:{}", dto);
+
+        log.info("执行confirmUseMultipleCoupon:{}", dto);
         String bizKey = buildUseMultipleCouponBizKey(dto.getOrderId());
-        tccOperationService.confirmOperation(bizKey);
+        try {
+            tccOperationService.confirmOperation(bizKey);
+        } catch (Exception e) {
+            log.error("执行confirmUseMultipleCoupon异常",e);
+            throw e;
+        }
 
 
     }
     @Transactional
     public void cancelUseMultipleCoupon(UseMultipleCouponDTO dto) {
         
-        log.info("cancelUseMultipleCoupon:{}", dto);
+        log.info("执行cancelUseMultipleCoupon:{}", dto);
 
         List<OrderCouponDO> couponDOList = orderCouponService.lambdaQuery().eq(OrderCouponDO::getOrderId, dto.getOrderId())
                 .list();
-        if (couponDOList.isEmpty()){
-            return;
-        }
+
         List<Long> orderCouponIds = couponDOList.stream().map(OrderCouponDO::getId).collect(Collectors.toList());
         List<Long> couponIds = couponDOList.stream().map(OrderCouponDO::getCouponId).collect(Collectors.toList());
         List<CouponDO> couponDOList1 = this.lambdaQuery()
