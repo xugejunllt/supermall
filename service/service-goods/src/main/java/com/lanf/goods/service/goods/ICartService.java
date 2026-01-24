@@ -7,6 +7,7 @@ import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
 import com.lanf.goods.model.entity.CartDO;
 import com.lanf.goods.model.vo.CartAddVO;
 import com.lanf.goods.model.vo.CartListVO;
+import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
 
 /**
@@ -42,7 +43,7 @@ public interface ICartService extends IService<CartDO> {
      * 购物车列表
      *
      */
-    PageResult<CartListVO> listCart();
+    PageResult<CartListVO> listCart(PageQuery query);
 
 
 

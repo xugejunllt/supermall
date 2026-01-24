@@ -5,15 +5,16 @@ import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.CartAddDTO;
 import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
 import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
+import com.lanf.goods.model.vo.CartAddVO;
+import com.lanf.goods.model.vo.CartListVO;
 import com.lanf.goods.service.goods.ICartService;
+import com.lanf.mybatis.base.PageQuery;
+import com.lanf.mybatis.base.PageResult;
 import com.lanf.security.utils.UserIdContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -33,12 +34,11 @@ public class CartAppController {
 
 
     @PostMapping("/addCart")
-    public Result<Void> cartAdd(@Validated @RequestBody CartAddDTO dto) {
+    public Result<CartAddVO> addCart(@Validated @RequestBody CartAddDTO dto) {
 
         log.info("添加购物车:dto{}", dto);
         dto.setUserId(UserIdContext.getUserId());
-        cartService.cartAdd(dto);
-        return Result.ok();
+        return Result.ok( cartService.cartAdd(dto));
     }
 
     @PostMapping("/incrementCartItemQuantity")
@@ -57,6 +57,12 @@ public class CartAppController {
         return Result.ok();
     }
 
+    @GetMapping("/listCart")
+    public Result<PageResult<CartListVO>> listCart(PageQuery query) {
+
+       log.info("分页查询购物车列表:query{}", query);
+        return Result.ok(cartService.listCart(query));
+    }
 
 
 

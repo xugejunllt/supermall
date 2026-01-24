@@ -68,14 +68,7 @@ public class PageResult<T> implements Serializable {
 
         return result1;
     }
-    public static <T,S> PageResult<S> toPageResult(IPage<T> result,Class<S> tClass,List<S> s) {
-        PageResult<S> result1 = new PageResult<>();
-        result1.setRecords(s);
-        result1.setTotal(result.getTotal());
-        result1.setSize(result.getSize());
 
-        return result1;
-    }
     @Deprecated
     public static <T>  PageResult<T> emptyResult(Class<T> tClass){
         return new PageResult<>(new ArrayList<>());

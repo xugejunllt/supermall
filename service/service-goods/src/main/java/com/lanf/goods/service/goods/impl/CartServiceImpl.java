@@ -1,5 +1,7 @@
 package com.lanf.goods.service.goods.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.exception.BizException;
@@ -8,18 +10,18 @@ import com.lanf.goods.model.bo.CartSortOrderBO;
 import com.lanf.goods.model.dto.CartAddDTO;
 import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
 import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
-import com.lanf.goods.model.entity.CartDO;
-import com.lanf.goods.model.entity.GoodsDO;
-import com.lanf.goods.model.entity.GoodsSkuDO;
-import com.lanf.goods.model.entity.StockDO;
+import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.vo.CartAddVO;
+import com.lanf.goods.model.vo.CartItemVO;
 import com.lanf.goods.model.vo.CartListVO;
 import com.lanf.goods.service.goods.ICartService;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
+import com.lanf.goods.service.goods.IShopService;
 import com.lanf.goods.utils.GoodsServiceUtils;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.system.api.SystemService;
@@ -28,7 +30,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -48,6 +54,9 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
     private IGoodsSkuService goodsSkuService;
     @Autowired
     private IGoodsService goodsService;
+    @Autowired
+    private IShopService shopService;
+
 
     @DistributedLock(key = "#dto.userId")
     @Transactional(rollbackFor = Exception.class)
@@ -242,20 +251,87 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
     }
 
     @Override
-    public PageResult<CartListVO> listCart() {
+    public PageResult<CartListVO> listCart(PageQuery query) {
 
         Long userId = UserIdContext.getUserId();
-        List<CartDO> cartDOList = this.lambdaQuery()
+        IPage<CartDO> page = new Page<>(query.getPage(), query.getPageSize());
+        IPage<CartDO> pageResult = this.lambdaQuery()
                 .eq(CartDO::getUserId, userId)
                 .orderByDesc(CartDO::getSortOrder)
                 .orderByDesc(BaseEntity::getCreateTime)
-                .list();
+                .page(page);
+        List<CartDO> cartDOList = pageResult.getRecords();
         if (cartDOList.isEmpty()){
             return PageResult.emptyResult();
         }
+        /**
+         * 手动过滤 保证shopId 顺序
+         */
+        List<Long> shopIdList = new ArrayList<>();
+        for (CartDO cartDO : cartDOList){
+            Long shopId = cartDO.getShopId();
+            if ( !shopIdList.contains(shopId)){
+                shopIdList.add(shopId);
+            }
+        }
+
+        List<ShopDO> shopDOList = shopService.lambdaQuery().in(BaseEntity::getId, shopIdList).list();
+        //key：shopId
+        Map<Long, ShopDO> shopDOMap = shopDOList.stream().collect(Collectors.toMap(BaseEntity::getId, v -> v));
+        //key：shopId
+        Map<Long, List<CartDO>> cartDOMap = new HashMap<>(shopIdList.size());
+        for (CartDO cartDO: cartDOList){
+
+            Long shopId = cartDO.getShopId();
+            List<CartDO> cartList = cartDOMap.computeIfAbsent(shopId, k -> new ArrayList<>());
+            cartList.add(cartDO);
+
+        }
+
+        List<Long> skuIdList = cartDOList.stream().map(CartDO::getSkuId).collect(Collectors.toList());
+        List<Long> goodsIdList = cartDOList.stream().map(CartDO::getGoodsId).collect(Collectors.toList());
+
+        List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().in(GoodsSkuDO::getId, skuIdList).list();
+        Map<Long, GoodsSkuDO> goodsSkuDOMap = goodsSkuDOList.stream().collect(Collectors.
+                toMap(BaseEntity::getId, v -> v));
+        List<GoodsDO> goodsDOList = goodsService.lambdaQuery().in(BaseEntity::getId, goodsIdList).list();
+        Map<Long, GoodsDO> goodsDOMap = goodsDOList.stream().collect(Collectors.
+                toMap(BaseEntity::getId, v -> v));
 
 
-        return null;
+        List<CartListVO> cartListVOList = new ArrayList<>(shopIdList.size());
+        for (Long shopId : shopIdList){
+
+            List<CartDO> cartDOList1 = cartDOMap.get(shopId);
+            List<CartItemVO> cartItemList = new ArrayList<>(cartDOList1.size());
+            for (CartDO cartDO : cartDOList1){
+                GoodsSkuDO goodsSkuDO = goodsSkuDOMap.get(cartDO.getSkuId());
+                GoodsDO goodsDO = goodsDOMap.get(cartDO.getGoodsId());
+                CartItemVO cartItemVO = getCartItemVO(cartDO, goodsSkuDO, goodsDO);
+                cartItemList.add(cartItemVO);
+            }
+            CartListVO cartListVO = new CartListVO();
+            cartListVO.setShopId(shopId);
+            cartListVO.setShopName(shopDOMap.get(shopId).getName());
+            cartListVO.setCartItemList(cartItemList);
+            cartListVOList.add(cartListVO);
+
+        }
+        return PageResult.toPageResult(pageResult,cartListVOList);
+    }
+
+
+    private static CartItemVO getCartItemVO(CartDO cartDO, GoodsSkuDO goodsSkuDO, GoodsDO goodsDO) {
+        CartItemVO cartItemVO = new CartItemVO();
+        cartItemVO.setCartId(cartDO.getId());
+        cartItemVO.setGoodsId(cartDO.getGoodsId());
+        cartItemVO.setSkuId(cartDO.getSkuId());
+        cartItemVO.setSkuCode(cartDO.getSkuCode());
+        cartItemVO.setSkuName(goodsSkuDO.getSkuName());
+        cartItemVO.setGoodsName(goodsDO.getName());
+        cartItemVO.setQuantity(cartDO.getQuantity());
+        cartItemVO.setPrice(goodsSkuDO.getPrice());
+        return cartItemVO;
     }
 
 
