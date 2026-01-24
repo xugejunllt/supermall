@@ -29,9 +29,13 @@ private static final long serialVersionUID=1L;
 
     private Long skuId;
 
+
+    private String skuCode;
+
     @ApiModelProperty(value = "数量")
     private Integer quantity;
 
+    private Long version;
 
 
 }

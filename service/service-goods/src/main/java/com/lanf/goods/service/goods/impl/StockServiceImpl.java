@@ -14,7 +14,7 @@ import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.service.goods.*;
-import com.lanf.goods.utils.ProductServiceUtils;
+import com.lanf.goods.utils.GoodsServiceUtils;
 import com.lanf.rocketmq.model.message.UserStockAddMsg;
 import com.lanf.rocketmq.model.message.UserStockMsg;
 import com.lanf.tcc.service.ITccOperationService;
@@ -232,7 +232,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
          * 可能多个仓库 skucode 暂时取其中一个
          *
          */
-        StockDO stockDO = findStockDO(skuCode);
+        StockDO stockDO = GoodsServiceUtils.findStockDO(skuCode);
         Integer totalStock = stockDO.getUsableStock();
         if (totalStock < deductStockDTO.getQuantity()) {
             log.info("库存不足");
@@ -274,7 +274,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         GoodsDO goodsDO = goodsService.getById(goodsId);
 
         //订单总金额
-        BigDecimal totalAmount =  ProductServiceUtils.calculateTotalAmount(goodsSkuDO.getPrice(), quantity);
+        BigDecimal totalAmount =  GoodsServiceUtils.calculateTotalAmount(goodsSkuDO.getPrice(), quantity);
         GoodsSkuBO goodsSkuBO = buildGoodsSkuBO(goodsSkuDO, goodsDO);
         DeductStockVO deductStockVO = new DeductStockVO();
         deductStockVO.setTotalAmount(totalAmount);
@@ -303,7 +303,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         log.info("confirmDeductStock[{}]", deductStockDTO);
 
         String skuCode = deductStockDTO.getSkuCode();
-        StockDO stockDO = findStockDO(skuCode);
+        StockDO stockDO = GoodsServiceUtils.findStockDO(skuCode);
         Long updateVersion = stockDO.getVersion()+1;
         //扣减冻结库存
         Integer lockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
@@ -357,7 +357,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         log.info("cancelDeductStock[{}]", deductStockDTO);
         String skuCode = deductStockDTO.getSkuCode();
-        StockDO stockDO = findStockDO(skuCode);
+        StockDO stockDO = GoodsServiceUtils.findStockDO(skuCode);
         Integer usableStock = stockDO.getUsableStock();
         Long updateVersion = stockDO.getVersion()+1;
         //扣减后的剩余总库存
@@ -388,24 +388,11 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
     }
 
-    private StockDO findStockDO(String  skuCode){
-        List<StockDO> stockDOList = this.lambdaQuery().eq(StockDO::getSkuCode, skuCode).list();
-        if (stockDOList.isEmpty()) {
-            log.info("库存不存在");
-            throw new BizException("库存不存在");
-        }
-        /**
-         *
-         * 可能多个仓库 skucode 暂时取其中一个
-         *
-         */
 
-        return stockDOList.get(0);
-    }
     @Override
     public StockEnoughVO isStockEnough(StockEnoughDTO dto) {
 
-        StockDO stockDO = findStockDO(dto.getSkuCode());
+        StockDO stockDO = GoodsServiceUtils.findStockDO(dto.getSkuCode());
         boolean enough = true;
         if (stockDO.getUsableStock() < dto.getQuantity()) {
             log.info("库存不足");

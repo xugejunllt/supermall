@@ -1,30 +1,35 @@
 package com.lanf.goods.service.goods.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.goods.mapper.CartMapper;
 import com.lanf.goods.model.dto.CartAddDTO;
-import com.lanf.goods.model.dto.ChangeCartQuantityDTO;
+import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
+import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
 import com.lanf.goods.model.entity.CartDO;
 import com.lanf.goods.model.entity.GoodsDO;
 import com.lanf.goods.model.entity.GoodsSkuDO;
+import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.vo.CartGoodsVO;
-import com.lanf.goods.model.vo.EmptyCartGoodsSkuVO;
-import com.lanf.goods.model.vo.EmptyCartVO;
 import com.lanf.goods.service.goods.ICartService;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
+import com.lanf.goods.utils.GoodsServiceUtils;
+import com.lanf.lock.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.security.utils.UserIdContext;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
-import com.lanf.constant.exception.BizException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -36,6 +41,7 @@ import java.util.stream.Collectors;
  * @author 江帅帅 Jss_forever
  * @since 2024-06-13
  */
+@Slf4j
 @Service
 public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements ICartService {
 
@@ -46,140 +52,163 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
     @Autowired
     private IGoodsService goodsService;
 
-
+    @DistributedLock(key = "#dto.skuCode")
     @Override
     public void cartAdd(CartAddDTO dto) {
 
-        Long skuId = dto.getSkuId();
-        ThreadLocalUtils.addIgnoreTableName(true);
-        GoodsSkuDO goodsSkuDO = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getId, skuId).one();
-        if (goodsSkuDO == null) {
-            throw new BizException("商品不存在");
-        }
-        Long goodsId = goodsSkuDO.getGoodsId();
-        ThreadLocalUtils.addIgnoreTableName(true);
-        GoodsDO goodsDO = goodsService.getById(goodsId);
-
-
-
-        CartDO cartDO1 = this.lambdaQuery().eq(CartDO::getSkuId, skuId).one();
-        if (cartDO1 == null) {
-            //新增
-            CartDO cartDO = new CartDO();
-            cartDO.setUserId(UserUtils.getUserId());
-            cartDO.setShopId(goodsDO.getShopId());
-            cartDO.setSkuId(skuId);
-            cartDO.setGoodsId(goodsSkuDO.getGoodsId());
-            this.save(cartDO);
-        } else {
-            //累加更新
-            boolean update = this.lambdaUpdate().
-                    set(CartDO::getQuantity, 0 + cartDO1.getQuantity()).
-                    eq(BaseEntity::getId, cartDO1.getId()).
-                    update();
-            if (!update) {
-                throw new BizException("更新失败");
-            }
-
-        }
-
+        String skuCode = dto.getSkuCode();
+        // 验证库存和SKU信息
+        validateCartItem(dto, skuCode);
+        // 处理购物车项（创建或更新）
+        getOrCreateCartDO(dto);
 
     }
-
-    @Override
-    public void changeCartQuantity(ChangeCartQuantityDTO dto) {
-
-        CartDO cartDO = this.getById(dto.getId());
-        if (cartDO == null) {
-            throw new BizException("购物车不存在");
+    /**
+     * 验证商品库存和SKU信息
+     */
+    private void validateCartItem(CartAddDTO dto, String skuCode) {
+        // 验证库存
+        StockDO stockDO = GoodsServiceUtils.findStockDO(skuCode);
+        if (stockDO == null) {
+            log.warn("商品库存不存在");
+            throw new BizException("商品库存不存在");
         }
-        Integer quantity = dto.getChangeQuantity();
+        if (dto.getQuantity() > stockDO.getUsableStock()) {
+            log.warn("商品库存不足,剩余库存[{}]", stockDO.getUsableStock());
+            throw new BizException("商品库存不足");
+        }
 
-        boolean update = this.lambdaUpdate().
-                //数量为0，删除购物车
-                        set(quantity == 0, BaseEntity::getIsDeleted, 1).
-                set(CartDO::getQuantity, quantity).
-                eq(BaseEntity::getId, cartDO.getId()).
-                update();
+        // 验证SKU存在性
+        GoodsSkuDO goodsSkuDO = goodsSkuService.lambdaQuery()
+                .eq(GoodsSkuDO::getSkuCode, skuCode).one();
+        if (goodsSkuDO == null) {
+            log.warn("sku不存在");
+            throw new BizException("sku不存在");
+        }
+    }
+
+    /**
+     * 获取或创建购物车项
+     */
+    private void getOrCreateCartDO(CartAddDTO dto) {
+
+        // 获取SKU和商品信息
+        GoodsSkuDO goodsSkuDO = goodsSkuService.lambdaQuery()
+                .eq(GoodsSkuDO::getSkuCode, dto.getSkuCode()).one();
+        Long goodsId = goodsSkuDO.getGoodsId();
+        GoodsDO goodsDO = goodsService.getById(goodsId);
+        Long userId = UserIdContext.getUserId();
+        Long skuId = goodsSkuDO.getId();
+
+        // 查询是否已存在相同的购物车项
+        CartDO existingCartDO = this.lambdaQuery()
+                .eq(CartDO::getSkuId, skuId)
+                .eq(CartDO::getUserId, userId)
+                .one();
+
+        if (existingCartDO == null) {
+            createNewCartDO(dto, userId, goodsSkuDO, goodsDO, skuId);
+        } else {
+            updateExistingCartDO(dto, existingCartDO);
+        }
+    }
+
+    /**
+     * 创建新的购物车项
+     */
+    private void createNewCartDO(CartAddDTO dto, Long userId, GoodsSkuDO goodsSkuDO,
+                                 GoodsDO goodsDO, Long skuId) {
+        CartDO cartDO = new CartDO();
+        cartDO.setUserId(userId);
+        cartDO.setShopId(goodsDO.getShopId());
+        cartDO.setSkuId(skuId);
+        cartDO.setGoodsId(goodsSkuDO.getGoodsId());
+        cartDO.setQuantity(dto.getQuantity());
+        cartDO.setSkuCode(dto.getSkuCode());
+        cartDO.setVersion(1L);
+        this.save(cartDO);
+    }
+
+    /**
+     * 更新现有购物车项
+     */
+    private void updateExistingCartDO(CartAddDTO dto, CartDO existingCartDO) {
+        Long version = existingCartDO.getVersion();
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, existingCartDO.getId())
+                .eq(CartDO::getVersion, version)
+                .set(CartDO::getQuantity, dto.getQuantity() + existingCartDO.getQuantity())
+                .set(CartDO::getVersion, version + 1)
+                .update();
+        if (!update) {
+            throw new BizException("更新失败");
+        }
+    }
+
+
+
+    @DistributedLock(key = "#dto.cartId")
+    @Override
+    public void incrementCartItemQuantity(IncrementCartItemQuantityDTO dto) {
+
+        Long cartId = dto.getCartId();
+        CartDO cartDO = this.getById(cartId);
+        if (cartDO == null) {
+            log.warn("购物车项不存在");
+            throw new BizException("购物车项不存在");
+        }
+        StockDO stockDO = GoodsServiceUtils.findStockDO(cartDO.getSkuCode());
+
+        if (dto.getIncrementQuantity() > stockDO.getUsableStock()) {
+            log.warn("商品库存不足,剩余库存[{}]", stockDO.getUsableStock());
+            throw new BizException("商品库存不足");
+        }
+
+        Long version = cartDO.getVersion();
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, cartDO.getId())
+                .eq(CartDO::getVersion, version)
+                .set(CartDO::getQuantity, dto.getIncrementQuantity() + cartDO.getQuantity())
+                .set(CartDO::getVersion, version + 1)
+                .update();
         if (!update) {
             throw new BizException("更新失败");
         }
 
-
     }
-
-    /**
-     * 清空购物车
-     */
-    @Transactional
+    @DistributedLock(key = "#dto.cartId")
     @Override
-    public EmptyCartVO emptyCart(Set<Long> cartIdLis) {
+    public void decrementCartItemQuantity(DecrementCartItemQuantityDTO dto) {
 
-        //校验购物车是否存在
-        List<CartDO> cartDOList = this.lambdaQuery().in(BaseEntity::getId, cartIdLis).list();
-        if (cartIdLis.size() != cartDOList.size()) {
 
-            throw new BizException("购物车信息不存在");
+        Long cartId = dto.getCartId();
+        CartDO cartDO = this.getById(cartId);
+        if (cartDO == null) {
+            log.warn("购物车项不存在");
+            throw new BizException("购物车项不存在");
+        }
+        boolean delete = cartDO.getQuantity() <= dto.getDecrementQuantity();
+        if (delete) {
+
+            log.info("购物车项数量不足,删除购物车项");
+             this.removeById(cartDO.getId());
+        } else {
+            log.info("购物车项数量充足,减少购物车项数量");
+            Long version = cartDO.getVersion();
+            boolean update = this.lambdaUpdate()
+                    .eq(BaseEntity::getId, cartDO.getId())
+                    .eq(CartDO::getVersion, version)
+                    .set(CartDO::getQuantity, cartDO.getQuantity() - dto.getDecrementQuantity())
+                    .set(CartDO::getVersion, version + 1)
+                    .update();
+            if (!update) {
+                throw new BizException("更新失败");
+            }
         }
 
-        Map<Long, CartDO> cartMap = cartDOList.stream()
-                .collect(Collectors.toMap(CartDO::getSkuId, Function.identity()));
 
-        List<Long> skuIdList = cartDOList.stream().map(CartDO::getSkuId).collect(Collectors.toList());
-        ThreadLocalUtils.addIgnoreTableName(true);
-        List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().in(BaseEntity::getId, skuIdList).list();
-
-        Map<Long, GoodsSkuDO> goodsSkuMap = goodsSkuDOList.stream()
-                .collect(Collectors.toMap(GoodsSkuDO::getId, Function.identity()));
-        //校验库存是否存在
-        for (CartDO cd : cartDOList) {
-            Long skuId = cd.getSkuId();
-            GoodsSkuDO goodsSkuDO = goodsSkuMap.get(skuId);
-            Integer quantity = cd.getQuantity();
-//            if (quantity > goodsSkuDO.getStock()) {
-//                throw new BizException("商品" + goodsSkuDO.getSkuCode() + "库存不足");
-//            }
-        }
-        //清空购物车
-        this.removeByIds(cartIdLis);
-        //扣减库存
-        for (CartDO cd : cartDOList) {
-
-            Long skuId = cd.getSkuId();
-            GoodsSkuDO goodsSkuDO = goodsSkuMap.get(skuId);
-            Integer quantity = cd.getQuantity();
-            //Integer surplusStock = goodsSkuDO.getStock() - quantity;
-            ThreadLocalUtils.addIgnoreTableName(true);
-//            goodsSkuService.lambdaUpdate().set(GoodsSkuDO::getStock, surplusStock).
-//                    eq(BaseEntity::getId, goodsSkuDO.getId()).
-//
-//                    update();
-        }
-        //构建返回信息
-        List<Long> goodsIdList = goodsSkuDOList.stream().map(GoodsSkuDO::getGoodsId).collect(Collectors.toList());
-        ThreadLocalUtils.addIgnoreTableName(true);
-        List<GoodsDO> goodsDOList = goodsService.lambdaQuery().in(BaseEntity::getId, goodsIdList).list();
-
-        Map<Long, GoodsDO> goodsMap = goodsDOList.stream()
-                .collect(Collectors.toMap(GoodsDO::getId, Function.identity()));
-
-
-        EmptyCartVO emptyCartVO = new EmptyCartVO();
-        List<EmptyCartGoodsSkuVO> goodsSkuVOS = BeanCopyUtils.copyBeanList(goodsSkuDOList, EmptyCartGoodsSkuVO.class);
-        emptyCartVO.setGoodsSkuVOList(goodsSkuVOS);
-
-        goodsSkuVOS.forEach(a -> {
-
-            CartDO cartDO = cartMap.get(a.getId());
-            GoodsDO goodsDO = goodsMap.get(a.getGoodsId());
-            a.setQuantity(cartDO.getQuantity());
-            a.setShopId(goodsDO.getShopId());
-            a.setGoodsName(goodsDO.getName());
-            a.setGoodsTitle(goodsDO.getTitle());
-        });
-
-        return emptyCartVO;
     }
+
 
     @Override
     public List<CartGoodsVO> cartList() {
@@ -258,7 +287,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
 
                     cartGoodsVO.setShopName(shopName);
                 }
-                if (i == cartDOList1.size()-1){
+                if (i == cartDOList1.size() - 1) {
                     cartGoodsVO.setLast(true);
                 }
                 cartGoodsVOList.add(cartGoodsVO);

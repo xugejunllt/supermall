@@ -9,7 +9,7 @@ import com.lanf.goods.model.dto.CalculateOrderAmountDTO;
 import com.lanf.goods.model.entity.GoodsSkuDO;
 import com.lanf.goods.model.vo.CalculateOrderAmountVO;
 import com.lanf.goods.service.goods.IGoodsSkuService;
-import com.lanf.goods.utils.ProductServiceUtils;
+import com.lanf.goods.utils.GoodsServiceUtils;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
@@ -42,7 +42,7 @@ public class GoodsSkuServiceImpl extends ServiceImpl<GoodsSkuMapper, GoodsSkuDO>
         BigDecimal price = goodsSkuDO.getPrice();
         Integer quantity = dto.getQuantity();
         //订单总金额
-        BigDecimal totalAmount =  ProductServiceUtils.calculateTotalAmount(price, quantity);
+        BigDecimal totalAmount =  GoodsServiceUtils.calculateTotalAmount(price, quantity);
         //计算优惠金额
         CalculateDiscountAmountVO amountVO = calculateDiscountAmount(dto, userId, totalAmount);
 
