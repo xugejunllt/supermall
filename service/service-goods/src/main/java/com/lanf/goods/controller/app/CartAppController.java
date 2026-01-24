@@ -5,14 +5,15 @@ import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.CartAddDTO;
 import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
 import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
-import com.lanf.goods.model.vo.CartGoodsVO;
 import com.lanf.goods.service.goods.ICartService;
+import com.lanf.security.utils.UserIdContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>
@@ -35,6 +36,7 @@ public class CartAppController {
     public Result<Void> cartAdd(@Validated @RequestBody CartAddDTO dto) {
 
         log.info("添加购物车:dto{}", dto);
+        dto.setUserId(UserIdContext.getUserId());
         cartService.cartAdd(dto);
         return Result.ok();
     }
@@ -56,12 +58,7 @@ public class CartAppController {
     }
 
 
-    @GetMapping("/cartList")
-    public Result<List<CartGoodsVO>> cartList() {
 
-        log.info("查询购物车列表");
-        return Result.ok(cartService.cartList());
-    }
 
 }
 

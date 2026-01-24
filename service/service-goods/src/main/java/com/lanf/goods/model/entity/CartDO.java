@@ -35,6 +35,9 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "数量")
     private Integer quantity;
 
+    //排序顺序，越小越靠前
+    private Long sortOrder;
+
     private Long version;
 
 

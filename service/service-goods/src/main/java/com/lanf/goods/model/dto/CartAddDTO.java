@@ -10,7 +10,7 @@ import java.io.Serializable;
 public class CartAddDTO implements Serializable {
 
 
-
+    private Long userId;
     @NotBlank(message = "商品skuCode不能为空")
     private String skuCode;
 

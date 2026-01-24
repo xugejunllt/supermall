@@ -5,9 +5,9 @@ import com.lanf.goods.model.dto.CartAddDTO;
 import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
 import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
 import com.lanf.goods.model.entity.CartDO;
-import com.lanf.goods.model.vo.CartGoodsVO;
-
-import java.util.List;
+import com.lanf.goods.model.vo.CartAddVO;
+import com.lanf.goods.model.vo.CartListVO;
+import com.lanf.mybatis.base.PageResult;
 
 /**
  * <p>
@@ -24,7 +24,7 @@ public interface ICartService extends IService<CartDO> {
      * 从商品详细页添加到购物车
      *
      */
-    void  cartAdd(CartAddDTO dto);
+    CartAddVO cartAdd(CartAddDTO dto);
 
     /**
      * 从购物列表中增加商品数量
@@ -38,9 +38,12 @@ public interface ICartService extends IService<CartDO> {
      */
     void decrementCartItemQuantity(DecrementCartItemQuantityDTO dto);
 
+    /**
+     * 购物车列表
+     *
+     */
+    PageResult<CartListVO> listCart();
 
-
-    List<CartGoodsVO> cartList();
 
 
 }

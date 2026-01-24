@@ -76,10 +76,13 @@ public class PageResult<T> implements Serializable {
 
         return result1;
     }
+    @Deprecated
     public static <T>  PageResult<T> emptyResult(Class<T> tClass){
         return new PageResult<>(new ArrayList<>());
     }
-
+    public static <T>  PageResult<T> emptyResult(){
+        return new PageResult<>(new ArrayList<>());
+    }
     public static <T> IPage<T> buildIPage(PageQuery pageQuery,Class<T> tClass) {
 
 
