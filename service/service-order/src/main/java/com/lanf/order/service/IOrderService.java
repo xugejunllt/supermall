@@ -23,7 +23,7 @@ import java.util.List;
  */
 public interface IOrderService extends IService<OrderDO> {
 
-    String getOrderNumber();
+
 
     /**
      * 创建一笔订单

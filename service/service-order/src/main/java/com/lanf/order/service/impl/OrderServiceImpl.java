@@ -79,12 +79,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Autowired
     private ISendMqMessageService sendMqMessageService;
 
-    @Override
-    public String getOrderNumber() {
-
-
-        return CodeGenerateUtils.generateOrderNumber();
-    }
 
 
     @Override

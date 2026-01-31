@@ -1,14 +1,14 @@
 package com.lanf.order.controller.app;
 
 
-import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.result.Result;
-import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.order.model.dto.CalculateOrderAmountDTO;
 import com.lanf.order.model.dto.CancelOrderDTO;
 import com.lanf.order.model.dto.PlaceOrderDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.query.OrderPageQuery;
+import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.OrderDetailVO;
 import com.lanf.order.model.vo.OrderPageVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
@@ -20,10 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <p>
@@ -48,6 +44,22 @@ public class OrderController {
     @Autowired
     private OrderManagerService orderManagerService;
 
+
+    /**
+     * 下单前计算订单金额
+     *
+     *
+     */
+    @PostMapping("/calculateOrderAmount")
+    public Result<CalculateOrderAmountVO> calculateOrderAmount(@RequestBody @Validated CalculateOrderAmountDTO dto) {
+
+
+        log.info("下单前计算订单金额[{}]", dto);
+
+        return Result.ok(orderManagerService.calculateOrderAmount(dto));
+
+    }
+
     /**
      * 立即下单接口
      *
@@ -55,7 +67,7 @@ public class OrderController {
      * @return 下单结果
      */
     @PostMapping("/placeOrder")
-    public Result<PlaceOrderVO> placeOrder(@RequestBody @Valid PlaceOrderDTO orderDTO) {
+    public Result<PlaceOrderVO> placeOrder(@RequestBody @Validated PlaceOrderDTO orderDTO) {
 
 
         log.info("立即下单[{}]", orderDTO);
@@ -64,12 +76,6 @@ public class OrderController {
 
     }
 
-    @GetMapping("/getOrderNumber")
-    public Result<String> getOrderNumber(@Validated PageQuery query) {
-
-        log.info("生成订单编号");
-        return Result.ok(orderService.getOrderNumber());
-    }
 
 
     @PostMapping("/signFor")

@@ -5,24 +5,29 @@ import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.result.Result;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.goods.api.GoodsApiService;
 import com.lanf.goods.model.bo.GoodsSkuBO;
+import com.lanf.goods.model.dto.CalculateOrderTotalAmountDTO;
 import com.lanf.goods.model.dto.DeductStockDTO;
+import com.lanf.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.order.api.OrderApiService;
 import com.lanf.order.model.bo.OrderInitParamsBO;
-import com.lanf.order.model.dto.CreateOrderDTO;
-import com.lanf.order.model.dto.OrderItemDTO;
-import com.lanf.order.model.dto.PlaceOrderDTO;
+import com.lanf.order.model.dto.*;
+import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
+import com.lanf.order.model.vo.ValidateCartVO;
 import com.lanf.order.service.OrderManagerService;
+import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.pay.api.PayApiService;
 import com.lanf.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.bo.DiscountInfoBO;
+import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
 import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
 import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +55,53 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     @Autowired
     private OrderApiService orderApiService;
 
+    @Override
+    public CalculateOrderAmountVO calculateOrderAmount(CalculateOrderAmountDTO dto) {
+
+
+
+        CalculateOrderTotalAmountVO amountVO =  calculateOrderTotalAmount(dto);
+        BigDecimal totalAmount = amountVO.getTotalAmount();
+        //计算优惠金额
+        CalculateDiscountAmountVO calculateDiscountAmountVO = calculateDiscountAmount(dto,
+                UserIdContext.getUserId(), totalAmount);
+        /**
+         * 构建返回结果
+         */
+        CalculateOrderAmountVO orderAmountVO = new CalculateOrderAmountVO();
+        orderAmountVO.setTotalAmount(totalAmount);
+        orderAmountVO.setDiscountAmount(calculateDiscountAmountVO.getTotalDiscountAmount());
+        orderAmountVO.setPayAmount(BigDecimalUtil.subtract(totalAmount, calculateDiscountAmountVO.getTotalDiscountAmount()));
+        orderAmountVO.setOrderNumber(OrderServiceUtils.generateOrderNumber());
+        return orderAmountVO;
+
+    }
+
+
+    /**
+     * 计算订单总金额的私有方法
+     *
+     * @param dto 计算订单金额的DTO
+     * @return 计算后的金额结果
+     */
+    private CalculateOrderTotalAmountVO calculateOrderTotalAmount(CalculateOrderAmountDTO dto) {
+        CalculateOrderTotalAmountDTO calculateOrderTotalAmountDTO = new CalculateOrderTotalAmountDTO();
+        calculateOrderTotalAmountDTO.setSkuId(dto.getSkuId());
+        calculateOrderTotalAmountDTO.setQuantity(dto.getQuantity());
+
+        return RpcResultParser.parseResult(
+                goodsApiService.calculateOrderTotalAmount(calculateOrderTotalAmountDTO));
+    }
+    private CalculateDiscountAmountVO calculateDiscountAmount(CalculateOrderAmountDTO dto, Long userId, BigDecimal totalAmount) {
+        CalculateDiscountAmountDTO discountAmountDTO = new CalculateDiscountAmountDTO();
+        discountAmountDTO.setUserId(userId);
+        discountAmountDTO.setShopId(dto.getSkuId());
+        discountAmountDTO.setTotalAmount(totalAmount);
+
+        Result<CalculateDiscountAmountVO> calculateDiscountAmountVOResult = welfareApiService.calculateDiscountAmount(discountAmountDTO);
+
+        return RpcResultParser.parseResult(calculateDiscountAmountVOResult);
+    }
     /**
      *立即下单
      *
@@ -86,6 +138,11 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         PlaceOrderVO vo = new PlaceOrderVO();
         vo.setOrderId(orderInitParamsBO.getOrderId());
         return vo;
+    }
+
+    @Override
+    public ValidateCartVO validateCart(ValidateCartDTO dto) {
+        return null;
     }
 
     /**

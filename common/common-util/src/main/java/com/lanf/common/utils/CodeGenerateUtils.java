@@ -20,6 +20,8 @@ public class CodeGenerateUtils {
         return stringBuffer.toString();
     }
 
+
+    @Deprecated
     /**
      * 生成订单编号
      *

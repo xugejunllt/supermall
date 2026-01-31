@@ -1,26 +1,23 @@
 package com.lanf.goods.service.goods;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.goods.model.dto.CalculateOrderAmountDTO;
+import com.lanf.goods.model.dto.CalculateOrderTotalAmountDTO;
 import com.lanf.goods.model.entity.GoodsSkuDO;
-import com.lanf.goods.model.vo.CalculateOrderAmountVO;
+import com.lanf.goods.model.vo.CalculateOrderTotalAmountVO;
 
 /**
- * <p>
- *  服务类
- * </p>
  *
- * @author 江帅帅 Jss_forever
- * @since 2024-06-11
+ *  服务类
+ *
+ *
+ *
  */
 public interface IGoodsSkuService extends IService<GoodsSkuDO> {
 
 
     /**
-     *  订单金额计算
-     *
-     *
+     *  计算商品金额
      */
-    CalculateOrderAmountVO calculateOrderAmount(CalculateOrderAmountDTO dto);
-
+    
+    CalculateOrderTotalAmountVO calculateOrderTotalAmount(CalculateOrderTotalAmountDTO dto);
 }

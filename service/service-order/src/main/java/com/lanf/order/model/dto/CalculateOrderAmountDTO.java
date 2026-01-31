@@ -1,4 +1,4 @@
-package com.lanf.goods.model.dto;
+package com.lanf.order.model.dto;
 
 import lombok.Data;
 
