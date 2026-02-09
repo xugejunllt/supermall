@@ -4,10 +4,12 @@ import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.CalculateOrderTotalAmountDTO;
 import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
 import com.lanf.goods.model.dto.DeductStockDTO;
+import com.lanf.goods.model.dto.ValidateCartDTO;
 import com.lanf.goods.model.vo.*;
 import org.dromara.hmily.annotation.Hmily;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -25,6 +27,10 @@ public interface GoodsApiService {
 
     @PostMapping("/goods/api/calculateOrderTotalAmount")
     public Result<CalculateOrderTotalAmountVO> calculateOrderTotalAmount(@RequestBody  CalculateOrderTotalAmountDTO dto);
+
+
+    @PostMapping("/goods/api/validateCartItem")
+    public Result<ValidateCartItemVO>  validateCartItem(@RequestBody @Validated ValidateCartDTO dto);
 
 
 

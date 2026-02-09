@@ -11,8 +11,10 @@ import com.lanf.goods.api.GoodsApiService;
 import com.lanf.goods.model.bo.GoodsSkuBO;
 import com.lanf.goods.model.dto.CalculateOrderTotalAmountDTO;
 import com.lanf.goods.model.dto.DeductStockDTO;
+import com.lanf.goods.model.dto.ValidateCartDTO;
 import com.lanf.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.goods.model.vo.DeductStockVO;
+import com.lanf.goods.model.vo.ValidateCartItemVO;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.order.api.OrderApiService;
 import com.lanf.order.model.bo.OrderInitParamsBO;
@@ -142,6 +144,15 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     @Override
     public ValidateCartVO validateCart(ValidateCartDTO dto) {
+
+
+        /**
+         * 校验库存
+         */
+        ValidateCartItemVO validateCartItemVO = RpcResultParser.parseResult(goodsApiService.validateCartItem(dto));
+        z
+
+
         return null;
     }
 

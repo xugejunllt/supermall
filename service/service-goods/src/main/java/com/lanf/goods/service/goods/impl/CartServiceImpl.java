@@ -4,16 +4,13 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.constant.exception.BizException;
 import com.lanf.goods.mapper.CartMapper;
 import com.lanf.goods.model.bo.CartSortOrderBO;
-import com.lanf.goods.model.dto.CartAddDTO;
-import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
-import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
+import com.lanf.goods.model.dto.*;
 import com.lanf.goods.model.entity.*;
-import com.lanf.goods.model.vo.CartAddVO;
-import com.lanf.goods.model.vo.CartItemVO;
-import com.lanf.goods.model.vo.CartListVO;
+import com.lanf.goods.model.vo.*;
 import com.lanf.goods.service.goods.ICartService;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
@@ -30,10 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -321,6 +316,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
     }
 
 
+
     private static CartItemVO getCartItemVO(CartDO cartDO, GoodsSkuDO goodsSkuDO, GoodsDO goodsDO) {
         CartItemVO cartItemVO = new CartItemVO();
         cartItemVO.setCartId(cartDO.getId());
@@ -333,6 +329,84 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         cartItemVO.setPrice(goodsSkuDO.getPrice());
         return cartItemVO;
     }
+    @Override
+    public ValidateCartItemVO validateCartItem(ValidateCartDTO dto) {
+
+        List<Long> cartIds = dto.getCartIds();
+        /**
+         * 校验库存
+         */
+        List<CartDO> cartDOList = this.lambdaQuery().in(CartDO::getId, cartIds).list();
+        if (cartDOList.isEmpty()){
+            log.warn("购物车项不存在");
+           throw  new BizException("购物车项不存在");
+        }
+        if (cartIds.size() != cartDOList.size()){
+            log.warn("部分购物车项不存在");
+            throw  new BizException("部分购物车项不存在");
+        }
+        for (CartDO cartDO : cartDOList){
+
+            StockDO stockDO = GoodsServiceUtils.findStockDO(cartDO.getSkuCode());
+            if (stockDO.getUsableStock() < cartDO.getQuantity()){
+                log.warn("库存不足");
+                throw new BizException("库存不足");
+            }
+        }
+
+        /**
+         * 构建返回数据
+         */
+        Set<Long> shopIdSet = cartDOList.stream().map(CartDO::getShopId).collect(Collectors.toSet());
+        List<ShopDO> shopDOList = shopService.lambdaQuery().in(BaseEntity::getId, shopIdSet).list();
+        Map<Long, ShopDO> shopDOMap = shopDOList.stream().collect(Collectors.toMap(BaseEntity::getId, v -> v));
+        Set<Long> goodsSet = cartDOList.stream().map(CartDO::getGoodsId).collect(Collectors.toSet());
+        List<GoodsDO> goodsDOList = goodsService.lambdaQuery().in(BaseEntity::getId, goodsSet).list();
+        Map<Long, GoodsDO> goodsDOMap = goodsDOList.stream().collect(Collectors.toMap(BaseEntity::getId, v -> v));
+        List<Long> skuIdList = cartDOList.stream().map(CartDO::getSkuId).collect(Collectors.toList());
+        List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().in(BaseEntity::getId, skuIdList).list();
+        Map<Long, GoodsSkuDO> goodsSkuDOMap = goodsSkuDOList.stream().collect(Collectors.toMap(BaseEntity::getId, v -> v));
+        //相同店铺id为一组
+        Map<Long, List<CartDO>> shopIdCartDOMap = cartDOList.stream().collect(Collectors.groupingBy(CartDO::getShopId));
+
+        List<ShopGoodsVO> goodsVOList = new ArrayList<>(shopIdSet.size());
+        Set<Map.Entry<Long, List<CartDO>>> entries = shopIdCartDOMap.entrySet();
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        for (Map.Entry<Long, List<CartDO>> entry : entries){
+            Long shopId = entry.getKey();
+            ShopGoodsVO shopGoodsVO = new ShopGoodsVO();
+            shopGoodsVO.setShopId(shopId);
+            ShopDO shopDO = shopDOMap.get(shopId);
+            if ( shopDO!=null){
+                /**
+                 * 即使店铺不存在  购物车项可以正常添加
+                 */
+                shopGoodsVO.setShopName(shopDO.getName());
+            }
+            List<GoodsItemVO> cartItemList = new ArrayList<>(cartDOList.size());
+            for (CartDO cartDO : entry.getValue()){
+                GoodsSkuDO goodsSkuDO = goodsSkuDOMap.get(cartDO.getSkuId());
+                GoodsItemVO goodsItemVO = new GoodsItemVO();
+                goodsItemVO.setSkuId(cartDO.getSkuId());
+                goodsItemVO.setCartId(cartDO.getId());
+                goodsItemVO.setSkuName(goodsSkuDO.getSkuName());
+                goodsItemVO.setGoodsName(goodsDOMap.get(cartDO.getGoodsId()).getName());
+                goodsItemVO.setQuantity(cartDO.getQuantity());
+                goodsItemVO.setPrice(goodsSkuDO.getPrice());
+                cartItemList.add(goodsItemVO);
+                //累加总金额
+                totalPrice = BigDecimalUtil.add(totalPrice, GoodsServiceUtils.calculateTotalAmount(goodsSkuDO.getPrice(),
+                        cartDO.getQuantity()));
+            }
+            shopGoodsVO.setCartItemList(cartItemList);
+            goodsVOList.add(shopGoodsVO);
+        }
+        ValidateCartItemVO validateCartItemVO = new ValidateCartItemVO();
+        validateCartItemVO.setGoodsVOList(goodsVOList);
+
+        return validateCartItemVO;
+    }
+
 
 
 }

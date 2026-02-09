@@ -3,8 +3,10 @@ package com.lanf.goods.controller.aip;
 import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.CalculateOrderTotalAmountDTO;
 import com.lanf.goods.model.dto.DeductStockDTO;
+import com.lanf.goods.model.dto.ValidateCartDTO;
 import com.lanf.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.goods.model.vo.DeductStockVO;
+import com.lanf.goods.model.vo.ValidateCartItemVO;
 import com.lanf.goods.service.base.IBaseGoodsService;
 import com.lanf.goods.service.goods.ICartService;
 import com.lanf.goods.service.goods.IGoodsService;
@@ -60,5 +62,13 @@ public class GoodsApiController {
 
     }
 
+    @PostMapping("/validateCartItem")
+    public Result<ValidateCartItemVO>  validateCartItem(@RequestBody @Validated ValidateCartDTO dto)  {
+
+        log.info("提交订单校验购物车项目[{}]", dto);
+
+        return Result.ok(cartService.validateCartItem(dto));
+
+    }
 
 }
