@@ -161,7 +161,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         validateCartVO.setDiscountPrice(discountPrice);
         validateCartVO.setActualPrice(actualPrice);
         validateCartVO.setGoodsVOList(validateCartItemVO.getGoodsVOList());
-        validateCartVO.setTotalPrice(actualPrice);
+        validateCartVO.setTotalPrice(validateCartItemVO.getTotalPrice());
         validateCartVO.setMainOrderNumber(OrderServiceUtils.generateOrderNumber());
         return validateCartVO;
     }
