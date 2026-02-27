@@ -31,6 +31,7 @@ public class PayOrderController {
     @Autowired
     private PayServiceAdapter payServiceAdapter;
 
+    @Deprecated
     @PostMapping("/preBathPay")
     public Result<TradeOrderVO> preBathPay(@RequestBody BathPayDTO dto) {
 
@@ -38,6 +39,7 @@ public class PayOrderController {
 
         return Result.ok(payServiceAdapter.bathPay(dto));
     }
+    @Deprecated
     @PostMapping("/preOnePay")
     public Result<TradeOrderVO> preOnePay(@RequestBody OnePayDTO dto) {
 
@@ -45,6 +47,7 @@ public class PayOrderController {
 
         return Result.ok(payServiceAdapter.onePay(dto));
     }
+    @Deprecated
     @PostMapping("/transferAccounts")
     public Result<TransferAccountsVO> transferAccounts(@RequestBody TransferAccountsDTO dto) {
 

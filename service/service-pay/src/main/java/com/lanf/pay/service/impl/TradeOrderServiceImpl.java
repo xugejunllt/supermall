@@ -69,7 +69,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Override
     public void createTradeOrder(CreateTradeOrderDTO dto) {
 
-       log.info("createTradeOrder");
     }
 
 

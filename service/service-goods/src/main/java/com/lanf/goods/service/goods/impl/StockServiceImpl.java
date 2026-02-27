@@ -216,8 +216,6 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @HmilyTCC(confirmMethod = "confirmDeductStock", cancelMethod = "cancelDeductStock")
     @Override
     public DeductStockVO deductStock(DeductStockDTO deductStockDTO) {
-        log.info("扣减库存开始");
-
 
         String skuCode = deductStockDTO.getSkuCode();
 

@@ -1,4 +1,4 @@
-package com.lanf.goods.model.vo;
+package com.lanf.goods.model.bo;
 
 import lombok.Data;
 
@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class GoodsItemVO implements Serializable {
+public class GoodsItemBO implements Serializable {
 
     private Long skuId;
 

@@ -1,13 +1,11 @@
 package com.lanf.goods.service.goods;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.goods.model.dto.CartAddDTO;
-import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
-import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
-import com.lanf.goods.model.dto.ValidateCartDTO;
+import com.lanf.goods.model.dto.*;
 import com.lanf.goods.model.entity.CartDO;
 import com.lanf.goods.model.vo.CartAddVO;
 import com.lanf.goods.model.vo.CartListVO;
+import com.lanf.goods.model.vo.ClearCartVO;
 import com.lanf.goods.model.vo.ValidateCartItemVO;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
@@ -52,6 +50,13 @@ public interface ICartService extends IService<CartDO> {
      *
      */
     ValidateCartItemVO validateCartItem(ValidateCartDTO dto);
+
+    /**
+     * 清空购物车
+     *
+     *
+     */
+    ClearCartVO clearCart(ClearCartDTO dto);
 
 
 }

@@ -37,6 +37,11 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "付款总金额")
     private BigDecimal batchFee;
 
+    /**
+     * 批量付款取消标识
+     * 取消合并 0:未取消，1:已取消
+     */
+    private Integer cancelMerge;
 
 
 

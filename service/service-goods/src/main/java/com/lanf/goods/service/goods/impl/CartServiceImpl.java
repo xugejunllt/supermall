@@ -8,6 +8,8 @@ import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.constant.exception.BizException;
 import com.lanf.goods.mapper.CartMapper;
 import com.lanf.goods.model.bo.CartSortOrderBO;
+import com.lanf.goods.model.bo.GoodsItemBO;
+import com.lanf.goods.model.bo.ShopGoodsBO;
 import com.lanf.goods.model.dto.*;
 import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.vo.*;
@@ -22,7 +24,9 @@ import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.system.api.SystemService;
+import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +55,8 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
     private IGoodsService goodsService;
     @Autowired
     private IShopService shopService;
-
+    @Autowired
+    private ITccOperationService tccOperationService;
 
     @DistributedLock(key = "#dto.userId")
     @Transactional(rollbackFor = Exception.class)
@@ -369,12 +374,12 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         //相同店铺id为一组
         Map<Long, List<CartDO>> shopIdCartDOMap = cartDOList.stream().collect(Collectors.groupingBy(CartDO::getShopId));
 
-        List<ShopGoodsVO> goodsVOList = new ArrayList<>(shopIdSet.size());
+        List<ShopGoodsBO> goodsVOList = new ArrayList<>(shopIdSet.size());
         Set<Map.Entry<Long, List<CartDO>>> entries = shopIdCartDOMap.entrySet();
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (Map.Entry<Long, List<CartDO>> entry : entries){
             Long shopId = entry.getKey();
-            ShopGoodsVO shopGoodsVO = new ShopGoodsVO();
+            ShopGoodsBO shopGoodsVO = new ShopGoodsBO();
             shopGoodsVO.setShopId(shopId);
             ShopDO shopDO = shopDOMap.get(shopId);
             if ( shopDO!=null){
@@ -383,10 +388,10 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
                  */
                 shopGoodsVO.setShopName(shopDO.getName());
             }
-            List<GoodsItemVO> cartItemList = new ArrayList<>(cartDOList.size());
+            List<GoodsItemBO> cartItemList = new ArrayList<>(cartDOList.size());
             for (CartDO cartDO : entry.getValue()){
                 GoodsSkuDO goodsSkuDO = goodsSkuDOMap.get(cartDO.getSkuId());
-                GoodsItemVO goodsItemVO = new GoodsItemVO();
+                GoodsItemBO goodsItemVO = new GoodsItemBO();
                 goodsItemVO.setSkuId(cartDO.getSkuId());
                 goodsItemVO.setCartId(cartDO.getId());
                 goodsItemVO.setSkuName(goodsSkuDO.getSkuName());
@@ -405,6 +410,33 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         validateCartItemVO.setGoodsVOList(goodsVOList);
 
         return validateCartItemVO;
+    }
+    @HmilyTCC(confirmMethod = "confirmClearCart", cancelMethod = "cancelClearCart")
+    @Override
+    public ClearCartVO clearCart(ClearCartDTO dto) {
+
+        ValidateCartDTO dto1   = new ValidateCartDTO();
+        dto1.setCartIds(dto.getCartIds());
+        ValidateCartItemVO validateCartItemVO = validateCartItem(dto1);
+        ClearCartVO clearCartVO = new ClearCartVO();
+        clearCartVO.setGoodsVOList(validateCartItemVO.getGoodsVOList());
+        clearCartVO.setTotalPrice(validateCartItemVO.getTotalPrice());
+
+
+
+        return clearCartVO;
+    }
+
+
+    public void  confirmClearCart(ClearCartDTO dto){
+        log.info("confirmClearCart");
+        this.removeByIds(dto.getCartIds());
+    }
+
+    public void  cancelClearCart(ClearCartDTO dto){
+        log.info("cancelClearCart");
+
+
     }
 
 

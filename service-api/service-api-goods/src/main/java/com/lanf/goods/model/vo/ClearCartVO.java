@@ -3,14 +3,17 @@ package com.lanf.goods.model.vo;
 import com.lanf.goods.model.bo.ShopGoodsBO;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-public class ValidateCartItemVO implements Serializable {
+public class ClearCartVO implements java.io.Serializable {
+
     //总价
     private BigDecimal totalPrice;
+
     private List<ShopGoodsBO> goodsVOList;
+
+
 
 }

@@ -1,4 +1,4 @@
-package com.lanf.goods.model.vo;
+package com.lanf.goods.model.bo;
 
 import lombok.Data;
 
@@ -6,12 +6,12 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class ShopGoodsVO implements Serializable {
+public class ShopGoodsBO implements Serializable {
 
     private Long shopId;
     //店铺名称
     private String shopName;
 
-    private List<GoodsItemVO> cartItemList;
+    private List<GoodsItemBO> cartItemList;
 
 }

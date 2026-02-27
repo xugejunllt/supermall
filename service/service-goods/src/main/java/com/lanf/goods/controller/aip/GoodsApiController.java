@@ -2,9 +2,11 @@ package com.lanf.goods.controller.aip;
 
 import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.CalculateOrderTotalAmountDTO;
+import com.lanf.goods.model.dto.ClearCartDTO;
 import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.dto.ValidateCartDTO;
 import com.lanf.goods.model.vo.CalculateOrderTotalAmountVO;
+import com.lanf.goods.model.vo.ClearCartVO;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.ValidateCartItemVO;
 import com.lanf.goods.service.base.IBaseGoodsService;
@@ -62,6 +64,11 @@ public class GoodsApiController {
 
     }
 
+    /**
+     *
+     * 提交订单校验购物车项目
+     *
+     */
     @PostMapping("/validateCartItem")
     public Result<ValidateCartItemVO>  validateCartItem(@RequestBody @Validated ValidateCartDTO dto)  {
 
@@ -71,4 +78,17 @@ public class GoodsApiController {
 
     }
 
+    /**
+     *
+     * 清空购物车
+     *
+     */
+    @PostMapping("/clearCart")
+    public Result<ClearCartVO>  clearCart(@RequestBody @Validated ClearCartDTO dto)  {
+
+        log.info("清空购物车[{}]", dto);
+
+        return Result.ok(cartService.clearCart(dto));
+
+    }
 }
