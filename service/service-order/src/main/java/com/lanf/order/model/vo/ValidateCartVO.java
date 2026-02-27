@@ -10,6 +10,8 @@ import java.util.List;
 @Data
 public class ValidateCartVO implements Serializable {
 
+    //主订单编号
+    private String mainOrderNumber;
 
     //优惠金额
     private BigDecimal discountPrice;

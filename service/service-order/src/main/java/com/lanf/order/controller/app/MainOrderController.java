@@ -1,9 +1,12 @@
 package com.lanf.order.controller.app;
 
 
+import com.lanf.goods.model.dto.ValidateCartDTO;
 import com.lanf.order.model.dto.OnePlaceAnOrderDTO;
 import com.lanf.order.model.dto.SubmitOrderDTO;
 import com.lanf.order.model.vo.CreateOrderVO;
+import com.lanf.order.model.vo.ValidateCartVO;
+import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.service.layout.InterfaceLayoutService;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +32,10 @@ public class MainOrderController {
 
     @Autowired
     private InterfaceLayoutService interfaceLayoutService;
+    @Autowired
+    private OrderManagerService orderManagerService;
 
+    @Deprecated
     @PostMapping("/submitOrder")
     public Result<CreateOrderVO> submitOrder(@Validated @RequestBody SubmitOrderDTO dto) {
 
@@ -37,7 +43,7 @@ public class MainOrderController {
 
         return Result.ok(interfaceLayoutService.submitOrderDTO(dto));
     }
-
+    @Deprecated
     @PostMapping("/onePlaceAnOrder")
     public Result<CreateOrderVO> onePlaceAnOrder(@Validated @RequestBody OnePlaceAnOrderDTO dto) {
 
@@ -45,6 +51,12 @@ public class MainOrderController {
 
         return Result.ok(interfaceLayoutService.onePlaceAnOrder(dto));
     }
+    @PostMapping("/validateCart")
+    public Result<ValidateCartVO> validateCart(@Validated @RequestBody ValidateCartDTO dto) {
 
+        log.info("购物车结算,进行校验:dto{}", dto);
+
+        return Result.ok(orderManagerService.validateCart(dto));
+    }
 }
 

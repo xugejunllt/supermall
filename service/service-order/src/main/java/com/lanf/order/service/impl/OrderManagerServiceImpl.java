@@ -150,10 +150,20 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          * 校验库存
          */
         ValidateCartItemVO validateCartItemVO = RpcResultParser.parseResult(goodsApiService.validateCartItem(dto));
-        z
 
-
-        return null;
+        /**
+         * 构建返回值
+         */
+        //这里不考虑使用优惠卷场景
+        BigDecimal discountPrice = new BigDecimal(0);
+        BigDecimal actualPrice = validateCartItemVO.getTotalPrice();
+        ValidateCartVO validateCartVO = new ValidateCartVO();
+        validateCartVO.setDiscountPrice(discountPrice);
+        validateCartVO.setActualPrice(actualPrice);
+        validateCartVO.setGoodsVOList(validateCartItemVO.getGoodsVOList());
+        validateCartVO.setTotalPrice(actualPrice);
+        validateCartVO.setMainOrderNumber(OrderServiceUtils.generateOrderNumber());
+        return validateCartVO;
     }
 
     /**
