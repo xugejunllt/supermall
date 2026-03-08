@@ -14,4 +14,10 @@ public class ShopGoodsBO implements Serializable {
 
     private List<GoodsItemBO> cartItemList;
 
+    /**
+     * 订单ID
+     * 不是接口返回 的字段
+     * 在提交购物车聚合方法里初始化
+     */
+    private Long orderId;
 }

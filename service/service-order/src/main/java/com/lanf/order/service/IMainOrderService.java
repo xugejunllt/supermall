@@ -1,6 +1,7 @@
 package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.order.model.dto.BathCreateOrderDTO;
 import com.lanf.order.model.dto.CreateOrderDTO2;
 import com.lanf.order.model.entity.MainOrderDO;
 import com.lanf.order.model.vo.CreateOrderVO;
@@ -15,8 +16,14 @@ import com.lanf.order.model.vo.CreateOrderVO;
  */
 public interface IMainOrderService extends IService<MainOrderDO> {
 
+    /**
+     * 批量创建订单
+     *
+     */
+    void bathCreateOrder(BathCreateOrderDTO dto);
 
 
+    @Deprecated
     /**
      * 创建订单
      * @param dto

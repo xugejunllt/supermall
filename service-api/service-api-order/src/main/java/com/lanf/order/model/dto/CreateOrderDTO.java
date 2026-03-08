@@ -37,5 +37,5 @@ public class CreateOrderDTO implements Serializable {
     @ApiModelProperty(value = "收货地址")
     private TakeAddressDTO takeAddressBO;
 
-    private OrderItemDTO orderItem;
+    private List<OrderItemDTO> orderItems;
 }

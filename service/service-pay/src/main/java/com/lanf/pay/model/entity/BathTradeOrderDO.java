@@ -28,6 +28,8 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "主订单id")
     private Long mainOrderId;
 
+    private  String mainOrderNumber;
+
     @ApiModelProperty(value = "批量付款批次号")
     private String batchNo;
 

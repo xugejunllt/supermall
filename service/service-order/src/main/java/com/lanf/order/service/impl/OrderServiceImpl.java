@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.*;
+import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.logistics.api.LogisticsApiService;
 import com.lanf.logistics.model.vo.LogisticsTrackStatusVO;
@@ -16,8 +18,8 @@ import com.lanf.mybatis.base.PageResult;
 import com.lanf.order.mapper.OrderMapper;
 import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
+import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.order.model.dto.SignForDTO;
-import com.lanf.order.model.dto.TakeAddressDTO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.entity.PromiseOrderDO;
@@ -28,6 +30,7 @@ import com.lanf.order.model.vo.*;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IPromiseOrderService;
+import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.pay.api.PayApiService;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
 import com.lanf.pay.model.vo.OrderTradeVO;
@@ -38,7 +41,6 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
-import com.lanf.welfare.model.bo.DiscountInfoBO;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +87,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @HmilyTCC(confirmMethod = "confirmCreateOrder", cancelMethod = "cancelCreateOrder")
     public void createOrder(CreateOrderDTO dto) {
 
-       log.info("confirmCreateOrder");
 
     }
     @Transactional
@@ -98,23 +99,17 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             log.info("订单已存在");
             return;
         }
-        List<DiscountInfoBO> discountInfoBO = dto.getDiscountInfoBO();
-        TakeAddressDTO takeAddressBO = dto.getTakeAddressBO();
-        String discountInfo = !IStringUtils.isEmpty(discountInfoBO) ? JsonUtils.toJsonString(discountInfoBO) : null;
-        String takeAddress = JsonUtils.toJsonString(takeAddressBO);
-        OrderDO orderDO = BeanCopyUtils.copyBean(dto, OrderDO.class);
-        orderDO.setId(orderId);
-        orderDO.setStatus(0);
-        orderDO.setDiscountInfo(discountInfo);
-        orderDO.setTakeAddress(takeAddress);
-        orderDO.setVersion(1L);
 
-        OrderItemDO orderItemDO = BeanCopyUtils.copyBean(dto.getOrderItem(), OrderItemDO.class);
+        OrderDO orderDO = OrderServiceUtils.buildOrderDO(dto);
+        //单笔下单时 只有一个商品
+        OrderItemDTO orderItemDTO = dto.getOrderItems().get(0);
+        OrderItemDO orderItemDO = BeanCopyUtils.copyBean(orderItemDTO, OrderItemDO.class);
         try {
-
+            //order_number 为唯一索引 作为兜底 避免重复下单
             this.save(orderDO);
         } catch (DuplicateKeyException e) {
             log.info("订单已存在");
+            return;
         }
         orderItemService.save(orderItemDO);
 

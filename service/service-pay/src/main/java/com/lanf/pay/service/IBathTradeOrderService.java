@@ -3,7 +3,6 @@ package com.lanf.pay.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.pay.model.entity.BathTradeOrderDO;
-import com.lanf.pay.model.vo.CreateMergeTradeOrderVO;
 
 /**
  * <p>
@@ -19,5 +18,5 @@ public interface IBathTradeOrderService extends IService<BathTradeOrderDO> {
      *
      *
      */
-    CreateMergeTradeOrderVO createMergeTradeOrder(CreateMergeTradeOrderDTO dto);
+    void createMergeTradeOrder(CreateMergeTradeOrderDTO dto);
 }

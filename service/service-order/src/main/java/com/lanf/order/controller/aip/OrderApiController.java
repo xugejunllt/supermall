@@ -1,9 +1,11 @@
 package com.lanf.order.controller.aip;
 
+import com.lanf.order.model.dto.BathCreateOrderDTO;
 import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
 import com.lanf.order.model.vo.OrderVO;
 import com.lanf.order.model.vo.OrderVO2;
+import com.lanf.order.service.IMainOrderService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +23,8 @@ public class OrderApiController {
 
     @Autowired
     private IOrderService orderService;
-
+    @Autowired
+    private IMainOrderService mainOrderService;
 
     @PostMapping("/createOrder")
     public Result<Void> createOrder(@Validated @RequestBody CreateOrderDTO dto) {
@@ -30,6 +33,16 @@ public class OrderApiController {
         orderService.createOrder(dto);
         return Result.ok();
     }
+
+    @PostMapping("/bathCreateOrder")
+    public Result<Void> bathCreateOrder(@Validated @RequestBody BathCreateOrderDTO dto) {
+
+        log.info("批量创建订单:dto{}", dto);
+        mainOrderService.bathCreateOrder(dto);
+        return Result.ok();
+    }
+
+
 
 
     @Deprecated

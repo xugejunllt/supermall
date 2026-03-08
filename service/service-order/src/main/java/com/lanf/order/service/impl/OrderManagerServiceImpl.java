@@ -8,7 +8,9 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.goods.api.GoodsApiService;
+import com.lanf.goods.model.bo.GoodsItemBO;
 import com.lanf.goods.model.bo.GoodsSkuBO;
+import com.lanf.goods.model.bo.ShopGoodsBO;
 import com.lanf.goods.model.dto.CalculateOrderTotalAmountDTO;
 import com.lanf.goods.model.dto.ClearCartDTO;
 import com.lanf.goods.model.dto.DeductStockDTO;
@@ -20,6 +22,7 @@ import com.lanf.goods.model.vo.ValidateCartItemVO;
 import com.lanf.lock.aop.DistributedLock;
 import com.lanf.order.api.OrderApiService;
 import com.lanf.order.model.bo.OrderInitParamsBO;
+import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
@@ -28,6 +31,8 @@ import com.lanf.order.model.vo.ValidateCartVO;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.pay.api.PayApiService;
+import com.lanf.pay.model.dto.CreateMergeTradeOrderDTO;
+import com.lanf.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.api.WelfareApiService;
@@ -41,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -221,9 +227,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      */
     private void createOrder(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, DeductStockVO deductStockVO,
                              BigDecimal tradeMoney, CalculateDiscountAmountVO amountVO) {
-
+        List<OrderItemDTO> orderItems = new ArrayList<>(1);
         List<DiscountInfoBO> discountInfoBOS = amountVO != null ? amountVO.getDiscountInfoBOList() : null;
         OrderItemDTO orderItem = createOrderItem(orderInitParamsBO, orderDTO, deductStockVO);
+        orderItems.add(orderItem);
         BigDecimal discountAmount = getDiscountAmount(amountVO);
         CreateOrderDTO createOrderDTO = new CreateOrderDTO();
         createOrderDTO.setOrderId(orderInitParamsBO.getOrderId());
@@ -235,7 +242,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         createOrderDTO.setDiscountAmount(discountAmount);
         createOrderDTO.setDiscountInfoBO(discountInfoBOS);
         createOrderDTO.setTakeAddressBO(orderDTO.getTakeAddress());
-        createOrderDTO.setOrderItem(orderItem);
+        createOrderDTO.setOrderItems(orderItems);
         RpcResultParser.parseResult(orderApiService.createOrder(createOrderDTO));
 
     }
@@ -328,23 +335,94 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     public SubmitCartVO submitCart(SubmitCartDTO dto) {
 
         /**
+         * 初始化一些参数
+         */
+        SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO = buildSubmitCartOrderInitParamsBO();
+        /**
          * 清空购物车
          */
         ClearCartDTO clearCartDTO = new ClearCartDTO();
         clearCartDTO.setBizKeyPrx(dto.getMainOrderNumber());
         ClearCartVO clearCartVO = RpcResultParser.parseResult(goodsApiService.clearCart(clearCartDTO));
+
+        /**
+         * 添加一些字段
+         */
+        addField( clearCartVO.getGoodsVOList());
+        /**
+         * 创建交易单
+         *
+         */
+        CreateMergeTradeOrderDTO createMergeTradeOrderDTO =
+                buildCreateMergeTradeOrderDTO( submitCartOrderInitParamsBO, dto,clearCartVO.getGoodsVOList()) ;
+        RpcResultParser.parseResult( payApiService.createMergeTradeOrder(createMergeTradeOrderDTO));
+
+        /**
+         * 创建订单
+         */
+
+        BathCreateOrderDTO bathCreateOrderDTO = new BathCreateOrderDTO();
+        bathCreateOrderDTO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
+        bathCreateOrderDTO.setMainOrderNumber(dto.getMainOrderNumber());
+        bathCreateOrderDTO.setUserId(submitCartOrderInitParamsBO.getUserId());
+        bathCreateOrderDTO.setTotalAmount(clearCartVO.getTotalPrice());
+
+        List<CreateOrderDTO> createOrderDTOList = new ArrayList<>();
+        orderApiService.bathCreateOrder(null);
         z
 
 
         return null;
     }
+    /**
+     * 计算订单金额
+     * @param cartItemList 购物车商品项列表
+     * @return 订单金额
+     */
+    private BigDecimal calculateOrderAmount(List<GoodsItemBO> cartItemList) {
+        return cartItemList.stream()
+                .map(item -> BigDecimalUtil.multiply(item.getPrice(), new BigDecimal(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimalUtil::add);
+    }
 
 
+    private SubmitCartOrderInitParamsBO buildSubmitCartOrderInitParamsBO(){
+        SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO = new SubmitCartOrderInitParamsBO();
+        submitCartOrderInitParamsBO.setMainOrderId(IdUtils.generateId());
+        submitCartOrderInitParamsBO.setUserId(UserIdContext.getUserId());
+
+        return submitCartOrderInitParamsBO;
+    }
 
 
+    private void addField(List<ShopGoodsBO> goodsVOList){
+        //添加订单id
+        goodsVOList.forEach(shopGoodsBO -> {shopGoodsBO.setOrderId(IdUtils.generateId());});
+
+    }
 
 
+    private CreateMergeTradeOrderDTO buildCreateMergeTradeOrderDTO(SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO,SubmitCartDTO dto, List<ShopGoodsBO> goodsVOList) {
+        CreateMergeTradeOrderDTO createMergeTradeOrderDTO = new CreateMergeTradeOrderDTO();
+        createMergeTradeOrderDTO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
+        createMergeTradeOrderDTO.setUserId(submitCartOrderInitParamsBO.getUserId());
+        createMergeTradeOrderDTO.setPayType(dto.getPayType());
+        createMergeTradeOrderDTO.setMainOrderNumber(dto.getMainOrderNumber());
+        List<CreateMergeTradeOrderItemDTO> tradeOrderItemList = new ArrayList<>(goodsVOList.size());
+        createMergeTradeOrderDTO.setTradeOrderItemList(tradeOrderItemList);
 
+        for (ShopGoodsBO shopGoodsBO : goodsVOList) {
+            List<GoodsItemBO> cartItemList = shopGoodsBO.getCartItemList();
+            BigDecimal orderAmount = calculateOrderAmount(cartItemList);
+
+            CreateMergeTradeOrderItemDTO tradeOrderItem = new CreateMergeTradeOrderItemDTO();
+            tradeOrderItem.setOrderId(IdUtils.generateId());
+            tradeOrderItem.setTradeMoney(orderAmount);
+            tradeOrderItemList.add(tradeOrderItem);
+        }
+
+        return createMergeTradeOrderDTO;
+    }
 
 
 

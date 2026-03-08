@@ -34,7 +34,7 @@ private static final long serialVersionUID=1L;
     private Long orderId;
 
 
-    @ApiModelProperty(value = "交易订单号，与三方支付单唯一关联号。如果是单笔付款是订单编号，如果是批量付款，批量订单号")
+    @ApiModelProperty(value = "交易订单号，与三方支付单唯一关联号。如果是单笔付款实施生成，如果是批量付款，批量订单号")
     private String outTradeNo;
 
     @ApiModelProperty(value = "交易金额")

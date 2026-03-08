@@ -1,6 +1,7 @@
 package com.lanf.order.api;
 
 import com.lanf.constant.result.Result;
+import com.lanf.order.model.dto.BathCreateOrderDTO;
 import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
 import com.lanf.order.model.vo.OrderVO;
@@ -23,6 +24,13 @@ public interface OrderApiService {
     @Hmily
     @PostMapping("/order/api/createOrder")
     public Result<Void> createOrder(@Validated @RequestBody CreateOrderDTO dto);
+
+    @Hmily
+    @PostMapping("/order/api/bathCreateOrder")
+    public Result<Void> bathCreateOrder( @RequestBody BathCreateOrderDTO dto) ;
+
+
+
 
 
     @Deprecated
