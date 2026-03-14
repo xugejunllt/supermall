@@ -20,4 +20,12 @@ public class GoodsItemBO implements Serializable {
     //价格
     private BigDecimal price;
 
+
+    private Long goodsId;
+    private String goodsTitle;
+    private String skuPictureAddress;
+    //商品版本
+    private Long goodsVersion;
+    //sku 版本
+    private Long skuVersion;
 }

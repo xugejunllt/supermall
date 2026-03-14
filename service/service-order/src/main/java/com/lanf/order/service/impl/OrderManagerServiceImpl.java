@@ -330,9 +330,15 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return orderInitParamsBO;
     }
 
+    /**
+     * 构建属性 特别小心 容易出bug
+     * @param dto
+     * @return
+     */
     @DistributedLock(key = "#dto.mainOrderNumber")
     @Override
     public SubmitCartVO submitCart(SubmitCartDTO dto) {
+
 
         /**
          * 初始化一些参数
@@ -350,7 +356,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          */
         addField( clearCartVO.getGoodsVOList());
         /**
-         * 创建交易单
+         * 创建交易单 以ClearCartVO 信息进行构建
          *
          */
         CreateMergeTradeOrderDTO createMergeTradeOrderDTO =
@@ -358,21 +364,17 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         RpcResultParser.parseResult( payApiService.createMergeTradeOrder(createMergeTradeOrderDTO));
 
         /**
-         * 创建订单
+         * 创建订单 创建交易单 以ClearCartVO 信息进行构建
          */
+        BathCreateOrderDTO bathCreateOrderDTO1 = buildBathCreateOrderDTO(submitCartOrderInitParamsBO, dto, clearCartVO);
+        RpcResultParser.parseResult(orderApiService.bathCreateOrder(bathCreateOrderDTO1));
 
-        BathCreateOrderDTO bathCreateOrderDTO = new BathCreateOrderDTO();
-        bathCreateOrderDTO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
-        bathCreateOrderDTO.setMainOrderNumber(dto.getMainOrderNumber());
-        bathCreateOrderDTO.setUserId(submitCartOrderInitParamsBO.getUserId());
-        bathCreateOrderDTO.setTotalAmount(clearCartVO.getTotalPrice());
-
-        List<CreateOrderDTO> createOrderDTOList = new ArrayList<>();
-        orderApiService.bathCreateOrder(null);
-        z
-
-
-        return null;
+        /**
+         * 构建返回值
+         */
+        SubmitCartVO submitCartVO = new SubmitCartVO();
+        submitCartVO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
+        return submitCartVO;
     }
     /**
      * 计算订单金额
@@ -396,7 +398,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
 
     private void addField(List<ShopGoodsBO> goodsVOList){
-        //添加订单id
+        //添加订单id 这样订单id与交易单的订单id一一关联起来
         goodsVOList.forEach(shopGoodsBO -> {shopGoodsBO.setOrderId(IdUtils.generateId());});
 
     }
@@ -416,7 +418,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             BigDecimal orderAmount = calculateOrderAmount(cartItemList);
 
             CreateMergeTradeOrderItemDTO tradeOrderItem = new CreateMergeTradeOrderItemDTO();
-            tradeOrderItem.setOrderId(IdUtils.generateId());
+            tradeOrderItem.setOrderId(shopGoodsBO.getOrderId());
             tradeOrderItem.setTradeMoney(orderAmount);
             tradeOrderItemList.add(tradeOrderItem);
         }
@@ -424,7 +426,88 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return createMergeTradeOrderDTO;
     }
 
+    /**
+     * 构建批量创建订单的 DTO
+     * @param submitCartOrderInitParamsBO 购物车订单初始化参数
+     * @param dto 提交购物车请求参数
+     * @param clearCartVO 清空购物车返回结果
+     * @return 批量创建订单的 DTO
+     */
+    private BathCreateOrderDTO buildBathCreateOrderDTO(SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO,
+                                                       SubmitCartDTO dto,
+                                                       ClearCartVO clearCartVO) {
+        List<ShopGoodsBO> goodsVOList = clearCartVO.getGoodsVOList();
+        List<CreateOrderDTO> createOrderDTOList = new ArrayList<>(goodsVOList.size());
 
+        for (ShopGoodsBO shopGoodsBO : goodsVOList) {
+            CreateOrderDTO createOrderDTO = buildCreateOrderDTO(shopGoodsBO, submitCartOrderInitParamsBO, dto);
+            createOrderDTOList.add(createOrderDTO);
+        }
+
+        BathCreateOrderDTO bathCreateOrderDTO = new BathCreateOrderDTO();
+        bathCreateOrderDTO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
+        bathCreateOrderDTO.setMainOrderNumber(dto.getMainOrderNumber());
+        bathCreateOrderDTO.setUserId(submitCartOrderInitParamsBO.getUserId());
+        bathCreateOrderDTO.setTotalAmount(clearCartVO.getTotalPrice());
+        bathCreateOrderDTO.setCreateOrderDTOList(createOrderDTOList);
+
+        return bathCreateOrderDTO;
+    }
+
+    /**
+     * 构建单个订单的 DTO
+     * @param shopGoodsBO 店铺商品信息
+     * @param submitCartOrderInitParamsBO 购物车订单初始化参数
+     * @param dto 提交购物车请求参数
+     * @return 创建订单的 DTO
+     */
+    private CreateOrderDTO buildCreateOrderDTO(ShopGoodsBO shopGoodsBO,
+                                               SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO,
+                                               SubmitCartDTO dto) {
+        BigDecimal orderAmount = calculateOrderAmount(shopGoodsBO.getCartItemList());
+        List<GoodsItemBO> cartItemList = shopGoodsBO.getCartItemList();
+        List<OrderItemDTO> orderItems = new ArrayList<>(cartItemList.size());
+
+        for (GoodsItemBO cartItem : cartItemList) {
+            OrderItemDTO orderItemDTO = buildOrderItemDTO(shopGoodsBO.getOrderId(), cartItem);
+            orderItems.add(orderItemDTO);
+        }
+
+        CreateOrderDTO createOrderDTO = new CreateOrderDTO();
+        createOrderDTO.setOrderId(shopGoodsBO.getOrderId());
+        createOrderDTO.setShopId(shopGoodsBO.getShopId());
+        createOrderDTO.setUserId(submitCartOrderInitParamsBO.getUserId());
+        createOrderDTO.setOrderNumber(OrderServiceUtils.generateOrderNumber());
+        createOrderDTO.setTotalMoney(orderAmount);
+        createOrderDTO.setActualPayMoney(orderAmount);
+        createOrderDTO.setDiscountAmount(BigDecimal.ZERO);
+        createOrderDTO.setTakeAddressBO(dto.getTakeAddress());
+        createOrderDTO.setOrderItems(orderItems);
+
+        return createOrderDTO;
+    }
+
+    /**
+     * 构建订单项 DTO
+     * @param orderId 订单 ID
+     * @param cartItem 购物车商品项
+     * @return 订单项 DTO
+     */
+    private OrderItemDTO buildOrderItemDTO(Long orderId, GoodsItemBO cartItem) {
+        OrderItemDTO orderItemDTO = new OrderItemDTO();
+        orderItemDTO.setOrderId(orderId);
+        orderItemDTO.setGoodsId(cartItem.getGoodsId());
+        orderItemDTO.setGoodsName(cartItem.getGoodsName());
+        orderItemDTO.setGoodsTitle(cartItem.getGoodsTitle());
+        orderItemDTO.setSkuId(cartItem.getSkuId());
+        orderItemDTO.setSkuName(cartItem.getSkuName());
+        orderItemDTO.setSkuPictureAddress(cartItem.getSkuPictureAddress());
+        orderItemDTO.setQuantity(cartItem.getQuantity());
+        orderItemDTO.setUnitPrice(cartItem.getPrice());
+        orderItemDTO.setGoodsVersion(cartItem.getGoodsVersion());
+        orderItemDTO.setSkuVersion(cartItem.getSkuVersion());
+        return orderItemDTO;
+    }
 
 
 

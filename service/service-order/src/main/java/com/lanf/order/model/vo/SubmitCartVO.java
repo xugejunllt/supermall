@@ -6,4 +6,5 @@ import java.io.Serializable;
 
 @Data
 public class SubmitCartVO implements Serializable {
+    private Long mainOrderId;
 }

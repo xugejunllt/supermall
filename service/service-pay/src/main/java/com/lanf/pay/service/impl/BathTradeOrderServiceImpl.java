@@ -70,7 +70,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
          *
          * 创建交易单
          */
-        List<TradeOrderDO> tradeOrderDOList = buildTradeOrderDOList(dto,bathTradeOrderDO)
+        List<TradeOrderDO> tradeOrderDOList = buildTradeOrderDOList(dto,bathTradeOrderDO);
         try {
             this.save(bathTradeOrderDO1);
         } catch (DuplicateKeyException e) {

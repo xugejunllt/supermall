@@ -3,8 +3,10 @@ package com.lanf.order.controller.app;
 
 import com.lanf.goods.model.dto.ValidateCartDTO;
 import com.lanf.order.model.dto.OnePlaceAnOrderDTO;
+import com.lanf.order.model.dto.SubmitCartDTO;
 import com.lanf.order.model.dto.SubmitOrderDTO;
 import com.lanf.order.model.vo.CreateOrderVO;
+import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.service.layout.InterfaceLayoutService;
@@ -58,5 +60,15 @@ public class MainOrderController {
 
         return Result.ok(orderManagerService.validateCart(dto));
     }
+
+    @PostMapping("/submitCart")
+    public Result<SubmitCartVO> submitCart(@Validated @RequestBody SubmitCartDTO dto) {
+
+        log.info("购物车结算:dto{}", dto);
+
+        return Result.ok(orderManagerService.submitCart(dto));
+    }
+
+
 }
 

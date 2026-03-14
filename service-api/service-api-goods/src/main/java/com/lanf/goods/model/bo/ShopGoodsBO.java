@@ -18,6 +18,8 @@ public class ShopGoodsBO implements Serializable {
      * 订单ID
      * 不是接口返回 的字段
      * 在提交购物车聚合方法里初始化
+     * 这样简单点 否则需要构建新的模型进行
+     *
      */
     private Long orderId;
 }
