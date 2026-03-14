@@ -1,16 +1,14 @@
-package com.lanf.pay.service;
+package com.lanf.pay.service.trade;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.pay.model.dto.CreatePayOrderDTO;
+import com.lanf.pay.model.dto.CreatePrepayOrderDTO;
 import com.lanf.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.pay.model.dto.TradeOrderQuantitySumDTO;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
 import com.lanf.pay.model.query.TradeOrderQuery;
-import com.lanf.pay.model.vo.CreatePayOrderVO;
-import com.lanf.pay.model.vo.OrderTradeVO;
-import com.lanf.pay.model.vo.TradeOrderApiVO;
-import com.lanf.pay.model.vo.TradeOrderBathVO;
+import com.lanf.pay.model.vo.*;
 import com.lanf.rocketmq.model.message.RefundDTO;
 
 import java.util.List;
@@ -32,6 +30,12 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
      */
     void createTradeOrder(CreateTradeOrderDTO dto);
 
+    /**
+     * 创建预支付信息
+     *
+     *
+     */
+    CreatePrepayOrderVO createPrepayOrder(CreatePrepayOrderDTO dto);
 
 
 

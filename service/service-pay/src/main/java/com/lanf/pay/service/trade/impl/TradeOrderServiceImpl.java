@@ -1,4 +1,4 @@
-package com.lanf.pay.service.impl;
+package com.lanf.pay.service.trade.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BigDecimalUtil;
@@ -6,22 +6,20 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.mapper.TradeOrderMapper;
-import com.lanf.pay.model.dto.CreatePayOrderDTO;
-import com.lanf.pay.model.dto.CreateTradeOrderDTO;
-import com.lanf.pay.model.dto.TradeOrderQuantitySumDTO;
+import com.lanf.pay.model.dto.*;
 import com.lanf.pay.model.entity.PayOrderDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.entity.TradeOrderItemDO;
+import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
 import com.lanf.pay.model.query.TradeOrderQuery;
-import com.lanf.pay.model.vo.CreatePayOrderVO;
-import com.lanf.pay.model.vo.OrderTradeVO;
-import com.lanf.pay.model.vo.TradeOrderApiVO;
-import com.lanf.pay.model.vo.TradeOrderBathVO;
-import com.lanf.pay.service.IBathPayOrderService;
-import com.lanf.pay.service.IPayOrderService;
-import com.lanf.pay.service.ITradeOrderItemService;
-import com.lanf.pay.service.ITradeOrderService;
+import com.lanf.pay.model.vo.*;
+import com.lanf.pay.service.pay.PaymentService;
+import com.lanf.pay.service.pay.PaymentServiceFactory;
+import com.lanf.pay.service.trade.IBathPayOrderService;
+import com.lanf.pay.service.trade.IPayOrderService;
+import com.lanf.pay.service.trade.ITradeOrderItemService;
+import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.utils.PryServiceUtils;
 import com.lanf.rocketmq.model.message.RefundDTO;
 import com.lanf.tcc.service.ITccOperationService;
@@ -72,6 +70,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
 
+
     @Transactional
     public void confirmCreateTradeOrder(CreateTradeOrderDTO dto){
 
@@ -96,6 +95,11 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
     private static TradeOrderDO buildTradeOrderDO(CreateTradeOrderDTO dto) {
+
+
+        /**
+         * 每次时时生成 因为有订单id唯一索引 所以不存在重复
+         */
         String outTradeNo = PryServiceUtils.generateOutTradeNo(dto.getOrderId());
 
         TradeOrderDO tradeOrderDO = new TradeOrderDO();
@@ -309,6 +313,34 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         });
 
         return voList;
+    }
+    @Override
+    public CreatePrepayOrderVO createPrepayOrder(CreatePrepayOrderDTO dto) {
+
+        Long orderId = dto.getOrderId();
+        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getOrderId, orderId).one();
+
+        if (tradeOrderDO == null) {
+            log.error("交易单不存在");
+            throw new BizException("交易单不存在");
+        }
+        if ( !TradeOrderStatusEnum.PENDING.getCode().
+                equals(tradeOrderDO.getPayStatus())){
+            log.info("交易单状态异常");
+            throw new BizException("交易单状态异常");
+        }
+
+        PaymentService paymentService = PaymentServiceFactory.getPaymentService(tradeOrderDO.getPayType());
+        PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
+        prepayOrderDTO.setOutTradeNo(tradeOrderDO.getOutTradeNo());
+        prepayOrderDTO.setTotalAmount(tradeOrderDO.getTradeMoney());
+        prepayOrderDTO.setBathPay(false);
+        PrepayOrderVO prepayOrderVO = paymentService.createPrepayOrder(prepayOrderDTO);
+
+        CreatePrepayOrderVO vo = new CreatePrepayOrderVO();
+        vo.setOrderStr(prepayOrderVO.getOrderStr());
+
+        return vo;
     }
 
 

@@ -22,7 +22,8 @@ public class PayOrderFlowDO implements Serializable {
 
 private static final long serialVersionUID=1L;
 
-
+    @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
+    private Integer payType;
 
     private String outTradeNo;
 

@@ -1,4 +1,4 @@
-package com.lanf.pay.service.config;
+package com.lanf.pay.service.pay.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

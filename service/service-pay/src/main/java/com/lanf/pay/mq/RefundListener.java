@@ -3,7 +3,7 @@ package com.lanf.pay.mq;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.RefundBO;
-import com.lanf.pay.service.impl.PayServiceAdapter;
+import com.lanf.pay.service.trade.impl.PayServiceAdapter;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.RefundDTO;
 import lombok.extern.slf4j.Slf4j;

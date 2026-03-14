@@ -1,4 +1,4 @@
-package com.lanf.pay.service;
+package com.lanf.pay.service.trade;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.pay.model.entity.TransferOrderDO;

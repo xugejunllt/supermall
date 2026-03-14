@@ -6,7 +6,7 @@ import com.lanf.pay.model.dto.OnePayDTO;
 import com.lanf.pay.model.dto.TransferAccountsDTO;
 import com.lanf.pay.model.vo.TradeOrderVO;
 import com.lanf.pay.model.vo.TransferAccountsVO;
-import com.lanf.pay.service.impl.PayServiceAdapter;
+import com.lanf.pay.service.trade.impl.PayServiceAdapter;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

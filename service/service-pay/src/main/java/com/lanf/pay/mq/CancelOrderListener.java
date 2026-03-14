@@ -1,6 +1,6 @@
 package com.lanf.pay.mq;
 
-import com.lanf.pay.service.impl.PayServiceAdapter;
+import com.lanf.pay.service.trade.impl.PayServiceAdapter;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderDTO;
 import lombok.extern.slf4j.Slf4j;

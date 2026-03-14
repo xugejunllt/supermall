@@ -1,4 +1,4 @@
-package com.lanf.pay.service.impl;
+package com.lanf.pay.service.trade.impl;
 
 import com.lanf.pay.model.bo.CallbackResultBO;
 import com.lanf.pay.model.bo.ReturnMoneyBO;
@@ -7,7 +7,6 @@ import com.lanf.pay.model.bo.TransferAccountsBO;
 import com.lanf.pay.model.dto.TradeOrderDTO;
 import com.lanf.pay.model.dto.TransferAccountsDTO;
 import com.lanf.pay.model.vo.TradeOrderVO;
-import com.lanf.pay.service.AbstractPayService;
 import com.lanf.constant.exception.BizException;
 import org.springframework.stereotype.Service;
 

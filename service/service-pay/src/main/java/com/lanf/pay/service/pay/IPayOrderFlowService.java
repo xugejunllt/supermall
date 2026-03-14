@@ -1,11 +1,11 @@
-package com.lanf.pay.service;
+package com.lanf.pay.service.pay;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
 
 /**
  * <p>
- * 支付流水 服务类
+ * 支付流水
  * </p>
  *
  * @author jarven

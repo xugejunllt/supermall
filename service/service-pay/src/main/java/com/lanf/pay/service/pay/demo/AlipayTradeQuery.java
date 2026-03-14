@@ -1,4 +1,4 @@
-package com.lanf.pay.service;
+package com.lanf.pay.service.pay.demo;
 
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;

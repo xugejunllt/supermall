@@ -1,4 +1,4 @@
-package com.lanf.pay.service;
+package com.lanf.pay.service.trade;
 
 import com.lanf.pay.model.dto.BathPayDTO;
 import com.lanf.pay.model.entity.PayOrderDO;

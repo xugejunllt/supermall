@@ -1,4 +1,4 @@
-package com.lanf.pay.service.impl;
+package com.lanf.pay.service.pay.impl;
 
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
@@ -9,16 +9,17 @@ import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.*;
 import com.alipay.api.response.*;
 import com.lanf.common.utils.DateUtils;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.CallbackResultBO;
 import com.lanf.pay.model.bo.ReturnMoneyBO;
 import com.lanf.pay.model.bo.TradeStatusBO;
 import com.lanf.pay.model.bo.TransferAccountsBO;
-import com.lanf.pay.model.dto.TradeOrderDTO;
+import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.dto.TransferAccountsDTO;
-import com.lanf.pay.model.vo.TradeOrderVO;
-import com.lanf.pay.service.AbstractPayService;
-import com.lanf.pay.service.config.AliPayConfig;
+import com.lanf.pay.model.vo.PrepayOrderVO;
+import com.lanf.pay.service.pay.PaymentService;
+import com.lanf.pay.service.pay.config.AliPayConfig;
 import com.lanf.web.utils.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,52 +36,17 @@ import java.util.Map;
 
 @Slf4j
 @Service
-public class AliPayServiceImpl extends AbstractPayService {
+public class AliPayPaymentServiceImpl implements PaymentService {
 
     @Value("${pay.ali.notifyUrl}")
     private String notifyUrl;
     @Autowired
     private AliPayConfig aliPayConfig;
 
-    @Override
-    public TradeOrderVO createTradeOrder(TradeOrderDTO dto) {
 
 
-        AlipayClient alipayClient = null;
-        try {
-            alipayClient = new DefaultAlipayClient(getAlipayConfig());
-        } catch (AlipayApiException e) {
-            e.printStackTrace();
-            throw new BizException("创建支付异常");
-        }
-        AlipayTradeAppPayRequest request = new AlipayTradeAppPayRequest();
-        AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
-        model.setSubject("商品下单支付");
-        model.setOutTradeNo(dto.getOutTradeNo());
-        //30分钟超时时间
-        model.setTimeoutExpress(super.getTimeout() + "m");
-        model.setTotalAmount(dto.getTotalAmount().toString());
-       
-        model.setPassbackParams(dto.getBathPay().toString());
-        request.setBizModel(model);
-        request.setNotifyUrl(notifyUrl);
-        AlipayTradeAppPayResponse response = null;
-        try {
-            //这里和普通的接口调用不同，使用的是sdkExecute
-            response = alipayClient.sdkExecute(request);
-        } catch (AlipayApiException e) {
-            e.printStackTrace();
-            throw new BizException("生成支付信息异常");
-        }
-
-        TradeOrderVO vo = new TradeOrderVO();
-        vo.setOrderStr(response.getBody());
-
-        return vo;
-    }
 
 
-    @Override
     protected CallbackResultBO parse(HttpServletRequest request) {
 
         Map<String, String> params = new HashMap<String, String>();
@@ -152,14 +118,12 @@ public class AliPayServiceImpl extends AbstractPayService {
         return callbackResultBO;
     }
 
-    @Override
     protected void callbackResponse(HttpServletResponse response) {
         ResponseUtil.out(response,"success");
 
     }
 
 
-    @Override
     public TransferAccountsBO doTransferAccounts(TransferAccountsDTO dto) {
 
 
@@ -237,7 +201,6 @@ public class AliPayServiceImpl extends AbstractPayService {
         return alipayConfig;
     }
 
-    @Override
     public TradeStatusBO startQueryTradeStatus(String outTradeNo) {
 
         // 初始化SDK
@@ -294,7 +257,6 @@ public class AliPayServiceImpl extends AbstractPayService {
 
     }
 
-    @Override
     public void closeTradeOrder(String outTradeNo) {
 
         AlipayClient alipayClient = null;
@@ -322,7 +284,6 @@ public class AliPayServiceImpl extends AbstractPayService {
         }
     }
 
-    @Override
     public ReturnMoneyBO returnMoney(String outTradeNo,BigDecimal refundAmount,String outRequestNo) {
         AlipayClient alipayClient = null;
         AlipayTradeRefundResponse response = null;
@@ -355,4 +316,41 @@ public class AliPayServiceImpl extends AbstractPayService {
         }
     }
 
+
+    @Override
+    public PrepayOrderVO createPrepayOrder(PrepayOrderDTO dto) {
+
+        log.info("创建预支付单开始[{}]", JsonUtils.toJsonString(dto));
+        AlipayClient alipayClient = null;
+        try {
+            alipayClient = new DefaultAlipayClient(getAlipayConfig());
+        } catch (AlipayApiException e) {
+            log.error("创建预支付单异常",e);
+            throw new BizException("创建预支付单异常");
+        }
+        AlipayTradeAppPayRequest request = new AlipayTradeAppPayRequest();
+        AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
+        model.setSubject("商品下单支付");
+        model.setOutTradeNo(dto.getOutTradeNo());
+        //超时时间 一小时
+        model.setTimeoutExpress(60 + "m");
+        model.setTotalAmount(dto.getTotalAmount().toString());
+
+        model.setPassbackParams(dto.getBathPay().toString());
+        request.setBizModel(model);
+        request.setNotifyUrl(notifyUrl);
+        AlipayTradeAppPayResponse response = null;
+        try {
+            //这里和普通的接口调用不同，使用的是sdkExecute
+            response = alipayClient.sdkExecute(request);
+        } catch (AlipayApiException e) {
+            log.error("生成支付信息异常",e);
+            throw new BizException("生成支付信息异常");
+        }
+        PrepayOrderVO vo = new PrepayOrderVO();
+        vo.setOrderStr(response.getBody());
+
+        log.info("创建预支付单结束");
+        return vo;
+    }
 }

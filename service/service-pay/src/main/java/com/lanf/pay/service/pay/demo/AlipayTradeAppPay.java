@@ -1,4 +1,4 @@
-package com.lanf.pay.service;
+package com.lanf.pay.service.pay.demo;
 
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
@@ -7,9 +7,6 @@ import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.AlipayTradeAppPayModel;
 import com.alipay.api.request.AlipayTradeAppPayRequest;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
-import com.lanf.common.utils.DateUtils;
-
-import java.util.Date;
 
 public class AlipayTradeAppPay {
 
