@@ -32,6 +32,11 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "订单id")
     private Long orderId;
 
+    /**
+     *  订单编号
+     */
+    private String orderNumber;
+
     @ApiModelProperty(value = "交易订单号，与三方支付单唯一关联号。如果是单笔付款实施生成，如果是批量付款，批量订单号")
     private String outTradeNo;
 

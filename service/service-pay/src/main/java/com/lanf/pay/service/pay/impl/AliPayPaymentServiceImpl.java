@@ -36,18 +36,15 @@ import java.util.Map;
 
 @Slf4j
 @Service
-public class AliPayPaymentServiceImpl implements PaymentService {
+ public class AliPayPaymentServiceImpl implements PaymentService {
 
     @Value("${pay.ali.notifyUrl}")
     private String notifyUrl;
     @Autowired
     private AliPayConfig aliPayConfig;
 
-
-
-
-
-    protected CallbackResultBO parse(HttpServletRequest request) {
+    @Override
+    public CallbackResultBO parse(HttpServletRequest request) {
 
         Map<String, String> params = new HashMap<String, String>();
         Map requestParams = request.getParameterMap();
@@ -73,9 +70,8 @@ public class AliPayPaymentServiceImpl implements PaymentService {
                 throw new BizException("支付宝验签失败");
             }
 
-
         } catch (AlipayApiException e) {
-            e.printStackTrace();
+            log.error("支付宝验签失败", e);
             throw new BizException("支付宝验签失败");
         }
         String tradeStatus = params.get("trade_status");
@@ -83,16 +79,16 @@ public class AliPayPaymentServiceImpl implements PaymentService {
             log.error("交易付款失败:{}", params);
             throw new BizException("交易付款失败");
         }
-
         return buildCallbackResultBO(params);
     }
+
 
 
     private CallbackResultBO buildCallbackResultBO(Map<String, String> params) {
 
         String gmtPayment = params.get("gmt_payment");
         String receiptAmount = params.get("receipt_amount");
-
+        String totalAmount = params.get("total_amount");
         String buyerLogonId = params.get("buyer_logon_id");
         String sellerEmail = params.get("seller_email");
         String notifyTime = params.get("notify_time");
@@ -103,14 +99,13 @@ public class AliPayPaymentServiceImpl implements PaymentService {
         /////////
         Date payFinishTime = DateUtils.parse(gmtPayment, DateUtils.DATE_TIME);
         BigDecimal receiptMoney = new BigDecimal(receiptAmount);
-        String payAccount = buyerLogonId;
-        String incomeAccount = sellerEmail;
         Date notifyTimeDate = DateUtils.parse(notifyTime, DateUtils.DATE_TIME);
         CallbackResultBO callbackResultBO = new CallbackResultBO();
         callbackResultBO.setPayFinishTime(payFinishTime);
         callbackResultBO.setReceiptMoney(receiptMoney);
-        callbackResultBO.setPayAccount(payAccount);
-        callbackResultBO.setIncomeAccount(incomeAccount);
+        callbackResultBO.setTotalAmount(new BigDecimal(totalAmount));
+        callbackResultBO.setPayAccount(buyerLogonId);
+        callbackResultBO.setIncomeAccount(sellerEmail);
         callbackResultBO.setNotifyTime(notifyTimeDate);
         callbackResultBO.setTradeNo(tradeNo);
         callbackResultBO.setOutTradeNo(outTradeNo);
@@ -353,4 +348,16 @@ public class AliPayPaymentServiceImpl implements PaymentService {
         log.info("创建预支付单结束");
         return vo;
     }
+
+    @Override
+    public void responsePayOk(HttpServletResponse response) {
+
+    }
+
+    @Override
+    public void responsePayFail(HttpServletResponse response) {
+
+    }
+
+
 }

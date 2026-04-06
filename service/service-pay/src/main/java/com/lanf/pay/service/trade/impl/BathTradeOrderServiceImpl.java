@@ -91,7 +91,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                     tradeOrderDO.setBathPayOrderId(bathTradeOrderDO.getId());
                     tradeOrderDO.setUserId(dto.getUserId());
                     tradeOrderDO.setOrderId(item.getOrderId());
-                    tradeOrderDO.setOutTradeNo(bathTradeOrderDO.getBatchNo());
+                    tradeOrderDO.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());
                     tradeOrderDO.setTradeMoney(item.getTradeMoney());
                     tradeOrderDO.setPayType(dto.getPayType());
                     tradeOrderDO.setPayStatus(0);
@@ -121,7 +121,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
         bathTradeOrderDO1.setId(IdUtils.generateId());
         bathTradeOrderDO1.setUserId(dto.getUserId());
         bathTradeOrderDO1.setMainOrderId(dto.getMainOrderId());
-        bathTradeOrderDO1.setBatchNo(batchNo);
+        bathTradeOrderDO1.setOutTradeNo(batchNo);
         bathTradeOrderDO1.setBatchNum(batchNum);
         bathTradeOrderDO1.setBatchFee(batchFee);
         bathTradeOrderDO1.setCancelMerge(0);

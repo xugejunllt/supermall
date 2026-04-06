@@ -1,7 +1,8 @@
 package com.lanf.pay.controller.aip;
 
 import com.lanf.pay.model.dto.PayCallbackDTO;
-import com.lanf.pay.service.trade.impl.PayServiceAdapter;
+import com.lanf.pay.model.enums.PayTypeEnum;
+import com.lanf.pay.service.trade.ITradeOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -17,17 +18,19 @@ import javax.servlet.http.HttpServletResponse;
 public class PayCallbackController {
 
     @Autowired
-    private PayServiceAdapter payServiceAdapter;
+    private ITradeOrderService tradeOrderService;
+
 
     @PostMapping("/aliPayCallback")
     public void aliPayCallback(HttpServletRequest request, HttpServletResponse response) {
 
         log.info("支付宝支付回调通知");
         PayCallbackDTO dto = new PayCallbackDTO();
-        dto.setPayType(0);
+        dto.setPayType(PayTypeEnum.ALI_PAY.getCode());
         dto.setRequest(request);
         dto.setResponse(response);
-        payServiceAdapter.payCallback(dto);
+        tradeOrderService.payCallback(dto);
+
     }
 
 }

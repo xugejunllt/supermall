@@ -15,6 +15,6 @@ import org.springframework.stereotype.Service;
  * @since 2025-12-28
  */
 @Service
-public class PayOrderFlowServiceImpl extends ServiceImpl<PayOrderFlowMapper, PayOrderFlowDO> implements IPayOrderFlowService {
+ class PayOrderFlowServiceImpl extends ServiceImpl<PayOrderFlowMapper, PayOrderFlowDO> implements IPayOrderFlowService {
 
 }

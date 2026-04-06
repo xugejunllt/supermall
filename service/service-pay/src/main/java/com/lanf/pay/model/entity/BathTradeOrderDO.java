@@ -27,11 +27,13 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "主订单id")
     private Long mainOrderId;
-
+    /**
+     * 唯一索引，避免重复插入
+     */
     private  String mainOrderNumber;
 
-    @ApiModelProperty(value = "批量付款批次号")
-    private String batchNo;
+    @ApiModelProperty(value = "交易订单号，与三方支付单唯一关联号")
+    private String outTradeNo;
 
     @ApiModelProperty(value = "付款总笔数")
     private Integer batchNum;

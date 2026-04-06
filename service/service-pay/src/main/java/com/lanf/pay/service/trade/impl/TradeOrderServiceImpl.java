@@ -6,10 +6,13 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.mapper.TradeOrderMapper;
+import com.lanf.pay.model.bo.CallbackResultBO;
 import com.lanf.pay.model.dto.*;
 import com.lanf.pay.model.entity.PayOrderDO;
+import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.entity.TradeOrderItemDO;
+import com.lanf.pay.model.enums.PayTypeEnum;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
 import com.lanf.pay.model.query.TradeOrderQuery;
@@ -33,6 +36,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +79,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     public void confirmCreateTradeOrder(CreateTradeOrderDTO dto){
 
         log.info("confirmCreateTradeOrder:{}",dto);
-        TradeOrderDO tradeOrderDO1 = this.getById(dto.getTradeOrderId());
+        TradeOrderDO tradeOrderDO1 = this.lambdaQuery().eq(TradeOrderDO::getOrderNumber, dto.getOrderNumber()).one();
         if (tradeOrderDO1 != null) {
             log.info("交易单已存在");
             return;
@@ -112,6 +116,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setPayStatus(0);
         tradeOrderDO.setBathPay(0);
         tradeOrderDO.setVersion(1L);
+        tradeOrderDO.setOrderNumber(dto.getOrderNumber());
         return tradeOrderDO;
     }
 
@@ -341,6 +346,59 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         vo.setOrderStr(prepayOrderVO.getOrderStr());
 
         return vo;
+    }
+
+    @Override
+    public void payCallback(PayCallbackDTO dto) {
+
+        PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
+        HttpServletResponse response = dto.getResponse();
+
+        /**
+         * 解析报文
+         */
+        CallbackResultBO resultBO = null;
+
+        try {
+            resultBO = paymentService.parse(dto.getRequest());
+        } catch (Exception e) {
+
+            paymentService.responsePayFail(response);
+            return;
+        }
+        /**
+         * 数据校验
+         */
+        String outTradeNo = resultBO.getOutTradeNo();
+        TradeOrderDO tradeOrderDO = this.lambdaQuery()
+                .eq(TradeOrderDO::getOutTradeNo, outTradeNo)
+                .one();
+
+        if (tradeOrderDO == null){
+            log.error("交易单不存在outTradeNo:[{}]", outTradeNo);
+            paymentService.responsePayFail(response);
+            return;
+        }
+        if ( TradeOrderStatusEnum.COMPLETED.getCode()
+                .equals(tradeOrderDO.getPayStatus())){
+            log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
+            paymentService.responsePayOk(response);
+            return;
+        }
+
+        BigDecimal totalAmount = resultBO.getTotalAmount();
+        BigDecimal tradeMoney = tradeOrderDO.getTradeMoney();
+        if (!totalAmount.equals(tradeMoney)){
+            log.error("交易金额异常 outTradeNo:[{}],totalAmount[{}],tradeMoney[{}]",outTradeNo,totalAmount,tradeMoney);
+            paymentService.responsePayFail(response);
+            return;
+        }
+
+
+        PayOrderFlowDO payOrderFlowDO = new PayOrderFlowDO();
+        payOrderFlowDO.setPayType(PayTypeEnum.ALI_PAY.getCode());
+        payOrderFlowDO.setOutTradeNo(resultBO.getOutTradeNo());
+        payOrderFlowDO.setTradeMoney(resultBO.getReceiptMoney());
     }
 
 

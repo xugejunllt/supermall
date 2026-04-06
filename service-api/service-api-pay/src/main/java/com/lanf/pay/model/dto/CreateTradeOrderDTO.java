@@ -3,6 +3,7 @@ package com.lanf.pay.model.dto;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -10,8 +11,13 @@ import java.math.BigDecimal;
 @Data
 public class CreateTradeOrderDTO implements Serializable {
 
-    @NotNull( message = "交易单id不能为空")
-    private Long tradeOrderId;
+
+    /**
+     *  订单编号
+     */
+    @NotBlank( message = "订单编号不能为空")
+    private String orderNumber;
+
     // 用户id
     @NotNull( message = "用户id不能为空")
     private Long userId;

@@ -14,4 +14,9 @@ public class OrderInitParamsBO implements Serializable {
     private Long orderId;
 
     private Long userId;
+
+    /**
+     *  订单编号
+     */
+    private String orderNumber;
 }

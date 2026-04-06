@@ -258,7 +258,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         dto.setOrderId(orderInitParamsBO.getOrderId());
         dto.setTradeMoney(tradeMoney);
         dto.setPayType(orderDTO.getPayType());
-        dto.setTradeOrderId(orderInitParamsBO.getOrderId());
+        dto.setOrderNumber(orderDTO.getOrderNumber());
         RpcResultParser.parseResult(payApiService.createPayOrder(dto));
 
     }
@@ -327,6 +327,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderInitParamsBO.setOrderId(IdUtils.generateId());
         orderInitParamsBO.setUserId(UserIdContext.getUserId());
         orderInitParamsBO.setBizKeyPrx(orderNumber);
+        orderInitParamsBO.setOrderNumber(orderNumber);
         return orderInitParamsBO;
     }
 

@@ -10,7 +10,7 @@ import java.io.Serializable;
 public class PayCallbackDTO implements Serializable {
 
 
-    //支付方式
+
     private Integer payType;
 
     private HttpServletRequest request;
