@@ -3,11 +3,20 @@ package com.lanf.pay.service.trade.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IdUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.pay.mapper.BathTradeOrderMapper;
+import com.lanf.pay.model.dto.BathCreatePrepayOrderDTO;
 import com.lanf.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.pay.model.dto.CreateMergeTradeOrderItemDTO;
+import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.entity.BathTradeOrderDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
+import com.lanf.pay.model.enums.CancelMergeEnum;
+import com.lanf.pay.model.enums.TradeOrderStatusEnum;
+import com.lanf.pay.model.vo.CreatePrepayOrderVO;
+import com.lanf.pay.model.vo.PrepayOrderVO;
+import com.lanf.pay.service.pay.PaymentService;
+import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.utils.PryServiceUtils;
@@ -48,6 +57,8 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
 
 
     }
+
+
 
     @Transactional
     public void confirmCreateMergeTradeOrder(CreateMergeTradeOrderDTO dto) {
@@ -93,7 +104,6 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                     tradeOrderDO.setOrderId(item.getOrderId());
                     tradeOrderDO.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());
                     tradeOrderDO.setTradeMoney(item.getTradeMoney());
-                    tradeOrderDO.setPayType(dto.getPayType());
                     tradeOrderDO.setPayStatus(0);
                     tradeOrderDO.setBathPay(1);
                     return tradeOrderDO;
@@ -136,6 +146,36 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
 
 
     }
+    @Override
+    public CreatePrepayOrderVO bathCreatePrepayOrder(BathCreatePrepayOrderDTO dto) {
 
+        BathTradeOrderDO bathTradeOrderDO = this.lambdaQuery().eq(BathTradeOrderDO::getMainOrderId, dto.getMainOrderId()).one();
+        if (bathTradeOrderDO == null) {
+            log.warn("批量交易单不存在");
+            throw new BizException("批量交易单不存在");
+        }
+        if ( !TradeOrderStatusEnum.PENDING.getCode().
+                equals(bathTradeOrderDO.getPayStatus())){
+            log.warn("交易单状态异常");
+            throw new BizException("交易单状态异常");
+        }
+        if ( !CancelMergeEnum.NOT_CANCELLED.getCode().equals(bathTradeOrderDO.getCancelMerge())){
+            log.warn("交易单已转成单笔付款");
+            throw new BizException("交易单已转成单笔付款");
+
+        }
+
+        PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
+        PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
+        prepayOrderDTO.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());
+        prepayOrderDTO.setTotalAmount(bathTradeOrderDO.getBatchFee());
+        prepayOrderDTO.setBathPay(true);
+        PrepayOrderVO prepayOrderVO = paymentService.createPrepayOrder(prepayOrderDTO);
+
+        CreatePrepayOrderVO vo = new CreatePrepayOrderVO();
+        vo.setOrderStr(prepayOrderVO.getOrderStr());
+
+        return vo;
+    }
 
 }

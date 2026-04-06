@@ -43,8 +43,6 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "交易金额")
     private BigDecimal tradeMoney;
 
-    @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
-    private Integer payType;
 
     @ApiModelProperty(value = "支付状态 0:待支付 1.支付完成 3:已取消")
     private Integer payStatus;

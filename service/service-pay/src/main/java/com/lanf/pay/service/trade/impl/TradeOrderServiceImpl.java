@@ -112,7 +112,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setOrderId(dto.getOrderId());
         tradeOrderDO.setOutTradeNo(outTradeNo);
         tradeOrderDO.setTradeMoney(dto.getTradeMoney());
-        tradeOrderDO.setPayType(dto.getPayType());
         tradeOrderDO.setPayStatus(0);
         tradeOrderDO.setBathPay(0);
         tradeOrderDO.setVersion(1L);
@@ -335,7 +334,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BizException("交易单状态异常");
         }
 
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(tradeOrderDO.getPayType());
+        PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
         PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
         prepayOrderDTO.setOutTradeNo(tradeOrderDO.getOutTradeNo());
         prepayOrderDTO.setTotalAmount(tradeOrderDO.getTradeMoney());
@@ -347,6 +346,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         return vo;
     }
+
+
+
 
     @Override
     public void payCallback(PayCallbackDTO dto) {
