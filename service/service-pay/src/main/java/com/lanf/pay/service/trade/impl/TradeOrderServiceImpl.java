@@ -8,21 +8,17 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.mapper.TradeOrderMapper;
 import com.lanf.pay.model.bo.CallbackResultBO;
 import com.lanf.pay.model.dto.*;
-import com.lanf.pay.model.entity.PayOrderDO;
-import com.lanf.pay.model.entity.PayOrderFlowDO;
-import com.lanf.pay.model.entity.TradeOrderDO;
-import com.lanf.pay.model.entity.TradeOrderItemDO;
-import com.lanf.pay.model.enums.PayTypeEnum;
+import com.lanf.pay.model.entity.*;
+import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
+import com.lanf.pay.model.enums.PaySceneEnum;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
 import com.lanf.pay.model.query.TradeOrderQuery;
 import com.lanf.pay.model.vo.*;
+import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
-import com.lanf.pay.service.trade.IBathPayOrderService;
-import com.lanf.pay.service.trade.IPayOrderService;
-import com.lanf.pay.service.trade.ITradeOrderItemService;
-import com.lanf.pay.service.trade.ITradeOrderService;
+import com.lanf.pay.service.trade.*;
 import com.lanf.pay.utils.PryServiceUtils;
 import com.lanf.rocketmq.model.message.RefundDTO;
 import com.lanf.tcc.service.ITccOperationService;
@@ -58,14 +54,20 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
     @Autowired
     private IPayOrderService payOrderService;
-    @Autowired
-    private IBathPayOrderService bathPayOrderService;
+
     @Autowired
     private ITradeOrderItemService tradeOrderItemService;
     @Autowired
     private WelfareApiService welfareApiService;
     @Autowired
     private ITccOperationService tccOperationService;
+    @Autowired
+    private IBathTradeOrderService bathTradeOrderService;
+    @Autowired
+    private IPayOrderFlowService payOrderFlowService;
+
+
+
 
     @HmilyTCC(confirmMethod = "confirmCreateTradeOrder", cancelMethod = "cancelCreateTradeOrder")
     @Override
@@ -74,11 +76,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
 
-
     @Transactional
-    public void confirmCreateTradeOrder(CreateTradeOrderDTO dto){
+    public void confirmCreateTradeOrder(CreateTradeOrderDTO dto) {
 
-        log.info("confirmCreateTradeOrder:{}",dto);
+        log.info("confirmCreateTradeOrder:{}", dto);
         TradeOrderDO tradeOrderDO1 = this.lambdaQuery().eq(TradeOrderDO::getOrderNumber, dto.getOrderNumber()).one();
         if (tradeOrderDO1 != null) {
             log.info("交易单已存在");
@@ -88,11 +89,12 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         try {
             this.save(tradeOrderDO);
         } catch (DuplicateKeyException e) {
-           log.info("交易单已存在");
+            log.info("交易单已存在");
         }
 
     }
-    public void cancelCreateTradeOrder(CreateTradeOrderDTO dto){
+
+    public void cancelCreateTradeOrder(CreateTradeOrderDTO dto) {
 
         log.info("cancelCreateTradeOrder");
 
@@ -101,9 +103,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private static TradeOrderDO buildTradeOrderDO(CreateTradeOrderDTO dto) {
 
 
-        /**
-         * 每次时时生成 因为有订单id唯一索引 所以不存在重复
-         */
+
         String outTradeNo = PryServiceUtils.generateOutTradeNo(dto.getOrderId());
 
         TradeOrderDO tradeOrderDO = new TradeOrderDO();
@@ -118,10 +118,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setOrderNumber(dto.getOrderNumber());
         return tradeOrderDO;
     }
-
-
-
-
 
 
     @Override
@@ -253,8 +249,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     public void refund(RefundDTO dto) {
 
 
-
-
     }
 
     @Override
@@ -286,7 +280,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         List<TradeOrderDO> tradeOrderDOList = this.lambdaQuery().select(BaseEntity::getId).
                 //in(TradeOrderDO::getSource, dto.getSources()).
-                eq(TradeOrderDO::getPayStatus, 2).list();
+                        eq(TradeOrderDO::getPayStatus, 2).list();
         List<Long> collect = tradeOrderDOList.stream().map(BaseEntity::getId).collect(Collectors.toList());
 
         return payOrderService.lambdaQuery().in(PayOrderDO::getTradeOrderId, collect).
@@ -318,6 +312,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         return voList;
     }
+
     @Override
     public CreatePrepayOrderVO createPrepayOrder(CreatePrepayOrderDTO dto) {
 
@@ -328,8 +323,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             log.error("交易单不存在");
             throw new BizException("交易单不存在");
         }
-        if ( !TradeOrderStatusEnum.PENDING.getCode().
-                equals(tradeOrderDO.getPayStatus())){
+        if (!BathTradeOrderStatusEnum.PENDING.getCode().
+                equals(tradeOrderDO.getPayStatus())) {
             log.info("交易单状态异常");
             throw new BizException("交易单状态异常");
         }
@@ -348,14 +343,24 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
 
-
-
     @Override
     public void payCallback(PayCallbackDTO dto) {
 
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
-        HttpServletResponse response = dto.getResponse();
+        try {
+            handlePayCallback(dto);
+        } catch (Exception e) {
+            log.error("支付回调异常", e);
+            paymentService.responsePayFail(dto.getResponse());
 
+        }
+
+    }
+
+    private void handlePayCallback(PayCallbackDTO dto) {
+
+        PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
+        HttpServletResponse response = dto.getResponse();
         /**
          * 解析报文
          */
@@ -364,44 +369,279 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         try {
             resultBO = paymentService.parse(dto.getRequest());
         } catch (Exception e) {
-
-            paymentService.responsePayFail(response);
+            paymentService.responsePayFail(dto.getResponse());
             return;
         }
         /**
          * 数据校验
          */
         String outTradeNo = resultBO.getOutTradeNo();
+        Boolean responseOk = null;
+        /**
+         * 组合付款单笔付款场景处理
+         */
+        PaySceneEnum payScene = getPayScene(outTradeNo, resultBO.getBathPay());
+
+        if (PaySceneEnum.SINGLE_ORDER_SINGLE_PAY.equals(payScene)) {
+            try {
+                handleSinglePayScene(dto, outTradeNo, resultBO, responseOk);
+            } catch (BizException ignored) {
+                /**
+                 * 抛异常只为让事务进行回滚
+                 */
+            }
+
+        }
+        if (PaySceneEnum.COMBINED_PAY.equals(payScene)) {
+            try {
+                handleCombinedPayScene(dto, outTradeNo, resultBO, responseOk);
+            } catch (BizException ignored) {
+                /**
+                 * 抛异常只为让事务进行回滚
+                 */
+            }
+        }
+        if (PaySceneEnum.COMBINED_TO_SINGLE_PAY.equals(payScene)) {
+            try {
+                handleCombinedToSinglePayScene( dto,outTradeNo, resultBO,responseOk);
+            } catch (BizException ignored) {
+                /**
+                 * 抛异常只为让事务进行回滚
+                 */
+            }
+        }
+        if (!responseOk) {
+            paymentService.responsePayFail(dto.getResponse());
+        } else {
+            paymentService.responsePayOk(dto.getResponse());
+        }
+
+    }
+
+    private PaySceneEnum getPayScene(String outTradeNo, Boolean bathPay) {
+
+        if (!bathPay) {
+            TradeOrderDO tradeOrderDO = this.lambdaQuery()
+                    .eq(TradeOrderDO::getOutTradeNo, outTradeNo)
+                    .one();
+            if (tradeOrderDO == null) {
+                throw new BizException("交易单不存在");
+            }
+            if (tradeOrderDO.getBathPay() == 0) {
+                return PaySceneEnum.SINGLE_ORDER_SINGLE_PAY;
+            }
+            return PaySceneEnum.COMBINED_TO_SINGLE_PAY;
+        }
+        log.info("组合付款");
+
+        return PaySceneEnum.COMBINED_PAY;
+
+    }
+
+    @Transactional
+    public void handleSinglePayScene(PayCallbackDTO dto, String outTradeNo, CallbackResultBO resultBO, Boolean responseOk) {
         TradeOrderDO tradeOrderDO = this.lambdaQuery()
                 .eq(TradeOrderDO::getOutTradeNo, outTradeNo)
                 .one();
 
-        if (tradeOrderDO == null){
+        if (tradeOrderDO == null) {
             log.error("交易单不存在outTradeNo:[{}]", outTradeNo);
-            paymentService.responsePayFail(response);
+            responseOk = false;
             return;
         }
-        if ( TradeOrderStatusEnum.COMPLETED.getCode()
-                .equals(tradeOrderDO.getPayStatus())){
+        if (BathTradeOrderStatusEnum.COMPLETED.getCode().equals(tradeOrderDO.getPayStatus())) {
             log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
-            paymentService.responsePayOk(response);
+            responseOk = true;
             return;
         }
 
         BigDecimal totalAmount = resultBO.getTotalAmount();
         BigDecimal tradeMoney = tradeOrderDO.getTradeMoney();
-        if (!totalAmount.equals(tradeMoney)){
-            log.error("交易金额异常 outTradeNo:[{}],totalAmount[{}],tradeMoney[{}]",outTradeNo,totalAmount,tradeMoney);
-            paymentService.responsePayFail(response);
+        if (!totalAmount.equals(tradeMoney)) {
+            log.error("交易金额异常 outTradeNo:[{}],totalAmount[{}],tradeMoney[{}]", outTradeNo, totalAmount, tradeMoney);
+            responseOk = false;
             return;
+        }
+        if (TradeOrderStatusEnum.CANCELLED.getCode().
+                equals(tradeOrderDO.getPayStatus())) {
+            log.info("交易单已取消");
+            responseOk = true;
+            return;
+        }
+        if (BathTradeOrderStatusEnum.MERGE_TRANSFER_SINGLE.getCode().
+                equals(tradeOrderDO.getPayStatus())) {
+            /**
+             * 已进行合并付款已单笔付款 这里进行合并付款退款
+             */
+
         }
 
 
-        PayOrderFlowDO payOrderFlowDO = new PayOrderFlowDO();
-        payOrderFlowDO.setPayType(PayTypeEnum.ALI_PAY.getCode());
-        payOrderFlowDO.setOutTradeNo(resultBO.getOutTradeNo());
-        payOrderFlowDO.setTradeMoney(resultBO.getReceiptMoney());
+        PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(dto.getPayType(), resultBO);
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, tradeOrderDO.getId())
+                .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
+                .set(TradeOrderDO::getPayStatus, BathTradeOrderStatusEnum.COMPLETED.getCode())
+                .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.info("交易单已支付");
+            responseOk = true;
+            throw new BizException("交易单已支付");
+        }
+        payOrderFlowService.save(payOrderFlowDO);
+
+
     }
 
+    @Transactional
+    public void handleCombinedPayScene(PayCallbackDTO dto, String outTradeNo, CallbackResultBO resultBO, Boolean responseOk) {
+        BathTradeOrderDO bathTradeOrderDO = bathTradeOrderService.lambdaQuery()
+                .eq(BathTradeOrderDO::getOutTradeNo, outTradeNo)
+                .one();
+
+        if (bathTradeOrderDO == null) {
+            log.error("批量交易单不存在");
+            responseOk = false;
+            return;
+        }
+
+        Integer payStatus = bathTradeOrderDO.getPayStatus();
+        if (BathTradeOrderStatusEnum.COMPLETED.getCode().equals(payStatus) ) {
+            log.info("批量交易单支付成功");
+            responseOk = true;
+            return;
+        }
+        BigDecimal totalAmount = resultBO.getTotalAmount();
+        BigDecimal tradeMoney = bathTradeOrderDO.getBatchFee();
+        if (!totalAmount.equals(tradeMoney)) {
+            log.error("交易金额异常 outTradeNo:[{}],totalAmount[{}],tradeMoney[{}]", outTradeNo, totalAmount, tradeMoney);
+            responseOk = false;
+            return;
+        }
+        if (BathTradeOrderStatusEnum.MERGE_TRANSFER_SINGLE.getCode().equals(payStatus) ) {
+            /**
+             * 退款 合并付款单 幂等退款
+             */
+            responseOk = true;
+            return;
+        }
+        PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(dto.getPayType(), resultBO);
+        boolean update1 = bathTradeOrderService.lambdaUpdate()
+                .eq(BaseEntity::getId, bathTradeOrderDO.getId())
+                .eq(BathTradeOrderDO::getVersion, bathTradeOrderDO.getVersion())
+                .set(BathTradeOrderDO::getPayStatus, BathTradeOrderStatusEnum.COMPLETED.getCode())
+                .set(BathTradeOrderDO::getVersion, bathTradeOrderDO.getVersion() + 1)
+                .update();
+        if (!update1) {
+            log.info("批量交易单已支付");
+            responseOk = true;
+
+        }
+        List<TradeOrderDO> tradeOrderDOList = this.lambdaQuery().
+                eq(TradeOrderDO::getBathPayOrderId, bathTradeOrderDO.getId()).list();
+
+        if (!tradeOrderDOList.isEmpty()) {
+            List<Long> ids = tradeOrderDOList.stream()
+                    .map(TradeOrderDO::getId)
+                    .collect(Collectors.toList());
+            this.lambdaUpdate()
+                    .in(BaseEntity::getId, ids)
+                    .set(TradeOrderDO::getPayStatus, BathTradeOrderStatusEnum.COMPLETED.getCode())
+                    .setSql("version = version + 1")
+                    .update();
+        }
+        payOrderFlowService.save(payOrderFlowDO);
+
+
+    }
+
+
+// ... existing code ...
+
+    @Transactional
+    public void handleCombinedToSinglePayScene(PayCallbackDTO dto, String outTradeNo, CallbackResultBO resultBO, Boolean responseOk) {
+        TradeOrderDO tradeOrderDO = this.lambdaQuery()
+                .eq(TradeOrderDO::getOutTradeNo, outTradeNo)
+                .one();
+
+        if (tradeOrderDO == null) {
+            log.error("交易单不存在");
+            responseOk = false;
+            throw new BizException("交易单不存在");
+        }
+
+        Long bathPayOrderId = tradeOrderDO.getBathPayOrderId();
+        BathTradeOrderDO orderDO = bathTradeOrderService.getById(bathPayOrderId);
+        if (orderDO == null) {
+            log.error("组合支付单不存在");
+            responseOk = false;
+            throw new BizException("组合支付单不存在");
+        }
+        if ( BathTradeOrderStatusEnum.COMPLETED.getCode().equals(orderDO.getPayStatus())) {
+
+            /**
+             * 组合单已付款 进行单笔退款  幂等退款
+             */
+
+            responseOk = true;
+            return;
+        }
+        if ( TradeOrderStatusEnum.COMPLETED.getCode().equals(orderDO.getPayStatus())) {
+            log.info("交易已完成");
+            responseOk = true;
+            return;
+        }
+        if ( TradeOrderStatusEnum.CANCELLED.getCode().equals(orderDO.getPayStatus())) {
+            log.info("交易已取消");
+            responseOk = true;
+            return;
+        }
+
+        if ( BathTradeOrderStatusEnum.PENDING.getCode().equals(orderDO.getPayStatus())) {
+           log.info("更新批量交易单状态");
+            /**
+             * 其中一笔交易单完成 那么就更新为已支付
+             * 允许多线程并发更新失败 但不影响子交易单的更新
+             */
+            bathTradeOrderService.lambdaUpdate()
+                    .eq(BaseEntity::getId, bathPayOrderId)
+                    .eq(BathTradeOrderDO::getVersion, orderDO.getVersion())
+                    .set(BathTradeOrderDO::getPayStatus, BathTradeOrderStatusEnum.MERGE_TRANSFER_SINGLE.getCode())
+                    .set(BathTradeOrderDO::getVersion, orderDO.getVersion() + 1)
+                    .update();
+
+        }
+        PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(dto.getPayType(), resultBO);
+        boolean update = this.lambdaUpdate()
+                .eq(TradeOrderDO::getId, tradeOrderDO.getId())
+                .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
+                .set(TradeOrderDO::getPayStatus, BathTradeOrderStatusEnum.COMPLETED.getCode())
+                .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.info("交易单已支付");
+            responseOk = true;
+            throw new BizException("交易单已支付");
+        }
+        payOrderFlowService.save(payOrderFlowDO);
+
+    }
+
+// ... existing code ...
+
+    private PayOrderFlowDO buildPayOrderFlowDO(Integer payType, CallbackResultBO resultBO) {
+        PayOrderFlowDO payOrderFlowDO = new PayOrderFlowDO();
+        payOrderFlowDO.setPayType(payType);
+        payOrderFlowDO.setOutTradeNo(resultBO.getOutTradeNo());
+        payOrderFlowDO.setTradeMoney(resultBO.getReceiptMoney());
+        payOrderFlowDO.setReceiptMoney(resultBO.getReceiptMoney());
+        payOrderFlowDO.setPayFinishTime(resultBO.getPayFinishTime());
+        payOrderFlowDO.setPayAccount(resultBO.getPayAccount());
+        payOrderFlowDO.setIncomeAccount(resultBO.getIncomeAccount());
+        payOrderFlowDO.setNotifyTime(resultBO.getNotifyTime());
+        payOrderFlowDO.setTradeNo(resultBO.getTradeNo());
+        return payOrderFlowDO;
+    }
 
 }

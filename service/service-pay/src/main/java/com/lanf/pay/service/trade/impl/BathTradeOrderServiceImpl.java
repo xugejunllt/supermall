@@ -11,8 +11,7 @@ import com.lanf.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.entity.BathTradeOrderDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
-import com.lanf.pay.model.enums.CancelMergeEnum;
-import com.lanf.pay.model.enums.TradeOrderStatusEnum;
+import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
 import com.lanf.pay.model.vo.CreatePrepayOrderVO;
 import com.lanf.pay.model.vo.PrepayOrderVO;
 import com.lanf.pay.service.pay.PaymentService;
@@ -98,11 +97,12 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
     private List<TradeOrderDO> buildTradeOrderDOList(CreateMergeTradeOrderDTO dto, BathTradeOrderDO bathTradeOrderDO) {
         return dto.getTradeOrderItemList().stream()
                 .map(item -> {
+                    String outTradeNo = PryServiceUtils.generateOutTradeNo(item.getOrderId());
                     TradeOrderDO tradeOrderDO = new TradeOrderDO();
                     tradeOrderDO.setBathPayOrderId(bathTradeOrderDO.getId());
                     tradeOrderDO.setUserId(dto.getUserId());
                     tradeOrderDO.setOrderId(item.getOrderId());
-                    tradeOrderDO.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());
+                    tradeOrderDO.setOutTradeNo(outTradeNo);
                     tradeOrderDO.setTradeMoney(item.getTradeMoney());
                     tradeOrderDO.setPayStatus(0);
                     tradeOrderDO.setBathPay(1);
@@ -154,7 +154,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
             log.warn("批量交易单不存在");
             throw new BizException("批量交易单不存在");
         }
-        if ( !TradeOrderStatusEnum.PENDING.getCode().
+        if ( !BathTradeOrderStatusEnum.PENDING.getCode().
                 equals(bathTradeOrderDO.getPayStatus())){
             log.warn("交易单状态异常");
             throw new BizException("交易单状态异常");

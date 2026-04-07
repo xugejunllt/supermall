@@ -42,13 +42,13 @@ private static final long serialVersionUID=1L;
     private BigDecimal batchFee;
 
     /**
-     * 批量付款取消标识
-     * 取消合并 0:未取消，1:已取消
+     * 支付状态 0:待支付 1.支付完成 3.合并转单笔
+     * 0 > 1  0 > 3
+     *
+     *
      */
-    private Integer cancelMerge;
-
-    @ApiModelProperty(value = "支付状态 0:待支付 1.支付完成 3:已取消")
     private Integer payStatus;
 
+    private Long version;
 
 }
