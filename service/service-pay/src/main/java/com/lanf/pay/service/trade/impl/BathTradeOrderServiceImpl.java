@@ -134,7 +134,6 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
         bathTradeOrderDO1.setOutTradeNo(batchNo);
         bathTradeOrderDO1.setBatchNum(batchNum);
         bathTradeOrderDO1.setBatchFee(batchFee);
-        bathTradeOrderDO1.setCancelMerge(0);
         bathTradeOrderDO1.setMainOrderNumber(dto.getMainOrderNumber());
         return bathTradeOrderDO1;
     }
@@ -158,11 +157,6 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                 equals(bathTradeOrderDO.getPayStatus())){
             log.warn("交易单状态异常");
             throw new BizException("交易单状态异常");
-        }
-        if ( !CancelMergeEnum.NOT_CANCELLED.getCode().equals(bathTradeOrderDO.getCancelMerge())){
-            log.warn("交易单已转成单笔付款");
-            throw new BizException("交易单已转成单笔付款");
-
         }
 
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
