@@ -3,8 +3,8 @@ package com.lanf.bizcache.service;
 import com.lanf.bizcache.model.bo.PlatformRateConfigBO;
 import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.redis.constant.CacheConstants;
-import com.lanf.redis.service.RedisCache;
+import com.lanf.cache.constant.RedisCacheConstants;
+import com.lanf.cache.service.RedisCache;
 
 import java.util.List;
 import java.util.Map;
@@ -17,14 +17,14 @@ public class BizCacheService {
 
         String jsonString = JsonUtils.toJsonString(platformRateConfigBOList);
         RedisCache redisCache = BeanUtil.getBean(RedisCache.class);
-        redisCache.setCacheObject(CacheConstants.RATE_CONFIG, jsonString);
+        redisCache.setCacheObject(RedisCacheConstants.RATE_CONFIG, jsonString);
 
     }
 
     public static void addCache(Long platformId) {
 
         RedisCache redisCache = BeanUtil.getBean(RedisCache.class);
-        redisCache.setCacheObject(CacheConstants.PLATFORM_BUS_ID, platformId);
+        redisCache.setCacheObject(RedisCacheConstants.PLATFORM_BUS_ID, platformId);
 
     }
 
@@ -32,7 +32,7 @@ public class BizCacheService {
 
         RedisCache redisCache = BeanUtil.getBean(RedisCache.class);
 
-        String cacheObject = redisCache.getCacheObject(CacheConstants.RATE_CONFIG);
+        String cacheObject = redisCache.getCacheObject(RedisCacheConstants.RATE_CONFIG);
 
         List<PlatformRateConfigBO> configBOS = JsonUtils.toList(cacheObject, PlatformRateConfigBO.class);
         Map<Integer, PlatformRateConfigBO> configMap = configBOS.stream()

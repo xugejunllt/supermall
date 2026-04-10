@@ -1,4 +1,4 @@
-package com.lanf.redis.config;
+package com.lanf.cache.config;
 
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;

@@ -1,8 +1,8 @@
 package com.lanf.welfare.service.impl;
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.redis.constant.CacheConstants;
-import com.lanf.redis.service.RedisCache;
+import com.lanf.cache.constant.RedisCacheConstants;
+import com.lanf.cache.service.RedisCache;
 import com.lanf.welfare.model.bo.CacheCouponTemplateListBO;
 import com.lanf.welfare.model.bo.DeductShopCouponRemainCountCacheBO;
 import com.lanf.welfare.model.bo.ShopCouponRemainCountCacheBO;
@@ -89,7 +89,7 @@ public class CouponCacheService {
      */
     public List<CacheCouponTemplateListBO> getShopCouponCache(Long shopId) {
 
-        String key = CacheConstants.getSHOP_COUPON(shopId);
+        String key = RedisCacheConstants.getSHOP_COUPON(shopId);
         String cache = redisCache.getCacheObject(key);
 
         if (cache == null) {
@@ -105,9 +105,9 @@ public class CouponCacheService {
      */
     public void setShopCouponCache(Long shopId, List<CacheCouponTemplateListBO> list) {
 
-        String key = CacheConstants.getSHOP_COUPON(shopId);
+        String key = RedisCacheConstants.getSHOP_COUPON(shopId);
 
-        redisCache.setCacheObject(key, JsonUtils.toJsonString(list), CacheConstants.SHOP_COUPON_EXP_TIME);
+        redisCache.setCacheObject(key, JsonUtils.toJsonString(list), RedisCacheConstants.SHOP_COUPON_EXP_TIME);
 
     }
 
@@ -116,7 +116,7 @@ public class CouponCacheService {
      */
     public void removeShopCouponCache(Long shopId) {
 
-        String key = CacheConstants.getSHOP_COUPON(shopId);
+        String key = RedisCacheConstants.getSHOP_COUPON(shopId);
         redisCache.deleteObject(key);
 
     }
@@ -131,9 +131,9 @@ public class CouponCacheService {
         for (ShopCouponRemainCountCacheBO bo : boList) {
             remainCountMap.put(bo.getCouponTemplateId().toString(), bo.getRemainCount().toString());
         }
-        redisCache.setCacheMap(CacheConstants.getSHOP_COUPON_COUNT(shopId), remainCountMap);
-        redisCache.expire(CacheConstants.getSHOP_COUPON_COUNT(shopId),
-                CacheConstants.SHOP_COUPON_COUNT_EXP_TIME);
+        redisCache.setCacheMap(RedisCacheConstants.getSHOP_COUPON_COUNT(shopId), remainCountMap);
+        redisCache.expire(RedisCacheConstants.getSHOP_COUPON_COUNT(shopId),
+                RedisCacheConstants.SHOP_COUPON_COUNT_EXP_TIME);
 
     }
 
@@ -144,7 +144,7 @@ public class CouponCacheService {
 
 
 
-        return redisCache.getCacheMap(CacheConstants.getSHOP_COUPON_COUNT(shopId));
+        return redisCache.getCacheMap(RedisCacheConstants.getSHOP_COUPON_COUNT(shopId));
 
     }
 
@@ -160,8 +160,8 @@ public class CouponCacheService {
         script.setScriptText(LUA_SCRIPT);
         script.setResultType(String .class);
         String  resultStatus = redisCache.decrementIfPositive(script,
-                CacheConstants.getSHOP_COUPON_COUNT(shopId),
-                couponTemplateId.toString(), CacheConstants.SHOP_COUPON_COUNT_EXP_TIME);
+                RedisCacheConstants.getSHOP_COUPON_COUNT(shopId),
+                couponTemplateId.toString(), RedisCacheConstants.SHOP_COUPON_COUNT_EXP_TIME);
 
 
         DeductShopCouponRemainCountCacheBO bo = new DeductShopCouponRemainCountCacheBO();
@@ -177,7 +177,7 @@ public class CouponCacheService {
      */
     public void removeShopCouponRemainCountCache(Long shopId) {
 
-        redisCache.deleteObject(CacheConstants.getSHOP_COUPON_COUNT(shopId));
+        redisCache.deleteObject(RedisCacheConstants.getSHOP_COUPON_COUNT(shopId));
 
     }
 
@@ -187,8 +187,8 @@ public class CouponCacheService {
 
     public void setRevokeCouponCache(Set<Long> templateIdSet) {
 
-        redisCache.setCacheSet(CacheConstants.COUPON_REVOKE, templateIdSet);
-        redisCache.expire(CacheConstants.COUPON_REVOKE, CacheConstants.COUPON_REVOKE_EXP_TIME);
+        redisCache.setCacheSet(RedisCacheConstants.COUPON_REVOKE, templateIdSet);
+        redisCache.expire(RedisCacheConstants.COUPON_REVOKE, RedisCacheConstants.COUPON_REVOKE_EXP_TIME);
 
     }
 
@@ -197,7 +197,7 @@ public class CouponCacheService {
      */
     public Set<Long> getRevokeCouponCache() {
 
-        return redisCache.getCacheSet(CacheConstants.COUPON_REVOKE);
+        return redisCache.getCacheSet(RedisCacheConstants.COUPON_REVOKE);
 
     }
 
@@ -206,7 +206,7 @@ public class CouponCacheService {
      */
     public void removeRevokeCouponCache() {
 
-        redisCache.deleteObject(CacheConstants.COUPON_REVOKE);
+        redisCache.deleteObject(RedisCacheConstants.COUPON_REVOKE);
     }
 
 

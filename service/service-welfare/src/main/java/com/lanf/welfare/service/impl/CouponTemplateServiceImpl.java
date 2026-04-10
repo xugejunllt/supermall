@@ -5,11 +5,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.*;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
-import com.lanf.lock.aop.DistributedLock;
+import com.lanf.cache.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.redis.constant.CacheConstants;
-import com.lanf.redis.service.RedisCache;
+import com.lanf.cache.constant.RedisCacheConstants;
+import com.lanf.cache.service.RedisCache;
 import com.lanf.rocketmq.model.message.DeductCouponTemplateCountMsg;
 import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.api.SystemService;
@@ -272,7 +272,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     private void filterRevoke(List<CacheCouponTemplateListBO> listVOList) {
 
 
-        Set<Long> cacheSet = redisCache.getCacheSet(CacheConstants.COUPON_REVOKE);
+        Set<Long> cacheSet = redisCache.getCacheSet(RedisCacheConstants.COUPON_REVOKE);
         if (IStringUtils.isEmpty(cacheSet)){
             List<CouponTemplateRevokeDO> templateRevokeDOS = loadDBCouponTemplateRevokeDO();
             if (IStringUtils.isEmpty(templateRevokeDOS)){

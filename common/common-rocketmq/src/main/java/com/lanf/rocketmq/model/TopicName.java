@@ -90,6 +90,10 @@ public class TopicName {
     public static  final String SAVE_GOODS_ES_TOPIC = "SAVE_GOODS_ES_TOPIC";
 
     /**
+     * 订单创建成功
+     */
+    public static final String ORDER_CREATE_SUCCESS_TOPIC = "ORDER_CREATE_SUCCESS_TOPIC";
+    /**
      * 消费组名
      */
     public static  final String ORDER_STATUS_CHANGE__UPDATE_ORDER_GROUP = "ORDER_STATUS_CHANGE__UPDATE_ORDER_GROUP";
@@ -125,6 +129,11 @@ public class TopicName {
     public static  final String SAVE_GOODS_ES__GROUP = "SAVE_GOODS_ES__GROUP";
     public static final String USER_STOCK_ADD_GROUP = "USER_STOCK_ADD_GROUP";
     public static final String DEDUCT_COUPON_TEMPLATE_COUNT_GROUP = "DEDUCT_COUPON_TEMPLATE_COUNT_GROUP";
+
+    /**
+     * 订单创建成功 - 支付服务消费组
+     */
+    public static final String ORDER_CREATE_PAY_GROUP = "ORDER_CREATE_PAY_GROUP";
 
 
 }

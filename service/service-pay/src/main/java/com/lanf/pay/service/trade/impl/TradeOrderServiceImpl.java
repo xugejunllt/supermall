@@ -7,6 +7,8 @@ import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.mapper.TradeOrderMapper;
 import com.lanf.pay.model.bo.CallbackResultBO;
+import com.lanf.pay.model.bo.PaySuccessHandleBO;
+import com.lanf.pay.model.bo.PaySuccessHandleResultBO;
 import com.lanf.pay.model.dto.*;
 import com.lanf.pay.model.entity.*;
 import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
@@ -18,7 +20,10 @@ import com.lanf.pay.model.vo.*;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
-import com.lanf.pay.service.trade.*;
+import com.lanf.pay.service.trade.IBathTradeOrderService;
+import com.lanf.pay.service.trade.IPayOrderService;
+import com.lanf.pay.service.trade.ITradeOrderItemService;
+import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.utils.PryServiceUtils;
 import com.lanf.rocketmq.model.message.RefundDTO;
 import com.lanf.tcc.service.ITccOperationService;
@@ -32,7 +37,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -357,10 +361,11 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
     }
 
+
+
     private void handlePayCallback(PayCallbackDTO dto) {
 
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
-        HttpServletResponse response = dto.getResponse();
         /**
          * 解析报文
          */
@@ -372,6 +377,20 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             paymentService.responsePayFail(dto.getResponse());
             return;
         }
+        PaySuccessHandleBO paySuccessHandleBO = new PaySuccessHandleBO();
+        paySuccessHandleBO.setPayType(dto.getPayType());
+        paySuccessHandleBO.setResultBO(resultBO);
+        PaySuccessHandleResultBO handleResultBO = paySuccessHandleBO(paySuccessHandleBO);
+        if (handleResultBO.getResponseOk()) {
+            paymentService.responsePayOk(dto.getResponse());
+        } else {
+            paymentService.responsePayFail(dto.getResponse());
+        }
+    }
+
+    private PaySuccessHandleResultBO paySuccessHandleBO(PaySuccessHandleBO paySuccessHandleBO){
+
+        CallbackResultBO resultBO = paySuccessHandleBO.getResultBO();
         /**
          * 数据校验
          */
@@ -384,7 +403,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         if (PaySceneEnum.SINGLE_ORDER_SINGLE_PAY.equals(payScene)) {
             try {
-                handleSinglePayScene(dto, outTradeNo, resultBO, responseOk);
+                handleSinglePayScene( outTradeNo, resultBO, responseOk,paySuccessHandleBO.getPayType());
             } catch (BizException ignored) {
                 /**
                  * 抛异常只为让事务进行回滚
@@ -394,7 +413,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
         if (PaySceneEnum.COMBINED_PAY.equals(payScene)) {
             try {
-                handleCombinedPayScene(dto, outTradeNo, resultBO, responseOk);
+                handleCombinedPayScene( outTradeNo, resultBO, responseOk,paySuccessHandleBO.getPayType());
             } catch (BizException ignored) {
                 /**
                  * 抛异常只为让事务进行回滚
@@ -403,20 +422,17 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
         if (PaySceneEnum.COMBINED_TO_SINGLE_PAY.equals(payScene)) {
             try {
-                handleCombinedToSinglePayScene( dto,outTradeNo, resultBO,responseOk);
+                handleCombinedToSinglePayScene( outTradeNo, resultBO,responseOk, paySuccessHandleBO.getPayType());
             } catch (BizException ignored) {
                 /**
                  * 抛异常只为让事务进行回滚
                  */
             }
         }
-        if (!responseOk) {
-            paymentService.responsePayFail(dto.getResponse());
-        } else {
-            paymentService.responsePayOk(dto.getResponse());
-        }
+        return new PaySuccessHandleResultBO(responseOk);
 
     }
+
 
     private PaySceneEnum getPayScene(String outTradeNo, Boolean bathPay) {
 
@@ -439,7 +455,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
     @Transactional
-    public void handleSinglePayScene(PayCallbackDTO dto, String outTradeNo, CallbackResultBO resultBO, Boolean responseOk) {
+    public void handleSinglePayScene( String outTradeNo, CallbackResultBO resultBO, Boolean responseOk,Integer payType) {
         TradeOrderDO tradeOrderDO = this.lambdaQuery()
                 .eq(TradeOrderDO::getOutTradeNo, outTradeNo)
                 .one();
@@ -476,8 +492,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         }
 
-
-        PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(dto.getPayType(), resultBO);
+        PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(payType, resultBO);
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, tradeOrderDO.getId())
                 .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
@@ -495,7 +510,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
     @Transactional
-    public void handleCombinedPayScene(PayCallbackDTO dto, String outTradeNo, CallbackResultBO resultBO, Boolean responseOk) {
+    public void handleCombinedPayScene( String outTradeNo, CallbackResultBO resultBO, Boolean responseOk,Integer payType) {
         BathTradeOrderDO bathTradeOrderDO = bathTradeOrderService.lambdaQuery()
                 .eq(BathTradeOrderDO::getOutTradeNo, outTradeNo)
                 .one();
@@ -526,7 +541,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             responseOk = true;
             return;
         }
-        PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(dto.getPayType(), resultBO);
+        PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(payType, resultBO);
         boolean update1 = bathTradeOrderService.lambdaUpdate()
                 .eq(BaseEntity::getId, bathTradeOrderDO.getId())
                 .eq(BathTradeOrderDO::getVersion, bathTradeOrderDO.getVersion())
@@ -560,7 +575,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 // ... existing code ...
 
     @Transactional
-    public void handleCombinedToSinglePayScene(PayCallbackDTO dto, String outTradeNo, CallbackResultBO resultBO, Boolean responseOk) {
+    public void handleCombinedToSinglePayScene( String outTradeNo, CallbackResultBO resultBO, Boolean responseOk,Integer payType) {
         TradeOrderDO tradeOrderDO = this.lambdaQuery()
                 .eq(TradeOrderDO::getOutTradeNo, outTradeNo)
                 .one();
@@ -612,7 +627,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                     .update();
 
         }
-        PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(dto.getPayType(), resultBO);
+        PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(payType, resultBO);
         boolean update = this.lambdaUpdate()
                 .eq(TradeOrderDO::getId, tradeOrderDO.getId())
                 .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
@@ -643,5 +658,29 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         payOrderFlowDO.setTradeNo(resultBO.getTradeNo());
         return payOrderFlowDO;
     }
+    @Override
+    public void payCompensateOrder(String outTradeNo) {
+
+       // 获取交易单
+        //TradeOrderDO tradeOrderDO = this.lambdaQuery();
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

@@ -15,13 +15,13 @@ import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.vo.*;
 import com.lanf.goods.service.goods.*;
-import com.lanf.lock.aop.DistributedLock;
-import com.lanf.lock.service.DistributedLocker;
+import com.lanf.cache.aop.DistributedLock;
+import com.lanf.cache.service.DistributedLocker;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.redis.constant.CacheConstants;
-import com.lanf.redis.service.RedisCache;
+import com.lanf.cache.constant.RedisCacheConstants;
+import com.lanf.cache.service.RedisCache;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.rocketmq.model.message.SyncGoodsInfoToEsMsg;
@@ -356,12 +356,12 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
     private void addCache(Long keyPrefix, UserGoodsDetailVO value) {
 
-        redisCache.setCacheObject(CacheConstants.getGOODS_DETAIL(keyPrefix),
-                JsonUtils.toJsonString(value), CacheConstants.GOODS_DETAIL_EXP_TIME);
+        redisCache.setCacheObject(RedisCacheConstants.getGOODS_DETAIL(keyPrefix),
+                JsonUtils.toJsonString(value), RedisCacheConstants.GOODS_DETAIL_EXP_TIME);
     }
 
     private UserGoodsDetailVO getCache(Long keyPrefix) {
-        String cache = redisCache.getCacheObject(CacheConstants.getGOODS_DETAIL(keyPrefix));
+        String cache = redisCache.getCacheObject(RedisCacheConstants.getGOODS_DETAIL(keyPrefix));
         if (cache == null) {
             return null;
         }
@@ -369,7 +369,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     }
 
     private void deleteCache(Long keyPrefix) {
-        redisCache.deleteObject(CacheConstants.getGOODS_DETAIL(keyPrefix));
+        redisCache.deleteObject(RedisCacheConstants.getGOODS_DETAIL(keyPrefix));
     }
 
 

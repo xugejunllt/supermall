@@ -1,8 +1,8 @@
 package com.lanf.user.service.manager;
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.redis.constant.CacheConstants;
-import com.lanf.redis.service.RedisCache;
+import com.lanf.cache.constant.RedisCacheConstants;
+import com.lanf.cache.service.RedisCache;
 import com.lanf.user.model.vo.AddressVO;
 import com.sun.xml.internal.ws.util.UtilException;
 import lombok.extern.slf4j.Slf4j;
@@ -21,22 +21,22 @@ public  class  AddersCache{
 
     public void  addCache(Long userId, List<AddressVO> addressVOList){
 
-        String key = CacheConstants.getADDRESS(userId);
+        String key = RedisCacheConstants.getADDRESS(userId);
 
         String addressJson = JsonUtils.toJsonString(addressVOList);
-        redisCache.setCacheObject(key,addressJson,CacheConstants.ADDRESS_TIME);
+        redisCache.setCacheObject(key,addressJson, RedisCacheConstants.ADDRESS_TIME);
 
     }
 
     public void removeCache(Long userId){
 
-        String key = CacheConstants.getADDRESS(userId);
+        String key = RedisCacheConstants.getADDRESS(userId);
         redisCache.deleteObject(key);
 
     }
     public List<AddressVO> getCache (Long userId){
 
-        String key = CacheConstants.getADDRESS(userId);
+        String key = RedisCacheConstants.getADDRESS(userId);
         String cacheObject = redisCache.getCacheObject(key);
 
         if (cacheObject == null ){

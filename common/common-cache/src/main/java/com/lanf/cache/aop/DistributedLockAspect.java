@@ -1,9 +1,9 @@
-package com.lanf.lock.aop;
+package com.lanf.cache.aop;
 
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.StackTraceUtil;
 import com.lanf.constant.exception.IRedisException;
-import com.lanf.lock.service.DistributedLocker;
+import com.lanf.cache.service.DistributedLocker;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -17,7 +17,6 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.BindException;
 
 import java.lang.reflect.Method;
 

@@ -2,7 +2,7 @@ package com.lanf.user.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.lock.aop.DistributedLock;
+import com.lanf.cache.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.user.mapper.AddressMapper;

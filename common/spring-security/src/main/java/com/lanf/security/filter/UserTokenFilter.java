@@ -5,7 +5,7 @@ import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.StackTraceUtil;
 import com.lanf.constant.exception.IRedisException;
 import com.lanf.constant.constant.Constants;
-import com.lanf.redis.service.RedisCache;
+import com.lanf.cache.service.RedisCache;
 import com.lanf.security.config.FilterPathConfig;
 import com.lanf.security.model.ValidateTokenBO;
 import com.lanf.security.utils.JwtUtils;

@@ -1,7 +1,7 @@
 package com.lanf.user.service.impl;
 
-import com.lanf.redis.constant.CacheConstants;
-import com.lanf.redis.service.RedisCache;
+import com.lanf.cache.constant.RedisCacheConstants;
+import com.lanf.cache.service.RedisCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,13 +21,13 @@ public class LoginSecurityService {
     public void handleFailedLogin(String phoneNumber) {
 
 
-        String key = CacheConstants.getLOGIN_FAIL_COUNT(phoneNumber);
+        String key = RedisCacheConstants.getLOGIN_FAIL_COUNT(phoneNumber);
 
         Long userCount = null;
 
         if ( !redisCache.hasKey(key)){
             userCount = redisCache.increment(key);
-            redisCache.expire(key, CacheConstants.LOGIN_FAIL_COUNT_TIME);
+            redisCache.expire(key, RedisCacheConstants.LOGIN_FAIL_COUNT_TIME);
 
         } else {
             userCount = redisCache.increment(key);
@@ -37,7 +37,7 @@ public class LoginSecurityService {
     }
     
     public boolean isLocked(String phoneNumber) {
-        String key = CacheConstants.getLOGIN_FAIL_COUNT(phoneNumber);
+        String key = RedisCacheConstants.getLOGIN_FAIL_COUNT(phoneNumber);
 
         Long increment = redisCache.increment(key);
 

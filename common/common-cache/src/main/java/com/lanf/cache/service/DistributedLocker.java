@@ -1,4 +1,4 @@
-package com.lanf.lock.service;
+package com.lanf.cache.service;
 
 
 public interface DistributedLocker {

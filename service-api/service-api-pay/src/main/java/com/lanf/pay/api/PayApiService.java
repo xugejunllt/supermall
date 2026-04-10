@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 @Component
-@FeignClient(name = "service-pay",url = "localhost:9009") //调用的服务名称
+@FeignClient(name = "service-pay",url = "localhost:9009")
 public interface PayApiService {
 
     @Hmily
@@ -28,8 +28,11 @@ public interface PayApiService {
 
     @Hmily
     @PostMapping("/pay/api/createMergeTradeOrder")
-    public Result<CreateMergeTradeOrderVO> createMergeTradeOrder( @RequestBody CreateMergeTradeOrderDTO dto);
+    public Result<CreateMergeTradeOrderVO> createMergeTradeOrder(@RequestBody CreateMergeTradeOrderDTO dto);
 
+
+    @GetMapping("/pay/api/getRetryPolicy")
+    public Result<List<PayCompensateOrderRetryPolicyVO>> getRetryPolicy();
 
 
     @Deprecated
@@ -44,6 +47,7 @@ public interface PayApiService {
     @Deprecated
     @GetMapping("/pay/payApi/queryOrderTradeByOrderId")
     public Result<OrderTradeVO> queryOrderTradeByOrderId(@RequestParam("orderId") Long orderId);
+
     @Deprecated
     @PostMapping("/pay/payApi/transferAccounts")
     public Result<TransferAccountsVO> transferAccounts(@RequestBody TransferAccountsDTO dto);
@@ -54,5 +58,6 @@ public interface PayApiService {
 
     @Deprecated
     @GetMapping("/pay/payApi/queryTradeStatus")
-    public Result<TradeStatusVO> queryTradeStatus(@RequestParam("orderId")Long orderId);
+    public Result<TradeStatusVO> queryTradeStatus(@RequestParam("orderId") Long orderId);
 }
+

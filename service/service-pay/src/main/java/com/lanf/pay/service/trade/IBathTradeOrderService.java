@@ -27,4 +27,6 @@ public interface IBathTradeOrderService extends IService<BathTradeOrderDO> {
      *
      */
     CreatePrepayOrderVO bathCreatePrepayOrder(BathCreatePrepayOrderDTO dto);
+
+
 }

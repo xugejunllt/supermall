@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.lock.aop.DistributedLock;
+import com.lanf.cache.aop.DistributedLock;
 import com.lanf.messagemanager.client.model.dto.SendMqMessageDTO;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;

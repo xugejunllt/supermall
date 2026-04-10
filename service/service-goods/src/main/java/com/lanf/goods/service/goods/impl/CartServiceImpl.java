@@ -18,7 +18,7 @@ import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
 import com.lanf.goods.service.goods.IShopService;
 import com.lanf.goods.utils.GoodsServiceUtils;
-import com.lanf.lock.aop.DistributedLock;
+import com.lanf.cache.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;

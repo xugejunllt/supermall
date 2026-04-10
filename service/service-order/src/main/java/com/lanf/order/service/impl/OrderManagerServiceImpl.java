@@ -19,7 +19,7 @@ import com.lanf.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.goods.model.vo.ClearCartVO;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.ValidateCartItemVO;
-import com.lanf.lock.aop.DistributedLock;
+import com.lanf.cache.aop.DistributedLock;
 import com.lanf.order.api.OrderApiService;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
@@ -34,6 +34,9 @@ import com.lanf.pay.api.PayApiService;
 import com.lanf.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.pay.model.dto.CreateTradeOrderDTO;
+import com.lanf.rocketmq.model.TopicName;
+import com.lanf.rocketmq.model.message.OrderCreateSuccessMessage;
+import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.bo.DiscountInfoBO;
@@ -65,7 +68,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private WelfareApiService welfareApiService;
     @Autowired
     private OrderApiService orderApiService;
-
+    @Autowired
+    private RocketMqClient rocketMqClient;
     @Override
     public CalculateOrderAmountVO calculateOrderAmount(CalculateOrderAmountDTO dto) {
 
@@ -143,11 +147,18 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          *
          */
         createOrder(orderDTO, orderInitParamsBO, deductStockVO, tradeMoney, amountVO);
+
+        /**
+         * 发送MQ 订单创建成功消息
+         */
+        sendOrderCreateSuccessMessage(orderInitParamsBO.getOrderId());
+        
         /**
          * 构建返回结果
          */
         PlaceOrderVO vo = new PlaceOrderVO();
         vo.setOrderId(orderInitParamsBO.getOrderId());
+
         return vo;
     }
 
@@ -292,6 +303,14 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             throw new BizException("实际支付金额不能小于0");
         }
     }
+
+    private void sendOrderCreateSuccessMessage(Long orderId) {
+        OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
+        message.setOrderId(orderId);
+        rocketMqClient.sendMessage(TopicName.ORDER_CREATE_SUCCESS_TOPIC,  message);
+    }
+
+
 
     private CalculateDiscountAmountVO useMultipleCoupon(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, BigDecimal totalAmount){
         if (IStringUtils.isEmpty(orderDTO.getCouponIds())){

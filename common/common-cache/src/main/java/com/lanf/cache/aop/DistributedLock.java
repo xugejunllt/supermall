@@ -1,4 +1,4 @@
-package com.lanf.lock.aop;
+package com.lanf.cache.aop;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

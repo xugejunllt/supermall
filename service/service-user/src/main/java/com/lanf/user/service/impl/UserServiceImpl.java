@@ -3,12 +3,12 @@ package com.lanf.user.service.impl;
 import com.lanf.bizcache.service.SmsRateLimitService;
 import com.lanf.common.utils.*;
 import com.lanf.constant.enums.SmsCodeEnum;
-import com.lanf.lock.aop.DistributedLock;
-import com.lanf.lock.service.DistributedLocker;
+import com.lanf.cache.aop.DistributedLock;
+import com.lanf.cache.service.DistributedLocker;
 import com.lanf.messagemanager.client.model.dto.SendMqMessageDTO;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
-import com.lanf.redis.constant.CacheConstants;
-import com.lanf.redis.service.RedisCache;
+import com.lanf.cache.constant.RedisCacheConstants;
+import com.lanf.cache.service.RedisCache;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.rocketmq.model.message.SendSmsMsg;
@@ -135,7 +135,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
 
         //校验短信验证码
-        String codeKey = String.format(CacheConstants.REGISTER_CODE_KEY, phoneNumber);
+        String codeKey = String.format(RedisCacheConstants.REGISTER_CODE_KEY, phoneNumber);
         String code = redisCache.getCacheObject(codeKey);
         if (!dto.getCode().equals(code)) {
             log.info("验证码错误");
@@ -187,7 +187,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     private void cacheLoginCode(String phoneNumber, String code) {
 
-        String codeKey = String.format(CacheConstants.LOGIN_CODE_KEY, phoneNumber);
+        String codeKey = String.format(RedisCacheConstants.LOGIN_CODE_KEY, phoneNumber);
 
         redisCache.setCacheObject(codeKey, code, 1000000000);
 
@@ -195,7 +195,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     private void cacheRegisterCode(String phoneNumber, String code) {
 
-        String codeKey = String.format(CacheConstants.REGISTER_CODE_KEY, phoneNumber);
+        String codeKey = String.format(RedisCacheConstants.REGISTER_CODE_KEY, phoneNumber);
 
         redisCache.setCacheObject(codeKey, code, 1000000000);
 
@@ -312,7 +312,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             throw new BizException("账号被禁用");
         }
 
-        String codeKey = String.format(CacheConstants.LOGIN_CODE_KEY, phoneNumber);
+        String codeKey = String.format(RedisCacheConstants.LOGIN_CODE_KEY, phoneNumber);
         String code = redisCache.getCacheObject(codeKey);
         if (!dto.getCode().equals(code)) {
             log.info("验证码错误");

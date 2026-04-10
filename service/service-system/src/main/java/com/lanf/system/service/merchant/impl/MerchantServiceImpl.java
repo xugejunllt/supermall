@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.lock.aop.DistributedLock;
+import com.lanf.cache.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.security.custom.IBCryptPasswordEncoder;

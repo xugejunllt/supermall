@@ -40,6 +40,12 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
      */
     void payCallback(PayCallbackDTO dto);
 
+    /**
+     * 补投支付订单
+     *
+     */
+    void payCompensateOrder(String outTradeNo);
+
 
     @Deprecated
     CreatePayOrderVO createPayOrder(List<CreatePayOrderDTO> dto);

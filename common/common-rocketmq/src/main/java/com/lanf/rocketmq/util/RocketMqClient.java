@@ -44,17 +44,13 @@ public class RocketMqClient {
              if ( !SendStatus.SEND_OK.equals(sendResult.getSendStatus())){
                  String sendResultJson = JsonUtils.toJsonString(sendResult);
                  log.error("发送MQ消息失败,异常状态[{}]", sendResultJson);
-                 handleException(  sendResultJson,null);
              } else {
                  log.info("发送mq消息成功");
 
              }
 
         } catch (Exception e) {
-            //不抛异常，事务最终一致性
-            String exception =  StackTraceUtil.getStackTrace(e);
-           // log.error("发送MQ消息失败,异常信息[{}]",exception);
-            handleException(  null,exception);
+            log.error("发送MQ消息失败[{}]" ,e);
         }
 
     }
@@ -95,4 +91,6 @@ public class RocketMqClient {
             log.error("发送失败");
         }
     }
+
+
 }

@@ -1,4 +1,4 @@
-package com.lanf.redis.service;
+package com.lanf.cache.service;
 
 import com.lanf.common.utils.StackTraceUtil;
 import com.lanf.constant.exception.BizException;

@@ -18,7 +18,7 @@
         <module>common-mybatis</module>
         <module>spring-web</module>
         <module>common-constant</module>
-        <module>common-redis</module>
+        <module>common-cache</module>
         <module>common-fs</module>
         <module>common-start</module>
         <module>common-biz-cache</module>
