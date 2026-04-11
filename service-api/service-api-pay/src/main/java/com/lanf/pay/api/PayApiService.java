@@ -31,8 +31,6 @@ public interface PayApiService {
     public Result<CreateMergeTradeOrderVO> createMergeTradeOrder(@RequestBody CreateMergeTradeOrderDTO dto);
 
 
-    @GetMapping("/pay/api/getRetryPolicy")
-    public Result<List<PayCompensateOrderRetryPolicyVO>> getRetryPolicy();
 
 
     @Deprecated

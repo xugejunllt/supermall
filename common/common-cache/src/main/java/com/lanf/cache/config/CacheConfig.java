@@ -21,7 +21,7 @@ public class CacheConfig {
         cacheManager.setCacheNames(Arrays.asList("config")); // 预定义缓存名
         cacheManager.setCaffeine(Caffeine.newBuilder()
                 .maximumSize(1000)
-                .expireAfterWrite(1, TimeUnit.DAYS)
+                .expireAfterWrite(1, TimeUnit.HOURS)
                 .recordStats());
         return cacheManager;
     }

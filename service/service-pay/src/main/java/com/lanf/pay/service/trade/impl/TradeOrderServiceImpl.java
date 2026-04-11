@@ -465,11 +465,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             responseOk = false;
             return;
         }
-        if (BathTradeOrderStatusEnum.COMPLETED.getCode().equals(tradeOrderDO.getPayStatus())) {
-            log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
-            responseOk = true;
-            return;
-        }
 
         BigDecimal totalAmount = resultBO.getTotalAmount();
         BigDecimal tradeMoney = tradeOrderDO.getTradeMoney();
@@ -484,6 +479,26 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             responseOk = true;
             return;
         }
+        PayOrderFlowDO flowDO = payOrderFlowService.lambdaQuery()
+                .eq(PayOrderFlowDO::getOutTradeNo, outTradeNo)
+                .eq(PayOrderFlowDO::getPayType, payType).one();
+
+
+        if (TradeOrderStatusEnum.COMPLETED.getCode()
+                .equals(tradeOrderDO.getPayStatus()) && flowDO != null) {
+            log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
+            responseOk = true;
+            return;
+        }
+        if (TradeOrderStatusEnum.COMPLETED.getCode()
+                .equals(tradeOrderDO.getPayStatus()) && flowDO == null) {
+            /**
+             * 发生多次支付 这里进行退款
+             */
+
+        }
+
+
         if (BathTradeOrderStatusEnum.MERGE_TRANSFER_SINGLE.getCode().
                 equals(tradeOrderDO.getPayStatus())) {
             /**
@@ -521,12 +536,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             return;
         }
 
-        Integer payStatus = bathTradeOrderDO.getPayStatus();
-        if (BathTradeOrderStatusEnum.COMPLETED.getCode().equals(payStatus) ) {
-            log.info("批量交易单支付成功");
-            responseOk = true;
-            return;
-        }
         BigDecimal totalAmount = resultBO.getTotalAmount();
         BigDecimal tradeMoney = bathTradeOrderDO.getBatchFee();
         if (!totalAmount.equals(tradeMoney)) {
@@ -534,6 +543,35 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             responseOk = false;
             return;
         }
+        Integer payStatus = bathTradeOrderDO.getPayStatus();
+
+        PayOrderFlowDO flowDO = payOrderFlowService.lambdaQuery()
+                .eq(PayOrderFlowDO::getOutTradeNo, outTradeNo)
+                .eq(PayOrderFlowDO::getPayType, payType).one();
+
+
+        if (BathTradeOrderStatusEnum.COMPLETED.getCode()
+                .equals(bathTradeOrderDO.getPayStatus()) && flowDO != null) {
+            log.info("批量交易单支付成功 outTradeNo:[{}]", outTradeNo);
+            responseOk = true;
+            return;
+        }
+        if (BathTradeOrderStatusEnum.COMPLETED.getCode()
+                .equals(bathTradeOrderDO.getPayStatus()) && flowDO == null) {
+
+            /**
+             * 发生多渠道多次支付 这里进行退款
+             */
+
+            return;
+        }
+
+
+
+
+
+
+
         if (BathTradeOrderStatusEnum.MERGE_TRANSFER_SINGLE.getCode().equals(payStatus) ) {
             /**
              * 退款 合并付款单 幂等退款
@@ -602,11 +640,25 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             responseOk = true;
             return;
         }
-        if ( TradeOrderStatusEnum.COMPLETED.getCode().equals(orderDO.getPayStatus())) {
-            log.info("交易已完成");
+
+        PayOrderFlowDO flowDO = payOrderFlowService.lambdaQuery()
+                .eq(PayOrderFlowDO::getOutTradeNo, outTradeNo)
+                .eq(PayOrderFlowDO::getPayType, payType).one();
+
+        if (TradeOrderStatusEnum.COMPLETED.getCode()
+                .equals(tradeOrderDO.getPayStatus()) && flowDO != null) {
+            log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
             responseOk = true;
             return;
         }
+        if (TradeOrderStatusEnum.COMPLETED.getCode()
+                .equals(tradeOrderDO.getPayStatus()) && flowDO == null) {
+            /**
+             * 发生多渠道多次支付 这里进行退款
+             */
+            return;
+        }
+
         if ( TradeOrderStatusEnum.CANCELLED.getCode().equals(orderDO.getPayStatus())) {
             log.info("交易已取消");
             responseOk = true;

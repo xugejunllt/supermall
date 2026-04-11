@@ -2,7 +2,7 @@ package com.lanf.pay.service.trade;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.pay.model.entity.PayCompensateOrderRetryPolicy;
-import com.lanf.pay.model.vo.PayCompensateOrderRetryPolicyVO;
+import com.lanf.pay.model.bo.PayCompensateOrderRetryPolicyBO;
 
 import java.util.List;
 
@@ -16,5 +16,5 @@ import java.util.List;
  */
 public interface IPayCompensateOrderRetryPolicyService extends IService<PayCompensateOrderRetryPolicy> {
 
-    List<PayCompensateOrderRetryPolicyVO> getRetryPolicy();
+    List<PayCompensateOrderRetryPolicyBO> getRetryPolicy();
 }

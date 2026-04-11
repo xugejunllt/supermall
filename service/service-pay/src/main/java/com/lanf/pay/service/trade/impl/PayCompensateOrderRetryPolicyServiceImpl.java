@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.pay.mapper.PayCompensateOrderRetryPolicyMapper;
 import com.lanf.pay.model.entity.PayCompensateOrderRetryPolicy;
-import com.lanf.pay.model.vo.PayCompensateOrderRetryPolicyVO;
+import com.lanf.pay.model.bo.PayCompensateOrderRetryPolicyBO;
 import com.lanf.pay.service.trade.IPayCompensateOrderRetryPolicyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ public class PayCompensateOrderRetryPolicyServiceImpl extends ServiceImpl<PayCom
 
 
     @Override
-    public List<PayCompensateOrderRetryPolicyVO> getRetryPolicy() {
+    public List<PayCompensateOrderRetryPolicyBO> getRetryPolicy() {
 
         List<PayCompensateOrderRetryPolicy> policies = this.lambdaQuery().eq(PayCompensateOrderRetryPolicy::getIsEnabled, 0).list();
         if (policies.isEmpty()){
@@ -26,6 +26,6 @@ public class PayCompensateOrderRetryPolicyServiceImpl extends ServiceImpl<PayCom
             return new ArrayList<>();
         }
 
-        return BeanCopyUtils.copyBeanList(policies, PayCompensateOrderRetryPolicyVO.class);
+        return BeanCopyUtils.copyBeanList(policies, PayCompensateOrderRetryPolicyBO.class);
     }
 }
