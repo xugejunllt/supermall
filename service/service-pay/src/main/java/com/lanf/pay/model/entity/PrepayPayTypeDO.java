@@ -14,7 +14,7 @@ public class PrepayPayTypeDO extends BaseEntity {
     @ApiModelProperty(value = "交易订单号，与三方支付单唯一关联号")
     private String outTradeNo;
 
-    @ApiModelProperty(value = "支付类型，例如：WECHAT_APP、ALIPAY_APP、BANK_CARD")
-    private String payType;
+
+    private Integer payType;
 
 }

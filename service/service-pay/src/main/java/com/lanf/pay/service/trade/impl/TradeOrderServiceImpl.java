@@ -4,11 +4,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.mapper.TradeOrderMapper;
 import com.lanf.pay.model.bo.CallbackResultBO;
+import com.lanf.pay.model.bo.PayCompensateOrderRetryPolicyBO;
 import com.lanf.pay.model.bo.PaySuccessHandleBO;
 import com.lanf.pay.model.bo.PaySuccessHandleResultBO;
 import com.lanf.pay.model.dto.*;
@@ -29,7 +31,10 @@ import com.lanf.pay.service.trade.IPrepayPayTypeService;
 import com.lanf.pay.service.trade.ITradeOrderItemService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.utils.PryServiceUtils;
+import com.lanf.rocketmq.model.TopicName;
+import com.lanf.rocketmq.model.message.CompensatePaymentOrderMessage;
 import com.lanf.rocketmq.model.message.RefundDTO;
+import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.tcc.service.ITccOperationService;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.dto.UseCouponDTO;
@@ -43,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -77,8 +83,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private PayConfig payConfig;
 
     @Autowired
-    private RedissonCacheService redissonCacheService;
-
+    private PayRetryPolicyCacheService payRetryPolicyCacheService;
+    @Autowired
+    private RocketMqClient rocketMqClient;
 
 
     private static final String PREPAY_PAY_TYPE_CACHE_KEY = "prepay_pay_type:%s";
@@ -324,8 +331,22 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             log.info("交易单状态异常");
             throw new BizException("交易单状态异常");
         }
+        Integer payType = dto.getPayType();
+        boolean saveIfAbsent = prepayPayTypeService.saveIfAbsent(tradeOrderDO.getOutTradeNo(), payType);
+        if ( !saveIfAbsent) {
+            /**
+             * 发送补单任务
+             */
+            PayCompensateOrderRetryPolicyBO firstLevelRetryPolicy = payRetryPolicyCacheService.getFirstLevelRetryPolicy();
+            CompensatePaymentOrderMessage message = new CompensatePaymentOrderMessage();
+            message.setOutTradeNo(tradeOrderDO.getOutTradeNo());
+            message.setPayType(payType);
+            message.setRetryLevel(firstLevelRetryPolicy.getRetryLevel());
+            message.setBathOrder( true);
+            rocketMqClient. sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
+                    JsonUtils.toJsonString(message), TimeUnit.SECONDS, firstLevelRetryPolicy.getDelaySeconds());
 
-        prepayPayTypeService.checkAndSavePrepayPayType(tradeOrderDO.getOutTradeNo(), dto.getPayType());
+        }
 
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
         PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
@@ -354,8 +375,22 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             log.warn("交易单状态异常");
             throw new BizException("交易单状态异常");
         }
-        prepayPayTypeService.checkAndSavePrepayPayType(bathTradeOrderDO.getOutTradeNo(), dto.getPayType());
+        Integer payType = dto.getPayType();
+        boolean saveIfAbsent = prepayPayTypeService.saveIfAbsent(bathTradeOrderDO.getOutTradeNo(), payType);
+        if ( !saveIfAbsent) {
+            /**
+             * 发送补单任务
+             */
+            PayCompensateOrderRetryPolicyBO firstLevelRetryPolicy = payRetryPolicyCacheService.getFirstLevelRetryPolicy();
+            CompensatePaymentOrderMessage message = new CompensatePaymentOrderMessage();
+            message.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());
+            message.setPayType(payType);
+            message.setRetryLevel(firstLevelRetryPolicy.getRetryLevel());
+            message.setBathOrder( true);
+            rocketMqClient. sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
+                    JsonUtils.toJsonString(message), TimeUnit.SECONDS, firstLevelRetryPolicy.getDelaySeconds());
 
+        }
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
         PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
         prepayOrderDTO.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());

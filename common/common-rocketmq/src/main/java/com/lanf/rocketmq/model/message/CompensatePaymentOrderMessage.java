@@ -12,10 +12,12 @@ public class CompensatePaymentOrderMessage implements Serializable {
     /**
      * 支付类型
      */
-    private String payType;
+    private Integer payType;
     /**
      * 重试次数（第几次重试）
      *
      */
     private Integer retryLevel;
+
+    private Boolean bathOrder;
 }

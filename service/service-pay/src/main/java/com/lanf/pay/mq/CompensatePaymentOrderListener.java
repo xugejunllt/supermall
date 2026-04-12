@@ -4,12 +4,15 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.*;
+import com.lanf.pay.model.entity.BathTradeOrderDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
+import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
 import com.lanf.pay.model.enums.CompensatePaymentStatusEnum;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.model.enums.TradeStatusEnum;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
+import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.impl.PayRetryPolicyCacheService;
 import com.lanf.rocketmq.model.TopicName;
@@ -43,7 +46,8 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
 
     @Autowired
     private ITradeOrderService tradeOrderService;
-
+    @Autowired
+    private IBathTradeOrderService bathTradeOrderService;
 
 
     @Override
@@ -64,18 +68,20 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
     private void handleCompensatePayment(CompensatePaymentOrderMessage message) {
 
         String outTradeNo = message.getOutTradeNo();
-        String payType = message.getPayType();
+        Integer payType = message.getPayType();
         Integer retryLevel = message.getRetryLevel();
-        QueryThirdPartyPaymentStatusBO queryThirdPartyPaymentStatusBO = queryThirdPartyPaymentStatus(outTradeNo, payType);
+        Boolean bathOrder = message.getBathOrder();
+        QueryThirdPartyPaymentStatusBO queryThirdPartyPaymentStatusBO = queryThirdPartyPaymentStatus(outTradeNo, payType,bathOrder);
         CompensatePaymentStatusEnum paymentSuccess = queryThirdPartyPaymentStatusBO.getPaymentStatus() ;
+        TradeStatusBO tradeStatusBO = queryThirdPartyPaymentStatusBO.getTradeStatusBO();
         switch (paymentSuccess){
 
             case CONTINUE:
-                scheduleNextRetry( outTradeNo,  payType,retryLevel);
+                scheduleNextRetry( outTradeNo,  payType,retryLevel, bathOrder);
                 break;
 
             case SUCCESS:
-                executePaymentCompensation(outTradeNo, payType, queryThirdPartyPaymentStatusBO.getTradeStatusBO());
+                executePaymentCompensation(outTradeNo, payType, tradeStatusBO);
                 break;
             case FINISH:
                 log.info("支付成功,结束补投任务");
@@ -86,23 +92,45 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
 
 
 
-    private QueryThirdPartyPaymentStatusBO queryThirdPartyPaymentStatus(String outTradeNo, String payType) {
+    private QueryThirdPartyPaymentStatusBO queryThirdPartyPaymentStatus(String outTradeNo,
+                                                                        Integer payType,Boolean bathOrder) {
 
-        TradeOrderDO tradeOrder = tradeOrderService.lambdaQuery()
-                .eq(TradeOrderDO::getOutTradeNo, outTradeNo)
-                .one();
 
-        if (tradeOrder == null) {
-            log.error("交易订单不存在:outTradeNo={}", outTradeNo);
-            throw new BizException("交易订单不存在");
+
+        if (bathOrder){
+
+
+            BathTradeOrderDO bathTradeOrderDO = bathTradeOrderService.lambdaQuery()
+                    .eq(BathTradeOrderDO::getOutTradeNo, outTradeNo)
+                    .one();
+            if (bathTradeOrderDO == null) {
+                log.warn("批量交易订单不存在:outTradeNo={}", outTradeNo);
+                throw new BizException("批量交易订单不存在");
+            }
+
+            if (!BathTradeOrderStatusEnum.PENDING.getCode().equals(bathTradeOrderDO.getPayStatus())) {
+                log.info("订单非待支付状态，结束补投:outTradeNo={},payStatus={}", outTradeNo, bathTradeOrderDO.getPayStatus());
+                return new QueryThirdPartyPaymentStatusBO(CompensatePaymentStatusEnum.FINISH, null);
+            }
+
+        } else {
+            TradeOrderDO tradeOrder = tradeOrderService.lambdaQuery()
+                    .eq(TradeOrderDO::getOutTradeNo, outTradeNo)
+                    .one();
+
+            if (tradeOrder == null) {
+                log.warn("交易订单不存在:outTradeNo={}", outTradeNo);
+                throw new BizException("交易订单不存在");
+            }
+
+            if (!TradeOrderStatusEnum.PENDING.getCode().equals(tradeOrder.getPayStatus())) {
+                log.info("订单非待支付状态，结束补投:outTradeNo={},payStatus={}", outTradeNo, tradeOrder.getPayStatus());
+                return new QueryThirdPartyPaymentStatusBO(CompensatePaymentStatusEnum.FINISH, null);
+            }
         }
 
-        if (!TradeOrderStatusEnum.PENDING.getCode().equals(tradeOrder.getPayStatus())) {
-            log.info("订单非待支付状态，结束补投:outTradeNo={},payStatus={}", outTradeNo, tradeOrder.getPayStatus());
-            return new QueryThirdPartyPaymentStatusBO(CompensatePaymentStatusEnum.FINISH, null);
-        }
 
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(Integer.parseInt(payType));
+        PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
         TradeStatusBO tradeStatusBO = paymentService.queryTradeStatus(outTradeNo);
         TradeStatusEnum tradeStatus = tradeStatusBO.getTradeStatus();
 
@@ -131,7 +159,9 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
         return new QueryThirdPartyPaymentStatusBO(paymentStatus, tradeStatusBO);
     }
 
-    private void executePaymentCompensation(String outTradeNo, String payType,TradeStatusBO tradeStatusBO) {
+
+
+    private void executePaymentCompensation(String outTradeNo, Integer payType,TradeStatusBO tradeStatusBO) {
 
 
         PaySuccessHandleBO successHandleBO = BeanCopyUtils.copyBean(tradeStatusBO, PaySuccessHandleBO.class);
@@ -143,14 +173,19 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
 
     }
 
-    private void scheduleNextRetry(String outTradeNo, String payType, Integer currentRetryLevel) {
+    private void scheduleNextRetry(String outTradeNo, Integer payType, Integer currentRetryLevel,Boolean bathOrder) {
 
         int nextRetryLevel = currentRetryLevel + 1;
         log.info("安排下次重试:outTradeNo={},payType={},nextRetryLevel={}",
                 outTradeNo, payType, nextRetryLevel);
 
         PayCompensateOrderRetryPolicyBO matchOrNext = findMatchOrNext(nextRetryLevel);
-        CompensatePaymentOrderMessage message = buildCompensatePaymentMessage(outTradeNo, payType, matchOrNext.getRetryLevel());
+
+        CompensatePaymentOrderMessage message = new CompensatePaymentOrderMessage();
+        message.setOutTradeNo(outTradeNo);
+        message.setPayType(payType);
+        message.setRetryLevel(matchOrNext.getRetryLevel());
+        message.setBathOrder(bathOrder);
         rocketMqClient.sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
                 JsonUtils.toJsonString(message), TimeUnit.SECONDS, matchOrNext.getDelaySeconds());
 
@@ -174,12 +209,11 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
 
 
     }
-    private CompensatePaymentOrderMessage buildCompensatePaymentMessage(String outTradeNo, String payType,Integer retryLevel) {
-        CompensatePaymentOrderMessage message = new CompensatePaymentOrderMessage();
-        message.setOutTradeNo(outTradeNo);
-        message.setPayType(payType);
-        message.setRetryLevel(retryLevel);
 
-        return message;
-    }
+
+
+
+
+
+
 }
