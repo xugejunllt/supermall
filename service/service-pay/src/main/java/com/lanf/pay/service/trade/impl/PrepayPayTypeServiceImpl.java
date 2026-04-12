@@ -8,6 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 public class PrepayPayTypeServiceImpl extends ServiceImpl<PrepayPayTypeMapper, PrepayPayTypeDO> implements IPrepayPayTypeService {
@@ -21,7 +25,7 @@ public class PrepayPayTypeServiceImpl extends ServiceImpl<PrepayPayTypeMapper, P
 
         if (existingRecord != null) {
             log.debug("预支付类型记录已存在:outTradeNo={},payType={}", outTradeNo, payType);
-            return  true;
+            return false;
         }
 
         PrepayPayTypeDO prepayPayTypeDO = new PrepayPayTypeDO();
@@ -30,14 +34,29 @@ public class PrepayPayTypeServiceImpl extends ServiceImpl<PrepayPayTypeMapper, P
 
         try {
             this.save(prepayPayTypeDO);
-
-            return false;
-
-        } catch (DuplicateKeyException e) {
-
-            log.info("预支付类型记录已存在（唯一索引冲突）:outTradeNo={},payType={}", outTradeNo, payType);
+            log.info("保存预支付类型成功:outTradeNo={},payType={}", outTradeNo, payType);
             return true;
+        } catch (DuplicateKeyException e) {
+            log.info("预支付类型记录已存在（唯一索引冲突）:outTradeNo={},payType={}", outTradeNo, payType);
+            return false;
         }
+    }
+
+    @Override
+    public List<Integer> getPayTypesByOutTradeNo(String outTradeNo) {
+        List<PrepayPayTypeDO> payTypeList = this.lambdaQuery()
+                .eq(PrepayPayTypeDO::getOutTradeNo, outTradeNo)
+                .select(PrepayPayTypeDO::getPayType)
+                .list();
+
+        if (  payTypeList.isEmpty()) {
+            log.debug("未查询到支付方式:outTradeNo={}", outTradeNo);
+            return Collections.emptyList();
+        }
+
+        return payTypeList.stream()
+                .map(PrepayPayTypeDO::getPayType)
+                .collect(Collectors.toList());
 
     }
 

@@ -47,6 +47,14 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
     void payCallback(PayCallbackDTO dto);
 
     /**
+     * 取消交易单
+     *
+     */
+
+    CancelTradeOrderVO cancelTradeOrder(CancelTradeOrderDTO dto);
+
+
+    /**
      * 支付成功处理
      *
      *
