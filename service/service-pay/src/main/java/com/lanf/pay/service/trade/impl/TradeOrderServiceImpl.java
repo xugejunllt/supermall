@@ -79,6 +79,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Autowired
     private RedissonCacheService redissonCacheService;
 
+
+
     private static final String PREPAY_PAY_TYPE_CACHE_KEY = "prepay_pay_type:%s";
 
     private static final long CACHE_EXPIRE_TIME = 30L;
@@ -317,7 +319,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             log.error("交易单不存在");
             throw new BizException("交易单不存在");
         }
-        if (!BathTradeOrderStatusEnum.PENDING.getCode().
+        if (!TradeOrderStatusEnum.PENDING.getCode().
                 equals(tradeOrderDO.getPayStatus())) {
             log.info("交易单状态异常");
             throw new BizException("交易单状态异常");
@@ -337,6 +339,37 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         return vo;
     }
+
+    public CreatePrepayOrderVO bathCreatePrepayOrder(BathCreatePrepayOrderDTO dto) {
+
+        BathTradeOrderDO bathTradeOrderDO = bathTradeOrderService.lambdaQuery()
+                .eq(BathTradeOrderDO::getMainOrderId, dto.getMainOrderId()).one();
+
+        if (bathTradeOrderDO == null) {
+            log.warn("批量交易单不存在");
+            throw new BizException("批量交易单不存在");
+        }
+        if ( !BathTradeOrderStatusEnum.PENDING.getCode().
+                equals(bathTradeOrderDO.getPayStatus())){
+            log.warn("交易单状态异常");
+            throw new BizException("交易单状态异常");
+        }
+        prepayPayTypeService.checkAndSavePrepayPayType(bathTradeOrderDO.getOutTradeNo(), dto.getPayType());
+
+        PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
+        PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
+        prepayOrderDTO.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());
+        prepayOrderDTO.setTotalAmount(bathTradeOrderDO.getBatchFee());
+        prepayOrderDTO.setBathPay(true);
+        PrepayOrderVO prepayOrderVO = paymentService.createPrepayOrder(prepayOrderDTO);
+
+        CreatePrepayOrderVO vo = new CreatePrepayOrderVO();
+        vo.setOrderStr(prepayOrderVO.getOrderStr());
+
+        return vo;
+    }
+
+
 
 
     @Override

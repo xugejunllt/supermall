@@ -35,7 +35,11 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
      *
      */
     CreatePrepayOrderVO createPrepayOrder(CreatePrepayOrderDTO dto);
-
+    /**
+     * 批量创建预支付信息
+     *
+     */
+    CreatePrepayOrderVO bathCreatePrepayOrder(BathCreatePrepayOrderDTO dto);
     /**
      * 支付成功回调通知
      *
