@@ -15,4 +15,6 @@ public class PrepayOrderDTO implements Serializable {
     private BigDecimal totalAmount;
     //是否是批量付款
     private  Boolean bathPay;
+    //超时时间 单位分钟
+    private Integer expireInterval;
 }

@@ -1,6 +1,7 @@
 package com.lanf.pay.service.pay;
 
 import com.lanf.pay.model.bo.CallbackResultBO;
+import com.lanf.pay.model.bo.TradeStatusBO;
 import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.vo.PrepayOrderVO;
 
@@ -21,7 +22,11 @@ public interface PaymentService {
      *
      */
     CallbackResultBO parse(HttpServletRequest request);
-
+    /**
+     * 查询支付订单支付状态
+     *
+     */
+    TradeStatusBO queryTradeStatus(String outTradeNo);
     /**
      * 响应支付回调成功
      *

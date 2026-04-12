@@ -7,9 +7,9 @@ import java.io.Serializable;
 @Data
 public class PaySuccessHandleResultBO implements Serializable {
 
-    private  Boolean responseOk;
+    private  Boolean handleSuccess;
 
     public PaySuccessHandleResultBO(Boolean responseOk) {
-        this.responseOk = responseOk;
+        this.handleSuccess = responseOk;
     }
 }

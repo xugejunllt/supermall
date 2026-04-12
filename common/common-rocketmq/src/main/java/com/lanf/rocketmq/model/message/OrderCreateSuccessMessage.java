@@ -8,9 +8,6 @@ import java.io.Serializable;
 public class OrderCreateSuccessMessage implements Serializable {
 
     private Long orderId;
-    /**
-     * 是否是第一次发送
-     */
-    private Boolean firstSend;
+
 
 }

@@ -1,7 +1,9 @@
 package com.lanf.pay.service.trade.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.BaseEntity;
@@ -20,8 +22,10 @@ import com.lanf.pay.model.vo.*;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
+import com.lanf.pay.service.pay.config.PayConfig;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.IPayOrderService;
+import com.lanf.pay.service.trade.IPrepayPayTypeService;
 import com.lanf.pay.service.trade.ITradeOrderItemService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.utils.PryServiceUtils;
@@ -38,10 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -69,7 +70,18 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private IBathTradeOrderService bathTradeOrderService;
     @Autowired
     private IPayOrderFlowService payOrderFlowService;
+    @Autowired
+    private IPrepayPayTypeService prepayPayTypeService;
 
+    @Autowired
+    private PayConfig payConfig;
+
+    @Autowired
+    private RedissonCacheService redissonCacheService;
+
+    private static final String PREPAY_PAY_TYPE_CACHE_KEY = "prepay_pay_type:%s";
+
+    private static final long CACHE_EXPIRE_TIME = 30L;
 
 
 
@@ -109,6 +121,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
 
         String outTradeNo = PryServiceUtils.generateOutTradeNo(dto.getOrderId());
+        Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
 
         TradeOrderDO tradeOrderDO = new TradeOrderDO();
         tradeOrderDO.setBathPayOrderId(-1L);
@@ -120,6 +133,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setBathPay(0);
         tradeOrderDO.setVersion(1L);
         tradeOrderDO.setOrderNumber(dto.getOrderNumber());
+        tradeOrderDO.setExpireInterval(payConfig.getExpireInterval());
+        tradeOrderDO.setExpireTime(expireTime);
+
         return tradeOrderDO;
     }
 
@@ -165,7 +181,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         Result<List<UseCouponVO>> listResult = welfareApiService.bathUseCoupon(dtoList);
         Integer code = listResult.getCode();
         if (code == 200 && !listResult.getData().isEmpty()) {
-            //使用成功
             listResult.getData().forEach(a -> useCouponVOMap.put(a.getShopId(), a));
 
         } else {
@@ -180,16 +195,13 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Override
     public OrderTradeVO queryOrderTradeByOrderId(Long orderId) {
 
-        //查询用户下单支付的交易单
         TradeOrderDO tradeOrderDO = null;
         if (tradeOrderDO == null) {
-            //即使交易没有完成 也不会报错
             return null;
         }
 
         PayOrderDO payOrderDO = payOrderService.lambdaQuery().eq(PayOrderDO::getBizOrderId, orderId).one();
         if (payOrderDO == null) {
-            //即使交易没有完成 也不会报错
             return null;
         }
 
@@ -202,7 +214,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                 break;
             }
         }
-        //优惠方式
         Integer discountType = null;
         String discountTypeName = null;
 
@@ -210,17 +221,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             discountType = discountInfo.getPayType();
             discountTypeName = "优惠券";
         }
-        /**
-         * 构建返回信息
-         */
         OrderTradeVO tradeVO = new OrderTradeVO();
         tradeVO.setOrderId(orderId);
         tradeVO.setPayType(payOrderDO.getPayType());
         tradeVO.setPayMoney(payOrderDO.getPayMoney());
-//        tradeVO.setOrderMoney(tradeOrderDO.getOrderMoney());
-//        tradeVO.setSource(tradeOrderDO.getSource());
-//        tradeVO.setPayFinishTime(payOrderDO.getPayFinishTime());
-//        tradeVO.setDiscountMoney(tradeOrderDO.getDiscountMoney());
         tradeVO.setDiscountType(discountType);
         tradeVO.setDiscountTypeName(discountTypeName);
         tradeVO.setPayTypeName(getPayTypeName(payOrderDO.getPayType()));
@@ -258,19 +262,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Override
     public TradeOrderApiVO tradeOrderQuery(TradeOrderQuery query) {
 
-//        Long orderId = query.getOrderId();
-//        Integer source = query.getSource();
-//
-//        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getBizOrderId, orderId).eq(TradeOrderDO::getSource, source).one();
-//        Long id = tradeOrderDO.getId();
-//        PayOrderDO payOrderDO = payOrderService.lambdaQuery().eq(PayOrderDO::getTradeOrderId, id).one();
-//
-//        TradeOrderApiVO vo = new TradeOrderApiVO();
-//        BeanCopyUtils.copy(tradeOrderDO, vo);
-//        vo.setIncomeAccount(payOrderDO.getIncomeAccount());
-//        vo.setAccountType(payOrderDO.getPayType());
-//        vo.setActualPayMoney(payOrderDO.getPayMoney());
-//        vo.setReceiptMoney(payOrderDO.getReceiptMoney());
         return null;
     }
 
@@ -283,7 +274,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
 
         List<TradeOrderDO> tradeOrderDOList = this.lambdaQuery().select(BaseEntity::getId).
-                //in(TradeOrderDO::getSource, dto.getSources()).
                         eq(TradeOrderDO::getPayStatus, 2).list();
         List<Long> collect = tradeOrderDOList.stream().map(BaseEntity::getId).collect(Collectors.toList());
 
@@ -333,13 +323,15 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BizException("交易单状态异常");
         }
 
+        prepayPayTypeService.checkAndSavePrepayPayType(tradeOrderDO.getOutTradeNo(), dto.getPayType());
+
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
         PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
         prepayOrderDTO.setOutTradeNo(tradeOrderDO.getOutTradeNo());
         prepayOrderDTO.setTotalAmount(tradeOrderDO.getTradeMoney());
         prepayOrderDTO.setBathPay(false);
+        prepayOrderDTO.setExpireInterval(tradeOrderDO.getExpireInterval());
         PrepayOrderVO prepayOrderVO = paymentService.createPrepayOrder(prepayOrderDTO);
-
         CreatePrepayOrderVO vo = new CreatePrepayOrderVO();
         vo.setOrderStr(prepayOrderVO.getOrderStr());
 
@@ -366,9 +358,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private void handlePayCallback(PayCallbackDTO dto) {
 
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
-        /**
-         * 解析报文
-         */
         CallbackResultBO resultBO = null;
 
         try {
@@ -381,33 +370,25 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         paySuccessHandleBO.setPayType(dto.getPayType());
         paySuccessHandleBO.setResultBO(resultBO);
         PaySuccessHandleResultBO handleResultBO = paySuccessHandleBO(paySuccessHandleBO);
-        if (handleResultBO.getResponseOk()) {
+        if (handleResultBO.getHandleSuccess()) {
             paymentService.responsePayOk(dto.getResponse());
         } else {
             paymentService.responsePayFail(dto.getResponse());
         }
     }
-
-    private PaySuccessHandleResultBO paySuccessHandleBO(PaySuccessHandleBO paySuccessHandleBO){
+    @Override
+    public PaySuccessHandleResultBO paySuccessHandleBO(PaySuccessHandleBO paySuccessHandleBO){
 
         CallbackResultBO resultBO = paySuccessHandleBO.getResultBO();
-        /**
-         * 数据校验
-         */
         String outTradeNo = resultBO.getOutTradeNo();
-        Boolean responseOk = null;
-        /**
-         * 组合付款单笔付款场景处理
-         */
+        Boolean responseOk = false;
         PaySceneEnum payScene = getPayScene(outTradeNo, resultBO.getBathPay());
 
         if (PaySceneEnum.SINGLE_ORDER_SINGLE_PAY.equals(payScene)) {
             try {
                 handleSinglePayScene( outTradeNo, resultBO, responseOk,paySuccessHandleBO.getPayType());
             } catch (BizException ignored) {
-                /**
-                 * 抛异常只为让事务进行回滚
-                 */
+                
             }
 
         }
@@ -415,18 +396,14 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             try {
                 handleCombinedPayScene( outTradeNo, resultBO, responseOk,paySuccessHandleBO.getPayType());
             } catch (BizException ignored) {
-                /**
-                 * 抛异常只为让事务进行回滚
-                 */
+                
             }
         }
         if (PaySceneEnum.COMBINED_TO_SINGLE_PAY.equals(payScene)) {
             try {
                 handleCombinedToSinglePayScene( outTradeNo, resultBO,responseOk, paySuccessHandleBO.getPayType());
             } catch (BizException ignored) {
-                /**
-                 * 抛异常只为让事务进行回滚
-                 */
+                
             }
         }
         return new PaySuccessHandleResultBO(responseOk);
@@ -492,18 +469,14 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
         if (TradeOrderStatusEnum.COMPLETED.getCode()
                 .equals(tradeOrderDO.getPayStatus()) && flowDO == null) {
-            /**
-             * 发生多次支付 这里进行退款
-             */
+            
 
         }
 
 
         if (BathTradeOrderStatusEnum.MERGE_TRANSFER_SINGLE.getCode().
                 equals(tradeOrderDO.getPayStatus())) {
-            /**
-             * 已进行合并付款已单笔付款 这里进行合并付款退款
-             */
+            
 
         }
 
@@ -559,9 +532,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (BathTradeOrderStatusEnum.COMPLETED.getCode()
                 .equals(bathTradeOrderDO.getPayStatus()) && flowDO == null) {
 
-            /**
-             * 发生多渠道多次支付 这里进行退款
-             */
 
             return;
         }
@@ -570,12 +540,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
 
 
-
-
         if (BathTradeOrderStatusEnum.MERGE_TRANSFER_SINGLE.getCode().equals(payStatus) ) {
-            /**
-             * 退款 合并付款单 幂等退款
-             */
+            
             responseOk = true;
             return;
         }
@@ -610,8 +576,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
 
-// ... existing code ...
-
     @Transactional
     public void handleCombinedToSinglePayScene( String outTradeNo, CallbackResultBO resultBO, Boolean responseOk,Integer payType) {
         TradeOrderDO tradeOrderDO = this.lambdaQuery()
@@ -633,9 +597,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
         if ( BathTradeOrderStatusEnum.COMPLETED.getCode().equals(orderDO.getPayStatus())) {
 
-            /**
-             * 组合单已付款 进行单笔退款  幂等退款
-             */
 
             responseOk = true;
             return;
@@ -653,9 +614,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
         if (TradeOrderStatusEnum.COMPLETED.getCode()
                 .equals(tradeOrderDO.getPayStatus()) && flowDO == null) {
-            /**
-             * 发生多渠道多次支付 这里进行退款
-             */
+            
             return;
         }
 
@@ -667,10 +626,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         if ( BathTradeOrderStatusEnum.PENDING.getCode().equals(orderDO.getPayStatus())) {
            log.info("更新批量交易单状态");
-            /**
-             * 其中一笔交易单完成 那么就更新为已支付
-             * 允许多线程并发更新失败 但不影响子交易单的更新
-             */
+            
             bathTradeOrderService.lambdaUpdate()
                     .eq(BaseEntity::getId, bathPayOrderId)
                     .eq(BathTradeOrderDO::getVersion, orderDO.getVersion())
@@ -695,8 +651,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
     }
 
-// ... existing code ...
-
     private PayOrderFlowDO buildPayOrderFlowDO(Integer payType, CallbackResultBO resultBO) {
         PayOrderFlowDO payOrderFlowDO = new PayOrderFlowDO();
         payOrderFlowDO.setPayType(payType);
@@ -710,15 +664,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         payOrderFlowDO.setTradeNo(resultBO.getTradeNo());
         return payOrderFlowDO;
     }
-    @Override
-    public void payCompensateOrder(String outTradeNo) {
 
-       // 获取交易单
-        //TradeOrderDO tradeOrderDO = this.lambdaQuery();
-
-
-
-    }
 
 
 

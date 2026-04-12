@@ -36,17 +36,20 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
 
 pay:
-  ali:
-    notifyUrl: http://94kf749024wj.vicp.fun/pay/callback/aliPayCallback
-    serverUrl: https://openapi.alipay.com/gateway.do
-    appId: 2021004163695380
-    format: json
-    charset: utf-8
-    signType: RSA2
-    appCertPath: D:\file\支付宝支付证书\appCertPublicKey_2021004163695380.crt
-    alipayPublicCertPath: D:\file\支付宝支付证书\alipayCertPublicKey_RSA2.crt
-    rootCertPath: D:\file\支付宝支付证书\alipayRootCert.crt
-    privateKey: "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC5fJqJ\
+  #支付操作时间 分钟
+  expireInterval: 60
+  channel:
+    ali:
+      notifyUrl: http://94kf749024wj.vicp.fun/pay/callback/aliPayCallback
+      serverUrl: https://openapi.alipay.com/gateway.do
+      appId: 2021004163695380
+      format: json
+      charset: utf-8
+      signType: RSA2
+      appCertPath: D:\file\支付宝支付证书\appCertPublicKey_2021004163695380.crt
+      alipayPublicCertPath: D:\file\支付宝支付证书\alipayCertPublicKey_RSA2.crt
+      rootCertPath: D:\file\支付宝支付证书\alipayRootCert.crt
+      privateKey: "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC5fJqJ\
     S6xzxrx27nSp7x3xZhaJqj0tVxBFy3iVP/1HljJ6qw+XMs6JuCyWvNRS0A/CcJ\
     VZbkL9Ae+xB3PzWihoPIXQGGBiikTLTiarz3kOwYLJCe2SheBm4DKJCBexcIl\
     Y3Qwt9ggo2tAzMxjbKW9XH54MIJZXxv2axbYtqke65Rf972l+F3gEV5yf3ih3\

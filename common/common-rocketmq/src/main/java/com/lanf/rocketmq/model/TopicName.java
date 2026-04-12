@@ -94,6 +94,12 @@ public class TopicName {
      */
     public static final String ORDER_CREATE_SUCCESS_TOPIC = "ORDER_CREATE_SUCCESS_TOPIC";
     /**
+     * 补投支付订单
+     */
+
+    public static final String COMPENSATE_PAYMENT_TOPIC = "COMPENSATE_PAYMENT_TOPIC";
+
+    /**
      * 消费组名
      */
     public static  final String ORDER_STATUS_CHANGE__UPDATE_ORDER_GROUP = "ORDER_STATUS_CHANGE__UPDATE_ORDER_GROUP";
@@ -134,6 +140,7 @@ public class TopicName {
      * 订单创建成功 - 支付服务消费组
      */
     public static final String ORDER_CREATE_PAY_GROUP = "ORDER_CREATE_PAY_GROUP";
+    public static final String COMPENSATE_PAYMENT_GROUP = "COMPENSATE_PAYMENT_GROUP";
 
 
 }

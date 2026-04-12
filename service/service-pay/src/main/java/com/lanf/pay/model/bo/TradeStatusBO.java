@@ -1,19 +1,50 @@
 package com.lanf.pay.model.bo;
 
+import com.lanf.pay.model.enums.TradeStatusEnum;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Data
 public class TradeStatusBO implements Serializable {
 
-    //是否发起交易
-    private Boolean exist;
-    //0:交易创建，等待买家付款,1:交易支付成功,2:交易结束，不能退款 3:未付款交易超时关闭，或支付完成后全额退款
-    private Integer tradeStatus;
-    //支付金额
+
+    @ApiModelProperty(value = "用户支付完成时间")
+    private Date payFinishTime;
+
+    @ApiModelProperty(value = "实收金额")
+
+    private BigDecimal receiptMoney;
+
+    /**
+     * 订单总金额，单位为元，精确到小数点后两位
+     */
     private BigDecimal totalAmount;
-    //实收金额
-    private BigDecimal receiptAmount;
+
+    private String payAccount;
+
+    @ApiModelProperty(value = "收款账户")
+    private String incomeAccount;
+
+    @ApiModelProperty(value = "通知时间")
+    private Date notifyTime;
+    /**
+     * 支付宝交易号。支付宝交易凭证号。
+     *
+     *
+     */
+    private String tradeNo;
+    /**
+     * 商户订单号
+     */
+    private String outTradeNo;
+    //是否是批量支付
+    private  Boolean bathPay;
+    /**
+     * 交易状态
+     */
+    private TradeStatusEnum tradeStatus;
 }

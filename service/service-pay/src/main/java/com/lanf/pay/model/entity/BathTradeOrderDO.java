@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * <p>
@@ -48,7 +49,11 @@ private static final long serialVersionUID=1L;
      *
      */
     private Integer payStatus;
+    @ApiModelProperty(value = "过期时间")
+    private Date expireTime;
 
+    @ApiModelProperty(value = "过期时间间隔")
+    private Integer expireInterval;
     private Long version;
 
 }

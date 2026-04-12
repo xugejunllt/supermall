@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * <p>
@@ -37,7 +38,11 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "付款总金额")
     private BigDecimal batchFee;
+    @ApiModelProperty(value = "过期时间")
+    private Date expireTime;
 
+    @ApiModelProperty(value = "过期时间间隔（秒）")
+    private Integer expireInterval;
 
 
 }

@@ -1,6 +1,8 @@
 package com.lanf.pay.service.trade;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.pay.model.bo.PaySuccessHandleBO;
+import com.lanf.pay.model.bo.PaySuccessHandleResultBO;
 import com.lanf.pay.model.dto.*;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
@@ -41,11 +43,11 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
     void payCallback(PayCallbackDTO dto);
 
     /**
-     * 补投支付订单
+     * 支付成功处理
+     *
      *
      */
-    void payCompensateOrder(String outTradeNo);
-
+     PaySuccessHandleResultBO paySuccessHandleBO(PaySuccessHandleBO paySuccessHandleBO);
 
     @Deprecated
     CreatePayOrderVO createPayOrder(List<CreatePayOrderDTO> dto);

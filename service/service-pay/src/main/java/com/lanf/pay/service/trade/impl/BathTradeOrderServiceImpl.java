@@ -2,6 +2,7 @@ package com.lanf.pay.service.trade.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.mapper.BathTradeOrderMapper;
@@ -16,6 +17,7 @@ import com.lanf.pay.model.vo.CreatePrepayOrderVO;
 import com.lanf.pay.model.vo.PrepayOrderVO;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
+import com.lanf.pay.service.pay.config.PayConfig;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.utils.PryServiceUtils;
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +48,8 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
 
     @Autowired
     private ITradeOrderService tradeOrderService;
-
+    @Autowired
+    private PayConfig payConfig;
 
     @HmilyTCC(confirmMethod = "confirmCreateMergeTradeOrder", cancelMethod = "cancelCreateMergeTradeOrder")
     @Override
@@ -74,13 +78,14 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
         /**
          * 构建BathTradeOrderDO
          */
-        BathTradeOrderDO bathTradeOrderDO1 = buildBathTradeOrderDO(dto);
+        Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
+        BathTradeOrderDO bathTradeOrderDO1 = buildBathTradeOrderDO(dto, expireTime);
 
         /**
          *
          * 创建交易单
          */
-        List<TradeOrderDO> tradeOrderDOList = buildTradeOrderDOList(dto,bathTradeOrderDO);
+        List<TradeOrderDO> tradeOrderDOList = buildTradeOrderDOList(dto,bathTradeOrderDO,expireTime);
         try {
             this.save(bathTradeOrderDO1);
         } catch (DuplicateKeyException e) {
@@ -94,7 +99,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
 
     }
 
-    private List<TradeOrderDO> buildTradeOrderDOList(CreateMergeTradeOrderDTO dto, BathTradeOrderDO bathTradeOrderDO) {
+    private List<TradeOrderDO> buildTradeOrderDOList(CreateMergeTradeOrderDTO dto, BathTradeOrderDO bathTradeOrderDO,Date expireTime) {
         return dto.getTradeOrderItemList().stream()
                 .map(item -> {
                     String outTradeNo = PryServiceUtils.generateOutTradeNo(item.getOrderId());
@@ -106,11 +111,12 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                     tradeOrderDO.setTradeMoney(item.getTradeMoney());
                     tradeOrderDO.setPayStatus(0);
                     tradeOrderDO.setBathPay(1);
+                    tradeOrderDO.setExpireTime(expireTime);
                     return tradeOrderDO;
                 })
                 .collect(Collectors.toList());
     }
-    private BathTradeOrderDO buildBathTradeOrderDO(CreateMergeTradeOrderDTO dto) {
+    private BathTradeOrderDO buildBathTradeOrderDO(CreateMergeTradeOrderDTO dto, Date expireTime) {
         String batchNo =  PryServiceUtils.generateOutTradeNo(dto.getMainOrderId());
         Integer batchNum = dto.getTradeOrderItemList().size();
 
@@ -135,6 +141,9 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
         bathTradeOrderDO1.setBatchNum(batchNum);
         bathTradeOrderDO1.setBatchFee(batchFee);
         bathTradeOrderDO1.setMainOrderNumber(dto.getMainOrderNumber());
+        bathTradeOrderDO1.setExpireInterval(payConfig.getExpireInterval());
+        bathTradeOrderDO1.setExpireTime(expireTime);
+
         return bathTradeOrderDO1;
     }
 
