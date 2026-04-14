@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, TccOperationDO> implements ITccOperationService {
 
     @Override
-    public void tryOperation(String bizKey) {
+    public void tryOperation(String bizKey, String parameter) {
 
         HmilyTransactionContext hmilyTransactionContext = HmilyContextHolder.get();
 
@@ -39,6 +39,7 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
         tccOperationDO.setStatus(0);
         tccOperationDO.setVersion(1L);
         tccOperationDO.setParticipantId(hmilyTransactionContext.getParticipantId());
+        tccOperationDO.setParameter(parameter);
         try {
             this.save(tccOperationDO);
         } catch (DuplicateKeyException e) {
@@ -52,24 +53,21 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
         }
 
     }
+
     /**
-     *
-     *
-     *
      * 只有当 所有try执行成功后，才会执行confirm
-     *
      */
     @Override
     public boolean confirmOperation(String bizKey) {
 
         TccOperationDO one = this.lambdaQuery().eq(TccOperationDO::getBizKey, bizKey).one();
-        if (one == null){
+        if (one == null) {
             /**
              * try 阶段 操作DB时 已经return了表示执行成功
              */
             return false;
         }
-        if (one.getStatus() == 1){
+        if (one.getStatus() == 1) {
             log.info("confirm重复执行");
             return false;
         }
@@ -86,11 +84,8 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
     }
 
     /**
-     *
-     *
-     *在准备执行try时前  hmily_transaction_participant写入记录
+     * 在准备执行try时前  hmily_transaction_participant写入记录
      * 当hmily_transaction_participant记录存在记录时 下面就会被调用
-     *
      */
     @Override
     public boolean cancelOperation(String bizKey) {
@@ -99,6 +94,7 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
 
         if (one == null) {
             /**
+             *
              *
              * 防悬挂
              *
@@ -109,15 +105,15 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
              * 记录 如果tcc_operation无记录 则忽略不处理
              *
              */
-           log.error("try阶段未执行");
-           throw new BizException("try阶段未执行");
+            log.error("try阶段未执行");
+            throw new BizException("try阶段未执行");
         }
 
-        if (one.getStatus() == 2 ) {
+        if (one.getStatus() == 2) {
             log.info("cancel重复执行");
             return false;
         }
-        if (one.getStatus() == 1 ) {
+        if (one.getStatus() == 1) {
             log.info("confirm已执行");
             return false;
         }
@@ -135,5 +131,17 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
             throw new BizException("更新失败");
         }
         return true;
+    }
+
+    @Override
+    public String getParameter(String bizKey) {
+
+        TccOperationDO one = this.lambdaQuery().eq(TccOperationDO::getBizKey, bizKey).one();
+        if (one != null) {
+
+            return one.getParameter();
+        }
+        log.error("bizKey不存在[{}]",bizKey);
+        throw new BizException("bizKey不存在");
     }
 }

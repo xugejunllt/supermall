@@ -3,7 +3,6 @@ package com.lanf.pay.service.trade.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
-import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
@@ -12,22 +11,16 @@ import com.lanf.pay.mapper.TradeOrderMapper;
 import com.lanf.pay.model.bo.*;
 import com.lanf.pay.model.dto.*;
 import com.lanf.pay.model.entity.*;
-import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
-import com.lanf.pay.model.enums.PaySceneEnum;
-import com.lanf.pay.model.enums.TradeOrderStatusEnum;
-import com.lanf.pay.model.enums.TradeStatusEnum;
+import com.lanf.pay.model.enums.*;
 import com.lanf.pay.model.query.TradeOrderBathQuery;
 import com.lanf.pay.model.query.TradeOrderQuery;
+import com.lanf.pay.model.tcc.CancelTradeOrderBO;
 import com.lanf.pay.model.vo.*;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.pay.service.pay.config.PayConfig;
-import com.lanf.pay.service.trade.IBathTradeOrderService;
-import com.lanf.pay.service.trade.IPayOrderService;
-import com.lanf.pay.service.trade.IPrepayPayTypeService;
-import com.lanf.pay.service.trade.ITradeOrderItemService;
-import com.lanf.pay.service.trade.ITradeOrderService;
+import com.lanf.pay.service.trade.*;
 import com.lanf.pay.utils.PryServiceUtils;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CompensatePaymentOrderMessage;
@@ -84,6 +77,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private PayRetryPolicyCacheService payRetryPolicyCacheService;
     @Autowired
     private RocketMqClient rocketMqClient;
+
 
 
     private static final String PREPAY_PAY_TYPE_CACHE_KEY = "prepay_pay_type:%s";
@@ -443,14 +437,13 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         CallbackResultBO resultBO = paySuccessHandleBO.getResultBO();
         String outTradeNo = resultBO.getOutTradeNo();
-        Boolean responseOk = false;
+        boolean responseOk = false;
         PaySceneEnum payScene = getPayScene(outTradeNo, resultBO.getBathPay());
 
         if (PaySceneEnum.SINGLE_ORDER_SINGLE_PAY.equals(payScene)) {
             try {
-                handleSinglePayScene(outTradeNo, resultBO, responseOk, paySuccessHandleBO.getPayType());
+                responseOk = handleSinglePayScene(outTradeNo, resultBO, responseOk, paySuccessHandleBO.getPayType());
             } catch (BizException ignored) {
-
             }
 
         }
@@ -458,14 +451,12 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             try {
                 handleCombinedPayScene(outTradeNo, resultBO, responseOk, paySuccessHandleBO.getPayType());
             } catch (BizException ignored) {
-
             }
         }
         if (PaySceneEnum.COMBINED_TO_SINGLE_PAY.equals(payScene)) {
             try {
                 handleCombinedToSinglePayScene(outTradeNo, resultBO, responseOk, paySuccessHandleBO.getPayType());
             } catch (BizException ignored) {
-
             }
         }
         return new PaySuccessHandleResultBO(responseOk);
@@ -494,30 +485,27 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
     @Transactional
-    public void handleSinglePayScene(String outTradeNo, CallbackResultBO resultBO, Boolean responseOk, Integer payType) {
+    public boolean handleSinglePayScene(String outTradeNo, CallbackResultBO resultBO, Boolean responseOk, Integer payType) {
         TradeOrderDO tradeOrderDO = this.lambdaQuery()
                 .eq(TradeOrderDO::getOutTradeNo, outTradeNo)
                 .one();
 
         if (tradeOrderDO == null) {
             log.error("交易单不存在outTradeNo:[{}]", outTradeNo);
-            responseOk = false;
-            return;
+            return false;
         }
 
         BigDecimal totalAmount = resultBO.getTotalAmount();
         BigDecimal tradeMoney = tradeOrderDO.getTradeMoney();
         if (!totalAmount.equals(tradeMoney)) {
             log.error("交易金额异常 outTradeNo:[{}],totalAmount[{}],tradeMoney[{}]", outTradeNo, totalAmount, tradeMoney);
-            responseOk = false;
-            return;
+            return false;
         }
         boolean alreadyPaid = isAlreadyPaid(outTradeNo, payType);
 
         if (alreadyPaid) {
             log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
-            responseOk = true;
-            return;
+            return true;
         }
 
         if (TradeOrderStatusEnum.CANCELLED.getCode().
@@ -552,8 +540,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                 payOrderFlowService.save(payOrderFlowDO);
             } catch (DuplicateKeyException e) {
                 log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
-                responseOk = true;
-                return;
+                return true;
             }
 
             boolean update = this.lambdaUpdate()
@@ -564,15 +551,14 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                     .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
                     .update();
             if (!update) {
-                log.warn("交易单更新失败");
-                responseOk = false;
+                log.error("交易单更新失败");
                 /**
                  * 抛出异常 回滚事务
                  */
                 throw new BizException("交易单更新失败");
             }
+            return true;
         }
-        responseOk = false;
         log.error("未知场景");
         throw new BizException("未知场景");
 
@@ -618,7 +604,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             return;
         }
 
-
         if (BathTradeOrderStatusEnum.COMPLETED.getCode()
                 .equals(bathTradeOrderDO.getPayStatus()) && !alreadyPaid) {
 
@@ -646,6 +631,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
         if (BathTradeOrderStatusEnum.PENDING.getCode().equals(payStatus)) {
 
+            List<TradeOrderDO> tradeOrderDOList = this.lambdaQuery().
+                    eq(TradeOrderDO::getBathPayOrderId, bathTradeOrderDO.getId()).list();
+
             PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(payType, resultBO);
             try {
                 payOrderFlowService.save(payOrderFlowDO);
@@ -659,22 +647,35 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                     .set(BathTradeOrderDO::getVersion, bathTradeOrderDO.getVersion() + 1)
                     .update();
             if (!update1) {
-                log.info("批量交易单已支付");
-                responseOk = true;
-
+                log.warn("交易单更新失败");
+                responseOk = false;
+                /**
+                 * 抛出异常 回滚事务
+                 */
+                throw new BizException("交易单更新失败");
             }
-            List<TradeOrderDO> tradeOrderDOList = this.lambdaQuery().
-                    eq(TradeOrderDO::getBathPayOrderId, bathTradeOrderDO.getId()).list();
 
-            if (!tradeOrderDOList.isEmpty()) {
-                List<Long> ids = tradeOrderDOList.stream()
-                        .map(TradeOrderDO::getId)
-                        .collect(Collectors.toList());
-                this.lambdaUpdate()
-                        .in(BaseEntity::getId, ids)
-                        .set(TradeOrderDO::getPayStatus, BathTradeOrderStatusEnum.COMPLETED.getCode())
-                        .setSql("version = version + 1")
+            /**
+             *
+             * 这里修改一下 要么全部成功 要么全部失败
+             *
+             */
+            for (TradeOrderDO tradeOrderDO : tradeOrderDOList) {
+                boolean update = this.lambdaUpdate()
+                        .eq(BaseEntity::getId, tradeOrderDO.getId())
+                        .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
+                        .eq(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.PENDING.getCode())
+                        .set(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.COMPLETED.getCode())
+                        .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
                         .update();
+                if (!update) {
+                    log.warn("交易单更新失败");
+                    responseOk = false;
+                    /**
+                     * 抛出异常 回滚事务
+                     */
+                    throw new BizException("交易单更新失败");
+                }
             }
 
         }
@@ -724,7 +725,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             responseOk = true;
             return;
         }
-
         if (BathTradeOrderStatusEnum.PENDING.getCode().equals(orderDO.getPayStatus())) {
             log.info("更新批量交易单状态");
 
@@ -740,12 +740,12 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         boolean update = this.lambdaUpdate()
                 .eq(TradeOrderDO::getId, tradeOrderDO.getId())
                 .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
-                .set(TradeOrderDO::getPayStatus, BathTradeOrderStatusEnum.COMPLETED.getCode())
+                .set(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.COMPLETED.getCode())
                 .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
                 .update();
         if (!update) {
-            log.info("交易单已支付");
-            responseOk = true;
+            log.error("交易单已支付");
+            responseOk = false;
             throw new BizException("交易单已支付");
         }
         payOrderFlowService.save(payOrderFlowDO);
@@ -768,6 +768,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
 
     @HmilyTCC(confirmMethod = "confirmCancelTradeOrder", cancelMethod = "cancelCancelTradeOrder")
+    @Transactional
     @Override
     public CancelTradeOrderVO cancelTradeOrder(CancelTradeOrderDTO dto) {
 
@@ -781,6 +782,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BizException("交易单已取消");
 
         }
+        if (TradeOrderFrozenEnum.FROZEN.getCode().equals(tradeOrderDO.getFrozen())){
+                log.warn("交易单已冻结");
+            throw new BizException("交易单已冻结");
+        }
 
         List<Integer> payTypesByOutTradeNo = prepayPayTypeService.getPayTypesByOutTradeNo(tradeOrderDO.getOutTradeNo());
         if (payTypesByOutTradeNo.isEmpty()) {
@@ -789,14 +794,37 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             return new CancelTradeOrderVO();
         }
         CancelTradeOrderVO orderVO = cancelThirdPartyPayments(tradeOrderDO.getOutTradeNo(), payTypesByOutTradeNo);
+
+        /**
+         * DB 操作
+         */
+        String bizKey = buildCancelTradeOrderKey(dto.getBizKeyPrx());
+        CancelTradeOrderBO cancelTradeOrderBO = new CancelTradeOrderBO();
+        cancelTradeOrderBO.setCurrentPayStatus(tradeOrderDO.getPayStatus());
+        tccOperationService.tryOperation(bizKey, JsonUtils.toJsonString(cancelTradeOrderBO));
         /**
          * 更新交易单状态
          */
-        updateTradeOrderToCancelled(tradeOrderDO);
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, tradeOrderDO.getId())
+                .eq(TradeOrderDO::getPayStatus, tradeOrderDO.getPayStatus())
+                .eq(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.NORMAL.getCode())
+                .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
+                .set(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.CANCELLED.getCode())
+                .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
+                .set(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.FROZEN.getCode())
+                .update();
+        if (!update) {
+            log.info("交易单更新失败");
+            throw new BizException("交易单更新失败");
+        }
+
         return orderVO;
 
     }
-
+    private String buildCancelTradeOrderKey(String bizKeyPrx) {
+        return bizKeyPrx + ":" + "cancelTradeOrder";
+    }
     private CancelTradeOrderVO cancelThirdPartyPayments(String outTradeNo, List<Integer> payTypes) {
 
         List<CancelTradeOrderTradeStatusBO> tradeStatusBOList = new ArrayList<>();
@@ -875,15 +903,78 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
 
     }
-
+    @Transactional
     public void confirmCancelTradeOrder(CancelTradeOrderDTO dto) {
+
         log.info("confirmCancelTradeOrder:{}", dto);
+
+        String bizKey = buildCancelTradeOrderKey(dto.getBizKeyPrx());
+        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getId, dto.getOrderId()).one();
+        if (tradeOrderDO == null){
+
+            log.error("交易单不存在");
+            throw new BizException("交易单不存在");
+        }
+        boolean operation = tccOperationService.confirmOperation(bizKey);
+        if ( !operation){
+            log.info("confirm已执行");
+            return;
+        }
+        /**
+         *  解冻
+         */
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, tradeOrderDO.getId())
+                .eq(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.CANCELLED.getCode())
+                .eq(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.FROZEN.getCode())
+                .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
+                .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
+                .set(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.NORMAL.getCode())
+                .update();
+        if (!update) {
+            log.info("交易单更新失败");
+            throw new BizException("交易单更新失败");
+        }
+
+
     }
 
     public void cancelCancelTradeOrder(CancelTradeOrderDTO dto) {
         log.info("cancelCancelTradeOrder:{}", dto);
+        String bizKey = buildCancelTradeOrderKey(dto.getBizKeyPrx());
+        String parameter = tccOperationService.getParameter(bizKey);
+        CancelTradeOrderBO cancelTradeOrderBO = JsonUtils.toObject(parameter, CancelTradeOrderBO.class);
+        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getId, dto.getOrderId()).one();
+
+        if (tradeOrderDO == null){
+            log.error("交易单不存在");
+            throw new BizException("交易单不存在");
+        }
+        boolean operation = tccOperationService.cancelOperation(bizKey);
+        if ( !operation){
+            log.info("cancel已执行");
+            return;
+        }
+        /**
+         * 解冻 并回滚到 try执行之前的状态
+         */
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, tradeOrderDO.getId())
+                .eq(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.CANCELLED.getCode())
+                .eq(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.FROZEN.getCode())
+                .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
+                .set(TradeOrderDO::getPayStatus, cancelTradeOrderBO.getCurrentPayStatus())
+                .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
+                .set(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.NORMAL.getCode())
+                .update();
+        if (!update) {
+            log.info("交易单更新失败");
+            throw new BizException("交易单更新失败");
+        }
+
 
     }
+
 
 
 }

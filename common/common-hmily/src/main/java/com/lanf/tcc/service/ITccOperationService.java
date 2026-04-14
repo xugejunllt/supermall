@@ -14,7 +14,9 @@ import com.lanf.tcc.model.TccOperationDO;
 public interface ITccOperationService extends IService<TccOperationDO> {
 
 
-    void tryOperation(String bizKey);
+    void tryOperation(String bizKey,String  parameter);
     boolean confirmOperation(String bizKey);
     boolean cancelOperation(String bizKey);
+
+    String getParameter(String bizKey);
 }

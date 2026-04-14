@@ -247,7 +247,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         /**
          * DB操作
          */
-        tccOperationService.tryOperation(bizKey);
+        tccOperationService.tryOperation(bizKey,null);
         boolean update = this.lambdaUpdate().
                 eq(StockDO::getId, stockDO.getId()).
                 eq(StockDO::getVersion, stockDO.getVersion()).

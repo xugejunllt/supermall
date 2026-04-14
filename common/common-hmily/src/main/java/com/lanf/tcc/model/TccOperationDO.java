@@ -24,11 +24,17 @@ private static final long serialVersionUID=1L;
      */
     private Long participantId;
 
-    @ApiModelProperty(value = "业务唯一key")
+    /**
+     * 业务唯一key
+     * 与mq消息里的key同理
+     */
     private String bizKey;
 
     @ApiModelProperty(value = "阶段 0: try  1:confirm, 2：cancel阶段")
     private Integer status;
+
+    //try阶段参数，用于下一阶段
+    private String parameter;
 
     private Long version;
 

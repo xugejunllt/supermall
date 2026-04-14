@@ -55,6 +55,10 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "过期时间间隔（秒）")
     private Integer expireInterval;
+    
+    @ApiModelProperty(value = "冻结状态 0：正常 1: 冻结状态")
+    private Integer frozen;
+    
     private Long version;
 
 
