@@ -799,7 +799,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         /**
          * DB 操作
          */
-        String bizKey = buildCancelTradeOrderKey(dto.getBizKeyPrx());
+        String bizKey = buildCancelTradeOrderKey(dto.getBizKeySuffix());
         CancelTradeOrderBO cancelTradeOrderBO = new CancelTradeOrderBO();
         cancelTradeOrderBO.setCurrentPayStatus(tradeOrderDO.getPayStatus());
         tccOperationService.tryOperation(bizKey, JsonUtils.toJsonString(cancelTradeOrderBO));
@@ -823,8 +823,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         return orderVO;
 
     }
-    private String buildCancelTradeOrderKey(String bizKeyPrx) {
-        return bizKeyPrx + ":" + "cancelTradeOrder";
+    private String buildCancelTradeOrderKey(String bizKeySuffix) {
+        return  "cancelTradeOrder:"+bizKeySuffix;
     }
     private CancelTradeOrderVO cancelThirdPartyPayments(String outTradeNo, List<Integer> payTypes) {
 
@@ -909,7 +909,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         log.info("confirmCancelTradeOrder:{}", dto);
 
-        String bizKey = buildCancelTradeOrderKey(dto.getBizKeyPrx());
+        String bizKey = buildCancelTradeOrderKey(dto.getBizKeySuffix());
         TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getId, dto.getOrderId()).one();
         if (tradeOrderDO == null){
 
@@ -942,7 +942,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
     public void cancelCancelTradeOrder(CancelTradeOrderDTO dto) {
         log.info("cancelCancelTradeOrder:{}", dto);
-        String bizKey = buildCancelTradeOrderKey(dto.getBizKeyPrx());
+        String bizKey = buildCancelTradeOrderKey(dto.getBizKeySuffix());
         String parameter = tccOperationService.getParameter(bizKey);
         CancelTradeOrderBO cancelTradeOrderBO = JsonUtils.toObject(parameter, CancelTradeOrderBO.class);
         TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getId, dto.getOrderId()).one();

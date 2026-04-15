@@ -1,6 +1,7 @@
 package com.lanf.order.controller.aip;
 
 import com.lanf.order.model.dto.BathCreateOrderDTO;
+import com.lanf.order.model.dto.CancelOrderApiDTO;
 import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
 import com.lanf.order.model.vo.OrderVO;
@@ -41,7 +42,13 @@ public class OrderApiController {
         mainOrderService.bathCreateOrder(dto);
         return Result.ok();
     }
+    @PostMapping("/cancelOrder")
+    public Result<Void> cancelOrder(@Validated @RequestBody CancelOrderApiDTO dto) {
 
+        log.info("取消订单:dto{}", dto);
+        orderService.cancelOrder(dto);
+        return Result.ok();
+    }
 
 
 

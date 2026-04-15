@@ -1,6 +1,7 @@
 package com.lanf.order.service.impl;
 
 
+import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.IdUtils;
@@ -19,7 +20,6 @@ import com.lanf.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.goods.model.vo.ClearCartVO;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.ValidateCartItemVO;
-import com.lanf.cache.aop.DistributedLock;
 import com.lanf.order.api.OrderApiService;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
@@ -31,9 +31,12 @@ import com.lanf.order.model.vo.ValidateCartVO;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.pay.api.PayApiService;
+import com.lanf.pay.model.dto.CancelTradeOrderDTO;
 import com.lanf.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.pay.model.dto.CreateTradeOrderDTO;
+import com.lanf.pay.model.vo.CancelTradeOrderVO;
+import com.lanf.pay.model.vo.OutTradeNoAndPayType;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderDTO;
 import com.lanf.rocketmq.model.message.OrderCreateSuccessMessage;
@@ -533,15 +536,55 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return orderItemDTO;
     }
 
-
+    @HmilyTCC(confirmMethod = "confirmCancelOrder", cancelMethod = "cancelCancelOrder")
+    @DistributedLock(key = "#dto.orderId")
     @Override
     public void cancelOrder(CancelOrderDTO dto) {
-        z
+
+        String  bizKeySuffix = dto.getOrderId().toString();
+        /**
+         * 取消交易单
+         */
+        CancelTradeOrderVO cancelTradeOrder = cancelTradeOrder(dto, bizKeySuffix);
+        /**
+         * 取消订单
+         */
+        cancelOrder( dto,  bizKeySuffix);
+        /**
+         * 取消三方支付订单
+         */
+        List<OutTradeNoAndPayType> successPayList = cancelTradeOrder.getSuccessPayList();
+        List<OutTradeNoAndPayType> waitPayList = cancelTradeOrder.getWaitPayList();
+        if ( !IStringUtils.isEmpty(successPayList)){
+            //发送mq处理
+        }
+        if ( !IStringUtils.isEmpty(waitPayList)){
+            //发送mq处理
+        }
     }
 
+    private CancelTradeOrderVO  cancelTradeOrder(CancelOrderDTO dto,String  bizKeySuffix){
+        CancelTradeOrderDTO cancelTradeOrderDTO = new CancelTradeOrderDTO();
+        cancelTradeOrderDTO.setBizKeySuffix(bizKeySuffix);
+        cancelTradeOrderDTO.setOrderId(dto.getOrderId());
 
+        return RpcResultParser.parseResult(payApiService.cancelTradeOrder(cancelTradeOrderDTO));
 
+    }
 
+    private void cancelOrder(CancelOrderDTO dto,String  bizKeySuffix){
+        CancelOrderApiDTO cancelOrderApiDTO = new CancelOrderApiDTO();
+        cancelOrderApiDTO.setOrderId(dto.getOrderId());
+        cancelOrderApiDTO.setBizKeySuffix(bizKeySuffix);
+        RpcResultParser.parseResult(orderApiService.cancelOrder(cancelOrderApiDTO));
+    }
+
+    public void  confirmCancelOrder(CancelOrderDTO dto){
+
+    }
+    public void  cancelCancelOrder(CancelOrderDTO dto){
+
+    }
 
 
 
