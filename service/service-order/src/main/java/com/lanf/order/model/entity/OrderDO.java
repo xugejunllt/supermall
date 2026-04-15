@@ -49,6 +49,12 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "0:待付款, 1:待出库 2：已出库 3：已发货，4：已完成，5：已关闭 6.已取消")
     private Integer status;
 
+    /**
+     * 0：正常,1: 冻结状态 用于分布式事务try阶段更新，
+     * 其他非分布式事务场景，状态是正常状态允许更新
+     */
+    private Integer frozen;
+
     @ApiModelProperty(value = "版本号")
     private Long version;
 

@@ -1,6 +1,7 @@
 package com.lanf.pay.api;
 
 import com.lanf.constant.result.Result;
+import com.lanf.pay.model.dto.CancelTradeOrderDTO;
 import com.lanf.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.pay.model.dto.PlaceSinglePayOrderDTO;
@@ -30,8 +31,9 @@ public interface PayApiService {
     @PostMapping("/pay/api/createMergeTradeOrder")
     public Result<CreateMergeTradeOrderVO> createMergeTradeOrder(@RequestBody CreateMergeTradeOrderDTO dto);
 
-
-
+    @Hmily
+    @PostMapping("/pay/api/cancelTradeOrder")
+    public Result<CancelTradeOrderVO> cancelTradeOrder(@RequestBody CancelTradeOrderDTO dto);
 
     @Deprecated
     @Hmily

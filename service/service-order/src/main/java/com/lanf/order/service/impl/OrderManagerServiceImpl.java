@@ -35,6 +35,7 @@ import com.lanf.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.rocketmq.model.TopicName;
+import com.lanf.rocketmq.model.message.CancelOrderDTO;
 import com.lanf.rocketmq.model.message.OrderCreateSuccessMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserIdContext;
@@ -396,6 +397,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         submitCartVO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
         return submitCartVO;
     }
+
+
+
     /**
      * 计算订单金额
      * @param cartItemList 购物车商品项列表
@@ -530,7 +534,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
 
-
+    @Override
+    public void cancelOrder(CancelOrderDTO dto) {
+        z
+    }
 
 
 

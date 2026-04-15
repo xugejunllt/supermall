@@ -1,8 +1,10 @@
 package com.lanf.pay.controller.aip;
 
 import com.lanf.constant.result.Result;
+import com.lanf.pay.model.dto.CancelTradeOrderDTO;
 import com.lanf.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.pay.model.dto.CreateTradeOrderDTO;
+import com.lanf.pay.model.vo.CancelTradeOrderVO;
 import com.lanf.pay.model.vo.CreateMergeTradeOrderVO;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
@@ -41,5 +43,11 @@ public class PayAPiController {
         return Result.ok();
     }
 
+    @PostMapping("/cancelTradeOrder")
+    public Result<CancelTradeOrderVO> cancelTradeOrder(@Validated @RequestBody CancelTradeOrderDTO dto){
+
+        log.info("取消交易订单:dto{}", dto);
+        return Result.ok(tradeOrderService.cancelTradeOrder(dto));
+    }
 
 }

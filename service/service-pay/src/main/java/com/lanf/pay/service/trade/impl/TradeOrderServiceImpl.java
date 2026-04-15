@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.enums.FrozenStatusEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.BaseEntity;
@@ -782,7 +783,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BizException("交易单已取消");
 
         }
-        if (TradeOrderFrozenEnum.FROZEN.getCode().equals(tradeOrderDO.getFrozen())){
+        if (FrozenStatusEnum.FROZEN.getCode().equals(tradeOrderDO.getFrozen())){
                 log.warn("交易单已冻结");
             throw new BizException("交易单已冻结");
         }
@@ -808,11 +809,11 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, tradeOrderDO.getId())
                 .eq(TradeOrderDO::getPayStatus, tradeOrderDO.getPayStatus())
-                .eq(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.NORMAL.getCode())
+                .eq(TradeOrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
                 .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
                 .set(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.CANCELLED.getCode())
                 .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
-                .set(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.FROZEN.getCode())
+                .set(TradeOrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
                 .update();
         if (!update) {
             log.info("交易单更新失败");
@@ -926,10 +927,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, tradeOrderDO.getId())
                 .eq(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.CANCELLED.getCode())
-                .eq(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.FROZEN.getCode())
+                .eq(TradeOrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
                 .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
                 .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
-                .set(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.NORMAL.getCode())
+                .set(TradeOrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
                 .update();
         if (!update) {
             log.info("交易单更新失败");
@@ -961,11 +962,11 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, tradeOrderDO.getId())
                 .eq(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.CANCELLED.getCode())
-                .eq(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.FROZEN.getCode())
+                .eq(TradeOrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
                 .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
                 .set(TradeOrderDO::getPayStatus, cancelTradeOrderBO.getCurrentPayStatus())
                 .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
-                .set(TradeOrderDO::getFrozen, TradeOrderFrozenEnum.NORMAL.getCode())
+                .set(TradeOrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
                 .update();
         if (!update) {
             log.info("交易单更新失败");

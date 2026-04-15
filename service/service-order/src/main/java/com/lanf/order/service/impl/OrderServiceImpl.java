@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.enums.FrozenStatusEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.logistics.api.LogisticsApiService;
 import com.lanf.logistics.model.vo.LogisticsTrackStatusVO;
@@ -16,13 +18,12 @@ import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.order.mapper.OrderMapper;
-import com.lanf.order.model.dto.CreateOrderDTO;
-import com.lanf.order.model.dto.DeliveryDTO;
-import com.lanf.order.model.dto.OrderItemDTO;
-import com.lanf.order.model.dto.SignForDTO;
+import com.lanf.order.model.bo.CancelOrderBO;
+import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.entity.PromiseOrderDO;
+import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
 import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.query.OrderPageQuery2;
@@ -41,6 +42,7 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
+import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +82,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     private IPromiseOrderService promiseOrderService;
     @Autowired
     private ISendMqMessageService sendMqMessageService;
-
+    @Autowired
+    private ITccOperationService tccOperationService;
 
 
     @Override
@@ -89,6 +92,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
 
     }
+
+
+
     @Transactional
     public void confirmCreateOrder(CreateOrderDTO dto) {
         log.info("创建订单开始:{}",dto);
@@ -117,6 +123,118 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     public void cancelCreateOrder(CreateOrderDTO dto) {
 
         log.info("cancelCreateOrder");
+    }
+
+    @HmilyTCC(confirmMethod = "confirmCancelOrder", cancelMethod = "cancelCancelOrder")
+    @Override
+    public void cancelOrder(CancelOrderApiDTO dto) {
+
+        log.info("cancelOrder[{}]", dto);
+        OrderDO orderDO = this.getById(dto.getOrderId());
+        if (orderDO == null) {
+            throw new BizException("订单不存在");
+        }
+        if (FrozenStatusEnum.FROZEN.getCode().equals(orderDO.getFrozen())){
+            throw new BizException("订单已冻结");
+        }
+        if ( !OrderStatusEnum.isCancelable(orderDO.getStatus())){
+            log.error("订单状态异常status:[{}]", orderDO.getStatus());
+            throw new BizException("订单状态异常");
+        }
+        /**
+         * DB操作
+         *
+         */
+        String bizKey = buildCancelOrderBizKey(dto.getBizKeySuffix());
+        CancelOrderBO cancelOrderBO = new CancelOrderBO();
+        cancelOrderBO.setCurrentOrderStatus(orderDO.getStatus());
+        tccOperationService.tryOperation(bizKey, JsonUtils.toJsonString(cancelOrderBO));
+        boolean update = this.lambdaUpdate()
+                .eq(OrderDO::getId, orderDO.getId())
+                .eq(OrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
+                .eq(OrderDO::getStatus, orderDO.getStatus())
+                .eq(OrderDO::getVersion, orderDO.getVersion())
+                .set(OrderDO::getStatus, OrderStatusEnum.CANCELLED.getCode())
+                .set(OrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
+                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.error("订单状态更新异常");
+            throw new BizException("订单状态更新异常");
+        }
+
+    }
+    public void confirmCancelOrder(CancelOrderApiDTO dto) {
+
+        log.info("confirmCancelOrder[{}]",JsonUtils.toJsonString(dto));
+        OrderDO orderDO = this.getById(dto.getOrderId());
+        if (orderDO == null) {
+            log.error("订单不存在");
+            throw new BizException("订单不存在");
+        }
+
+        String bizKey = buildCancelOrderBizKey(dto.getBizKeySuffix());
+
+        boolean operation = tccOperationService.confirmOperation(bizKey);
+        if ( !operation){
+            log.info("confirm已执行");
+            return;
+        }
+        /**
+         *  解冻
+         */
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, orderDO.getId())
+                .eq(OrderDO::getStatus, OrderStatusEnum.CANCELLED.getCode())
+                .eq(OrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
+                .eq(OrderDO::getVersion, orderDO.getVersion())
+                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
+                .set(OrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
+                .update();
+        if (!update) {
+            log.error("订单状态更新异常");
+            throw new BizException("订单状态更新异常");
+        }
+    }
+    public void cancelCancelOrder(CancelOrderApiDTO dto) {
+        log.info("cancelCancelOrder{}", dto);
+        String bizKey = buildCancelOrderBizKey(dto.getBizKeySuffix());
+        String parameter = tccOperationService.getParameter(bizKey);
+        CancelOrderBO cancelOrderBO = JsonUtils.toObject(parameter, CancelOrderBO.class);
+        OrderDO orderDO = this.getById(dto.getOrderId());
+        if (orderDO == null) {
+            log.error("订单不存在");
+            throw new BizException("订单不存在");
+        }
+        boolean operation = tccOperationService.cancelOperation(bizKey);
+        if ( !operation){
+            log.info("cancel已执行");
+            return;
+        }
+        /**
+         * 解冻 并回滚到 try执行之前的状态
+         */
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, orderDO.getId())
+                .eq(OrderDO::getStatus, OrderStatusEnum.CANCELLED.getCode())
+                .eq(OrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
+                .eq(OrderDO::getVersion, orderDO.getVersion())
+                .set(OrderDO::getStatus, cancelOrderBO.getCurrentOrderStatus())
+                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
+                .set(OrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
+                .update();
+        if (!update) {
+            log.error("订单状态更新异常");
+            throw new BizException("订单状态更新异常");
+        }
+
+
+
+    }
+
+    private String buildCancelOrderBizKey(String bizKeySuffix){
+
+        return "cancelOrder:" + bizKeySuffix;
     }
 
     @Transactional

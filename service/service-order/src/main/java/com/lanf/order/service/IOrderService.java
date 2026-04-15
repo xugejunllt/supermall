@@ -2,6 +2,7 @@ package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.order.model.dto.CancelOrderApiDTO;
 import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.dto.SignForDTO;
@@ -31,6 +32,13 @@ public interface IOrderService extends IService<OrderDO> {
      */
 
     void createOrder(CreateOrderDTO dto);
+
+    /**
+     * 取消订单
+     *
+     */
+    void cancelOrder(CancelOrderApiDTO dto);
+
 
     /**
      * 订单支付成功处理

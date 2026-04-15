@@ -1,11 +1,11 @@
-package com.lanf.pay.model.enums;
+package com.lanf.constant.enums;
 
 
 
 import lombok.Getter;
 
 @Getter
-public enum TradeOrderFrozenEnum {
+public enum FrozenStatusEnum {
 
     NORMAL(0, "正常"),
     FROZEN(1, "冻结状态");
@@ -14,8 +14,9 @@ public enum TradeOrderFrozenEnum {
 
     private String name;
 
-    TradeOrderFrozenEnum(Integer code, String name) {
+    FrozenStatusEnum(Integer code, String name) {
         this.code = code;
         this.name = name;
     }
+
 }
