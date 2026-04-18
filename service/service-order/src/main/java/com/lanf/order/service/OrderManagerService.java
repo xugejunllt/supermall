@@ -2,13 +2,13 @@ package com.lanf.order.service;
 
 import com.lanf.goods.model.dto.ValidateCartDTO;
 import com.lanf.order.model.dto.CalculateOrderAmountDTO;
+import com.lanf.order.model.dto.CancelOrderDTO;
 import com.lanf.order.model.dto.PlaceOrderDTO;
 import com.lanf.order.model.dto.SubmitCartDTO;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;
-import com.lanf.rocketmq.model.message.CancelOrderDTO;
 
 public interface OrderManagerService {
 

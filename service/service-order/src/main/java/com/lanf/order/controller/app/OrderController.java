@@ -1,6 +1,7 @@
 package com.lanf.order.controller.app;
 
 
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.order.model.dto.CalculateOrderAmountDTO;
@@ -75,7 +76,15 @@ public class OrderController {
         return Result.ok(orderManagerService.placeOrder(orderDTO));
 
     }
+    @PostMapping("/placeOrder")
+    public Result<PlaceOrderVO> placeOrder(@RequestBody @Validated CancelOrderDTO dto) {
 
+
+        log.info("取消订单[{}]", JsonUtils.toJsonString(dto));
+        orderManagerService.cancelOrder(dto);
+        return Result.ok();
+
+    }
 
 
     @PostMapping("/signFor")
@@ -90,7 +99,7 @@ public class OrderController {
     @GetMapping("/orderPage")
     public Result<PageResult<OrderPageVO>> orderPage(@Validated OrderPageQuery query) {
 
-        log.info("分页查询订单列表:query{}", query);
+        log.info("取消订单:query{}", query);
 
         return Result.ok(orderService.orderPage(query));
     }
@@ -103,13 +112,7 @@ public class OrderController {
         return Result.ok(orderService.orderDetail(id));
     }
 
-    @PostMapping("/cancelOrder")
-    public Result orderDetail(@Validated @RequestBody CancelOrderDTO dto) {
-        log.info("取消订单:dto{}", dto);
-        orderService.cancelOrder(dto.getOrderId());
-        return Result.ok();
 
-    }
 
     @GetMapping("/promiseOrderLiquidationTask")
     public Result promiseOrderLiquidationTask() {

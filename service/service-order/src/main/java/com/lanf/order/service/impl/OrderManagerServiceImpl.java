@@ -38,7 +38,6 @@ import com.lanf.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.pay.model.vo.CancelTradeOrderVO;
 import com.lanf.pay.model.vo.OutTradeNoAndPayType;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.message.CancelOrderDTO;
 import com.lanf.rocketmq.model.message.OrderCreateSuccessMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserIdContext;
