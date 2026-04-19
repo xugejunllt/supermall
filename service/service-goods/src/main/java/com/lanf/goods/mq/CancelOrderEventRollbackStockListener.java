@@ -146,5 +146,9 @@ public class CancelOrderEventRollbackStockListener implements RocketMQListener<C
             a.setOutQuantity(0);
             a.setInQuantity(changeQuantity);
         });
+
+        return saveUserStockFlowDOList;
     }
+
+
 }
