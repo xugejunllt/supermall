@@ -9,7 +9,7 @@ import lombok.Data;
 
 /**
  * <p>
- * 优惠卷使用记录
+ * 优惠卷使用记录 一张优惠卷 一条记录
  * </p>
  *
  * @author jarven

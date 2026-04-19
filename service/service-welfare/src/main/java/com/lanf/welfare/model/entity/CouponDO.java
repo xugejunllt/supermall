@@ -8,9 +8,9 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * <p>
- * 优惠券
- * </p>
+ *
+ * 优惠券  一张优惠卷 一条记录
+ *
  *
  * @author
  * @since 2024-08-01
