@@ -4,6 +4,7 @@ import com.lanf.pay.model.bo.CallbackResultBO;
 import com.lanf.pay.model.bo.TradeStatusBO;
 import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.vo.PrepayOrderVO;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,4 +38,11 @@ public interface PaymentService {
      *
      */
     void responsePayFail(HttpServletResponse response);
+
+    /**
+     * 取消支付宝待支付订单
+     *
+     * @param outTradeNo 商户订单号
+     */
+    boolean cancelPendingOrder(String outTradeNo) throws MessageRetryConsumeException;
 }

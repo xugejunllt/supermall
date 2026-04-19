@@ -5,11 +5,14 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.AlipayConfig;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.AlipayTradeAppPayModel;
+import com.alipay.api.domain.AlipayTradeCloseModel;
 import com.alipay.api.domain.AlipayTradeQueryModel;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.AlipayTradeAppPayRequest;
+import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
+import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
@@ -21,6 +24,7 @@ import com.lanf.pay.model.enums.TradeStatusEnum;
 import com.lanf.pay.model.vo.PrepayOrderVO;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.config.AliPayConfig;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -257,13 +261,48 @@ public class AliPayPaymentServiceImpl implements PaymentService {
 
     @Override
     public void responsePayOk(HttpServletResponse response) {
-
+        try {
+            response.getWriter().write("success");
+        } catch (Exception e) {
+            log.error("响应支付回调成功异常", e);
+        }
     }
 
     @Override
     public void responsePayFail(HttpServletResponse response) {
-
+        try {
+            response.getWriter().write("fail");
+        } catch (Exception e) {
+            log.error("响应支付回调失败异常", e);
+        }
     }
 
+    @Override
+    public boolean cancelPendingOrder(String outTradeNo) throws MessageRetryConsumeException {
+        log.info("取消支付宝待支付订单开始:outTradeNo={}", outTradeNo);
 
+        AlipayClient alipayClient = null;
+        try {
+            alipayClient = new DefaultAlipayClient(getAlipayConfig());
+
+            AlipayTradeCloseRequest request = new AlipayTradeCloseRequest();
+            AlipayTradeCloseModel model = new AlipayTradeCloseModel();
+            model.setOutTradeNo(outTradeNo);
+            request.setBizModel(model);
+
+            AlipayTradeCloseResponse response = alipayClient.certificateExecute(request);
+            String code = response.getCode();
+            if ( !"10000".equals( code)) {
+                log.error("取消支付宝订单失败:outTradeNo={},code={},msg={}",
+                        outTradeNo, code, response.getSubMsg());
+               return false;
+            }
+            log.info("取消支付宝订单成功:outTradeNo={}", outTradeNo);
+            return true;
+
+        } catch (AlipayApiException e) {
+            log.warn("取消支付宝订单异常:outTradeNo={}", outTradeNo, e);
+            throw new MessageRetryConsumeException("取消订单异常");
+        }
+    }
 }

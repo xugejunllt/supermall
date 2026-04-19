@@ -112,8 +112,14 @@ public class TopicName {
      * 取消订单事件
      */
     public static final String CANCEL_ORDER_EVENT_TOPIC = "CANCEL_ORDER_EVENT_TOPIC";
-
-
+    /**
+     * 取消三方待支付的订单
+     */
+    public static final String CANCEL_WAIT_PAY_ORDER_TOPIC = "CANCEL_WAIT_PAY_ORDER_TOPIC";
+    /**
+     * 取消三方支付成功的订单
+     */
+    public static final String CANCEL_SUCCESS_PAY_ORDER_TOPIC = "CANCEL_SUCCESS_PAY_ORDER_TOPIC";
 
 
     /**
@@ -181,6 +187,12 @@ public class TopicName {
      * 取消订单 -福利服务消费组
      */
     public static final String CANCEL_ORDER_EVENT_WELFARE_GROUP = "CANCEL_ORDER_EVENT_WELFARE_GROUP";
+    /**
+     * 取消订单- 支付服务消费组
+     */
+    public static final String CANCEL_ORDER_EVENT_PAY_GROUP = "CANCEL_ORDER_EVENT_PAY_GROUP";
+    public static final String CANCEL_WAIT_PAY_ORDER_GROUP = "CANCEL_WAIT_PAY_ORDER_GROUP";
+    public static final String CANCEL_SUCCESS_PAY_ORDER_GROUP = "CANCEL_SUCCESS_PAY_ORDER_GROUP";
 
 
 

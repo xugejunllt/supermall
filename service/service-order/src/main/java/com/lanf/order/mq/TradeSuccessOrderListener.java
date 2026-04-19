@@ -22,6 +22,8 @@ import java.util.List;
 
 /**
  * 交易成功事件 - 订单服务消费者
+ * 更新订单状态
+ *
  */
 @Slf4j
 @Component

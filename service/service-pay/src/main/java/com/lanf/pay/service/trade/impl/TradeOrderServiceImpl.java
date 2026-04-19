@@ -579,15 +579,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                 log.warn("交易单已冻结");
             throw new BizException("交易单已冻结");
         }
-
-        List<Integer> payTypesByOutTradeNo = prepayPayTypeService.getPayTypesByOutTradeNo(tradeOrderDO.getOutTradeNo());
-        if (payTypesByOutTradeNo.isEmpty()) {
-            log.info("未查询到支付方式，直接更新交易单状态:orderId={}", dto.getOrderId());
-            updateTradeOrderToCancelled(tradeOrderDO);
-            return new CancelTradeOrderVO();
-        }
-        CancelTradeOrderVO orderVO = cancelThirdPartyPayments(tradeOrderDO.getOutTradeNo(), payTypesByOutTradeNo);
-
         /**
          * DB 操作
          */
@@ -612,90 +603,16 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BizException("交易单更新失败");
         }
 
-        return orderVO;
+        return null;
 
     }
     private String buildCancelTradeOrderKey(String bizKeySuffix) {
         return  "cancelTradeOrder:"+bizKeySuffix;
     }
-    private CancelTradeOrderVO cancelThirdPartyPayments(String outTradeNo, List<Integer> payTypes) {
-
-        List<CancelTradeOrderTradeStatusBO> tradeStatusBOList = new ArrayList<>();
-        for (Integer payType : payTypes) {
-
-            PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
-
-            TradeStatusBO tradeStatusBO = paymentService.queryTradeStatus(outTradeNo);
-            CancelTradeOrderTradeStatusBO cancelThirdPartyPaymentsBO = new CancelTradeOrderTradeStatusBO();
-            cancelThirdPartyPaymentsBO.setPayType(payType);
-            cancelThirdPartyPaymentsBO.setOutTradeNo(outTradeNo);
-            cancelThirdPartyPaymentsBO.setTradeStatus(tradeStatusBO.getTradeStatus());
-            tradeStatusBOList.add(cancelThirdPartyPaymentsBO);
-        }
-        /**
-         * 三方交易单状态 WAIT_BUYER_PAY WAIT_BUYER_PAY
-         * 状态下才允许被取消
-         *
-         */
-        List<CancelTradeOrderTradeStatusBO> notExistTradeStatusBOList = tradeStatusBOList.stream().filter(cancelThirdPartyPaymentsBO ->
-                TradeStatusEnum.NOT_EXIST.
-                        equals(cancelThirdPartyPaymentsBO.getTradeStatus())).collect(Collectors.toList());
-        if (notExistTradeStatusBOList.size() == tradeStatusBOList.size()) {
-            log.info("所有支付渠道交易单不存在");
-
-            return new CancelTradeOrderVO();
-        }
-
-        List<CancelTradeOrderTradeStatusBO> waitPayTradeStatusBOList = tradeStatusBOList.stream().filter(cancelThirdPartyPaymentsBO ->
-                TradeStatusEnum.WAIT_BUYER_PAY.
-                        equals(cancelThirdPartyPaymentsBO.getTradeStatus())).collect(Collectors.toList());
-        if (!waitPayTradeStatusBOList.isEmpty()) {
-            /**
-             * 取消渠道支付订单状态
-             *
-             */
-            List<OutTradeNoAndPayType> waitPayList = new ArrayList<>();
-            waitPayTradeStatusBOList.forEach(a -> {
-                OutTradeNoAndPayType outTradeNoAndPayType = new OutTradeNoAndPayType();
-                outTradeNoAndPayType.setOutTradeNo(a.getOutTradeNo());
-                outTradeNoAndPayType.setPayType(a.getPayType());
-                waitPayList.add(outTradeNoAndPayType);
-            });
-            CancelTradeOrderVO vo = new CancelTradeOrderVO();
-            vo.setWaitPayList(waitPayList);
-
-            return vo;
-        }
-        List<CancelTradeOrderTradeStatusBO> successPayTradeStatusBOList = tradeStatusBOList.stream().filter(cancelThirdPartyPaymentsBO ->
-                TradeStatusEnum.TRADE_SUCCESS.
-                        equals(cancelThirdPartyPaymentsBO.getTradeStatus())).collect(Collectors.toList());
-        if (!successPayTradeStatusBOList.isEmpty()) {
-            /**
-             * 支付成功的交易单
-             *
-             */
-            List<OutTradeNoAndPayType> successPayList = new ArrayList<>();
-            successPayTradeStatusBOList.forEach(a -> {
-                OutTradeNoAndPayType outTradeNoAndPayType = new OutTradeNoAndPayType();
-                outTradeNoAndPayType.setOutTradeNo(a.getOutTradeNo());
-                outTradeNoAndPayType.setPayType(a.getPayType());
-                successPayList.add(outTradeNoAndPayType);
-            });
-            CancelTradeOrderVO vo = new CancelTradeOrderVO();
-            vo.setSuccessPayList(successPayList);
-            return vo;
-        }
-        /**
-         * 其他场景 抛出异常
-         */
-        throw new BizException("交易单不允许取消");
-    }
 
 
-    private void updateTradeOrderToCancelled(TradeOrderDO tradeOrderDO) {
 
 
-    }
     @Transactional
     public void confirmCancelTradeOrder(CancelTradeOrderDTO dto) {
 
