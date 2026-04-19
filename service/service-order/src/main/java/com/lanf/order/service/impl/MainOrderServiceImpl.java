@@ -71,6 +71,7 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
          * 构建OrderDO
          */
         List<OrderDO> orderDOList = buildOrderDOList(dto.getCreateOrderDTOList());
+        orderDOList.forEach(a -> a.setMainOrderId(mainOrderDO.getId()));
         /**
          * 构建OrderItemDO
          */
@@ -81,6 +82,7 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
             orderService.saveBatch(orderDOList);
         } catch (DuplicateKeyException e) {
             log.info("订单已存在");
+            return;
         }
         orderItemService.saveBatch(orderItemDOList);
 

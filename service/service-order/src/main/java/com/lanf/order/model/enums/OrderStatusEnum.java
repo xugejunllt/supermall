@@ -11,20 +11,20 @@ import java.util.Set;
 public enum OrderStatusEnum {
 
     WAIT_PAY(0, "待付款"),
-    PAID_RECONCILING(1, "已付款,对账中"),
-    WAIT_OUTBOUND(2, "待出库"),
-    OUTBOUNDED(3, "已出库"),
-    SHIPPED(4, "已发货"),
-    COMPLETED(5, "已完成"),
-    CLOSED(6, "已关闭"),
-    CANCELLED(7, "已取消");
+    WAIT_OUTBOUND(1, "待出库"),
+    OUTBOUNDED(2, "已出库"),
+    SHIPPED(3, "已发货"),
+    COMPLETED(4, "已完成"),
+    CANCELLED(5, "已取消"),
+    CLOSED(5, "已关闭"),
+
+    ;
 
     private Integer code;
     private String name;
 
     private static final Set<Integer> CANCELABLE_STATUS_SET = new HashSet<>(Arrays.asList(
             WAIT_PAY.code,
-            PAID_RECONCILING.code,
             WAIT_OUTBOUND.code
     ));
 

@@ -16,6 +16,7 @@ import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.impl.PayRetryPolicyCacheService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.OrderCreateSuccessMessage;
+import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -77,7 +78,7 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<Order
 
             handleCombinedToSinglePayScene(outTradeNo,payType);
         }
-
+        z
     }
 
     /**
@@ -156,6 +157,13 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<Order
 
                 throw new BizException("交易单更新失败");
             }
+            /**
+             * 发送mq
+             */
+            TradeSuccessEventMessage message = new TradeSuccessEventMessage();
+            message.setBathPay( false);
+            message.setOrderId(tradeOrderDO.getOrderId());
+            rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
 
         }
         log.error("未知场景");
@@ -249,6 +257,13 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<Order
                     throw new BizException("交易单更新失败");
                 }
             }
+            /**
+             * 发送mq
+             */
+            TradeSuccessEventMessage message = new TradeSuccessEventMessage();
+            message.setBathPay( true);
+            message.setMainOrderId(bathTradeOrderDO.getMainOrderId());
+            rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
 
         }
 
@@ -291,15 +306,20 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<Order
              */
             return;
         }
-        if (BathTradeOrderStatusEnum.PENDING.getCode().equals(orderDO.getPayStatus())) {
+        if (BathTradeOrderStatusEnum.PENDING.
+                getCode().equals(orderDO.getPayStatus())) {
             log.info("更新批量交易单状态");
 
-            bathTradeOrderService.lambdaUpdate()
+            boolean update = bathTradeOrderService.lambdaUpdate()
                     .eq(BaseEntity::getId, bathPayOrderId)
                     .eq(BathTradeOrderDO::getVersion, orderDO.getVersion())
                     .set(BathTradeOrderDO::getPayStatus, BathTradeOrderStatusEnum.MERGE_TRANSFER_SINGLE.getCode())
                     .set(BathTradeOrderDO::getVersion, orderDO.getVersion() + 1)
                     .update();
+            if (!update) {
+                log.warn("批量交易单更新失败");
+                throw new BizException("批量交易单更新失败");
+            }
 
         }
         boolean update = tradeOrderService.lambdaUpdate()
@@ -312,7 +332,13 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<Order
             log.warn("交易单已支付");
             throw new BizException("交易单已支付");
         }
-
+        /**
+         * 发送mq
+         */
+        TradeSuccessEventMessage message = new TradeSuccessEventMessage();
+        message.setBathPay( false);
+        message.setMainOrderId(tradeOrderDO.getOrderId());
+        rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
     }
 
 }

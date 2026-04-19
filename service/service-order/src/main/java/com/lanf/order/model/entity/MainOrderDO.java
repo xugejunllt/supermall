@@ -34,8 +34,10 @@ public class MainOrderDO extends BaseEntity {
     @ApiModelProperty(value = "总运费（所有子订单运费之和）")
     private BigDecimal freightAmount;
 
-    @ApiModelProperty(value = "支付状态（0：待支付，1：已支付，2：已退款 3: 已取消）")
+    @ApiModelProperty(value = "支付状态（0：待支付，1：已支付）")
     private Integer payStatus;
+
+    private Long version;
 
 
 
