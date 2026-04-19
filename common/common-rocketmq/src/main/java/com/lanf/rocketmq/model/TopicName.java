@@ -177,6 +177,10 @@ public class TopicName {
      * 取消订单 -库存服务消费组
      */
     public static final String CANCEL_ORDER_EVENT_GOODS_GROUP = "CANCEL_ORDER_EVENT_GOODS_GROUP";
+    /**
+     * 取消订单 -福利服务消费组
+     */
+    public static final String CANCEL_ORDER_EVENT_WELFARE_GROUP = "CANCEL_ORDER_EVENT_WELFARE_GROUP";
 
 
 

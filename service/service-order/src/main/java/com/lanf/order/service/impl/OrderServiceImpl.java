@@ -102,13 +102,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     public void confirmCreateOrder(CreateOrderDTO dto) {
         log.info("创建订单开始:{}",dto);
 
-        Long orderId = dto.getOrderId();
-        OrderDO aDo = this.getById(orderId);
-        if (aDo != null) {
-            log.info("订单已存在");
-            return;
-        }
-
         OrderDO orderDO = OrderServiceUtils.buildOrderDO(dto);
         //单笔下单时 只有一个商品
         OrderItemDTO orderItemDTO = dto.getOrderItems().get(0);
