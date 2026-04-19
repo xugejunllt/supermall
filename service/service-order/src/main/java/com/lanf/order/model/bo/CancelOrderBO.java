@@ -7,5 +7,8 @@ import java.io.Serializable;
 @Data
 public class CancelOrderBO implements Serializable {
 
-    private Integer currentOrderStatus;
+    private Long orderId;
+
+
+    private  String  bizKeySuffix;
 }

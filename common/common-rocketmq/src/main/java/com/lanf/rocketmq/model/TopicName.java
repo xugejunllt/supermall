@@ -108,6 +108,13 @@ public class TopicName {
      * 交易成功事件
      */
     public static final String TRADE_SUCCESS_EVENT_TOPIC = "TRADE_SUCCESS_EVENT_TOPIC";
+    /**
+     * 取消订单事件
+     */
+    public static final String CANCEL_ORDER_EVENT_TOPIC = "CANCEL_ORDER_EVENT_TOPIC";
+
+
+
 
     /**
      * 消费组名
@@ -166,7 +173,10 @@ public class TopicName {
      * 交易成功事件 - 订单服务消费组
      */
     public static final String TRADE_SUCCESS_ORDER_GROUP = "TRADE_SUCCESS_ORDER_GROUP";
-
+    /**
+     * 取消订单 -库存服务消费组
+     */
+    public static final String CANCEL_ORDER_EVENT_GOODS_GROUP = "CANCEL_ORDER_EVENT_GOODS_GROUP";
 
 
 

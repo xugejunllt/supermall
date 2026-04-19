@@ -2,10 +2,8 @@ package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.order.model.dto.CancelOrderApiDTO;
-import com.lanf.order.model.dto.CreateOrderDTO;
-import com.lanf.order.model.dto.DeliveryDTO;
-import com.lanf.order.model.dto.SignForDTO;
+import com.lanf.order.model.bo.CancelOrderBO;
+import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
 import com.lanf.order.model.query.OrderPageQuery;
@@ -37,9 +35,11 @@ public interface IOrderService extends IService<OrderDO> {
      * 取消订单
      *
      */
-    void cancelOrder(CancelOrderApiDTO dto);
+    void cancelOrder(CancelOrderBO dto);
 
+    void  confirmCancelOrder(CancelOrderBO dto);
 
+    void cancelCancelOrder(CancelOrderBO dto);
     /**
      * 订单支付成功处理
      */
@@ -72,7 +72,13 @@ public interface IOrderService extends IService<OrderDO> {
      * 取消订单
      */
     void cancelOrder(Long orderId);
-
+    /**
+     * 根据订单ID查询订单项的SKU ID列表
+     *
+     * @param orderId 订单ID
+     * @return SKU ID列表
+     */
+    List<Long> querySkuIdsByOrderId(Long orderId);
     /**
      * 关闭超时未支付的订单
      *
@@ -98,4 +104,6 @@ public interface IOrderService extends IService<OrderDO> {
      */
     List<Long> contrastBillOrderIdQuery(ContrastBillOrderQuery query);
     OrderVO2 queryById(Long id);
+
+
 }

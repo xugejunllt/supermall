@@ -5,7 +5,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.order.model.dto.CalculateOrderAmountDTO;
-import com.lanf.order.model.dto.CancelOrderDTO;
+import com.lanf.order.model.bo.CancelOrderBO;
 import com.lanf.order.model.dto.PlaceOrderDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.query.OrderPageQuery;
@@ -77,7 +77,7 @@ public class OrderController {
 
     }
     @PostMapping("/placeOrder")
-    public Result<PlaceOrderVO> placeOrder(@RequestBody @Validated CancelOrderDTO dto) {
+    public Result<PlaceOrderVO> placeOrder(@RequestBody @Validated CancelOrderBO dto) {
 
 
         log.info("取消订单[{}]", JsonUtils.toJsonString(dto));

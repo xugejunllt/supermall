@@ -19,7 +19,11 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.order.mapper.OrderMapper;
 import com.lanf.order.model.bo.CancelOrderBO;
-import com.lanf.order.model.dto.*;
+import com.lanf.order.model.bo.CancelOrderOrderStatusBO;
+import com.lanf.order.model.dto.CreateOrderDTO;
+import com.lanf.order.model.dto.DeliveryDTO;
+import com.lanf.order.model.dto.OrderItemDTO;
+import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.entity.PromiseOrderDO;
@@ -37,7 +41,6 @@ import com.lanf.pay.model.query.TradeOrderBathQuery;
 import com.lanf.pay.model.vo.OrderTradeVO;
 import com.lanf.pay.model.vo.TradeOrderBathVO;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.message.CancelOrderDTO;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
@@ -125,9 +128,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         log.info("cancelCreateOrder");
     }
 
-    @HmilyTCC(confirmMethod = "confirmCancelOrder", cancelMethod = "cancelCancelOrder")
     @Override
-    public void cancelOrder(CancelOrderApiDTO dto) {
+    public void cancelOrder(CancelOrderBO dto) {
 
         log.info("cancelOrder[{}]", dto);
         OrderDO orderDO = this.getById(dto.getOrderId());
@@ -146,7 +148,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
          *
          */
         String bizKey = buildCancelOrderBizKey(dto.getBizKeySuffix());
-        CancelOrderBO cancelOrderBO = new CancelOrderBO();
+        CancelOrderOrderStatusBO cancelOrderBO = new CancelOrderOrderStatusBO();
         cancelOrderBO.setCurrentOrderStatus(orderDO.getStatus());
         tccOperationService.tryOperation(bizKey, JsonUtils.toJsonString(cancelOrderBO));
         boolean update = this.lambdaUpdate()
@@ -164,7 +166,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         }
 
     }
-    public void confirmCancelOrder(CancelOrderApiDTO dto) {
+    @Override
+    public void confirmCancelOrder(CancelOrderBO dto) {
 
         log.info("confirmCancelOrder[{}]",JsonUtils.toJsonString(dto));
         OrderDO orderDO = this.getById(dto.getOrderId());
@@ -196,11 +199,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             throw new BizException("订单状态更新异常");
         }
     }
-    public void cancelCancelOrder(CancelOrderApiDTO dto) {
+    @Override
+    public void cancelCancelOrder(CancelOrderBO dto) {
         log.info("cancelCancelOrder{}", dto);
         String bizKey = buildCancelOrderBizKey(dto.getBizKeySuffix());
         String parameter = tccOperationService.getParameter(bizKey);
-        CancelOrderBO cancelOrderBO = JsonUtils.toObject(parameter, CancelOrderBO.class);
+        CancelOrderOrderStatusBO cancelOrderBO = JsonUtils.toObject(parameter, CancelOrderOrderStatusBO.class);
         OrderDO orderDO = this.getById(dto.getOrderId());
         if (orderDO == null) {
             log.error("订单不存在");
@@ -231,7 +235,17 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
 
     }
+    @Override
+    public List<Long> querySkuIdsByOrderId(Long orderId) {
+        List<OrderItemDO> orderItemList = orderItemService.lambdaQuery()
+                .eq(OrderItemDO::getOrderId, orderId)
+                .select(OrderItemDO::getSkuId)
+                .list();
 
+        return orderItemList.stream()
+                .map(OrderItemDO::getSkuId)
+                .collect(Collectors.toList());
+    }
     private String buildCancelOrderBizKey(String bizKeySuffix){
 
         return "cancelOrder:" + bizKeySuffix;
@@ -581,7 +595,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             throw new BizException("订单已出库，无法取消");
         }
         updateOrderCancel(orderId);
-        CancelOrderDTO dto = new CancelOrderDTO();
+        CancelOrderBO dto = new CancelOrderBO();
         dto.setOrderId(orderId);
         rocketMqClient.sendMessage(TopicName.CANCEL_ORDER_TOPIC, dto);
     }
@@ -800,4 +814,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
         return BeanCopyUtils.copyBean(orderDO,OrderVO2.class);
     }
+
+
 }
