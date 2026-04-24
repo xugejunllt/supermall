@@ -3,7 +3,6 @@ package com.lanf.order.service.impl;
 
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.*;
-import com.lanf.constant.enums.CancelSourceEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.result.RpcResultParser;
@@ -548,6 +547,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         CancelOrderBO cancelOrderBO = new CancelOrderBO();
         cancelOrderBO.setOrderId(dto.getOrderId());
         cancelOrderBO.setBizKeySuffix(bizKeySuffix);
+        cancelOrderBO.setCancelSource(dto.getCancelSource());
         /**
          * 通过被代理后的对象去执行
          */
@@ -575,7 +575,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         CancelOrderEventMessage cancelOrderEventMessage = new CancelOrderEventMessage();
         cancelOrderEventMessage.setOrderId(dto.getOrderId());
         cancelOrderEventMessage.setSkuIdList(skuIdList);
-        cancelOrderEventMessage.setCancelSource(CancelSourceEnum.USER_MANUAL.getCode());
+        cancelOrderEventMessage.setCancelSource(dto.getCancelSource());
         rocketMqClient.sendMessage(TopicName.CANCEL_ORDER_EVENT_TOPIC, JsonUtils.toJsonString(cancelOrderEventMessage));
     }
 

@@ -1,14 +1,14 @@
-package com.lanf.order.model.bo;
+package com.lanf.rocketmq.model.message;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class CancelOrderBO implements Serializable {
+public class CancelExpiredOrderMessage implements Serializable {
 
     private Long orderId;
 
     private Integer cancelSource;
-    private  String  bizKeySuffix;
+
 }
