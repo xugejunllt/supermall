@@ -2,14 +2,18 @@ package com.lanf.storage.service.storage.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.IdUtils;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.finance.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.finance.mq.message.SalesInStockOrderItemAdd;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.mapper.AftersalesIntStockOrderMapper;
 import com.lanf.storage.model.dto.AfterSalesIntStockDTO;
 import com.lanf.storage.model.entity.AfterSalesIntStockOrderDO;
 import com.lanf.storage.model.entity.InOutStockOrderItemDO;
+import com.lanf.storage.mq.StorageClientTopicName;
+import com.lanf.storage.mq.message.AfterSalesInStockFinishMessage;
 import com.lanf.storage.service.storage.IAfterSalesIntStockOrderService;
 import com.lanf.storage.service.storage.IInOutStockOrderItemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +37,9 @@ public class AftersalesIntStockOrderServiceImpl extends ServiceImpl<AftersalesIn
 
     @Autowired
     private IInOutStockOrderItemService iInOutStockOrderItemService;
+    @Autowired
+    private RocketMqClient rocketMqClient;
+
 
     @Override
     public void addAfterSalesIntStockOrder(SalesInStockOrderAddMessage message) {
@@ -101,6 +108,11 @@ public class AftersalesIntStockOrderServiceImpl extends ServiceImpl<AftersalesIn
             log.error("更新失败");
             throw new BizException("更新失败");
         }
-        z
+        /**
+         * 通知售后单入库完成
+         */
+        AfterSalesInStockFinishMessage message = new AfterSalesInStockFinishMessage();
+        message.setAfterSalesOrderId(one.getAfterSalesOrderId());
+        rocketMqClient.sendMessage(StorageClientTopicName.AFTER_SALES_IN_STOCK_FINISH_TOPIC, JsonUtils.toJsonString(message));
     }
 }

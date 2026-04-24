@@ -190,7 +190,6 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         }
 
         dto.setAfterSalesOrderId(salesOrderDO.getId());
-        dto.setTotalQuantity(totalQuantity);
 
         return dto;
     }

@@ -38,7 +38,6 @@ import com.lanf.storage.service.storage.ISalesOutStockOrderService;
 import com.lanf.storage.service.storage.IStorageFlowService;
 import com.lanf.storage.service.warehous.IWarehouseService;
 import com.lanf.system.api.SystemService;
-import com.lanf.system.model.vo.ShopVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,11 +146,8 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     @Override
     public void salesStockOrderAdd(SalesInStockOrderAddMessage message) {
 
-        List<Long> shopIdList = Collections.singletonList(message.getShopId());
 
-        List<ShopVO> shopVOList = systemService.shopQuery(shopIdList).getData();
-        Map<Long, ShopVO> shopMap = shopVOList.stream()
-                .collect(Collectors.toMap(ShopVO::getId, Function.identity()));
+
         List<SalesOutStockOrderDO> salesOutStockOrderDOList = new ArrayList<>();
         List<InOutStockOrderItemDO> inOutStockOrderItemDOList = new ArrayList<>();
 
@@ -163,16 +159,15 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         }
 
         Long id = IdUtils.generateId();
-        ShopVO shopVO = shopMap.get(message.getShopId());
         SalesOutStockOrderDO salesOutStockOrderDO = new SalesOutStockOrderDO();
         salesOutStockOrderDO.setId(id);
         salesOutStockOrderDO.setCode(CodeGenerateUtils.generaCode());
         salesOutStockOrderDO.setOrderId(message.getAfterSalesOrderId());
-        salesOutStockOrderDO.setExpectQuantity(message.getTotalQuantity());
+       // salesOutStockOrderDO.setExpectQuantity(message.getTotalQuantity());
         salesOutStockOrderDO.setActualQuantity(0);
         salesOutStockOrderDO.setStorageStatus(0);
-        salesOutStockOrderDO.setShopId(message.getShopId());
-        salesOutStockOrderDO.setWarehouseId(shopVO.getBusinessId());
+       // salesOutStockOrderDO.setShopId(message.getShopId());
+      //  salesOutStockOrderDO.setWarehouseId(shopVO.getBusinessId());
         salesOutStockOrderDOList.add(salesOutStockOrderDO);
         //
         List<SalesInStockOrderItemAdd> inOutStockOrderItemDTOList = message.getSalesInStockOrderItemAddDTOList();

@@ -80,7 +80,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private IPrepayPayTypeService prepayPayTypeService;
 
     @Autowired
-    private PayConfig payConfig;
+    private static PayConfig payConfig;
 
     @Autowired
     private PayRetryPolicyCacheService payRetryPolicyCacheService;
