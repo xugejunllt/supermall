@@ -2,6 +2,7 @@ package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.client.pay.model.enums.RefundEventTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -41,11 +42,8 @@ public class RefundOrderDO extends BaseEntity {
     @ApiModelProperty(value = "用户的登录id【示例值】159****5620")
     private String buyerLogonId;
 
-    @ApiModelProperty(value = " 退款事件类型: 0: 取消已支付的订单(全部退款)")
-    private Integer refundEventType;
-
-    @ApiModelProperty(value = "取消订单的来源：0:用户手动取消")
-    private Integer cancelSource;
+    @ApiModelProperty(value = " 退款事件类型: 0: 取消已支付的订单，1：售后单退款")
+    private RefundEventTypeEnum refundEventType;
 
     @ApiModelProperty(value = "支付订单ID")
     private Long payOrderId;
@@ -57,6 +55,10 @@ public class RefundOrderDO extends BaseEntity {
 
     @ApiModelProperty(value = "支付类型：0-支付宝，1-微信，2-银联")
     private Integer payType;
+    /**
+     * 业务单id
+     */
+    private Long bizOrderId;
 
     @ApiModelProperty(value = "退款原因")
     private String refundReason;

@@ -1,6 +1,6 @@
 package com.lanf.pay.model.bo;
 
-import com.lanf.pay.model.vo.OutTradeNoAndPayType;
+import com.lanf.client.pay.model.vo.OutTradeNoAndPayType;
 import lombok.Data;
 
 import java.io.Serializable;

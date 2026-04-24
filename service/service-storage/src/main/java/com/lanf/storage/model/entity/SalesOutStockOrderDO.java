@@ -25,11 +25,6 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "订单id")
     private Long orderId;
-    /**
-     *0:销售单出库 1:销售单换货入库 2:销售退货退款入库 3:销售单换货出库
-     *
-     */
-    private Integer inOutStatus;
 
     @ApiModelProperty(value = "预计出库数量")
     private Integer expectQuantity;
@@ -37,7 +32,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "实际出库数量")
     private Integer actualQuantity;
 
-    @ApiModelProperty(value = "出库状态0:待出库,1:部分出库 2:已出库 ")
+    @ApiModelProperty(value = "出库状态0:待出库, 2:已出库 ")
     private Integer storageStatus;
 
     @ApiModelProperty(value = "物流公司")

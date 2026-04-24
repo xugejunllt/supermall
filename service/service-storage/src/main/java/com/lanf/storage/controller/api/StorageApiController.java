@@ -1,6 +1,5 @@
 package com.lanf.storage.controller.api;
 
-import com.lanf.storage.model.dto.SalesInStockOrderAddDTO;
 import com.lanf.storage.model.vo.StockVO;
 import com.lanf.storage.service.stock.IStockService;
 import com.lanf.storage.service.storage.ISalesOutStockOrderService;
@@ -24,13 +23,7 @@ public class StorageApiController {
     @Autowired
     private IStockService stockService;
 
-    @PostMapping("/salesStockOrderAdd")
-    public Result<Void> salesStockOrderAdd(@RequestBody SalesInStockOrderAddDTO dto) {
 
-        log.info("创建售后换货出入库单:dtoList{}", dto);
-        salesOutStockOrderService.salesStockOrderAdd(dto);
-        return Result.ok();
-    }
     @PostMapping("/querySkuCodeList")
     public Result< List<StockVO>> querySkuCodeList(@RequestBody List<String> skuCodeList) {
 

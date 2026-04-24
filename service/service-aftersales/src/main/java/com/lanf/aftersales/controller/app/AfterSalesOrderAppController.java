@@ -59,7 +59,7 @@ public class AfterSalesOrderAppController {
         return Result.ok(afterSalesOrderService.afterSalesOrderDetail(id));
     }
     @PostMapping("/userDelivery")
-    public Result userDelivery(@RequestBody UserDeliveryDTO dto) {
+    public Result<Void> userDelivery(@RequestBody UserDeliveryDTO dto) {
 
         log.info("用户发货:dto{}", dto);
         afterSalesOrderService.userDelivery(dto);

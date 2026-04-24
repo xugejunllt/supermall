@@ -6,7 +6,6 @@ import com.lanf.aftersales.model.dto.UserDeliveryDTO;
 import com.lanf.aftersales.model.entity.AfterSalesOrderDO;
 import com.lanf.aftersales.model.query.AfterSalesOrderPageQuery;
 import com.lanf.aftersales.model.vo.AfterSalesOrderPageVO;
-import com.lanf.mybatis.base.PageQuery;
 import com.lanf.mybatis.base.PageResult;
 
 /**
@@ -31,14 +30,21 @@ public interface IAfterSalesOrderService extends IService<AfterSalesOrderDO> {
      */
     void userDelivery(UserDeliveryDTO dto);
 
-    /**
-     *
-     * 换货出库单出库完成
-     */
-    void exchangeGoodsOutStockFinish(Long id);
+
 
 
     PageResult<AfterSalesOrderPageVO> afterSalesOrderPageQuery(AfterSalesOrderPageQuery query);
 
     AfterSalesOrderPageVO afterSalesOrderDetail(Long id);
+
+    void afterSalesInStockFinish(Long id);
+
+    /**
+     * 完成退款
+     *
+     * @param id 售后单ID
+     */
+    void completeRefund(Long id);
+
+
 }

@@ -1,8 +1,8 @@
 package com.lanf.finance.model.bo;
 
 import com.lanf.order.model.vo.OrderVO;
-import com.lanf.pay.model.vo.OrderTradeVO;
-import com.lanf.pay.model.vo.TradeStatusVO;
+import com.lanf.client.pay.model.vo.OrderTradeVO;
+import com.lanf.client.pay.model.vo.TradeStatusVO;
 import lombok.Data;
 
 import java.io.Serializable;

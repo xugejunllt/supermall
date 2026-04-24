@@ -7,7 +7,7 @@ package com.lanf.storage.mq.event;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.finance.mq.AftersalesClientTopicName;
 import com.lanf.finance.mq.message.SalesInStockOrderAddMessage;
-import com.lanf.storage.service.storage.ISalesOutStockOrderService;
+import com.lanf.storage.service.storage.IAfterSalesIntStockOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 public class AfterSalesCreateInOrderListener implements RocketMQListener<SalesInStockOrderAddMessage> {
 
     @Autowired
-    private ISalesOutStockOrderService salesOutStockOrderService;
+    private IAfterSalesIntStockOrderService afterSalesIntStockOrderService;
 
 
 
@@ -30,7 +30,7 @@ public class AfterSalesCreateInOrderListener implements RocketMQListener<SalesIn
 
         log.info("售后单创建商品入库单监听器接收到消息:{}", JsonUtils.toJsonString(message));
 
-        salesOutStockOrderService.salesStockOrderAdd(message);
+        afterSalesIntStockOrderService.addAfterSalesIntStockOrder( message);
     }
 
 

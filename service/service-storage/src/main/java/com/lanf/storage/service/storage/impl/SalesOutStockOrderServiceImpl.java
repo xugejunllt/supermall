@@ -114,7 +114,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         salesOutStockOrderDO.setExpressCompany(orderVO.getExpressCompany());
         salesOutStockOrderDO.setShopId(orderVO.getShopId());
         salesOutStockOrderDO.setWarehouseId(getWarehouseId(orderVO.getShopId()));
-        salesOutStockOrderDO.setInOutStatus(0);
         //
         List<OrderItemVO> inOutStockOrderItemDTOList = orderVO.getInOutStockOrderItemDTOList();
         inOutStockOrderItemDTOList.forEach(b -> {
@@ -156,9 +155,9 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         List<SalesOutStockOrderDO> salesOutStockOrderDOList = new ArrayList<>();
         List<InOutStockOrderItemDO> inOutStockOrderItemDOList = new ArrayList<>();
 
-        Integer inOutStatus = message.getInOutStatus();
-        SalesOutStockOrderDO stockOrderDO = this.lambdaQuery().eq(SalesOutStockOrderDO::getOrderId, message.getAfterSalesOrderId()).
-                eq(SalesOutStockOrderDO::getInOutStatus, inOutStatus).one();
+        SalesOutStockOrderDO stockOrderDO = this.lambdaQuery()
+                .eq(SalesOutStockOrderDO::getOrderId, message.getAfterSalesOrderId())
+                .one();
         if (stockOrderDO != null) {
             throw new BizException("换货退货入库单已存在");
         }
@@ -174,7 +173,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         salesOutStockOrderDO.setStorageStatus(0);
         salesOutStockOrderDO.setShopId(message.getShopId());
         salesOutStockOrderDO.setWarehouseId(shopVO.getBusinessId());
-        salesOutStockOrderDO.setInOutStatus(inOutStatus);
         salesOutStockOrderDOList.add(salesOutStockOrderDO);
         //
         List<SalesInStockOrderItemAdd> inOutStockOrderItemDTOList = message.getSalesInStockOrderItemAddDTOList();
@@ -232,7 +230,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         Long salesOutStockOrderId = dto.getSalesOutStockOrderId();
         List<OutStockItemDTO> outStockItemList = dto.getOutStockItemList();
         SalesOutStockOrderDO salesOutStockOrderDO = this.getById(salesOutStockOrderId);
-        Integer inOutStatus = salesOutStockOrderDO.getInOutStatus();
         Long shopId = salesOutStockOrderDO.getShopId();
         List<InOutStockOrderItemDO> storageOrderItemDetailList = iInOutStockOrderItemService.lambdaQuery().
                 eq(InOutStockOrderItemDO::getInOutStockOrderId, salesOutStockOrderId).list();
@@ -257,7 +254,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         //更新入库单实际库存和状态
         SalesOutStockOrderDO purchaseStorageOrderDOUpdate = buildPurchaseStorageOrderDO(salesOutStockOrderDO, totalQuantity);
         //更新商品库存
-        List<StockUpdateBO> stockUpdate = buildStockUpdate(outStockItemList, inOutStatus);
+        List<StockUpdateBO> stockUpdate = buildStockUpdate(outStockItemList);
         //数据库操作
         //更新入库单
         this.updateById(purchaseStorageOrderDOUpdate);
@@ -276,7 +273,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         //保存库存流水
         stockFlowService.saveBatch(stockFlowList);
         Integer inStorageStatus = getInStorageStatus(salesOutStockOrderDO, totalQuantity);
-        if (inStorageStatus == 2 && inOutStatus == 0) {
+        if (inStorageStatus == 2 ) {
             //销售单出库完成
             log.info("出库完成");
             String finishContent = "打包完成";
@@ -364,16 +361,15 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     private StorageFlowDO buildStorageDetailsDO(WarehouseDO warehouseDO, SalesOutStockOrderDO salesOutStockOrderDO
             , Integer outQuantity) {
 
-        Integer inOutStatus = salesOutStockOrderDO.getInOutStatus();
         StorageFlowDO storageDetailsDO = new StorageFlowDO();
-        Integer orderType = getOrderType(inOutStatus);
-        storageDetailsDO.setOrderType(getOrderType(inOutStatus));
-        storageDetailsDO.setBizNumber(salesOutStockOrderDO.getCode());
-        if (orderType == 0 || orderType == 3) {
-            storageDetailsDO.setOutQuantity(outQuantity);
-        } else {
-            storageDetailsDO.setInQuantity(outQuantity);
-        }
+//        Integer orderType = getOrderType(inOutStatus);
+//        storageDetailsDO.setOrderType(getOrderType(inOutStatus));
+//        storageDetailsDO.setBizNumber(salesOutStockOrderDO.getCode());
+//        if (orderType == 0 || orderType == 3) {
+//            storageDetailsDO.setOutQuantity(outQuantity);
+//        } else {
+//            storageDetailsDO.setInQuantity(outQuantity);
+//        }
 
         return storageDetailsDO;
     }
@@ -387,18 +383,17 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             InOutStockOrderItemDO> purchaseOrderItemDOMap, SalesOutStockOrderDO salesOutStockOrderDO, WarehouseDO warehouseDO) {
 
         List<StockFlowDO> stockFlowList = new ArrayList<>();
-        Integer orderType = getOrderType(salesOutStockOrderDO.getInOutStatus());
         for (OutStockItemDTO is : inStorageItemList) {
             InOutStockOrderItemDO storageOrderItemDetailsDO = purchaseOrderItemDOMap.get(is.getId());
             StockFlowDO stockFlowDO = new StockFlowDO();
-            stockFlowDO.setOrderType(orderType);
-            stockFlowDO.setSkuCode(storageOrderItemDetailsDO.getSkuCode());
-            stockFlowDO.setBizNumber(salesOutStockOrderDO.getCode());
-            if (orderType == 0 || orderType == 3) {
-                stockFlowDO.setOutQuantity(is.getActualQuantity());
-            } else {
-                stockFlowDO.setInQuantity(is.getActualQuantity());
-            }
+//            stockFlowDO.setOrderType(orderType);
+//            stockFlowDO.setSkuCode(storageOrderItemDetailsDO.getSkuCode());
+//            stockFlowDO.setBizNumber(salesOutStockOrderDO.getCode());
+//            if (orderType == 0 || orderType == 3) {
+//                stockFlowDO.setOutQuantity(is.getActualQuantity());
+//            } else {
+//                stockFlowDO.setInQuantity(is.getActualQuantity());
+//            }
             stockFlowList.add(stockFlowDO);
         }
         return stockFlowList;
@@ -437,7 +432,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         return status;
     }
 
-    private List<StockUpdateBO> buildStockUpdate(List<OutStockItemDTO> inStorageItemList, Integer inOutStatus) {
+    private List<StockUpdateBO> buildStockUpdate(List<OutStockItemDTO> inStorageItemList) {
 
         List<String> skuCodeList = inStorageItemList.stream().map(OutStockItemDTO::getSkuCode).collect(Collectors.toList());
         ThreadLocalUtils.addIgnoreTableName(true);
@@ -449,13 +444,8 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             String skuCode = st.getSkuCode();
             StockDO stockDO = stockDOMap.get(skuCode);
             //更新
-            Integer totalStock = null;
-            Integer usableStock = null;
-            if (inOutStatus == 0 || inOutStatus == 3) {
-                totalStock = stockDO.getTotalStock() - st.getActualQuantity();
-            } else {
-                totalStock = stockDO.getTotalStock() + st.getActualQuantity();
-            }
+            Integer totalStock =  stockDO.getTotalStock() - st.getActualQuantity();
+            Integer usableStock = stockDO.getTotalStock() + st.getActualQuantity();
 
             StockUpdateBO stockUpdateBO = new StockUpdateBO();
             stockUpdateBO.setTotalStock(totalStock);

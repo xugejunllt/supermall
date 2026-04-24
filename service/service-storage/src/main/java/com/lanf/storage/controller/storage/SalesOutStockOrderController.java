@@ -30,7 +30,7 @@ public class SalesOutStockOrderController {
     private ISalesOutStockOrderService salesOutStockOrderService;
 
     @PostMapping("/outStock")
-    public Result outStock(@Validated @RequestBody OutStockDTO dto) {
+    public Result<Void> outStock(@Validated @RequestBody OutStockDTO dto) {
 
         log.info("出库:dto{}", dto);
         salesOutStockOrderService.outStock(dto);

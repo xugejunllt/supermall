@@ -20,7 +20,7 @@ import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.order.api.OrderApiService;
 import com.lanf.order.model.vo.OrderItemVO;
 import com.lanf.order.model.vo.OrderVO;
-import com.lanf.pay.api.PayApiService;
+import com.lanf.client.pay.api.PayApiService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.api.StorageApiService;
@@ -190,9 +190,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         }
 
         dto.setAfterSalesOrderId(salesOrderDO.getId());
-        dto.setShopId(salesOrderDO.getShopId());
         dto.setTotalQuantity(totalQuantity);
-        dto.setInOutStatus(inOutStatus);
 
         return dto;
     }

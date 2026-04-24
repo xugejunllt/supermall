@@ -1,11 +1,11 @@
 package com.lanf.pay.controller.aip;
 
 import com.lanf.constant.result.Result;
-import com.lanf.pay.model.dto.CancelTradeOrderDTO;
-import com.lanf.pay.model.dto.CreateMergeTradeOrderDTO;
-import com.lanf.pay.model.dto.CreateTradeOrderDTO;
-import com.lanf.pay.model.vo.CancelTradeOrderVO;
-import com.lanf.pay.model.vo.CreateMergeTradeOrderVO;
+import com.lanf.client.pay.model.dto.CancelTradeOrderDTO;
+import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
+import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
+import com.lanf.client.pay.model.vo.CancelTradeOrderVO;
+import com.lanf.client.pay.model.vo.CreateMergeTradeOrderVO;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import lombok.extern.slf4j.Slf4j;

@@ -6,6 +6,8 @@ import lombok.Getter;
  * 每个状态 对应一种业务场景动作
  *
  * 拆分业务场景
+ *
+ * 一个大状态 支持多种子状态->动作
  */
 @Getter
 public enum SubStatus {
@@ -20,7 +22,7 @@ public enum SubStatus {
     // 待收货下的子状态
     NO_SIGN(4, "待签收", MainStatusEnum.WAIT_SELLER_RECEIVE),
     SIGNED(5, "已签收待入库", MainStatusEnum.WAIT_SELLER_RECEIVE),
-    QUALITY_CHECK(6, "质检中", MainStatusEnum.WAIT_SELLER_RECEIVE),
+//    QUALITY_CHECK(6, "已入库", MainStatusEnum.WAIT_SELLER_RECEIVE),
 
     // 待退款/换货下的子状态
     REFUND_PROCESS(7, "退款处理中", MainStatusEnum.WAIT_CONFIRM),
