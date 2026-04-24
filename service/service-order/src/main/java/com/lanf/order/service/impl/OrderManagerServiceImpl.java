@@ -3,6 +3,7 @@ package com.lanf.order.service.impl;
 
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.*;
+import com.lanf.constant.enums.CancelSourceEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.result.RpcResultParser;
@@ -574,6 +575,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         CancelOrderEventMessage cancelOrderEventMessage = new CancelOrderEventMessage();
         cancelOrderEventMessage.setOrderId(dto.getOrderId());
         cancelOrderEventMessage.setSkuIdList(skuIdList);
+        cancelOrderEventMessage.setCancelSource(CancelSourceEnum.USER_MANUAL.getCode());
         rocketMqClient.sendMessage(TopicName.CANCEL_ORDER_EVENT_TOPIC, JsonUtils.toJsonString(cancelOrderEventMessage));
     }
 

@@ -1,4 +1,4 @@
-package com.lanf.pay.model.enums;
+package com.lanf.constant.enums;
 
 import lombok.Getter;
 

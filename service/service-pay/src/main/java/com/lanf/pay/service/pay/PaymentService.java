@@ -1,6 +1,7 @@
 package com.lanf.pay.service.pay;
 
 import com.lanf.pay.model.bo.CallbackResultBO;
+import com.lanf.pay.model.bo.CancelPaidOrderResultBO;
 import com.lanf.pay.model.bo.TradeStatusBO;
 import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.vo.PrepayOrderVO;
@@ -8,6 +9,7 @@ import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 
 public interface PaymentService {
 
@@ -45,4 +47,14 @@ public interface PaymentService {
      * @param outTradeNo 商户订单号
      */
     boolean cancelPendingOrder(String outTradeNo) throws MessageRetryConsumeException;
+
+    /**
+     * 取消支付宝已支付订单（发起退款）
+     *
+     * @param outTradeNo 商户订单号
+     * @param refundAmount 退款金额
+     * @param refundReason 退款原因
+     * @return 是否成功
+     */
+    CancelPaidOrderResultBO cancelPaidOrder(String outTradeNo, BigDecimal refundAmount, String refundReason) throws MessageRetryConsumeException;
 }

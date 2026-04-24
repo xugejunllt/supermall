@@ -1,10 +1,10 @@
 package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -18,7 +18,7 @@ import java.util.Date;
  */
 @Data
 @TableName("pay_order_flow")
-public class PayOrderFlowDO implements Serializable {
+public class PayOrderFlowDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 

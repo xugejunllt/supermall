@@ -7,17 +7,21 @@ import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.AlipayTradeAppPayModel;
 import com.alipay.api.domain.AlipayTradeCloseModel;
 import com.alipay.api.domain.AlipayTradeQueryModel;
+import com.alipay.api.domain.AlipayTradeRefundModel;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.AlipayTradeAppPayRequest;
 import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
+import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
 import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
+import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.CallbackResultBO;
+import com.lanf.pay.model.bo.CancelPaidOrderResultBO;
 import com.lanf.pay.model.bo.TradeStatusBO;
 import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.enums.TradeStatusEnum;
@@ -303,6 +307,49 @@ public class AliPayPaymentServiceImpl implements PaymentService {
         } catch (AlipayApiException e) {
             log.warn("取消支付宝订单异常:outTradeNo={}", outTradeNo, e);
             throw new MessageRetryConsumeException("取消订单异常");
+        }
+    }
+
+    @Override
+    public CancelPaidOrderResultBO cancelPaidOrder(String outTradeNo, BigDecimal refundAmount, String refundReason) throws MessageRetryConsumeException {
+
+
+        log.info("取消支付宝已支付订单开始:outTradeNo={},refundAmount={},refundReason={}", 
+                outTradeNo, refundAmount, refundReason);
+
+        AlipayClient alipayClient = null;
+        try {
+            alipayClient = new DefaultAlipayClient(getAlipayConfig());
+
+            AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
+            AlipayTradeRefundModel model = new AlipayTradeRefundModel();
+            model.setOutTradeNo(outTradeNo);
+            model.setRefundAmount(refundAmount.toString());
+            model.setRefundReason(refundReason != null ? refundReason : "订单取消退款");
+            request.setBizModel(model);
+
+            AlipayTradeRefundResponse response = alipayClient.certificateExecute(request);
+            String code = response.getCode();
+            
+            if (  !("10000".equals(code) && "Y".equals(response.getFundChange())) ) {
+                log.warn("支付宝退款失败:outTradeNo={},code={},subCode={},msg={}",
+                        outTradeNo, code, response.getSubCode(), response.getSubMsg());
+                throw new MessageRetryConsumeException("退款异常");
+            }
+            
+            log.info("支付宝退款成功:outTradeNo={},tradeNo={},refundFee={}", 
+                    outTradeNo, response.getTradeNo(), response.getRefundFee());
+            CancelPaidOrderResultBO bo = new CancelPaidOrderResultBO();
+            bo.setResult( true);
+            bo.setTradeNo(response.getTradeNo());
+            bo.setReturnMoney(new BigDecimal(response.getRefundFee()));
+            bo.setBuyerLogonId(response.getBuyerLogonId());
+
+            return bo;
+
+        } catch (AlipayApiException e) {
+            log.warn("支付宝退款异常:outTradeNo={}", outTradeNo, e);
+            throw new MessageRetryConsumeException("退款异常");
         }
     }
 }
