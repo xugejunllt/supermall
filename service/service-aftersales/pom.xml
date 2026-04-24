@@ -117,6 +117,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>service-api-aftersales</artifactId>
+            <version>1.0.0</version>
+
+        </dependency>
     </dependencies>
 
     <build>

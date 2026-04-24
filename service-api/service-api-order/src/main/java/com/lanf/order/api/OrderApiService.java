@@ -34,12 +34,13 @@ public interface OrderApiService {
     @PostMapping("/order/api/cancelOrder")
     public Result<Void> cancelOrder(@Validated @RequestBody CancelOrderApiDTO dto) ;
 
-
-
-
-    @Deprecated
     @PostMapping("/order/orderApi/queryByOrderId")
     public Result<List<OrderVO>> queryByOrderId(@RequestBody List<Long> orderIdList);
+
+
+
+
+
     @PostMapping("/order/orderApi/contrastBillOrderCountQuery")
     @Deprecated
     public Result<Integer> contrastBillOrderCountQuery(@RequestBody ContrastBillOrderQuery query);

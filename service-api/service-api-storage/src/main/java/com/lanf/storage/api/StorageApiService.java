@@ -15,7 +15,7 @@ import java.util.List;
 public interface StorageApiService {
 
     @PostMapping("/storage/storageApi/salesStockOrderAdd")
-    public Result salesInStockOrderAdd(@RequestBody List<SalesInStockOrderAddDTO> dtoList);
+    public Result<Void> salesInStockOrderAdd(@RequestBody List<SalesInStockOrderAddDTO> dtoList);
 
     @PostMapping("/storage/storageApi/querySkuCodeList")
     public Result< List<StockVO>> querySkuCodeList(@RequestBody List<String> skuCodeList);

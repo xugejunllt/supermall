@@ -1,15 +1,13 @@
 package com.lanf.storage.service.storage;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.finance.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.storage.model.dto.SalesInStockOrderAddDTO;
 import com.lanf.storage.model.dto.OutStockDTO;
 import com.lanf.storage.model.entity.SalesOutStockOrderDO;
 import com.lanf.storage.model.query.SalesOutStockOrderPageQuery;
 import com.lanf.storage.model.vo.SalesOutStockOrderDetailVO;
 import com.lanf.storage.model.vo.SalesOutStockOrderPageVO;
-
-import java.util.List;
 
 /**
  * <p>
@@ -28,10 +26,10 @@ public interface ISalesOutStockOrderService extends IService<SalesOutStockOrderD
     void salesOutStockOrderAdd(Long orderId);
 
     /**
-     * 换货添加入库单/出库单
+     * 售后时 创建退货 商品入库单
      *
      */
-    void salesStockOrderAdd(List<SalesInStockOrderAddDTO> dtoList);
+    void salesStockOrderAdd(SalesInStockOrderAddMessage message);
     void  outStock(OutStockDTO dto);
 
     PageResult<SalesOutStockOrderPageVO>  salesOutStockOrderPage(SalesOutStockOrderPageQuery query);

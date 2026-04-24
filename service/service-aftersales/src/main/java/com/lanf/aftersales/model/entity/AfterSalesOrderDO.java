@@ -34,17 +34,14 @@ public class AfterSalesOrderDO extends BaseEntity {
     private Integer afterSalesType;
 
     /**
-     * 退货退款状态
-     * 0.已发布，商家处理中
-     * 1.商家同意申请，买家处理中
-     * 2.商家拒绝申请
-     * 3.买家已发货，待商家收货
-     * 4.商家收货，售后完成
-     * 5.商家拒绝收货
-     * 6.售后关闭（评价完成后关闭）
-     * 7.已撤销
+     *
      */
-    private Integer returnsAndRefundsStatus;
+    private Integer mainStatus;
+
+    /**
+     * 子状态 看设计文档
+     */
+    private Integer subStatus;
 
     @ApiModelProperty(value = "商家自动同意时间")
     private Date businessAutoAgreeTime;
@@ -67,5 +64,7 @@ public class AfterSalesOrderDO extends BaseEntity {
     private Integer returnQuantity;
     //退款金额是否到账 0:未到账，1:已到账
     private Integer incomeStatus;
+
+    private Long version;
 
 }

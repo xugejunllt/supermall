@@ -50,7 +50,7 @@ public class AfterSalesOrderAdminController {
 
 
     @PostMapping("/businessAgree")
-    public Result businessAgree(@RequestBody BusinessAgreeDTO dto) {
+    public Result<Void> businessAgree(@RequestBody BusinessAgreeDTO dto) {
 
         log.info("商家同意退货退款申请:dto:{}", dto);
         afterSalesOrderService.businessAgree(dto);
@@ -58,8 +58,14 @@ public class AfterSalesOrderAdminController {
     }
 
 
+    /**
+     *
+     * 签收退货商品
+     *
+     */
+
     @PostMapping("/businessReceiver")
-    public Result businessReceiver(@RequestBody BusinessReceiverDTO dto) {
+    public Result<Void> businessReceiver(@RequestBody BusinessReceiverDTO dto) {
 
         log.info("商家收货:dto:{}", dto);
         interfaceLayoutService.businessReceiver(dto);

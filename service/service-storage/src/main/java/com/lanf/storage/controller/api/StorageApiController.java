@@ -25,10 +25,10 @@ public class StorageApiController {
     private IStockService stockService;
 
     @PostMapping("/salesStockOrderAdd")
-    public Result salesStockOrderAdd(@RequestBody List<SalesInStockOrderAddDTO> dtoList) {
+    public Result<Void> salesStockOrderAdd(@RequestBody SalesInStockOrderAddDTO dto) {
 
-        log.info("创建售后换货出入库单:dtoList{}", dtoList);
-        salesOutStockOrderService.salesStockOrderAdd(dtoList);
+        log.info("创建售后换货出入库单:dtoList{}", dto);
+        salesOutStockOrderService.salesStockOrderAdd(dto);
         return Result.ok();
     }
     @PostMapping("/querySkuCodeList")

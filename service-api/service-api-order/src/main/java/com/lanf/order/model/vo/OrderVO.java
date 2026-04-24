@@ -11,13 +11,15 @@ import java.util.List;
 public class OrderVO implements Serializable {
     //订单商品总数量
     private Integer totalQuantity;
+
     @ApiModelProperty(value = "物流公司")
     private String expressCompany;
+
     private Long goodsId;
+
     private Long orderId;
     @ApiModelProperty(value = "店铺id")
     private Long shopId;
-
     @ApiModelProperty(value = "商家id")
     private Long businessId;
     //订单状态

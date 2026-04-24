@@ -1,4 +1,4 @@
-package com.lanf.storage.model.dto;
+package com.lanf.finance.mq.message;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class SalesInStockOrderAddDTO implements Serializable {
+public class SalesInStockOrderAddMessage implements Serializable {
 
 
     @ApiModelProperty(value = "售后单id")
@@ -18,10 +18,14 @@ public class SalesInStockOrderAddDTO implements Serializable {
 
     @ApiModelProperty(value = "商家id")
     private Long businessId;
+
     //订单商品总数量
     private Integer totalQuantity;
+
     private Integer inOutStatus;
-    private List<SalesInStockOrderItemAddDTO> salesInStockOrderItemAddDTOList;
+
+
+    private List<SalesInStockOrderItemAdd> salesInStockOrderItemAddDTOList;
 
 
 

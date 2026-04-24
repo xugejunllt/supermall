@@ -9,7 +9,6 @@ public class BusinessAgreeDTO implements Serializable {
 
 
     private Long id;
-    //0:同意 1:拒绝
-    private  Long agree;
+
 
 }

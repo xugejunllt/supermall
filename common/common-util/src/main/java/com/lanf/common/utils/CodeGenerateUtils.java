@@ -21,7 +21,6 @@ public class CodeGenerateUtils {
     }
 
 
-    @Deprecated
     /**
      * 生成订单编号
      *

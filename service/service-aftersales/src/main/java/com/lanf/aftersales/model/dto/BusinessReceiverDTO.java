@@ -8,7 +8,6 @@ import java.io.Serializable;
 public class BusinessReceiverDTO implements Serializable {
 
     private Long id;
-    //0:同意 1:拒绝
-    private  Long agree;
+
 
 }

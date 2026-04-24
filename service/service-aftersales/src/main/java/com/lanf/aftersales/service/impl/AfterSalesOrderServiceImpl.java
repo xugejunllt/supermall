@@ -11,13 +11,15 @@ import com.lanf.aftersales.model.dto.UserDeliveryDTO;
 import com.lanf.aftersales.model.entity.AfterSalesOrderDO;
 import com.lanf.aftersales.model.entity.AfterSalesOrderItemDO;
 import com.lanf.aftersales.model.enums.AfterSalesTypeEnum;
-import com.lanf.aftersales.model.enums.ReturnsAndRefundsStatusEnum;
+import com.lanf.aftersales.model.enums.MainStatusEnum;
+import com.lanf.aftersales.model.enums.SubStatus;
 import com.lanf.aftersales.model.query.AfterSalesOrderPageQuery;
 import com.lanf.aftersales.model.vo.AfterSalesOrderItemPageVO;
 import com.lanf.aftersales.model.vo.AfterSalesOrderPageVO;
 import com.lanf.aftersales.service.IAfterSalesOrderItemService;
 import com.lanf.aftersales.service.IAfterSalesOrderService;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -25,7 +27,6 @@ import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.api.StorageApiService;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
-import com.lanf.constant.exception.BizException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -64,29 +65,24 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
     public void businessAgree(BusinessAgreeDTO dto) {
 
         Long id = dto.getId();
-        Long agree = dto.getAgree();
         AfterSalesOrderDO salesOrderDO = this.getById(id);
         if (salesOrderDO == null) {
+            log.error("售后单不存在");
             throw new BizException("售后单不存在");
         }
-        if (salesOrderDO.getReturnsAndRefundsStatus() != 0) {
+        if ( !MainStatusEnum.WAIT_SELLER_AGREE.getCode()
+                .equals(salesOrderDO.getMainStatus())) {
             throw new BizException("售后单状态异常");
         }
-        if (!(agree == 0 || agree == 1)) {
-            throw new BizException("agree单状态异常");
+        boolean update = this.lambdaUpdate().eq(AfterSalesOrderDO::getId, id)
+                .eq(AfterSalesOrderDO::getVersion, salesOrderDO.getVersion())
+                .set(AfterSalesOrderDO::getMainStatus, MainStatusEnum.WAIT_BUYER_RETURN.getCode())
+                .set(AfterSalesOrderDO::getSubStatus, SubStatus.WAIT_LOGISTICS.getCode())
+                .set(AfterSalesOrderDO::getVersion, salesOrderDO.getVersion() + 1)
+                .update();
+        if ( !update) {
+           throw new BizException("售后单更新失败");
         }
-
-        Integer returnsAndRefundsStatus = null;
-        if (agree == 0) {
-            returnsAndRefundsStatus = ReturnsAndRefundsStatusEnum.AGREES_TO_APPLY.getCode();
-        } else {
-            returnsAndRefundsStatus = ReturnsAndRefundsStatusEnum.REFUSE_TO_APPLY.getCode();
-        }
-        AfterSalesOrderDO salesOrderDOUpdate = new AfterSalesOrderDO();
-        salesOrderDOUpdate.setId(id);
-        salesOrderDOUpdate.setReturnsAndRefundsStatus(returnsAndRefundsStatus);
-
-        this.updateById(salesOrderDOUpdate);
 
     }
 
@@ -96,17 +92,22 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         Long id = dto.getId();
         AfterSalesOrderDO salesOrderDO = this.getById(id);
         if (salesOrderDO == null) {
+            log.error("售后单不存在");
             throw new BizException("售后单不存在");
         }
-        if (salesOrderDO.getReturnsAndRefundsStatus() != 1) {
+        if ( !MainStatusEnum.WAIT_BUYER_RETURN.getCode()
+                .equals(salesOrderDO.getMainStatus())) {
             throw new BizException("售后单状态异常");
         }
-        AfterSalesOrderDO salesOrderDOUpdate = new AfterSalesOrderDO();
-        salesOrderDOUpdate.setId(id);
-        salesOrderDOUpdate.setReturnsAndRefundsStatus(ReturnsAndRefundsStatusEnum.SHIPPED.getCode());
-        salesOrderDOUpdate.setExpressNumber(dto.getExpressNumber());
-        salesOrderDOUpdate.setExpressCompany(dto.getExpressCompany());
-        this.updateById(salesOrderDOUpdate);
+        boolean update = this.lambdaUpdate().eq(AfterSalesOrderDO::getId, id)
+                .eq(AfterSalesOrderDO::getVersion, salesOrderDO.getVersion())
+                .set(AfterSalesOrderDO::getMainStatus, MainStatusEnum.WAIT_SELLER_RECEIVE.getCode())
+                .set(AfterSalesOrderDO::getSubStatus, SubStatus.NO_SIGN.getCode())
+                .set(AfterSalesOrderDO::getVersion, salesOrderDO.getVersion() + 1)
+                .update();
+        if ( !update) {
+            throw new BizException("售后单更新失败");
+        }
     }
 
 
@@ -228,8 +229,8 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
             vo.setShopName(shopName);
             vo.setAfterSalesTypeName(AfterSalesTypeEnum.getAfterSalesTypeEnum(a.getAfterSalesType()).getName());
             vo.setIncomeStatusName(incomeStatusName);
-            vo.setReturnsAndRefundsStatusName(ReturnsAndRefundsStatusEnum.
-                    getReturnsAndRefundsStatusEnum(vo.getReturnsAndRefundsStatus()).getName());
+//            vo.setReturnsAndRefundsStatusName(ReturnsAndRefundsStatusEnum.
+//                    getReturnsAndRefundsStatusEnum(vo.getReturnsAndRefundsStatus()).getName());
 
             vo.setAfterSalesOrderItemPageVOS(afterSalesOrderItemPageVOS1);
             afterSalesOrderPageVOS.add(vo);
