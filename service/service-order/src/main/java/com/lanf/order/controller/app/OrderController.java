@@ -17,7 +17,6 @@ import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.service.layout.InterfaceLayoutService;
-import com.lanf.order.task.CloseOrderTask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -40,8 +39,7 @@ public class OrderController {
     private IOrderService orderService;
     @Autowired
     private InterfaceLayoutService interfaceLayoutService;
-    @Autowired
-    private CloseOrderTask promiseStatusCheckTask;
+
 
     @Autowired
     private OrderManagerService orderManagerService;
