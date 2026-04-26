@@ -1,10 +1,6 @@
 package com.lanf.order.task;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.lanf.order.model.entity.PromiseOrderDO;
-import com.lanf.order.service.IPromiseOrderService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.PromiseOrderLiquidationMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -12,22 +8,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
 import java.util.Date;
-import java.util.List;
 
+/**
+ * 关闭订单任务
+ *
+ */
 @Slf4j
 @Component
-public class PromiseStatusCheckTask {
+public class CloseOrderTask {
 
 
-    @Autowired
-    private IPromiseOrderService promiseOrderService;
     @Autowired
     private RocketMqClient rocketMqClient;
 
+    /**
+     * 已履约订单超过售后期限 转成 已关闭
+     */
     @Scheduled(cron = "0/5 * * * * *")
-    public void promiseOrderLiquidationTask() {
+    public void closeOrdersWhenAfterSalePeriodExpired() {
 
         log.info("履约单定时任务检查开始");
         /**

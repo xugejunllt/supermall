@@ -1,7 +1,6 @@
 package com.lanf.order.mq;
 
 import com.lanf.messagemanager.client.annotation.ConsumeMessage;
-import com.lanf.order.service.IPromiseOrderService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.PromiseOrderReturnMoneyDTO;
 import lombok.extern.slf4j.Slf4j;

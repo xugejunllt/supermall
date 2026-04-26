@@ -17,6 +17,10 @@ public enum OrderStatusEnum {
     WAIT_COMMENT(4, "待评价"),
     COMPLETED(5, "已评价"),
     CANCELLED(6, "已取消"),
+    /**
+     *  1.已履约订单超过售后期限 转成 已关闭
+     *  2.已取消订单 7天之后 转成 已关闭
+     */
     CLOSED(7, "已关闭,订单已终结，不支持售后"),
 
     ;

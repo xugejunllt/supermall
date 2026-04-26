@@ -1,7 +1,6 @@
 package com.lanf.order.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lanf.order.model.entity.PromiseOrderDO;
 
 /**
  * <p>
