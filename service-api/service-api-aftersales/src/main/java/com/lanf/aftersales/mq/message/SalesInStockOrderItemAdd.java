@@ -1,4 +1,4 @@
-package com.lanf.finance.mq.message;
+package com.lanf.aftersales.mq.message;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

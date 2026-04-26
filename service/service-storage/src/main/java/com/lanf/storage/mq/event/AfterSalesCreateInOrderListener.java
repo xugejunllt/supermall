@@ -5,8 +5,8 @@ package com.lanf.storage.mq.event;
  */
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.finance.mq.AftersalesClientTopicName;
-import com.lanf.finance.mq.message.SalesInStockOrderAddMessage;
+import com.lanf.aftersales.mq.AftersalesClientTopicName;
+import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.storage.service.storage.IAfterSalesIntStockOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;

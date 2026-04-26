@@ -1,7 +1,7 @@
 package com.lanf.storage.service.storage;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.finance.mq.message.SalesInStockOrderAddMessage;
+import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.storage.model.dto.AfterSalesIntStockDTO;
 import com.lanf.storage.model.entity.AfterSalesIntStockOrderDO;
 

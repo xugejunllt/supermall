@@ -1,4 +1,4 @@
-package com.lanf.finance.mq;
+package com.lanf.aftersales.mq;
 
 public class AftersalesClientTopicName {
 

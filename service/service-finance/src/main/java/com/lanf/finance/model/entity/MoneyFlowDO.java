@@ -1,13 +1,12 @@
 package com.lanf.finance.model.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 /**
  * <p>
@@ -24,30 +23,22 @@ public class MoneyFlowDO extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
 
-
-    @ApiModelProperty(value = "结算单id")
-    private Long settlementFlowId;
-
-    @ApiModelProperty(value = "订单id")
-    private Long orderId;
+    /**
+     * 流水号
+     */
+    private String flowNo;
 
     @ApiModelProperty(value = "商家id")
-    private Long shopId;
+    private Long businessId;
 
-    @ApiModelProperty(value = "科目名称")
-    private String incomeSubjectName;
+    @ApiModelProperty(value = "业务订单id")
+    private Long bizOrderId;
 
-    @ApiModelProperty(value = "0:收入，1:支出")
-    private Integer income;
-
-    @ApiModelProperty(value = "来源 0:用户下单")
-    private Integer source;
+    @ApiModelProperty(value = "0:下单, 1:售后退款, 2: 取消订单退款, 3: 平台结算支出 , 4: 商家结算收入 ")
+    private RecordTypeEnum recordType;
 
     @ApiModelProperty(value = "收入支出金额")
     private BigDecimal incomeMoney;
-
-    @ApiModelProperty(value = "账户类型0:支付宝")
-    private Integer accountType;
 
     @ApiModelProperty(value = "收支账户")
     private String incomeAccount;
@@ -58,10 +49,6 @@ public class MoneyFlowDO extends BaseEntity {
     @ApiModelProperty(value = "变更后账户余额")
     private BigDecimal afterRemainMoney;
 
-    @ApiModelProperty(value = "交易完成时间")
-    private Date tradeFinishTime;
 
-    @ApiModelProperty(value = "交易完成时间 ")
-    private String tradeFinishTimeFormat;
 
 }
