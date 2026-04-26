@@ -4,6 +4,7 @@ import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.finance.model.entity.LiquidationDO;
 import com.lanf.finance.model.entity.LiquidationFlowDO;
+import com.lanf.finance.model.enums.LiquidationStatusEnum;
 import com.lanf.finance.model.enums.LiquidationTypeEnum;
 import com.lanf.finance.service.ILiquidationFlowService;
 import com.lanf.finance.service.ILiquidationService;
@@ -60,6 +61,7 @@ public class TradeSuccessFinanceListener implements RocketMQListener<TradeSucces
             liquidationDO.setPayMoney(payMoney);
             liquidationDO.setId(liquidationId);
             liquidationDO.setPayType(orderPayInfo.getPayType());
+            liquidationDO.setStatus(LiquidationStatusEnum.WAIT_SETTLEMENT);
             liquidationDOList.add(liquidationDO);
             //商家收入
             BigDecimal merchantIncomeMoney = calculateMerchantIncome(payMoney, rate);

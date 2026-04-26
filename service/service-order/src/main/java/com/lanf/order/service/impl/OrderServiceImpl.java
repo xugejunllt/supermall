@@ -4,9 +4,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.client.pay.api.PayApiService;
+import com.lanf.client.pay.model.query.TradeOrderBathQuery;
+import com.lanf.client.pay.model.vo.OrderTradeVO;
+import com.lanf.client.pay.model.vo.TradeOrderBathVO;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtil;
-import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.enums.FrozenStatusEnum;
 import com.lanf.constant.exception.BizException;
@@ -31,13 +34,11 @@ import com.lanf.order.model.query.ContrastBillOrderQuery;
 import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.query.OrderPageQuery2;
 import com.lanf.order.model.vo.*;
+import com.lanf.order.mq.OrderClientTopicName;
+import com.lanf.order.mq.message.SignOrderMessage;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.utils.OrderServiceUtils;
-import com.lanf.client.pay.api.PayApiService;
-import com.lanf.client.pay.model.query.TradeOrderBathQuery;
-import com.lanf.client.pay.model.vo.OrderTradeVO;
-import com.lanf.client.pay.model.vo.TradeOrderBathVO;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserUtils;
@@ -94,10 +95,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     }
 
 
-
     @Transactional
     public void confirmCreateOrder(CreateOrderDTO dto) {
-        log.info("创建订单开始:{}",dto);
+        log.info("创建订单开始:{}", dto);
 
         OrderDO orderDO = OrderServiceUtils.buildOrderDO(dto);
         //单笔下单时 只有一个商品
@@ -113,6 +113,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         orderItemService.save(orderItemDO);
 
     }
+
     public void cancelCreateOrder(CreateOrderDTO dto) {
 
         log.info("cancelCreateOrder");
@@ -126,10 +127,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         if (orderDO == null) {
             throw new BizException("订单不存在");
         }
-        if (FrozenStatusEnum.FROZEN.getCode().equals(orderDO.getFrozen())){
+        if (FrozenStatusEnum.FROZEN.getCode().equals(orderDO.getFrozen())) {
             throw new BizException("订单已冻结");
         }
-        if ( !OrderStatusEnum.isCancelable(orderDO.getStatus())){
+        if (!OrderStatusEnum.isCancelable(orderDO.getStatus())) {
             log.error("订单状态异常status:[{}]", orderDO.getStatus());
             throw new BizException("订单状态异常");
         }
@@ -156,10 +157,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         }
 
     }
+
     @Override
     public void confirmCancelOrder(CancelOrderBO dto) {
 
-        log.info("confirmCancelOrder[{}]",JsonUtils.toJsonString(dto));
+        log.info("confirmCancelOrder[{}]", JsonUtils.toJsonString(dto));
         OrderDO orderDO = this.getById(dto.getOrderId());
         if (orderDO == null) {
             log.error("订单不存在");
@@ -169,7 +171,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         String bizKey = buildCancelOrderBizKey(dto.getBizKeySuffix());
 
         boolean operation = tccOperationService.confirmOperation(bizKey);
-        if ( !operation){
+        if (!operation) {
             log.info("confirm已执行");
             return;
         }
@@ -189,6 +191,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             throw new BizException("订单状态更新异常");
         }
     }
+
     @Override
     public void cancelCancelOrder(CancelOrderBO dto) {
         log.info("cancelCancelOrder{}", dto);
@@ -201,7 +204,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             throw new BizException("订单不存在");
         }
         boolean operation = tccOperationService.cancelOperation(bizKey);
-        if ( !operation){
+        if (!operation) {
             log.info("cancel已执行");
             return;
         }
@@ -223,8 +226,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         }
 
 
-
     }
+
     @Override
     public List<Long> querySkuIdsByOrderId(Long orderId) {
         List<OrderItemDO> orderItemList = orderItemService.lambdaQuery()
@@ -236,7 +239,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                 .map(OrderItemDO::getSkuId)
                 .collect(Collectors.toList());
     }
-    private String buildCancelOrderBizKey(String bizKeySuffix){
+
+    private String buildCancelOrderBizKey(String bizKeySuffix) {
 
         return "cancelOrder:" + bizKeySuffix;
     }
@@ -283,7 +287,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Override
     public List<OrderVO> queryByOrderId(List<Long> orderIdList) {
         List<OrderDO> orderDOList = this.lambdaQuery().in(BaseEntity::getId, orderIdList).list();
-
 
 
         List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery().in(OrderItemDO::getOrderId, orderIdList).list();
@@ -354,32 +357,33 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         Long orderId = dto.getOrderId();
         OrderDO orderDO = this.getById(orderId);
         Integer status = orderDO.getStatus();
-        if (status != 3) {
+        if (!OrderStatusEnum.SHIPPED.getCode().equals(status)) {
+            log.warn("订单状态异常");
             throw new BizException("订单状态异常");
         }
         /**
          * 订单更新信息
          */
-        OrderDO orderDOUpdate = new OrderDO();
-        orderDOUpdate.setId(orderId);
-        orderDOUpdate.setStatus(4);
-
+        boolean update = this.lambdaUpdate().eq(OrderDO::getId, orderId)
+                .eq(OrderDO::getStatus, OrderStatusEnum.SHIPPED.getCode())
+                .eq(OrderDO::getVersion, orderDO.getVersion())
+                .set(OrderDO::getStatus, OrderStatusEnum.WAIT_COMMENT.getCode())
+                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.error("订单状态更新异常");
+            throw new BizException("订单状态更新异常");
+        }
         /**
-         * 更新履约完成时间
+         * 发送订单签收消息
          */
-        //写死一天后完成履约-
-        int afterDay = 7;
-        Date finishTime = DateUtils.addHour(new Date(), afterDay * 24L);
-        this.updateById(orderDOUpdate);
-
-
-        /**
-         * 发送mq给物流服务
-         */
-        String finishContent = "您的订单已签收";
-//        LogisticsTrackBathAddDTO bathAddDTO = MessageBuildAdapter.buildLogisticsTrackAddDTO(dto.getOrderId(), finishContent, LogisticsTrackStatusEnum.SIGNED_FOR.getCode());
-//        bathAddDTO.setBizKeyValue(dto.getOrderId()+":"+finishContent);
-//        sendMqMessageService.sendMessage(TopicName.BATH_ADD_LOGISTICS_TRACK_TOPIC,bathAddDTO);
+        SignOrderMessage signOrderMessage = new SignOrderMessage();
+        z
+        signOrderMessage.setOrderId(orderId);
+        signOrderMessage.setSignTime(new Date());
+        signOrderMessage.setAfterSaleDays(orderDO.getAfterSaleDays());
+        rocketMqClient.sendMessage(OrderClientTopicName.SIGN_ORDER_EVENT_TOPIC,
+                JsonUtils.toJsonString(signOrderMessage));
 
     }
 
@@ -777,7 +781,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     }
 
 
-
     private LambdaQueryChainWrapper<OrderDO> buildLambdaQueryChainWrapper(ContrastBillOrderQuery query) {
 
 
@@ -789,7 +792,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
         OrderDO orderDO = this.getById(id);
 
-        return BeanCopyUtils.copyBean(orderDO,OrderVO2.class);
+        return BeanCopyUtils.copyBean(orderDO, OrderVO2.class);
     }
 
 

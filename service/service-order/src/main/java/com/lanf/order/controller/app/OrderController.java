@@ -75,8 +75,8 @@ public class OrderController {
         return Result.ok(orderManagerService.placeOrder(orderDTO));
 
     }
-    @PostMapping("/placeOrder")
-    public Result<PlaceOrderVO> placeOrder(@RequestBody @Validated CancelOrderDTO dto) {
+    @PostMapping("/cancelOrder")
+    public Result<PlaceOrderVO> cancelOrder(@RequestBody @Validated CancelOrderDTO dto) {
 
 
         log.info("取消订单[{}]", JsonUtils.toJsonString(dto));

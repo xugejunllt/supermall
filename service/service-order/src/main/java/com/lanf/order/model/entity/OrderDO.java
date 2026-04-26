@@ -19,11 +19,10 @@ import java.math.BigDecimal;
 @TableName("orders")
 public class OrderDO extends BaseEntity {
 
-private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
 
-
-   private Long mainOrderId;
+    private Long mainOrderId;
 
     @ApiModelProperty(value = "店铺id")
     private Long shopId;
@@ -55,11 +54,13 @@ private static final long serialVersionUID=1L;
      * 其他非分布式事务场景，状态是正常状态允许更新
      */
     private Integer frozen;
+    /**
+     * 售后有效期，如果多个商品不同售后期，那么取最大的
+     */
+    private Integer afterSaleDays;
 
     @ApiModelProperty(value = "版本号")
     private Long version;
-
-
 
 
 }

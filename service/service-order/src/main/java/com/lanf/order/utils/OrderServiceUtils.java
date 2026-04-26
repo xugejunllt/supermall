@@ -35,7 +35,10 @@ public class OrderServiceUtils {
         orderDO.setDiscountInfo(discountInfo);
         orderDO.setTakeAddress(takeAddress);
         orderDO.setVersion(1L);
-
+        /**
+         * 售后期 写死7天
+         */
+        orderDO.setAfterSaleDays(7);
         return orderDO;
     }
 
