@@ -378,7 +378,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
          * 发送订单签收消息
          */
         SignOrderMessage signOrderMessage = new SignOrderMessage();
-        z
+
         signOrderMessage.setOrderId(orderId);
         signOrderMessage.setSignTime(new Date());
         signOrderMessage.setAfterSaleDays(orderDO.getAfterSaleDays());
