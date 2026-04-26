@@ -112,6 +112,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                     tradeOrderDO.setPayStatus(0);
                     tradeOrderDO.setBathPay(1);
                     tradeOrderDO.setExpireTime(expireTime);
+                    tradeOrderDO.setBusinessId(dto.getBusinessId());
                     return tradeOrderDO;
                 })
                 .collect(Collectors.toList());
@@ -143,7 +144,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
         bathTradeOrderDO1.setMainOrderNumber(dto.getMainOrderNumber());
         bathTradeOrderDO1.setExpireInterval(payConfig.getExpireInterval());
         bathTradeOrderDO1.setExpireTime(expireTime);
-
+        bathTradeOrderDO1.setBusinessId(dto.getBusinessId());
         return bathTradeOrderDO1;
     }
 

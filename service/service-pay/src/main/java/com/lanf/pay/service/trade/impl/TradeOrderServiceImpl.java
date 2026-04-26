@@ -151,7 +151,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setOrderNumber(dto.getOrderNumber());
         tradeOrderDO.setExpireInterval(payConfig.getExpireInterval());
         tradeOrderDO.setExpireTime(expireTime);
-
+        tradeOrderDO.setBusinessId(dto.getBusinessId());
         return tradeOrderDO;
     }
 

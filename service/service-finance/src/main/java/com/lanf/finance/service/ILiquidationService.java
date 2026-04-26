@@ -2,7 +2,6 @@ package com.lanf.finance.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.finance.model.entity.LiquidationDO;
-import com.lanf.rocketmq.model.message.LiquidationDTO;
 
 /**
  * <p>
@@ -16,6 +15,5 @@ import com.lanf.rocketmq.model.message.LiquidationDTO;
 public interface ILiquidationService extends IService<LiquidationDO> {
 
 
-    void createLiquidation(LiquidationDTO dto);
 
 }

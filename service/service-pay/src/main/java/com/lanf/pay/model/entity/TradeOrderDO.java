@@ -22,7 +22,8 @@ public class TradeOrderDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
-
+    @ApiModelProperty(value = "商家id")
+    private Long businessId;
 
     @ApiModelProperty(value = "批量支付单id")
     private Long bathPayOrderId;

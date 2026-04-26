@@ -25,7 +25,8 @@ public class CreateMergeTradeOrderDTO implements Serializable {
     @NotNull(message = "支付类型不能为空")
     @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
     private Integer payType;
-
+    @NotNull(message = "商家id不能为空")
+    private Long businessId;
     @NotEmpty
     private List<CreateMergeTradeOrderItemDTO> tradeOrderItemList;
 

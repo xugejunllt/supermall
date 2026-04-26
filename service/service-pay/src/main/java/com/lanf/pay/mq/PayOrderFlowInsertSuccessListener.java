@@ -165,6 +165,7 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<PayOr
             TradeSuccessEventMessage message = new TradeSuccessEventMessage();
             message.setBathPay( false);
             message.setOrderId(tradeOrderDO.getOrderId());
+            message.setPayMoney(tradeOrderDO.getTradeMoney());
             rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
 
         }
@@ -265,6 +266,8 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<PayOr
             TradeSuccessEventMessage message = new TradeSuccessEventMessage();
             message.setBathPay( true);
             message.setMainOrderId(bathTradeOrderDO.getMainOrderId());
+            message.setPayMoney(bathTradeOrderDO.getBatchFee());
+
             rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
 
         }
@@ -340,6 +343,7 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<PayOr
         TradeSuccessEventMessage message = new TradeSuccessEventMessage();
         message.setBathPay( false);
         message.setMainOrderId(tradeOrderDO.getOrderId());
+        message.setPayMoney(tradeOrderDO.getTradeMoney());
         rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
     }
 

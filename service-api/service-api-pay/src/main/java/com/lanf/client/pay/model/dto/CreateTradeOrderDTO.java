@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Data
 public class CreateTradeOrderDTO implements Serializable {
 
-
+    private Long businessId;
     /**
      *  订单编号
      */
