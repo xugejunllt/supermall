@@ -2,6 +2,7 @@ package com.lanf.aftersales.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.aftersales.model.dto.BusinessAgreeDTO;
+import com.lanf.aftersales.model.dto.UnderAfterSaleDTO;
 import com.lanf.aftersales.model.dto.UserDeliveryDTO;
 import com.lanf.aftersales.model.entity.AfterSalesOrderDO;
 import com.lanf.aftersales.model.query.AfterSalesOrderPageQuery;
@@ -46,5 +47,10 @@ public interface IAfterSalesOrderService extends IService<AfterSalesOrderDO> {
      */
     void completeRefund(Long id);
 
-
+    /**
+     *
+     * 订单是否正在售后中
+     *
+     */
+    boolean isUnderAfterSale(UnderAfterSaleDTO dto);
 }

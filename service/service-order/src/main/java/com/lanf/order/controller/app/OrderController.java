@@ -116,13 +116,6 @@ public class OrderController {
 
 
 
-    @GetMapping("/promiseOrderLiquidationTask")
-    public Result promiseOrderLiquidationTask() {
 
-        log.info("手动触发定时任务");
-        promiseStatusCheckTask.promiseOrderLiquidationTask();
-        return Result.ok();
-
-    }
 }
 

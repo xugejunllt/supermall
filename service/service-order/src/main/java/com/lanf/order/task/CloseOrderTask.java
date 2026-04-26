@@ -23,10 +23,11 @@ public class CloseOrderTask {
     private RocketMqClient rocketMqClient;
 
     /**
-     * 已履约订单超过售后期限 转成 已关闭
+     * 关闭已评价的订单
+     *
      */
     @Scheduled(cron = "0/5 * * * * *")
-    public void closeOrdersWhenAfterSalePeriodExpired() {
+    public void closeReviewedOrder () {
 
         log.info("履约单定时任务检查开始");
         /**

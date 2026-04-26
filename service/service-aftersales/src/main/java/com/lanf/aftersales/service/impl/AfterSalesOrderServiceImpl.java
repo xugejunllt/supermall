@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.aftersales.mapper.AfterSalesOrderMapper;
 import com.lanf.aftersales.model.bo.AfterSalesOrderPageBO;
 import com.lanf.aftersales.model.dto.BusinessAgreeDTO;
+import com.lanf.aftersales.model.dto.UnderAfterSaleDTO;
 import com.lanf.aftersales.model.dto.UserDeliveryDTO;
 import com.lanf.aftersales.model.entity.AfterSalesOrderDO;
 import com.lanf.aftersales.model.entity.AfterSalesOrderItemDO;
@@ -35,10 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -310,6 +308,29 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         rocketMqClient.sendMessage(PayClientTopicName.PROCESS_REFUND_TOPIC,
                 JsonUtils.toJsonString(message));
         log.info("完成退款成功:afterSalesOrderId={}", id);
+    }
+
+    @Override
+    public boolean isUnderAfterSale(UnderAfterSaleDTO dto) {
+
+        Long orderId = dto.getOrderId();
+        List<AfterSalesOrderDO> list = this.lambdaQuery()
+                .eq(AfterSalesOrderDO::getOrderId, orderId)
+                .list();
+        if ( list.isEmpty()) {
+            log.info("该订单没有售后单:orderId={}", orderId);
+            return true;
+        }
+
+        boolean allClosed = list.stream()
+                .allMatch(order -> MainStatusEnum.CLOSED.getCode().equals(order.getMainStatus()));
+        if (allClosed) {
+            log.info("该订单所有售后单均已关闭:orderId={}", orderId);
+            return true;
+        } else {
+            log.info("该订单存在进行中的售后单:orderId={}", orderId);
+            return false;
+        }
     }
 
 }

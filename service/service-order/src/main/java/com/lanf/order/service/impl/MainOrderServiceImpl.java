@@ -44,8 +44,7 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
     private IOrderItemService orderItemService;
     @Autowired
     private IOrderService orderService;
-    @Autowired
-    private IPromiseOrderService promiseOrderService;
+
 
 
     @Override
@@ -107,7 +106,6 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
         List<OrderDTO> orderDTOList = dto.getOrderDTOList();
         List<OrderDO> orderDOList = BeanCopyUtils.copyBeanList(orderDTOList, OrderDO.class);
         List<OrderItemDO> orderItemDOList = new ArrayList<>();
-        List<PromiseOrderDO> promiseOrderDOList = new ArrayList<>();
         for (OrderDO a : orderDOList) {
            // a.setCreateTimeFormat(DateUtils.format(new Date(),DateUtils.DATE));
             a.setStatus(0);

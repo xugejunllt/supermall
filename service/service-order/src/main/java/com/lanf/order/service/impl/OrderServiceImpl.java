@@ -79,8 +79,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     private PayApiService payApiService;
     @Autowired
     private LogisticsApiService logisticsApiService;
-    @Autowired
-    private IPromiseOrderService promiseOrderService;
+
     @Autowired
     private ISendMqMessageService sendMqMessageService;
     @Autowired
@@ -257,13 +256,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         OrderDO orderDOUpdate = new OrderDO();
         orderDOUpdate.setId(orderDO.getId());
         orderDOUpdate.setStatus(1);
-        //构建
-        PromiseOrderDO promiseOrderDO = new PromiseOrderDO();
-        promiseOrderDO.setOrderId(orderDO.getId());
-        promiseOrderDO.setStatus(0);
-        promiseOrderDO.setReturnMoney(0);
 
-        promiseOrderService.save(promiseOrderDO);
         this.updateById(orderDOUpdate);
     }
 
@@ -291,9 +284,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     public List<OrderVO> queryByOrderId(List<Long> orderIdList) {
         List<OrderDO> orderDOList = this.lambdaQuery().in(BaseEntity::getId, orderIdList).list();
 
-        List<PromiseOrderDO> promiseOrderDOList = promiseOrderService.lambdaQuery().in(PromiseOrderDO::getOrderId, orderIdList).list();
-        Map<Long, PromiseOrderDO> promiseOrderDOMap = promiseOrderDOList.stream()
-                .collect(Collectors.toMap(PromiseOrderDO::getOrderId, Function.identity()));
+
 
         List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery().in(OrderItemDO::getOrderId, orderIdList).list();
 
@@ -315,7 +306,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         List<OrderVO> salesOutStockOrderAddVOList = new ArrayList<>(orderDOList.size());
         for (OrderDO a : orderDOList) {
             Long id = a.getId();
-            PromiseOrderDO promiseOrderDO = promiseOrderDOMap.get(id);
             Integer expectOutQuantity = 0;
             OrderVO vo = new OrderVO();
             salesOutStockOrderAddVOList.add(vo);
@@ -324,7 +314,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             vo.setOrderId(a.getId());
             vo.setShopId(a.getShopId());
             vo.setOrderStatus(a.getStatus());
-            vo.setFinishTime(promiseOrderDO.getFinishTime());
             List<OrderItemDO> orderItemDOList1 = orderItemMap.get(id);
             for (OrderItemDO b : orderItemDOList1) {
 
@@ -382,10 +371,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         int afterDay = 7;
         Date finishTime = DateUtils.addHour(new Date(), afterDay * 24L);
         this.updateById(orderDOUpdate);
-        promiseOrderService.lambdaUpdate().eq(PromiseOrderDO::getOrderId, orderId).
-                set(PromiseOrderDO::getFinishTime, finishTime).
-                set(BaseEntity::getUpdateTime, new Date()).
-                update();
+
 
         /**
          * 发送mq给物流服务
