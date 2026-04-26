@@ -21,16 +21,20 @@ public enum RecordTypeEnum {
     MERCHANT_SETTLEMENT_INCOME(4, "商家结算收入");
 
     @EnumValue
+    @JsonValue
     private final Integer code;
     
-    @JsonValue
+
     private final String name;
 
     RecordTypeEnum(Integer code, String name) {
         this.code = code;
         this.name = name;
     }
-
+    @JsonValue
+    public Integer getCode() {
+        return code;
+    }
     /**
      * 根据code获取枚举
      * @param code 记录类型代码

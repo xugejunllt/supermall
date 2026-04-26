@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class MoneyFlowMessage implements Serializable {
+public class AddMoneyFlowMessage implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

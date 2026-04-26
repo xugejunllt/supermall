@@ -1,6 +1,13 @@
 package com.lanf.pay.service.pay.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.client.pay.model.enums.RefundEventTypeEnum;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.constant.Constants;
+import com.lanf.constant.exception.BizException;
+import com.lanf.finance.model.enums.RecordTypeEnum;
+import com.lanf.finance.mq.FinanceClientTopicName;
+import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.pay.mapper.RefundOrderMapper;
 import com.lanf.pay.model.bo.CancelPaidOrderResultBO;
 import com.lanf.pay.model.bo.ProcessRefund;
@@ -10,6 +17,7 @@ import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.pay.IRefundOrderService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
+import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -32,6 +40,9 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
 
     @Autowired
     private IPayOrderFlowService payOrderFlowService;
+    @Autowired
+    private RocketMqClient rocketMqClient;
+
 
     @Override
     public void processRefund(ProcessRefund processRefund) {
@@ -74,8 +85,15 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
             refundOrderDO.setPayType(payType);
             refundOrderDO.setRefundReason("取消订单");
             refundOrderDO.setRefundEventType(processRefund.getRefundEventTypeEnum());
+            ///
+            AddMoneyFlowMessage moneyFlowMessage = buildAddMoneyFlowMessage(processRefund, cancelled.getReturnMoney());
             try {
                 this.save(refundOrderDO);
+                /**
+                 *
+                 * 记录资金流水
+                 */
+                rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(moneyFlowMessage));
 
             } catch (DuplicateKeyException e) {
                 log.warn("该支付订单已取消");
@@ -85,5 +103,30 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
             log.warn("取消三方支付订单,退款失败");
         }
 
+    }
+
+    private AddMoneyFlowMessage buildAddMoneyFlowMessage(ProcessRefund processRefund,BigDecimal incomeMoney){
+        RecordTypeEnum recordTypeEnum = null;
+
+        if (processRefund.getRefundEventTypeEnum()
+
+                .equals(RefundEventTypeEnum.CANCEL_PAID_ORDER)){
+            recordTypeEnum = RecordTypeEnum.CANCEL_ORDER_REFUND;
+
+        } else if (processRefund.getRefundEventTypeEnum()
+                .equals(RefundEventTypeEnum.AFTER_SALES_REFUND)){
+            recordTypeEnum = RecordTypeEnum.AFTER_SALES_REFUND;
+        } else {
+            log.error("退款事件类型异常");
+            throw new BizException("退款事件类型异常");
+        }
+
+        AddMoneyFlowMessage moneyFlowMessage = new AddMoneyFlowMessage();
+        moneyFlowMessage.setBusinessId(Constants.PLATFORM_BUSINESS_ID);
+        moneyFlowMessage.setBizOrderId(processRefund.getBizOrderId());
+        moneyFlowMessage.setIncomeMoney(incomeMoney);
+        moneyFlowMessage.setRecordType(recordTypeEnum);
+
+        return moneyFlowMessage;
     }
 }

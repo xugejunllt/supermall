@@ -31,9 +31,9 @@ public class AfterSalesOrderStatusChangeListener implements RocketMQListener<Str
         AfterSalesOrderStatusChangeDTO dto = JsonUtils.toObject(message, AfterSalesOrderStatusChangeDTO.class);
         List<Long> afterSalesOrderIdList = dto.getAfterSalesOrderIdList();
         Integer event = dto.getEvent();
-        if (event == 0) {
-            afterSalesOrderService.exchangeGoodsOutStockFinish(afterSalesOrderIdList.get(0));
-        }
+//        if (event == 0) {
+//            afterSalesOrderService.exchangeGoodsOutStockFinish(afterSalesOrderIdList.get(0));
+//        }
 
     }
 }
