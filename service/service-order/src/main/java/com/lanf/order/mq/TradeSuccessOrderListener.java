@@ -10,6 +10,7 @@ import com.lanf.order.model.enums.PayStatusEnum;
 import com.lanf.order.service.IMainOrderService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.rocketmq.model.TopicName;
+import com.lanf.rocketmq.model.message.OrderPayInfo;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -84,7 +85,8 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
 
         } else {
             log.info("单笔支付成功");
-            OrderDO orderDO = orderService.getById(message.getOrderId());
+            OrderPayInfo orderPayInfo = message.getOrderPayInfoList().get(0);
+            OrderDO orderDO = orderService.getById(orderPayInfo.getOrderId());
             updateOrderStatus(orderDO);
 
         }

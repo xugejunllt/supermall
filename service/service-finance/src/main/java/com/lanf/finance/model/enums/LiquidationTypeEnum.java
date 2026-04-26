@@ -12,8 +12,7 @@ import lombok.Getter;
 public enum LiquidationTypeEnum {
 
     MERCHANT_INCOME(0, "商家收入"),
-    PLATFORM_INCOME(1, "平台收入"),
-    PLATFORM_EXPENSE(2, "平台支出");
+    ;
 
     @EnumValue
     @JsonValue

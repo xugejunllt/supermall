@@ -1,6 +1,7 @@
 package com.lanf.pay.mq;
 
 import com.lanf.client.pay.mq.PayClientTopicName;
+import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
@@ -17,7 +18,7 @@ import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.impl.PayRetryPolicyCacheService;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
+import com.lanf.rocketmq.model.message.OrderPayInfo;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -162,10 +164,16 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<PayOr
             /**
              * 发送mq
              */
+            List<OrderPayInfo> orderPayInfoList = new ArrayList<>();
+            OrderPayInfo orderPayInfo = new OrderPayInfo();
+            orderPayInfo.setOrderId(tradeOrderDO.getOrderId());
+            orderPayInfo.setPayType(payType);
+            orderPayInfo.setMerchantId(tradeOrderDO.getBusinessId());
+            orderPayInfo.setPayMoney(tradeOrderDO.getTradeMoney());
+            orderPayInfoList.add(orderPayInfo);
             TradeSuccessEventMessage message = new TradeSuccessEventMessage();
             message.setBathPay( false);
-            message.setOrderId(tradeOrderDO.getOrderId());
-            message.setPayMoney(tradeOrderDO.getTradeMoney());
+            message.setOrderPayInfoList(orderPayInfoList);
             rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
 
         }
@@ -263,10 +271,21 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<PayOr
             /**
              * 发送mq
              */
+            List<OrderPayInfo> orderPayInfoList = new ArrayList<>();
+            for (TradeOrderDO tradeOrderDO : tradeOrderDOList) {
+
+                OrderPayInfo orderPayInfo = new OrderPayInfo();
+                orderPayInfo.setOrderId(tradeOrderDO.getOrderId());
+                orderPayInfo.setPayMoney(tradeOrderDO.getTradeMoney());
+                orderPayInfo.setPayType(payType);
+                orderPayInfo.setMerchantId(tradeOrderDO.getBusinessId());
+                orderPayInfoList.add(orderPayInfo);
+
+            }
             TradeSuccessEventMessage message = new TradeSuccessEventMessage();
             message.setBathPay( true);
             message.setMainOrderId(bathTradeOrderDO.getMainOrderId());
-            message.setPayMoney(bathTradeOrderDO.getBatchFee());
+            message.setOrderPayInfoList(orderPayInfoList);
 
             rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
 
@@ -340,10 +359,17 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<PayOr
         /**
          * 发送mq
          */
+        List<OrderPayInfo> orderPayInfoList = new ArrayList<>();
+        OrderPayInfo orderPayInfo = new OrderPayInfo();
+        orderPayInfo.setOrderId(tradeOrderDO.getOrderId());
+        orderPayInfo.setPayMoney(tradeOrderDO.getTradeMoney());
+        orderPayInfo.setPayType(payType);
+        orderPayInfo.setMerchantId(tradeOrderDO.getBusinessId());
+        orderPayInfoList.add(orderPayInfo);
         TradeSuccessEventMessage message = new TradeSuccessEventMessage();
         message.setBathPay( false);
         message.setMainOrderId(tradeOrderDO.getOrderId());
-        message.setPayMoney(tradeOrderDO.getTradeMoney());
+        message.setOrderPayInfoList(orderPayInfoList);
         rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
     }
 

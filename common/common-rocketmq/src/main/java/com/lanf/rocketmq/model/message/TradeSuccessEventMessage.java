@@ -3,7 +3,7 @@ package com.lanf.rocketmq.model.message;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 交易成功事件消息
@@ -11,18 +11,11 @@ import java.math.BigDecimal;
 @Data
 public class TradeSuccessEventMessage implements Serializable {
 
+
     private Boolean bathPay;
 
-    private Long orderId;
-
     private Long mainOrderId;
-    /**
-     * 支付金额
-     */
-    private BigDecimal payMoney;
 
-    private Integer payType;
+    private List<OrderPayInfo> orderPayInfoList;
 
-    //商家id
-    private Long merchantId;
 }

@@ -15,7 +15,7 @@ public enum OrderStatusEnum {
     OUTBOUNDED(2, "已出库"),
     SHIPPED(3, "已发货"),
     WAIT_COMMENT(4, "待评价"),
-    COMPLETED(5, "已完成,表示履约完成"),
+    COMPLETED(5, "已评价"),
     CANCELLED(6, "已取消"),
     CLOSED(7, "已关闭,订单已终结，不支持售后"),
 
