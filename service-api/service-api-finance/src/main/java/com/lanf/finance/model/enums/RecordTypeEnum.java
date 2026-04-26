@@ -7,6 +7,9 @@ import lombok.Getter;
 
 /**
  * 资金流水记录类型枚举
+ *
+ * 平台支付收入账号 资金 发生了变更
+ * 就需要记录类型
  */
 @Getter
 public enum RecordTypeEnum {

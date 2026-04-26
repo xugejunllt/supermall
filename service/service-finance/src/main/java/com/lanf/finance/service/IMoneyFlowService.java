@@ -1,6 +1,7 @@
 package com.lanf.finance.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.finance.model.bo.AddMoneyFlow;
 import com.lanf.finance.model.entity.MoneyFlowDO;
 import com.lanf.finance.model.query.AccountMoneySumQuery;
 import com.lanf.finance.model.query.MoneyFlowPageQuery;
@@ -33,6 +34,10 @@ public interface IMoneyFlowService extends IService<MoneyFlowDO> {
      */
     AccountMoneySumVO accountMoneySumQuery(AccountMoneySumQuery query);
 
-
+    /**
+     * 添加资金流水
+     *
+     */
+    void addMoneyFlow(AddMoneyFlow addMoneyFlow);
 
 }

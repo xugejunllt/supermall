@@ -1,11 +1,12 @@
-package com.lanf.rocketmq.model.message;
+package com.lanf.client.pay.mq.message;
 
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
-public class OrderCreateSuccessMessage implements Serializable {
+public class PayOrderFlowInsertSuccessMessage implements Serializable {
 
 
     private Long orderId;
@@ -17,4 +18,9 @@ public class OrderCreateSuccessMessage implements Serializable {
     private Boolean bathPay;
 
     private Integer payType;
+
+    /**
+     * 实收金额
+     */
+    private BigDecimal receiptMoney;
 }

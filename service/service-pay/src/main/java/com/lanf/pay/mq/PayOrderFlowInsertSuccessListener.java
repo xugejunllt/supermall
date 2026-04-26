@@ -1,8 +1,10 @@
 package com.lanf.pay.mq;
 
+import com.lanf.client.pay.mq.PayClientTopicName;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.pay.constant.PayMqGroupName;
 import com.lanf.pay.model.entity.BathTradeOrderDO;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
@@ -15,7 +17,7 @@ import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.impl.PayRetryPolicyCacheService;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.message.OrderCreateSuccessMessage;
+import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
@@ -31,10 +33,10 @@ import java.util.List;
 @Slf4j
 @Component
 @RocketMQMessageListener(
-        topic = TopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC,
-        consumerGroup = TopicName.PAY_ORDER_FLOW_PAY_GROUP
+        topic = PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC,
+        consumerGroup = PayMqGroupName.PAY_ORDER_FLOW_PAY_GROUP
 )
-public class PayOrderFlowInsertSuccessListener implements RocketMQListener<OrderCreateSuccessMessage> {
+public class PayOrderFlowInsertSuccessListener implements RocketMQListener<PayOrderFlowInsertSuccessMessage> {
 
 
     @Autowired
@@ -55,7 +57,7 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<Order
     private IPayOrderFlowService payOrderFlowService;
 
     @Override
-    public void onMessage(OrderCreateSuccessMessage message) {
+    public void onMessage(PayOrderFlowInsertSuccessMessage message) {
 
         log.info("插入支付流水成功:[{}]", JsonUtils.toJsonString(message));
 

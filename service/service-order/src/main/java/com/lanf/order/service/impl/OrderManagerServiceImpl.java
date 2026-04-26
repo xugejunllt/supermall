@@ -38,7 +38,7 @@ import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.client.pay.model.vo.CancelTradeOrderVO;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
-import com.lanf.rocketmq.model.message.OrderCreateSuccessMessage;
+import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.api.WelfareApiService;
@@ -311,7 +311,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
     private void sendOrderCreateSuccessMessage(Long orderId) {
-        OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
+        PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
         message.setOrderId(orderId);
         rocketMqClient.sendMessage(TopicName.ORDER_CREATE_SUCCESS_TOPIC,  message);
     }

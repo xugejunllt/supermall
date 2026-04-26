@@ -6,9 +6,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.constant.constant.Constants;
+import com.lanf.constant.exception.BizException;
 import com.lanf.finance.mapper.MoneyFlowMapper;
+import com.lanf.finance.model.bo.AddMoneyFlow;
 import com.lanf.finance.model.entity.*;
 import com.lanf.finance.model.enums.IncomeSubjectEnum;
+import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.finance.model.query.AccountMoneySumQuery;
 import com.lanf.finance.model.query.MoneyFlowPageQuery;
 import com.lanf.finance.model.vo.AccountMoneySumVO;
@@ -17,9 +20,9 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.rocketmq.model.message.MoneyFlowDTO;
 import com.lanf.security.utils.UserUtils;
-import com.lanf.constant.exception.BizException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,7 +77,7 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
 
         List<SettlementFlowDO> settlementFlowDOList = settlementFlowService.lambdaQuery().in(SettlementFlowDO::getLiquidationFlowId, liquidationFlowIdList).list();
 
-        List<MoneyFlowDO> moneyFlowDOList1 = this.lambdaQuery().eq(MoneyFlowDO::getSource, one.getSource()).eq(MoneyFlowDO::getOrderId, orderId).list();
+        List<MoneyFlowDO> moneyFlowDOList1 = this.lambdaQuery().list();
         if (!moneyFlowDOList1.isEmpty()) {
             throw new BizException("结算单已进行资金结算");
         }
@@ -125,20 +128,20 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
             SettlementFlowDO settlementFlowDO = settlementFlowMap.get(flowDO.getId());
             //构建MoneyFlowDO
             MoneyFlowDO flowDO1 = new MoneyFlowDO();
-            flowDO1.setSettlementFlowId(settlementFlowDO.getId());
-            flowDO1.setOrderId(orderId);
-            flowDO1.setShopId(flowDO.getShopId());
-            flowDO1.setIncomeSubjectName(incomeSubjectName);
-            flowDO1.setIncome(flowDO.getIncome());
-            flowDO1.setSource(source);
-            flowDO1.setIncomeMoney(incomeMoney);
-            flowDO1.setAccountType(flowDO.getAccountType());
-            flowDO1.setIncomeAccount(flowDO.getIncomeAccount());
-            flowDO1.setBeforeRemainMoney(payAccountDO.getRemainMoney());
-            flowDO1.setAfterRemainMoney(afterRemainMoney);
-            flowDO1.setTradeFinishTime(flowDO.getPayFinishTime());
-            String tradeFinishTimeFormat = DateUtils.format(flowDO.getPayFinishTime(), DateUtils.DATE);
-            flowDO1.setTradeFinishTimeFormat(tradeFinishTimeFormat);
+//            flowDO1.setSettlementFlowId(settlementFlowDO.getId());
+//            flowDO1.setOrderId(orderId);
+//            flowDO1.setShopId(flowDO.getShopId());
+//            flowDO1.setIncomeSubjectName(incomeSubjectName);
+//            flowDO1.setIncome(flowDO.getIncome());
+//            flowDO1.setSource(source);
+//            flowDO1.setIncomeMoney(incomeMoney);
+//            flowDO1.setAccountType(flowDO.getAccountType());
+//            flowDO1.setIncomeAccount(flowDO.getIncomeAccount());
+//            flowDO1.setBeforeRemainMoney(payAccountDO.getRemainMoney());
+//            flowDO1.setAfterRemainMoney(afterRemainMoney);
+//            flowDO1.setTradeFinishTime(flowDO.getPayFinishTime());
+//            String tradeFinishTimeFormat = DateUtils.format(flowDO.getPayFinishTime(), DateUtils.DATE);
+//            flowDO1.setTradeFinishTimeFormat(tradeFinishTimeFormat);
             moneyFlowDOList.add(flowDO1);
 
         }
@@ -146,10 +149,10 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
         moneyFlowDOList.forEach(a -> {
 
             BigDecimal changeMoney = BigDecimalUtil.subtract(a.getAfterRemainMoney(), a.getBeforeRemainMoney());
-            int updated = moneyFlowMapper.updateRemainMoney(changeMoney, a.getAccountType(), a.getIncomeAccount());
-            if (updated < 1) {
-                throw new BizException("更新账户余额异常");
-            }
+//            int updated = moneyFlowMapper.updateRemainMoney(changeMoney, a.getAccountType(), a.getIncomeAccount());
+//            if (updated < 1) {
+//                throw new BizException("更新账户余额异常");
+//            }
 
         });
 
@@ -317,14 +320,9 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
 
         }
         IPage<MoneyFlowDO> page = new Page<>(query.getPage(), query.getPageSize());
-        IPage<MoneyFlowDO> moneyFlowVOPage = this.lambdaQuery().
-                ge(startTime != null, MoneyFlowDO::getTradeFinishTime, startTime).
-                le(endTime != null, MoneyFlowDO::getTradeFinishTime, endTime).
-                eq(shopId!=null,MoneyFlowDO::getShopId, shopId).
-                orderByDesc(BaseEntity::getId).
-                page(page);
 
-        return PageResult.toPageResult(moneyFlowVOPage);
+
+        return PageResult.toPageResult(null);
     }
 
 
@@ -348,13 +346,79 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
         //支出金额
         double payOutSumMoney = moneyFlowMapper.sumIncomeMoney(shopId, startTime, endTime, 1, incomeAccount);
         BigDecimal changeSumMoney = BigDecimalUtil.subtract(new BigDecimal(incomeSumMoney), new BigDecimal(payOutSumMoney));
-        AccountMoneySumVO vo = new AccountMoneySumVO();
-        vo.setIncomeSumMoney( BigDecimalUtil.scale(new BigDecimal(incomeSumMoney)));
-        vo.setPayOutSumMoney( BigDecimalUtil.scale(new BigDecimal(payOutSumMoney)));
-        vo.setChangeSumMoney(BigDecimalUtil.scale(changeSumMoney));
+//        AccountMoneySumVO vo = new AccountMoneySumVO();
+//        vo.setIncomeSumMoney( BigDecimalUtil.scale(new BigDecimal(incomeSumMoney)));
+//        vo.setPayOutSumMoney( BigDecimalUtil.scale(new BigDecimal(payOutSumMoney)));
+//        vo.setChangeSumMoney(BigDecimalUtil.scale(changeSumMoney));
 
-        return vo;
+        return null;
     }
+    private static final Set<Integer> INCOME_TYPE_SET = new HashSet<>(Arrays.asList(
+            RecordTypeEnum.ORDER.getCode(),
+            RecordTypeEnum.MERCHANT_SETTLEMENT_INCOME.getCode()
+    ));
 
+    private static final Set<Integer> EXPENSE_TYPE_SET = new HashSet<>(Arrays.asList(
+            RecordTypeEnum.AFTER_SALES_REFUND.getCode(),
+            RecordTypeEnum.CANCEL_ORDER_REFUND.getCode(),
+            RecordTypeEnum.PLATFORM_SETTLEMENT_EXPENSE.getCode()
+    ));
+    @Override
+    public void addMoneyFlow(AddMoneyFlow addMoneyFlow) {
+        Long businessId = addMoneyFlow.getBusinessId();
+        PayAccountDO payAccountDO = payAccountService.lambdaQuery().eq(PayAccountDO::getBusinessId, businessId).one();
+
+        if (payAccountDO == null){
+            log.error("收支账户不存在");
+           return;
+        }
+        String flowNo = generateFlowNo(addMoneyFlow.getBizOrderId(),addMoneyFlow.getRecordType().getCode());
+
+        BigDecimal afterRemainMoney = calculateAfterRemainMoney(addMoneyFlow.getRecordType(),
+                addMoneyFlow.getIncomeMoney(), payAccountDO.getRemainMoney());
+        MoneyFlowDO moneyFlowDO = new MoneyFlowDO();
+        // 生成流水号
+        moneyFlowDO.setFlowNo(flowNo);
+        // 设置其他字段
+        moneyFlowDO.setBusinessId(addMoneyFlow.getBusinessId());
+        moneyFlowDO.setBizOrderId(addMoneyFlow.getBizOrderId());
+        moneyFlowDO.setRecordType(addMoneyFlow.getRecordType());
+        moneyFlowDO.setIncomeMoney(addMoneyFlow.getIncomeMoney());
+        moneyFlowDO.setIncomeAccount(payAccountDO.getAccount());
+        moneyFlowDO.setBeforeRemainMoney(payAccountDO.getRemainMoney());
+        moneyFlowDO.setAfterRemainMoney(afterRemainMoney);
+
+        try {
+            this.save(moneyFlowDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("资金流水已存在");
+
+        }
+    }
+    /**
+     * 生成资金流水号
+     * 格式: 业务订单ID + 记录类型code
+     * 例如: 123456789_0 (订单ID为123456789, 类型为下单)
+     * 对于售后单 部分退款,一笔售后单 一笔退款
+     *
+     */
+    public static String generateFlowNo(Long bizOrderId, Integer recordTypeCode) {
+        if (bizOrderId == null || recordTypeCode == null) {
+            throw new IllegalArgumentException("业务订单ID和记录类型不能为空");
+        }
+        return bizOrderId + "_" + recordTypeCode;
+    }
+    private BigDecimal calculateAfterRemainMoney(RecordTypeEnum recordType, BigDecimal incomeMoney, BigDecimal beforeRemainMoney) {
+        Integer code = recordType.getCode();
+
+        if (INCOME_TYPE_SET.contains(code)) {
+            return BigDecimalUtil.add(beforeRemainMoney, incomeMoney);
+        } else if (EXPENSE_TYPE_SET.contains(code)) {
+            return BigDecimalUtil.subtract(beforeRemainMoney, incomeMoney);
+        } else {
+            log.error("未知的记录类型");
+            throw new BizException("未知的记录类型:" + code);
+        }
+    }
 
 }

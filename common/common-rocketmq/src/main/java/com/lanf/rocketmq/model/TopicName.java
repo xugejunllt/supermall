@@ -99,10 +99,7 @@ public class TopicName {
 
     public static final String COMPENSATE_PAYMENT_TOPIC = "COMPENSATE_PAYMENT_TOPIC";
 
-    /**
-     * 支付流水插入成功通知
-     */
-    public static final String PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC = "PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC";
+
 
     /**
      * 交易成功事件
@@ -166,10 +163,7 @@ public class TopicName {
     public static final String ORDER_CREATE_PAY_GROUP = "ORDER_CREATE_PAY_GROUP";
     public static final String COMPENSATE_PAYMENT_GROUP = "COMPENSATE_PAYMENT_GROUP";
 
-    /**
-     * 支付流水插入成功 - 支付服务消费组
-     */
-    public static final String PAY_ORDER_FLOW_PAY_GROUP = "PAY_ORDER_FLOW_PAY_GROUP";
+
 
     /**
      * 交易成功事件 - 支付服务消费组
