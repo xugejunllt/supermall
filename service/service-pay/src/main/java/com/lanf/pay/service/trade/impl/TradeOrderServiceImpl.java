@@ -29,6 +29,7 @@ import com.lanf.pay.model.entity.*;
 import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
 import com.lanf.pay.model.enums.PaySceneEnum;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
+import com.lanf.pay.model.enums.TradeTypeEnum;
 import com.lanf.pay.model.tcc.CancelTradeOrderBO;
 import com.lanf.pay.model.vo.CreatePrepayOrderVO;
 import com.lanf.pay.model.vo.PrepayOrderVO;
@@ -152,6 +153,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setExpireInterval(payConfig.getExpireInterval());
         tradeOrderDO.setExpireTime(expireTime);
         tradeOrderDO.setBusinessId(dto.getBusinessId());
+        tradeOrderDO.setTradeType(TradeTypeEnum.REALTIME_ORDER);
         return tradeOrderDO;
     }
 

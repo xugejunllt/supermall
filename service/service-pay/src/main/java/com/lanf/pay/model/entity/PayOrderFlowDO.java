@@ -22,9 +22,14 @@ public class PayOrderFlowDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
+
+
+
     @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
     private Integer payType;
-
+    /**
+     * 交易单outTradeNo ，关联交易单
+     */
     private String outTradeNo;
 
     @ApiModelProperty(value = "交易金额")

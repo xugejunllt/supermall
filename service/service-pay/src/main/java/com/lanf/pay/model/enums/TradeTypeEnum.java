@@ -1,36 +1,37 @@
 package com.lanf.pay.model.enums;
 
-
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum PayTypeEnum {
+public enum TradeTypeEnum {
 
-    ALI_PAY(0, "支付宝");
+    REALTIME_ORDER(0, "实时下单"),
+    WALLET_RECHARGE(1, "钱包充值");
+
     @EnumValue
     @JsonValue
-    private  final Integer code;
-
+    private final Integer code;
     private final String name;
+
+    TradeTypeEnum(Integer code, String name) {
+        this.code = code;
+        this.name = name;
+    }
 
     @JsonValue
     public Integer getCode() {
         return code;
     }
-    PayTypeEnum(Integer code, String name) {
-        this.code = code;
-        this.name = name;
-    }
 
     @JsonCreator
-    public static PayTypeEnum getByCode(Integer code) {
+    public static TradeTypeEnum getByCode(Integer code) {
         if (code == null) {
             return null;
         }
-        for (PayTypeEnum typeEnum : PayTypeEnum.values()) {
+        for (TradeTypeEnum typeEnum : TradeTypeEnum.values()) {
             if (code.equals(typeEnum.getCode())) {
                 return typeEnum;
             }
