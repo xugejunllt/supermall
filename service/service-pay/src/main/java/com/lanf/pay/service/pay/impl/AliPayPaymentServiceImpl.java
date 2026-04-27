@@ -244,8 +244,7 @@ public class AliPayPaymentServiceImpl implements PaymentService {
         //超时时间 一小时 这里参数是分钟 改一下
         model.setTimeoutExpress(dto.getExpireInterval() + "m");
         model.setTotalAmount(dto.getTotalAmount().toString());
-
-        model.setPassbackParams(dto.getBathPay().toString());
+        model.setPassbackParams(JsonUtils.toJsonString(dto.getPassbackParams()));
         request.setBizModel(model);
         request.setNotifyUrl(notifyUrl);
         AlipayTradeAppPayResponse response = null;

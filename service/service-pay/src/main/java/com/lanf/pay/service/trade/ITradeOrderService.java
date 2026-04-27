@@ -29,7 +29,7 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
 
 
     /**
-     * 创建交易订单
+     * 创建下单交易订单
      *
      */
     void createTradeOrder(CreateTradeOrderDTO dto);
@@ -65,6 +65,14 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
      *
      */
      PaySuccessHandleResultBO paySuccessHandleBO(PaySuccessHandleBO paySuccessHandleBO);
+
+    /**
+     * 创建充值交易单
+     *
+     *
+     */
+    CreateRechargeTradeOrderVO createRechargeTradeOrder(RechargeDTO dto);
+
 
     @Deprecated
     CreatePayOrderVO createPayOrder(List<CreatePayOrderDTO> dto);

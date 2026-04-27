@@ -9,6 +9,7 @@ import com.lanf.client.pay.model.query.TradeOrderBathQuery;
 import com.lanf.client.pay.model.query.TradeOrderQuery;
 import com.lanf.client.pay.model.vo.*;
 import com.lanf.client.pay.mq.PayClientTopicName;
+import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
@@ -17,33 +18,25 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.mapper.TradeOrderMapper;
-import com.lanf.pay.model.bo.CallbackResultBO;
-import com.lanf.pay.model.bo.PayCompensateOrderRetryPolicyBO;
-import com.lanf.pay.model.bo.PaySuccessHandleBO;
-import com.lanf.pay.model.bo.PaySuccessHandleResultBO;
-import com.lanf.pay.model.dto.BathCreatePrepayOrderDTO;
-import com.lanf.pay.model.dto.CreatePrepayOrderDTO;
-import com.lanf.pay.model.dto.PayCallbackDTO;
-import com.lanf.pay.model.dto.PrepayOrderDTO;
+import com.lanf.pay.model.bo.*;
+import com.lanf.pay.model.dto.*;
 import com.lanf.pay.model.entity.*;
-import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
-import com.lanf.pay.model.enums.PaySceneEnum;
-import com.lanf.pay.model.enums.TradeOrderStatusEnum;
-import com.lanf.pay.model.enums.TradeTypeEnum;
+import com.lanf.pay.model.enums.*;
 import com.lanf.pay.model.tcc.CancelTradeOrderBO;
 import com.lanf.pay.model.vo.CreatePrepayOrderVO;
+import com.lanf.pay.model.vo.CreateRechargeTradeOrderVO;
 import com.lanf.pay.model.vo.PrepayOrderVO;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.pay.service.pay.config.PayConfig;
 import com.lanf.pay.service.trade.*;
-import com.lanf.pay.utils.PryServiceUtils;
+import com.lanf.pay.utils.PayServiceUtils;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CompensatePaymentOrderMessage;
-import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.rocketmq.model.message.RefundDTO;
 import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.security.utils.UserIdContext;
 import com.lanf.tcc.service.ITccOperationService;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.dto.UseCouponDTO;
@@ -97,7 +90,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private RocketMqClient rocketMqClient;
 
 
-
     private static final String PREPAY_PAY_TYPE_CACHE_KEY = "prepay_pay_type:%s";
 
     private static final long CACHE_EXPIRE_TIME = 30L;
@@ -137,7 +129,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private static TradeOrderDO buildTradeOrderDO(CreateTradeOrderDTO dto) {
 
 
-        String outTradeNo = PryServiceUtils.generateOutTradeNo(dto.getOrderId());
+        String outTradeNo = PayServiceUtils.generateOutTradeNo(dto.getOrderNumber());
         Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
 
         TradeOrderDO tradeOrderDO = new TradeOrderDO();
@@ -328,8 +320,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Override
     public CreatePrepayOrderVO createPrepayOrder(CreatePrepayOrderDTO dto) {
 
-        Long orderId = dto.getOrderId();
-        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getOrderId, orderId).one();
+        String orderNumber = dto.getOrderNumber();
+        TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getOrderNumber, orderNumber).one();
 
         if (tradeOrderDO == null) {
             log.error("交易单不存在");
@@ -358,11 +350,15 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
 
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
+        PassbackParams passbackParams = new PassbackParams();
+        passbackParams.setBathPay(false);
+        passbackParams.setTradeType(dto.getTradeType());
+        passbackParams.setTradeOrderId(tradeOrderDO.getId());
         PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
         prepayOrderDTO.setOutTradeNo(tradeOrderDO.getOutTradeNo());
         prepayOrderDTO.setTotalAmount(tradeOrderDO.getTradeMoney());
-        prepayOrderDTO.setBathPay(false);
         prepayOrderDTO.setExpireInterval(tradeOrderDO.getExpireInterval());
+        prepayOrderDTO.setPassbackParams(passbackParams);
         PrepayOrderVO prepayOrderVO = paymentService.createPrepayOrder(prepayOrderDTO);
         CreatePrepayOrderVO vo = new CreatePrepayOrderVO();
         vo.setOrderStr(prepayOrderVO.getOrderStr());
@@ -401,10 +397,15 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         }
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
+        PassbackParams passbackParams = new PassbackParams();
+        passbackParams.setBathPay(true);
+        passbackParams.setBathTradeOrderId(bathTradeOrderDO.getId());
+        passbackParams.setTradeType(TradeTypeEnum.REALTIME_ORDER);
+
         PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
         prepayOrderDTO.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());
         prepayOrderDTO.setTotalAmount(bathTradeOrderDO.getBatchFee());
-        prepayOrderDTO.setBathPay(true);
+        prepayOrderDTO.setPassbackParams(passbackParams);
         PrepayOrderVO prepayOrderVO = paymentService.createPrepayOrder(prepayOrderDTO);
 
         CreatePrepayOrderVO vo = new CreatePrepayOrderVO();
@@ -453,8 +454,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
     /**
      * 只要支付成功 就插入一笔支付流水
-     *
-     *
      */
     @Override
     public PaySuccessHandleResultBO paySuccessHandleBO(PaySuccessHandleBO paySuccessHandleBO) {
@@ -466,10 +465,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         BigDecimal totalAmount = resultBO.getTotalAmount();
 
-        BigDecimal tradeMoney = getTradeMoney( outTradeNo,  bathPay);
+        BigDecimal tradeMoney = getTradeMoney(outTradeNo, bathPay);
         if (tradeMoney == null) {
 
-           return new PaySuccessHandleResultBO(false);
+            return new PaySuccessHandleResultBO(false);
         }
 
         if (!totalAmount.equals(tradeMoney)) {
@@ -498,16 +497,17 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         return new PaySuccessHandleResultBO(true);
     }
 
+
     private BigDecimal getTradeMoney(String outTradeNo, Boolean bathPay) {
         BigDecimal tradeMoney = null;
-        if (bathPay){
+        if (bathPay) {
 
             BathTradeOrderDO bathTradeOrderDO = bathTradeOrderService.lambdaQuery()
                     .eq(BathTradeOrderDO::getOutTradeNo, outTradeNo)
                     .one();
             if (bathTradeOrderDO == null) {
                 log.error("批量交易单不存在outTradeNo:[{}]", outTradeNo);
-                return  tradeMoney;
+                return tradeMoney;
             }
             tradeMoney = bathTradeOrderDO.getBatchFee();
         } else {
@@ -516,12 +516,13 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                     .one();
             if (tradeOrderDO == null) {
                 log.error("交易单不存在outTradeNo:[{}]", outTradeNo);
-                return  tradeMoney;
+                return tradeMoney;
             }
             tradeMoney = tradeOrderDO.getTradeMoney();
         }
         return tradeMoney;
     }
+
     private PaySceneEnum getPayScene(String outTradeNo, Boolean bathPay) {
 
         if (!bathPay) {
@@ -555,10 +556,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
 
-
-
-
-
     private PayOrderFlowDO buildPayOrderFlowDO(Integer payType, CallbackResultBO resultBO) {
         PayOrderFlowDO payOrderFlowDO = new PayOrderFlowDO();
         payOrderFlowDO.setPayType(payType);
@@ -589,8 +586,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BizException("交易单已取消");
 
         }
-        if (FrozenStatusEnum.FROZEN.getCode().equals(tradeOrderDO.getFrozen())){
-                log.warn("交易单已冻结");
+        if (FrozenStatusEnum.FROZEN.getCode().equals(tradeOrderDO.getFrozen())) {
+            log.warn("交易单已冻结");
             throw new BizException("交易单已冻结");
         }
         /**
@@ -620,11 +617,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         return null;
 
     }
+
     private String buildCancelTradeOrderKey(String bizKeySuffix) {
-        return  "cancelTradeOrder:"+bizKeySuffix;
+        return "cancelTradeOrder:" + bizKeySuffix;
     }
-
-
 
 
     @Transactional
@@ -634,13 +630,13 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         String bizKey = buildCancelTradeOrderKey(dto.getBizKeySuffix());
         TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getId, dto.getOrderId()).one();
-        if (tradeOrderDO == null){
+        if (tradeOrderDO == null) {
 
             log.error("交易单不存在");
             throw new BizException("交易单不存在");
         }
         boolean operation = tccOperationService.confirmOperation(bizKey);
-        if ( !operation){
+        if (!operation) {
             log.info("confirm已执行");
             return;
         }
@@ -670,12 +666,12 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         CancelTradeOrderBO cancelTradeOrderBO = JsonUtils.toObject(parameter, CancelTradeOrderBO.class);
         TradeOrderDO tradeOrderDO = this.lambdaQuery().eq(TradeOrderDO::getId, dto.getOrderId()).one();
 
-        if (tradeOrderDO == null){
+        if (tradeOrderDO == null) {
             log.error("交易单不存在");
             throw new BizException("交易单不存在");
         }
         boolean operation = tccOperationService.cancelOperation(bizKey);
-        if ( !operation){
+        if (!operation) {
             log.info("cancel已执行");
             return;
         }
@@ -699,6 +695,35 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
     }
 
+    @Override
+    public CreateRechargeTradeOrderVO createRechargeTradeOrder(RechargeDTO dto) {
+        Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
+
+        TradeOrderDO tradeOrderDO = new TradeOrderDO();
+        tradeOrderDO.setUserId(UserIdContext.getUserId());
+        tradeOrderDO.setOrderNumber(dto.getOrderNumber());
+        tradeOrderDO.setOutTradeNo(PayServiceUtils.generateOutTradeNo(dto.getOrderNumber()));
+        tradeOrderDO.setTradeMoney(dto.getAmount());
+        tradeOrderDO.setTradeType(TradeTypeEnum.WALLET_RECHARGE);
+        tradeOrderDO.setPayStatus(TradeOrderStatusEnum.PENDING.getCode());
+        tradeOrderDO.setBathPay(0);
+        tradeOrderDO.setExpireInterval(payConfig.getExpireInterval());
+        tradeOrderDO.setExpireTime(expireTime);
+
+        try {
+            this.save(tradeOrderDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("重复交易");
+            throw new BizException("重复交易");
+        }
+        /**
+         * 构建返回值
+         */
+        CreateRechargeTradeOrderVO createRechargeTradeOrderVO = new CreateRechargeTradeOrderVO();
+        createRechargeTradeOrderVO.setOrderNumber(tradeOrderDO.getOrderNumber());
+
+        return createRechargeTradeOrderVO;
+    }
 
 
 }

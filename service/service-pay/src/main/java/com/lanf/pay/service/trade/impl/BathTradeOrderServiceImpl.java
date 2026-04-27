@@ -13,7 +13,7 @@ import com.lanf.pay.model.enums.TradeTypeEnum;
 import com.lanf.pay.service.pay.config.PayConfig;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
-import com.lanf.pay.utils.PryServiceUtils;
+import com.lanf.pay.utils.PayServiceUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,7 +95,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
     private List<TradeOrderDO> buildTradeOrderDOList(CreateMergeTradeOrderDTO dto, BathTradeOrderDO bathTradeOrderDO,Date expireTime) {
         return dto.getTradeOrderItemList().stream()
                 .map(item -> {
-                    String outTradeNo = PryServiceUtils.generateOutTradeNo(item.getOrderId());
+                    String outTradeNo = PayServiceUtils.generateOutTradeNo(item.getOrderNumber());
                     TradeOrderDO tradeOrderDO = new TradeOrderDO();
                     tradeOrderDO.setBathPayOrderId(bathTradeOrderDO.getId());
                     tradeOrderDO.setUserId(dto.getUserId());
@@ -112,7 +112,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                 .collect(Collectors.toList());
     }
     private BathTradeOrderDO buildBathTradeOrderDO(CreateMergeTradeOrderDTO dto, Date expireTime) {
-        String batchNo =  PryServiceUtils.generateOutTradeNo(dto.getMainOrderId());
+        String batchNo =  PayServiceUtils.generateOutTradeNo(dto.getMainOrderNumber());
         Integer batchNum = dto.getTradeOrderItemList().size();
 
         /**

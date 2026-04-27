@@ -1,19 +1,24 @@
 package com.lanf.pay.model.dto;
 
+import com.lanf.pay.model.enums.TradeTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 @Data
 public class CreatePrepayOrderDTO implements Serializable {
 
-    @NotNull(message = "订单id不能为空")
-    private Long orderId;
+
+    @NotBlank(message = "订单编号不能为空")
+    private String orderNumber;
 
     @NotNull(message = "支付类型不能为空")
     @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
     private Integer payType;
 
+    @NotNull(message = "交易类型不能为空")
+    private TradeTypeEnum tradeType;
 }
