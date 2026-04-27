@@ -2,9 +2,11 @@ package com.lanf.pay.service.wallet.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.client.pay.model.enums.PayMethodEnum;
+import com.lanf.client.pay.model.enums.TradeTypeEnum;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.pay.mapper.WalletAccountMapper;
 import com.lanf.pay.model.bo.AddWalletAccount;
 import com.lanf.pay.model.dto.BalanceOrderDTO;
@@ -122,10 +124,10 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         message.setOutTradeNo(tradeOrderDO.getOutTradeNo());
         message.setBathPay(false);
         message.setPayType(null);
-        message.setTradeMoney(null);
+        message.setTradeMoney(tradeMoney);
         message.setReceiptMoney(null);
-        message.setRecordType(null);
-        message.setTradeType(null);
+        message.setRecordType(RecordTypeEnum.ORDER);
+        message.setTradeType(TradeTypeEnum.REALTIME_ORDER);
         message.setPayMethod(PayMethodEnum.WALLET_BALANCE);
 
     }

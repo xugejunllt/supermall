@@ -15,16 +15,21 @@ import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.constant.Constants;
 import com.lanf.constant.enums.FrozenStatusEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.finance.model.enums.RecordTypeEnum;
+import com.lanf.finance.mq.FinanceClientTopicName;
+import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.mapper.TradeOrderMapper;
 import com.lanf.pay.model.bo.*;
 import com.lanf.pay.model.dto.*;
 import com.lanf.pay.model.entity.*;
-import com.lanf.pay.model.enums.*;
+import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
+import com.lanf.pay.model.enums.PaySceneEnum;
+import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.model.tcc.CancelTradeOrderBO;
 import com.lanf.pay.model.vo.CreatePrepayOrderVO;
 import com.lanf.pay.model.vo.CreateRechargeTradeOrderVO;
@@ -489,14 +494,37 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(payType, resultBO);
         PayOrderFlowInsertSuccessMessage message = buildPayOrderFlowInsertSuccessMessage( resultBO, payType);
 
+        AddMoneyFlowMessage addMoneyFlowMessage =  buildAddMoneyFlowMessage( resultBO);
+
         try {
             payOrderFlowService.save(payOrderFlowDO);
             rocketMqClient.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC, JsonUtils.toJsonString(message));
+            rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
         } catch (DuplicateKeyException e) {
             log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
             return new PaySuccessHandleResultBO(true);
         }
         return new PaySuccessHandleResultBO(true);
+    }
+
+    private AddMoneyFlowMessage buildAddMoneyFlowMessage(CallbackResultBO resultBO){
+
+        AddMoneyFlowMessage addMoneyFlowMessage = new AddMoneyFlowMessage();
+        PassbackParams passbackParams = resultBO.getPassbackParams();
+        RecordTypeEnum recordType = null;
+        TradeTypeEnum tradeType = passbackParams.getTradeType();
+        if (tradeType.equals(TradeTypeEnum.REALTIME_ORDER)){
+            recordType = RecordTypeEnum.ORDER;
+        } else {
+            recordType = RecordTypeEnum.WALLET_RECHARGE;
+        }
+        //商家id 暂时为null
+        addMoneyFlowMessage.setBusinessId(Constants.PLATFORM_BUSINESS_ID);
+        addMoneyFlowMessage.setBizOrderId(resultBO.getPassbackParams().getTradeOrderId());
+        addMoneyFlowMessage.setIncomeMoney(resultBO.getReceiptMoney());
+        addMoneyFlowMessage.setRecordType(recordType);
+
+        return addMoneyFlowMessage;
     }
 
     private PayOrderFlowInsertSuccessMessage buildPayOrderFlowInsertSuccessMessage
