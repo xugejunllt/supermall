@@ -8,7 +8,10 @@ public class AftersalesClientTopicName {
 
     public static final String AFTER_SALES_CREATE_IN_ORDER_TOPIC = "AFTER_SALES_CREATE_IN_ORDER_TOPIC";
 
-
+    /**
+     * 售后完成 关闭订单
+     */
+    public static final String AFTER_SALES_CLOSE_ORDER_TOPIC = "AFTER_SALES_CREATE_IN_ORDER_TOPIC";
 
     ////////
     //////////////////消费组

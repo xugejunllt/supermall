@@ -17,6 +17,8 @@ import com.lanf.aftersales.model.enums.SubStatus;
 import com.lanf.aftersales.model.query.AfterSalesOrderPageQuery;
 import com.lanf.aftersales.model.vo.AfterSalesOrderItemPageVO;
 import com.lanf.aftersales.model.vo.AfterSalesOrderPageVO;
+import com.lanf.aftersales.mq.AftersalesClientTopicName;
+import com.lanf.aftersales.mq.message.CloseOrderMessage;
 import com.lanf.aftersales.service.IAfterSalesOrderItemService;
 import com.lanf.aftersales.service.IAfterSalesOrderService;
 import com.lanf.client.pay.model.enums.RefundEventTypeEnum;
@@ -36,7 +38,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -302,12 +307,17 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
          * 进行退款
          */
         ProcessRefundMessage message = new ProcessRefundMessage();
-        message.setBizOrderId(null);
+        message.setBizOrderId(salesOrderDO.getId());
         message.setRefundEventTypeEnum(RefundEventTypeEnum.CANCEL_PAID_ORDER);
-
         rocketMqClient.sendMessage(PayClientTopicName.PROCESS_REFUND_TOPIC,
                 JsonUtils.toJsonString(message));
-        log.info("完成退款成功:afterSalesOrderId={}", id);
+        /**
+         * 关闭订单
+         */
+        CloseOrderMessage closeOrderMessage = new CloseOrderMessage();
+        closeOrderMessage.setOrderId(salesOrderDO.getOrderId());
+        rocketMqClient.sendMessage(AftersalesClientTopicName.AFTER_SALES_CLOSE_ORDER_TOPIC,
+                JsonUtils.toJsonString(closeOrderMessage));
     }
 
     @Override

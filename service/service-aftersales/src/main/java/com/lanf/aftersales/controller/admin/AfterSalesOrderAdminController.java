@@ -32,6 +32,7 @@ public class AfterSalesOrderAdminController {
     private IAfterSalesOrderService afterSalesOrderService;
 
 
+
     @GetMapping("/afterSalesOrderPageQuery")
     public Result<PageResult<AfterSalesOrderPageVO>> afterSalesOrderPageQuery(@Validated AfterSalesOrderPageQuery query) {
 
@@ -72,5 +73,17 @@ public class AfterSalesOrderAdminController {
         return Result.ok();
     }
 
+    /**
+     * 完成售后退款
+     *
+     *
+     */
+    @PostMapping("/completeRefund")
+    public Result<Void> completeRefund(@RequestBody CompleteRefundDTO dto) {
+
+        log.info("完成售后退款:dto:{}", dto);
+        afterSalesOrderService.completeRefund(dto.getId());
+        return Result.ok();
+    }
 }
 
