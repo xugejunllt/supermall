@@ -1,5 +1,6 @@
 package com.lanf.client.pay.mq.message;
 
+import com.lanf.client.pay.model.enums.PayMethodEnum;
 import com.lanf.client.pay.model.enums.TradeTypeEnum;
 import com.lanf.finance.model.enums.RecordTypeEnum;
 import lombok.Data;
@@ -33,4 +34,5 @@ public class PayOrderFlowInsertSuccessMessage implements Serializable {
 
     private TradeTypeEnum tradeTypeEnum;
 
+    private PayMethodEnum payMethod;
 }

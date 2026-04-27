@@ -5,6 +5,7 @@ import com.lanf.client.pay.model.dto.CancelTradeOrderDTO;
 import com.lanf.client.pay.model.dto.CreatePayOrderDTO;
 import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.client.pay.model.dto.TradeOrderQuantitySumDTO;
+import com.lanf.client.pay.model.enums.PayMethodEnum;
 import com.lanf.client.pay.model.enums.TradeTypeEnum;
 import com.lanf.client.pay.model.query.TradeOrderBathQuery;
 import com.lanf.client.pay.model.query.TradeOrderQuery;
@@ -502,10 +503,12 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             (CallbackResultBO resultBO,Integer payType){
         PassbackParams passbackParams = resultBO.getPassbackParams();
         RecordTypeEnum recordType = null;
+        PayMethodEnum payMethod = null;
         TradeTypeEnum tradeType = passbackParams.getTradeType();
 
         if (tradeType.equals(TradeTypeEnum.REALTIME_ORDER)){
             recordType = RecordTypeEnum.ORDER;
+            payMethod = PayMethodEnum.THIRD_PARTY_PAY;
         } else {
             recordType = RecordTypeEnum.WALLET_RECHARGE;
         }
@@ -518,6 +521,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         message.setRecordType(recordType);
         message.setTradeTypeEnum(tradeType);
         message.setBizOrderId(passbackParams.getTradeOrderId());
+        /**
+         * 支付回调 那么一定是三方支付
+         */
+        message.setPayMethod(payMethod);
         return message;
     }
 

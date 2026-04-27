@@ -1,5 +1,6 @@
 package com.lanf.pay.mq;
 
+import com.lanf.client.pay.model.enums.PayMethodEnum;
 import com.lanf.client.pay.model.enums.TradeTypeEnum;
 import com.lanf.client.pay.mq.PayClientTopicName;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
@@ -69,21 +70,21 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         String outTradeNo = message.getOutTradeNo();
         Boolean bathPay = message.getBathPay();
         Integer payType = message.getPayType();
-
+        PayMethodEnum payMethod = message.getPayMethod();
         PaySceneEnum payScene = getPayScene(outTradeNo, bathPay);
         if (PaySceneEnum.SINGLE_ORDER_SINGLE_PAY.equals(payScene)) {
 
-            handleSinglePayScene(outTradeNo, payType,message.getTradeTypeEnum());
+            handleSinglePayScene(outTradeNo, payType,message.getTradeTypeEnum(), payMethod);
         }
         if (PaySceneEnum.COMBINED_PAY.equals(payScene)) {
 
-            handleCombinedPayScene(outTradeNo, payType);
+            handleCombinedPayScene(outTradeNo, payType, payMethod);
 
         }
 
         if (PaySceneEnum.COMBINED_TO_SINGLE_PAY.equals(payScene)) {
 
-            handleCombinedToSinglePayScene(outTradeNo,payType);
+            handleCombinedToSinglePayScene(outTradeNo,payType,payMethod);
         }
 
     }
@@ -113,7 +114,8 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
     }
 
     @Transactional
-    public void handleSinglePayScene(String outTradeNo, Integer payType, TradeTypeEnum tradeType) {
+    public void handleSinglePayScene(String outTradeNo, Integer payType,
+                                     TradeTypeEnum tradeType, PayMethodEnum payMethod) {
 
 
         TradeOrderDO tradeOrderDO = tradeOrderService.lambdaQuery()
@@ -158,6 +160,8 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
                     .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
                     .eq(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.PENDING.getCode())
                     .set(TradeOrderDO::getPayStatus, BathTradeOrderStatusEnum.COMPLETED.getCode())
+                    .set(TradeOrderDO::getPayType, payType)
+                    .set(TradeOrderDO::getPayMethod, payMethod)
                     .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
                     .update();
             if (!update) {
@@ -217,7 +221,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
     }
 
     @Transactional
-    public void handleCombinedPayScene(String outTradeNo, Integer payType) {
+    public void handleCombinedPayScene(String outTradeNo, Integer payType,PayMethodEnum payMethod) {
 
         BathTradeOrderDO bathTradeOrderDO = bathTradeOrderService.lambdaQuery()
                 .eq(BathTradeOrderDO::getOutTradeNo, outTradeNo)
@@ -281,6 +285,8 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
                         .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
                         .eq(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.PENDING.getCode())
                         .set(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.COMPLETED.getCode())
+                        .set(TradeOrderDO::getPayType, payType)
+                        .set(TradeOrderDO::getPayMethod, payMethod)
                         .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
                         .update();
                 if (!update) {
@@ -327,7 +333,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
 
 
     @Transactional
-    public void handleCombinedToSinglePayScene(String outTradeNo,  Integer payType) {
+    public void handleCombinedToSinglePayScene(String outTradeNo,  Integer payType,PayMethodEnum payMethod) {
 
 
 
@@ -384,6 +390,8 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
                 .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
                 .set(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.COMPLETED.getCode())
                 .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
+                .set(TradeOrderDO::getPayType, payType)
+                .set(TradeOrderDO::getPayMethod, payMethod)
                 .update();
         if (!update) {
             log.warn("交易单已支付");
