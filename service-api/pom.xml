@@ -21,6 +21,7 @@
         <module>service-api-welfare</module>
         <module>service-api-search</module>
         <module>service-api-aftersales</module>
+        <module>service-api-user</module>
     </modules>
     <artifactId>service-api</artifactId>
     <version>${service-api-pom.version}</version>

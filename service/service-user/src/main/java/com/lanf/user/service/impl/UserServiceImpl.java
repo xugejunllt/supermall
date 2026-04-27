@@ -1,16 +1,18 @@
 package com.lanf.user.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.aftersales.mq.UserClientTopicName;
+import com.lanf.aftersales.mq.message.UserRegisterMessage;
 import com.lanf.bizcache.service.SmsRateLimitService;
+import com.lanf.cache.aop.DistributedLock;
+import com.lanf.cache.constant.RedisCacheConstants;
+import com.lanf.cache.service.DistributedLocker;
+import com.lanf.cache.service.RedisCache;
 import com.lanf.common.utils.*;
 import com.lanf.constant.enums.SmsCodeEnum;
-import com.lanf.cache.aop.DistributedLock;
-import com.lanf.cache.service.DistributedLocker;
-import com.lanf.messagemanager.client.model.dto.SendMqMessageDTO;
+import com.lanf.constant.exception.BizException;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
-import com.lanf.cache.constant.RedisCacheConstants;
-import com.lanf.cache.service.RedisCache;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.model.CacheSessionBO;
@@ -31,9 +33,7 @@ import com.lanf.user.model.vo.UserDetailVO;
 import com.lanf.user.model.vo.UserVO;
 import com.lanf.user.service.IUserLoginLogService;
 import com.lanf.user.service.IUserService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.user.service.benefit.IUserLevelService;
-import com.lanf.constant.exception.BizException;
 import com.lanf.web.utils.WebUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -86,35 +86,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         validateRegisterUser(dto);
         UserDO userDO = BeanCopyUtils.copyBean(dto, UserDO.class);
         fillUser(userDO);
-        //保存
-        SendMqMessageDTO sendMqMessageDTO = buildSendMqMessageDTO(dto);
-
-        transactionTemplate.execute(status -> {
-            try {
-                this.save(userDO);
-                sendMqMessageService.createSendMqMessage(sendMqMessageDTO);
-                // 如果一切正常，事务会自动提交
-                return null;
-            } catch (Exception e) {
-                // 发生异常时手动回滚
-                status.setRollbackOnly();
-                throw e;
-
-            }
-        });
-        //发送mq 注册事件
-        sendMqMessageService.sendMqMessage(sendMqMessageDTO);
-
+        this.save(userDO);
+        UserRegisterMessage message = new UserRegisterMessage();
+        message.setUserId(userDO.getId());
+        rocketMqClient.sendMessage(UserClientTopicName.USER_REGISTER_EVENT_TOPIC,
+                JsonUtils.toJsonString(message));
     }
-    private SendMqMessageDTO buildSendMqMessageDTO(RegisterUserDTO dto){
 
-        SendSmsMsg messageContent = new SendSmsMsg();
-        String buildBizKey = EventCodeEnum.buildBizKey(dto.getPhoneNumber(), EventCodeEnum.USER_REGISTER.getCode());
-        messageContent.setBizKeyValue(buildBizKey);
-        messageContent.setPhone(dto.getPhoneNumber());
-
-        return new SendMqMessageDTO(TopicName.SEND_SMS_TOPIC,messageContent);
-    }
     private void fillUser(UserDO userDO) {
 
         userDO.setStatus(1);

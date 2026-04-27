@@ -33,6 +33,9 @@
             <artifactId>common-mybatis</artifactId>
             <version>${common-mybatis.version}</version>
         </dependency>
+
+
+
     </dependencies>
 
 </project>
