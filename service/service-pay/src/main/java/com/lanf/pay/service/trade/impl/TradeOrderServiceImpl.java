@@ -514,6 +514,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         message.setBathPay(passbackParams.getBathPay());
         message.setPayType(payType);
         message.setReceiptMoney(resultBO.getReceiptMoney());
+        message.setTradeMoney(resultBO.getTotalAmount());
         message.setRecordType(recordType);
         message.setTradeTypeEnum(tradeType);
         message.setBizOrderId(passbackParams.getTradeOrderId());

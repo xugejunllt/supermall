@@ -41,10 +41,16 @@ public class TradeStatusBO implements Serializable {
      * 商户订单号
      */
     private String outTradeNo;
-    //是否是批量支付
-    private  Boolean bathPay;
+
     /**
      * 交易状态
      */
     private TradeStatusEnum tradeStatus;
+
+    /**
+     * 回调参数
+     */
+    private PassbackParams passbackParams;
+
+    private String allParams;
 }

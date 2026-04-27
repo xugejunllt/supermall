@@ -1,7 +1,7 @@
 package com.lanf.pay.service.wallet;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.pay.model.dto.AddWalletAccountDTO;
+import com.lanf.pay.model.bo.AddWalletAccount;
 import com.lanf.pay.model.entity.WalletAccountDO;
 
 /**
@@ -18,7 +18,7 @@ public interface IWalletAccountService extends IService<WalletAccountDO> {
      * 添加钱包账号
      *
      */
-    void addWalletAccount(AddWalletAccountDTO dto);
+    void addWalletAccount(AddWalletAccount dto);
 
 
 

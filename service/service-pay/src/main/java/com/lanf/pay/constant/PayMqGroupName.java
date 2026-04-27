@@ -6,4 +6,6 @@ public class PayMqGroupName {
 
     public static final String USER_REGISTER_EVENT_PAY_GROUP = "USER_REGISTER_EVENT_PAY_GROUP";
 
+    public static final String WALLET_RECHARGE_GROUP = "WALLET_RECHARGE_GROUP";
+
 }

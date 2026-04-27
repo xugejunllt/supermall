@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * 交易成功事件 - 支付服务消费者
+ * 取消超时未支付的订单
  */
 @Slf4j
 @Component

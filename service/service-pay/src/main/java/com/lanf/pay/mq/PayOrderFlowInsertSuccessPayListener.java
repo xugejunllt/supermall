@@ -1,7 +1,9 @@
 package com.lanf.pay.mq;
 
+import com.lanf.client.pay.model.enums.TradeTypeEnum;
 import com.lanf.client.pay.mq.PayClientTopicName;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
+import com.lanf.client.pay.mq.message.WalletRechargeMessage;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
@@ -17,6 +19,7 @@ import com.lanf.pay.service.pay.config.PayConfig;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.impl.PayRetryPolicyCacheService;
+import com.lanf.pay.utils.PayServiceUtils;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.OrderPayInfo;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
@@ -70,7 +73,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         PaySceneEnum payScene = getPayScene(outTradeNo, bathPay);
         if (PaySceneEnum.SINGLE_ORDER_SINGLE_PAY.equals(payScene)) {
 
-            handleSinglePayScene(outTradeNo, payType);
+            handleSinglePayScene(outTradeNo, payType,message.getTradeTypeEnum());
         }
         if (PaySceneEnum.COMBINED_PAY.equals(payScene)) {
 
@@ -95,6 +98,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
                     .eq(TradeOrderDO::getOutTradeNo, outTradeNo)
                     .one();
             if (tradeOrderDO == null) {
+                log.error("交易单不存在outTradeNo:[{}]", outTradeNo);
                 throw new BizException("交易单不存在");
             }
             if (tradeOrderDO.getBathPay() == 0) {
@@ -109,7 +113,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
     }
 
     @Transactional
-    public void handleSinglePayScene(String outTradeNo, Integer payType) {
+    public void handleSinglePayScene(String outTradeNo, Integer payType, TradeTypeEnum tradeType) {
 
 
         TradeOrderDO tradeOrderDO = tradeOrderService.lambdaQuery()
@@ -161,20 +165,25 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
 
                 throw new BizException("交易单更新失败");
             }
+
             /**
              * 发送mq
              */
-            List<OrderPayInfo> orderPayInfoList = new ArrayList<>();
-            OrderPayInfo orderPayInfo = new OrderPayInfo();
-            orderPayInfo.setOrderId(tradeOrderDO.getOrderId());
-            orderPayInfo.setPayType(payType);
-            orderPayInfo.setMerchantId(tradeOrderDO.getBusinessId());
-            orderPayInfo.setPayMoney(tradeOrderDO.getTradeMoney());
-            orderPayInfoList.add(orderPayInfo);
-            TradeSuccessEventMessage message = new TradeSuccessEventMessage();
-            message.setBathPay( false);
-            message.setOrderPayInfoList(orderPayInfoList);
-            rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
+            switch (tradeType){
+                case REALTIME_ORDER:
+                    TradeSuccessEventMessage message = buildTradeSuccessEventMessage(payType,tradeOrderDO);
+                    rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
+                    return;
+                case WALLET_RECHARGE :
+                    WalletRechargeMessage walletRechargeMessage = buildWalletRechargeMessage(payType,tradeOrderDO);
+                    rocketMqClient.sendMessage(PayClientTopicName.WALLET_RECHARGE_TOPIC, JsonUtils.toJsonString(walletRechargeMessage));
+
+                default:
+                    log.error("未知场景");
+                    throw new BizException("未知场景");
+
+            }
+
 
         }
         log.error("未知场景");
@@ -182,6 +191,20 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
 
     }
 
+    private WalletRechargeMessage buildWalletRechargeMessage(Integer payType, TradeOrderDO tradeOrderDO){
+
+        WalletRechargeMessage walletRechargeMessage = new WalletRechargeMessage();
+        walletRechargeMessage.setUserId(tradeOrderDO.getUserId());
+        walletRechargeMessage.setFlowNo(PayServiceUtils.generateOutTradeNo(tradeOrderDO.getOrderNumber()));
+        /**
+         * 充值金额 = 交易金额
+         */
+        walletRechargeMessage.setAmount(tradeOrderDO.getTradeMoney());
+        walletRechargeMessage.setBizOrderId(tradeOrderDO.getId());
+
+        return walletRechargeMessage;
+
+    }
     /**
      * 是否已经支付过 以唯一支付流水为准
      */
@@ -271,21 +294,9 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
             /**
              * 发送mq
              */
-            List<OrderPayInfo> orderPayInfoList = new ArrayList<>();
-            for (TradeOrderDO tradeOrderDO : tradeOrderDOList) {
 
-                OrderPayInfo orderPayInfo = new OrderPayInfo();
-                orderPayInfo.setOrderId(tradeOrderDO.getOrderId());
-                orderPayInfo.setPayMoney(tradeOrderDO.getTradeMoney());
-                orderPayInfo.setPayType(payType);
-                orderPayInfo.setMerchantId(tradeOrderDO.getBusinessId());
-                orderPayInfoList.add(orderPayInfo);
-
-            }
-            TradeSuccessEventMessage message = new TradeSuccessEventMessage();
-            message.setBathPay( true);
-            message.setMainOrderId(bathTradeOrderDO.getMainOrderId());
-            message.setOrderPayInfoList(orderPayInfoList);
+            TradeSuccessEventMessage message = buildTradeSuccessEventMessage( payType,
+                    bathTradeOrderDO.getMainOrderId(),tradeOrderDOList);
 
             rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
 
@@ -293,6 +304,28 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
 
 
     }
+    private TradeSuccessEventMessage buildTradeSuccessEventMessage( Integer payType,Long mainOrderId
+                                                                   , List<TradeOrderDO> tradeOrderDOList) {
+        List<OrderPayInfo> orderPayInfoList = new ArrayList<>();
+        for (TradeOrderDO tradeOrderDO : tradeOrderDOList) {
+
+            OrderPayInfo orderPayInfo = new OrderPayInfo();
+            orderPayInfo.setOrderId(tradeOrderDO.getOrderId());
+            orderPayInfo.setPayMoney(tradeOrderDO.getTradeMoney());
+            orderPayInfo.setPayType(payType);
+            orderPayInfo.setMerchantId(tradeOrderDO.getBusinessId());
+            orderPayInfoList.add(orderPayInfo);
+
+        }
+        TradeSuccessEventMessage message = new TradeSuccessEventMessage();
+        message.setBathPay( true);
+        message.setMainOrderId(mainOrderId);
+        message.setOrderPayInfoList(orderPayInfoList);
+
+        return message;
+    }
+
+
     @Transactional
     public void handleCombinedToSinglePayScene(String outTradeNo,  Integer payType) {
 
@@ -359,6 +392,10 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         /**
          * 发送mq
          */
+        TradeSuccessEventMessage message = buildTradeSuccessEventMessage( payType,tradeOrderDO);
+        rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
+    }
+    private TradeSuccessEventMessage buildTradeSuccessEventMessage(Integer payType, TradeOrderDO tradeOrderDO){
         List<OrderPayInfo> orderPayInfoList = new ArrayList<>();
         OrderPayInfo orderPayInfo = new OrderPayInfo();
         orderPayInfo.setOrderId(tradeOrderDO.getOrderId());
@@ -370,7 +407,6 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         message.setBathPay( false);
         message.setMainOrderId(tradeOrderDO.getOrderId());
         message.setOrderPayInfoList(orderPayInfoList);
-        rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
+        return message;
     }
-
 }

@@ -3,7 +3,8 @@ package com.lanf.pay.mq;
 import com.lanf.aftersales.mq.UserClientTopicName;
 import com.lanf.aftersales.mq.message.UserRegisterMessage;
 import com.lanf.pay.constant.PayMqGroupName;
-import com.lanf.pay.service.trade.ITradeOrderService;
+import com.lanf.pay.model.bo.AddWalletAccount;
+import com.lanf.pay.service.wallet.IWalletAccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -22,14 +23,15 @@ import org.springframework.stereotype.Component;
 public class UserRegisterPayListener implements RocketMQListener<UserRegisterMessage> {
 
     @Autowired
-    private ITradeOrderService tradeOrderService;
+    private IWalletAccountService walletAccountService;
 
     @Override
     public void onMessage(UserRegisterMessage message) {
 
-     log.info("支付服务，监听用户注册事件");
-
-
+       log.info("支付服务，监听用户注册事件");
+        AddWalletAccount dto = new AddWalletAccount();
+        dto.setUserId(message.getUserId());
+        walletAccountService.addWalletAccount(dto);
 
 
     }

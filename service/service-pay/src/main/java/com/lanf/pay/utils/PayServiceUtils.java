@@ -7,7 +7,7 @@ public class PayServiceUtils {
 
     /**
      *
-     * 生成交易订单号（格式：年月日时分秒毫秒 + 随机数）
+     * 生成交易号（格式：年月日时分秒毫秒 + 随机数）
      *
      */
     public static String generateOutTradeNo(String orderNumber) {

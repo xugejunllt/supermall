@@ -1,6 +1,5 @@
 package com.lanf.pay.mq;
 
-import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.*;
@@ -164,7 +163,8 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
     private void executePaymentCompensation(String outTradeNo, Integer payType,TradeStatusBO tradeStatusBO) {
 
 
-        PaySuccessHandleBO successHandleBO = BeanCopyUtils.copyBean(tradeStatusBO, PaySuccessHandleBO.class);
+        PaySuccessHandleBO successHandleBO = buildPaySuccessHandleBO( payType,tradeStatusBO);
+
         PaySuccessHandleResultBO resultBO = tradeOrderService.paySuccessHandleBO(successHandleBO);
         if ( !resultBO.getHandleSuccess()) {
             log.warn("支付成功处理失败:outTradeNo={},payType={}", outTradeNo, payType);
@@ -173,6 +173,25 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
 
     }
 
+    private PaySuccessHandleBO buildPaySuccessHandleBO(Integer payType, TradeStatusBO tradeStatusBO) {
+        CallbackResultBO callbackResultBO = new CallbackResultBO();
+        callbackResultBO.setPayFinishTime(tradeStatusBO.getPayFinishTime());
+        callbackResultBO.setReceiptMoney(tradeStatusBO.getReceiptMoney());
+        callbackResultBO.setTotalAmount(tradeStatusBO.getTotalAmount());
+        callbackResultBO.setPayAccount(tradeStatusBO.getPayAccount());
+        callbackResultBO.setIncomeAccount(tradeStatusBO.getIncomeAccount());
+        callbackResultBO.setNotifyTime(tradeStatusBO.getNotifyTime());
+        callbackResultBO.setTradeNo(tradeStatusBO.getTradeNo());
+        callbackResultBO.setOutTradeNo(tradeStatusBO.getOutTradeNo());
+        callbackResultBO.setPassbackParams(tradeStatusBO.getPassbackParams());
+        callbackResultBO.setAllParams(tradeStatusBO.getAllParams());
+
+        PaySuccessHandleBO successHandleBO = new PaySuccessHandleBO();
+        successHandleBO.setPayType(payType);
+        successHandleBO.setResultBO(callbackResultBO);
+
+        return successHandleBO;
+    }
     private void scheduleNextRetry(String outTradeNo, Integer payType, Integer currentRetryLevel,Boolean bathOrder) {
 
         int nextRetryLevel = currentRetryLevel + 1;

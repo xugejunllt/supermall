@@ -20,9 +20,12 @@ public class PayOrderFlowInsertSuccessMessage implements Serializable {
     private Boolean bathPay;
 
     private Integer payType;
-
     /**
-     * 实收金额
+     * 实际交易金额
+     */
+    private BigDecimal tradeMoney;
+    /**
+     * 平台账户实收金额
      */
     private BigDecimal receiptMoney;
 

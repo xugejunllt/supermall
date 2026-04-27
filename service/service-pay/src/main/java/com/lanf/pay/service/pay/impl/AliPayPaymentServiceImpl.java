@@ -220,8 +220,10 @@ public class AliPayPaymentServiceImpl implements PaymentService {
          * 暂不返回收款账户
          */
         tradeStatusBO.setIncomeAccount(null);
-        tradeStatusBO.setBathPay(Boolean.parseBoolean(response.getPassbackParams()));
-
+        String passbackParams = response.getPassbackParams();
+        PassbackParams passbackParams1 = JsonUtils.toObject(passbackParams, PassbackParams.class);
+        tradeStatusBO.setPassbackParams(passbackParams1);
+        tradeStatusBO.setAllParams(JsonUtils.toJsonString( response));
         return tradeStatusBO;
     }
 

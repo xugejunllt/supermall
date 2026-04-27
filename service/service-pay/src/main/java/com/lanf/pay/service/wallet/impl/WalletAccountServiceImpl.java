@@ -2,7 +2,7 @@ package com.lanf.pay.service.wallet.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.pay.mapper.WalletAccountMapper;
-import com.lanf.pay.model.dto.AddWalletAccountDTO;
+import com.lanf.pay.model.bo.AddWalletAccount;
 import com.lanf.pay.model.entity.WalletAccountDO;
 import com.lanf.pay.service.wallet.IWalletAccountService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, WalletAccountDO> implements IWalletAccountService {
 
     @Override
-    public void addWalletAccount(AddWalletAccountDTO dto) {
+    public void addWalletAccount(AddWalletAccount dto) {
 
         WalletAccountDO walletAccountDO = new WalletAccountDO();
         walletAccountDO.setUserId(dto.getUserId());
