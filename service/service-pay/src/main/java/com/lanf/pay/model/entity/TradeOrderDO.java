@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.model.enums.PayMethodEnum;
 import com.lanf.pay.model.enums.PayTypeEnum;
-import com.lanf.pay.model.enums.TradeTypeEnum;
+import com.lanf.client.pay.model.enums.TradeTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -75,7 +75,9 @@ private static final long serialVersionUID=1L;
     
     @ApiModelProperty(value = "冻结状态 0：正常 1: 冻结状态")
     private Integer frozen;
-    
+
+    private String passbackParams;
+
     private Long version;
 
 

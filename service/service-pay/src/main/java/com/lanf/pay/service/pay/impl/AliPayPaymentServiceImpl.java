@@ -22,6 +22,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.CallbackResultBO;
 import com.lanf.pay.model.bo.CancelPaidOrderResultBO;
+import com.lanf.pay.model.bo.PassbackParams;
 import com.lanf.pay.model.bo.TradeStatusBO;
 import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.enums.TradeStatusEnum;
@@ -122,7 +123,8 @@ public class AliPayPaymentServiceImpl implements PaymentService {
         callbackResultBO.setNotifyTime(notifyTimeDate);
         callbackResultBO.setTradeNo(tradeNo);
         callbackResultBO.setOutTradeNo(outTradeNo);
-        callbackResultBO.setBathPay(Boolean.parseBoolean(passbackParams));
+        callbackResultBO.setPassbackParams(JsonUtils.toObject(passbackParams, PassbackParams.class));
+        callbackResultBO.setAllParams(JsonUtils.toJsonString( params));
         return callbackResultBO;
     }
 

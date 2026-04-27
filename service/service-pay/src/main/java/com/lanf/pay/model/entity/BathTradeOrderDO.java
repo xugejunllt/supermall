@@ -56,6 +56,9 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "过期时间间隔")
     private Integer expireInterval;
+
+    private String passbackParams;
+
     private Long version;
 
 }

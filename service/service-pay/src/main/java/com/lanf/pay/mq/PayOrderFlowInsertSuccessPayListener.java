@@ -38,7 +38,7 @@ import java.util.List;
         topic = PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC,
         consumerGroup = PayMqGroupName.PAY_ORDER_FLOW_PAY_GROUP
 )
-public class PayOrderFlowInsertSuccessListener implements RocketMQListener<PayOrderFlowInsertSuccessMessage> {
+public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<PayOrderFlowInsertSuccessMessage> {
 
 
     @Autowired

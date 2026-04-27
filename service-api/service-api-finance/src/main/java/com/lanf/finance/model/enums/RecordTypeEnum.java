@@ -5,6 +5,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * 资金流水记录类型枚举
  *
@@ -18,7 +22,21 @@ public enum RecordTypeEnum {
     AFTER_SALES_REFUND(1, "售后退款"),
     CANCEL_ORDER_REFUND(2, "取消订单退款"),
     PLATFORM_SETTLEMENT_EXPENSE(3, "平台结算支出"),
-    MERCHANT_SETTLEMENT_INCOME(4, "商家结算收入");
+    MERCHANT_SETTLEMENT_INCOME(4, "商家结算收入"),
+    WALLET_RECHARGE(5, "钱包充值"),
+    ;
+
+    public static final Set<Integer> INCOME_TYPE_SET = new HashSet<>(Arrays.asList(
+            RecordTypeEnum.ORDER.getCode(),
+            RecordTypeEnum.MERCHANT_SETTLEMENT_INCOME.getCode(),
+            RecordTypeEnum.WALLET_RECHARGE.getCode()
+    ));
+
+    public static final Set<Integer> EXPENSE_TYPE_SET = new HashSet<>(Arrays.asList(
+            RecordTypeEnum.AFTER_SALES_REFUND.getCode(),
+            RecordTypeEnum.CANCEL_ORDER_REFUND.getCode(),
+            RecordTypeEnum.PLATFORM_SETTLEMENT_EXPENSE.getCode()));
+
 
     @EnumValue
     @JsonValue

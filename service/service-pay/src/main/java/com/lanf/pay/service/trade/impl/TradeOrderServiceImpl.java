@@ -5,6 +5,7 @@ import com.lanf.client.pay.model.dto.CancelTradeOrderDTO;
 import com.lanf.client.pay.model.dto.CreatePayOrderDTO;
 import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.client.pay.model.dto.TradeOrderQuantitySumDTO;
+import com.lanf.client.pay.model.enums.TradeTypeEnum;
 import com.lanf.client.pay.model.query.TradeOrderBathQuery;
 import com.lanf.client.pay.model.query.TradeOrderQuery;
 import com.lanf.client.pay.model.vo.*;
@@ -16,6 +17,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.enums.FrozenStatusEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
+import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.mapper.TradeOrderMapper;
 import com.lanf.pay.model.bo.*;
@@ -146,6 +148,11 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setExpireTime(expireTime);
         tradeOrderDO.setBusinessId(dto.getBusinessId());
         tradeOrderDO.setTradeType(TradeTypeEnum.REALTIME_ORDER);
+        PassbackParams passbackParams = new PassbackParams();
+        passbackParams.setBathPay(false);
+        passbackParams.setTradeOrderId(tradeOrderDO.getId());
+        passbackParams.setTradeType(TradeTypeEnum.REALTIME_ORDER);
+        tradeOrderDO.setPassbackParams(JsonUtils.toJsonString(passbackParams));
         return tradeOrderDO;
     }
 
@@ -350,10 +357,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
 
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
-        PassbackParams passbackParams = new PassbackParams();
-        passbackParams.setBathPay(false);
-        passbackParams.setTradeType(dto.getTradeType());
-        passbackParams.setTradeOrderId(tradeOrderDO.getId());
+        PassbackParams passbackParams = JsonUtils.toObject(tradeOrderDO.getPassbackParams(),
+                PassbackParams.class);
         PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
         prepayOrderDTO.setOutTradeNo(tradeOrderDO.getOutTradeNo());
         prepayOrderDTO.setTotalAmount(tradeOrderDO.getTradeMoney());
@@ -397,10 +402,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         }
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
-        PassbackParams passbackParams = new PassbackParams();
-        passbackParams.setBathPay(true);
-        passbackParams.setBathTradeOrderId(bathTradeOrderDO.getId());
-        passbackParams.setTradeType(TradeTypeEnum.REALTIME_ORDER);
+        PassbackParams passbackParams =  JsonUtils.toObject(bathTradeOrderDO.getPassbackParams(),
+                PassbackParams.class);
 
         PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
         prepayOrderDTO.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());
@@ -461,7 +464,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         CallbackResultBO resultBO = paySuccessHandleBO.getResultBO();
         String outTradeNo = resultBO.getOutTradeNo();
         Integer payType = paySuccessHandleBO.getPayType();
-        Boolean bathPay = resultBO.getBathPay();
+        Boolean bathPay = resultBO.getPassbackParams().getBathPay();
 
         BigDecimal totalAmount = resultBO.getTotalAmount();
 
@@ -481,12 +484,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
             return new PaySuccessHandleResultBO(true);
         }
+
         PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(payType, resultBO);
-        PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
-        message.setOutTradeNo(outTradeNo);
-        message.setBathPay(bathPay);
-        message.setPayType(payType);
-        message.setReceiptMoney(resultBO.getReceiptMoney());
+        PayOrderFlowInsertSuccessMessage message = buildPayOrderFlowInsertSuccessMessage( resultBO, payType);
+
         try {
             payOrderFlowService.save(payOrderFlowDO);
             rocketMqClient.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC, JsonUtils.toJsonString(message));
@@ -497,6 +498,27 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         return new PaySuccessHandleResultBO(true);
     }
 
+    private PayOrderFlowInsertSuccessMessage buildPayOrderFlowInsertSuccessMessage
+            (CallbackResultBO resultBO,Integer payType){
+        PassbackParams passbackParams = resultBO.getPassbackParams();
+        RecordTypeEnum recordType = null;
+        TradeTypeEnum tradeType = passbackParams.getTradeType();
+
+        if (tradeType.equals(TradeTypeEnum.REALTIME_ORDER)){
+            recordType = RecordTypeEnum.ORDER;
+        } else {
+            recordType = RecordTypeEnum.WALLET_RECHARGE;
+        }
+        PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
+        message.setOutTradeNo(resultBO.getOutTradeNo());
+        message.setBathPay(passbackParams.getBathPay());
+        message.setPayType(payType);
+        message.setReceiptMoney(resultBO.getReceiptMoney());
+        message.setRecordType(recordType);
+        message.setTradeTypeEnum(tradeType);
+        message.setBizOrderId(passbackParams.getTradeOrderId());
+        return message;
+    }
 
     private BigDecimal getTradeMoney(String outTradeNo, Boolean bathPay) {
         BigDecimal tradeMoney = null;
@@ -567,6 +589,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         payOrderFlowDO.setIncomeAccount(resultBO.getIncomeAccount());
         payOrderFlowDO.setNotifyTime(resultBO.getNotifyTime());
         payOrderFlowDO.setTradeNo(resultBO.getTradeNo());
+        payOrderFlowDO.setPassbackParams(JsonUtils.toJsonString(resultBO.getPassbackParams()));
+        payOrderFlowDO.setAllParams(resultBO.getAllParams());
+
         return payOrderFlowDO;
     }
 

@@ -24,6 +24,7 @@ private static final long serialVersionUID=1L;
 
 
 
+    private Long tradeId;
 
     @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
     private Integer payType;
@@ -52,8 +53,12 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "支付宝交易号。支付宝交易凭证号。")
     private String tradeNo;
+    /**
+     * 回调参数
+     */
+    private String passbackParams;
 
-
+    private String allParams;
 
 
 }

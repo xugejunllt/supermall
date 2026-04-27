@@ -9,14 +9,13 @@ import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.finance.mapper.MoneyFlowMapper;
 import com.lanf.finance.model.bo.AddMoneyFlow;
-import com.lanf.finance.model.entity.*;
-import com.lanf.finance.model.enums.IncomeSubjectEnum;
+import com.lanf.finance.model.entity.MoneyFlowDO;
+import com.lanf.finance.model.entity.PayAccountDO;
 import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.finance.model.query.AccountMoneySumQuery;
 import com.lanf.finance.model.query.MoneyFlowPageQuery;
 import com.lanf.finance.model.vo.AccountMoneySumVO;
 import com.lanf.finance.service.*;
-import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.rocketmq.model.message.MoneyFlowDTO;
 import com.lanf.security.utils.UserUtils;
@@ -27,9 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Date;
 
 /**
  * <p>
@@ -66,232 +63,6 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
     public void moneyFlowAdd(MoneyFlowDTO dto) {
 
 
-        Long orderId = dto.getOrderId();
-
-        LiquidationDO one = liquidationService.lambdaQuery().eq(LiquidationDO::getOrderId, orderId).eq(LiquidationDO::
-                getSource, dto.getSource()).one();
-
-        List<LiquidationFlowDO> liquidationFlowDOList = liquidationFlowService.lambdaQuery().eq(LiquidationFlowDO::getLiquidationId, one.getId()).list();
-
-        List<Long> liquidationFlowIdList = liquidationFlowDOList.stream().map(BaseEntity::getId).collect(Collectors.toList());
-
-        List<SettlementFlowDO> settlementFlowDOList = settlementFlowService.lambdaQuery().in(SettlementFlowDO::getLiquidationFlowId, liquidationFlowIdList).list();
-
-        List<MoneyFlowDO> moneyFlowDOList1 = this.lambdaQuery().list();
-        if (!moneyFlowDOList1.isEmpty()) {
-            throw new BizException("结算单已进行资金结算");
-        }
-        Map<Long, SettlementFlowDO> settlementFlowMap = settlementFlowDOList.stream()
-                .collect(Collectors.toMap(SettlementFlowDO::getLiquidationFlowId, Function.identity()));
-        LiquidationFlowDO liquidationFlowDO = liquidationFlowDOList.get(0);
-        Integer accountType = liquidationFlowDO.getAccountType();
-        List<String> incomeAccountList = liquidationFlowDOList.stream().map(LiquidationFlowDO::getIncomeAccount).collect(Collectors.toList());
-        List<PayAccountDO> accountDOList = payAccountService.lambdaQuery().
-                eq(PayAccountDO::getAccountType, accountType).
-                in(PayAccountDO::getAccount, incomeAccountList).list();
-        Map<String, PayAccountDO> accountDOMap = accountDOList.stream()
-                .collect(Collectors.toMap(PayAccountDO::getAccount, Function.identity()));
-
-
-        Integer source = one.getSource();
-        //构建MoneyFlowDO
-        List<MoneyFlowDO> moneyFlowDOList = new ArrayList<>(liquidationFlowDOList.size());
-        for (LiquidationFlowDO flowDO : liquidationFlowDOList) {
-
-            PayAccountDO payAccountDO = accountDOMap.get(flowDO.getIncomeAccount());
-            BigDecimal incomeMoney = flowDO.getIncomeMoney();
-            BigDecimal afterRemainMoney = null;
-            if (flowDO.getIncome().equals(0)) {
-                //收入
-                afterRemainMoney = BigDecimalUtil.add(incomeMoney, payAccountDO.getRemainMoney());
-            } else {
-                //支出
-                afterRemainMoney = BigDecimalUtil.subtract(payAccountDO.getRemainMoney(), incomeMoney);
-            }
-
-            String incomeSubjectName = null;
-            if (source.equals(0) && flowDO.getIncome().equals(0)) {
-                incomeSubjectName = IncomeSubjectEnum.CODE0.getName();
-            }
-            if (source.equals(0) && flowDO.getIncome().equals(1)) {
-                incomeSubjectName = IncomeSubjectEnum.CODE1.getName();
-            }
-            if (source.equals(1) && flowDO.getIncome().equals(0)) {
-                incomeSubjectName = IncomeSubjectEnum.CODE4.getName();
-            }
-            if (source.equals(1) && flowDO.getIncome().equals(1)) {
-                incomeSubjectName = IncomeSubjectEnum.CODE3.getName();
-            }
-            if (source.equals(2) && flowDO.getIncome().equals(1)) {
-                incomeSubjectName = IncomeSubjectEnum.CODE5.getName();
-            }
-            SettlementFlowDO settlementFlowDO = settlementFlowMap.get(flowDO.getId());
-            //构建MoneyFlowDO
-            MoneyFlowDO flowDO1 = new MoneyFlowDO();
-//            flowDO1.setSettlementFlowId(settlementFlowDO.getId());
-//            flowDO1.setOrderId(orderId);
-//            flowDO1.setShopId(flowDO.getShopId());
-//            flowDO1.setIncomeSubjectName(incomeSubjectName);
-//            flowDO1.setIncome(flowDO.getIncome());
-//            flowDO1.setSource(source);
-//            flowDO1.setIncomeMoney(incomeMoney);
-//            flowDO1.setAccountType(flowDO.getAccountType());
-//            flowDO1.setIncomeAccount(flowDO.getIncomeAccount());
-//            flowDO1.setBeforeRemainMoney(payAccountDO.getRemainMoney());
-//            flowDO1.setAfterRemainMoney(afterRemainMoney);
-//            flowDO1.setTradeFinishTime(flowDO.getPayFinishTime());
-//            String tradeFinishTimeFormat = DateUtils.format(flowDO.getPayFinishTime(), DateUtils.DATE);
-//            flowDO1.setTradeFinishTimeFormat(tradeFinishTimeFormat);
-            moneyFlowDOList.add(flowDO1);
-
-        }
-        this.saveBatch(moneyFlowDOList);
-        moneyFlowDOList.forEach(a -> {
-
-            BigDecimal changeMoney = BigDecimalUtil.subtract(a.getAfterRemainMoney(), a.getBeforeRemainMoney());
-//            int updated = moneyFlowMapper.updateRemainMoney(changeMoney, a.getAccountType(), a.getIncomeAccount());
-//            if (updated < 1) {
-//                throw new BizException("更新账户余额异常");
-//            }
-
-        });
-
-
-//
-
-//        List<Long> settlementFlowIdList = dto.getSettlementFlowIdList();
-//
-//        List<SettlementFlowDO> settlementFlowDOList = settlementFlowService.lambdaQuery().
-//                in(BaseEntity::getId, settlementFlowIdList).list();
-//        List<String> accountList = new ArrayList<>();
-//        settlementFlowDOList.forEach(a ->{
-//            accountList.add(a.getIncomeAccount());
-//        });
-//
-//        List<PayAccountDO> accountDOList = payAccountService.lambdaQuery().in(PayAccountDO::getAccount, accountList).list();
-//
-//
-//        Map<String, PayAccountDO> accountMap = new HashMap<>();
-//        accountDOList.forEach(a->{
-//            accountMap.put(a.getAccount(),a);
-//        });
-//
-//                List<ContrastBillTaskDO> contrastBillTaskDOList = new ArrayList<>();
-//        List<MoneyFlowDO> moneyFlowDOList = new ArrayList<>(settlementFlowDOList.size());
-//        List<PayAccountDO> payAccountDOUpdateList = new ArrayList<>();
-//        List<EverydayAccountRemainDO> everydayAccountRemainDOList = new ArrayList<>();
-//
-//        for (SettlementFlowDO a : settlementFlowDOList) {
-//
-//            String incomeAccount = a.getIncomeAccount();
-//            PayAccountDO payAccountDO = accountMap.get(incomeAccount);
-//            PayAccountDO payAccountDOUpdate = new PayAccountDO();
-//
-//            BigDecimal incomeMoney = a.getIncomeMoney();
-//            BigDecimal remainMoney = payAccountDO.getRemainMoney();
-//            Date payFinishTime = a.getPayFinishTime();
-//            String payFinishTimeFormat = DateUtils.format(payFinishTime, DateUtils.DATE);
-//            //暂时写死 把程序调通
-//            Long businessId = 1245205236008751106L;
-//
-//            //变更后账户余额
-//            BigDecimal afterRemainMoney = null;
-//            IncomeSubjectEnum subjectEnum = IncomeSubjectEnum.getByCode(a.getSource());
-//            MoneyFlowDO moneyFlowDO = new MoneyFlowDO();
-//            moneyFlowDO.setSettlementFlowId(a.getId());
-//            moneyFlowDO.setCode(CodeGenerateUtils.generaCode());
-//            moneyFlowDO.setIncome(subjectEnum.getIncome());
-//            moneyFlowDO.setIncomeSubjectName(subjectEnum.getName());
-//            if (subjectEnum.equals(IncomeSubjectEnum.CODE0) || subjectEnum.equals(IncomeSubjectEnum.CODE1)) {
-//
-//                //收入
-//                //变更后账户余额
-//                afterRemainMoney = BigDecimalUtils.add(payAccountDO.getRemainMoney(), incomeMoney);
-//            }
-//            if (subjectEnum.equals(IncomeSubjectEnum.CODE2) || subjectEnum.equals(IncomeSubjectEnum.CODE3)) {
-//
-//                afterRemainMoney = BigDecimalUtils.add(payAccountDO.getRemainMoney(), incomeMoney);
-//            }
-//            moneyFlowDO.setIncomeMoney(incomeMoney);
-//            moneyFlowDO.setAccountType(a.getAccountType());
-//            moneyFlowDO.setIncomeAccount(incomeAccount);
-//            moneyFlowDO.setBeforeRemainMoney(remainMoney);
-//            moneyFlowDO.setAfterRemainMoney(afterRemainMoney);
-//            moneyFlowDO.setTradeFinishTime(payFinishTime);
-//            moneyFlowDO.setTradeFinishTimeFormat(payFinishTimeFormat);
-//            moneyFlowDO.setBusinessId(businessId);
-//            moneyFlowDO.setTradeOrderId(a.getTradeOrderId());
-//            moneyFlowDO.setSupplierName(subjectEnum.getName());
-//            moneyFlowDOList.add(moneyFlowDO);
-//            //构建payAccountDOUpdate
-//            payAccountDOUpdate.setId(payAccountDO.getId());
-//            payAccountDOUpdate.setRemainMoney(afterRemainMoney);
-//            payAccountDOUpdateList.add(payAccountDOUpdate);
-//            /**
-//             * 添加对账任务
-//             */
-////            ContrastBillTaskDO billTaskDO = contrastBillTaskService.lambdaQuery().
-////                    eq(ContrastBillTaskDO::getContrastBillTime, payFinishTimeFormat).
-////                    eq(ContrastBillTaskDO::getBusinessId, businessId).one();
-////            boolean include = include(contrastBillTaskDOList, payFinishTimeFormat, businessId);
-////            if (billTaskDO == null && !include) {
-////
-////                ContrastBillTaskDO contrastBillTaskDO = new ContrastBillTaskDO();
-////                contrastBillTaskDO.setBusinessId(businessId);
-////                contrastBillTaskDO.setFinishStatus(0);
-////                contrastBillTaskDO.setContrastBillTime(payFinishTimeFormat);
-////                contrastBillTaskDOList.add(contrastBillTaskDO);
-////            }
-////            //构建EverydayAccountRemainDO
-////            EverydayAccountRemainDO everydayAccountRemainDO = new EverydayAccountRemainDO();
-////            everydayAccountRemainDO.setBusinessId(businessId);
-////            everydayAccountRemainDO.setAccount(incomeAccount);
-////            everydayAccountRemainDO.setRemainMoney(afterRemainMoney);
-////            everydayAccountRemainDO.setPayFinishTimeFormat(payFinishTimeFormat);
-////            everydayAccountRemainDOList.add(everydayAccountRemainDO);
-//        }
-//        /**
-//         * 写入去重:唯一索引去重
-//         *
-//         */
-//        this.saveBatch(moneyFlowDOList);
-//        /**
-//         * 乐观锁更新
-//         */
-//        payAccountService.updateBatchById(payAccountDOUpdateList);
-//
-//        if (!contrastBillTaskDOList.isEmpty()) {
-//            /**
-//             * 写入去重:唯一索引去重
-//             */
-//            contrastBillTaskService.saveBatch(contrastBillTaskDOList);
-//        }
-//        /**
-//         * 写入或更新EverydayAccountRemainDO
-//         */
-//        List<EverydayAccountRemainDO> everydayAccountRemainDOSave = new ArrayList<>();
-//        List<EverydayAccountRemainDO> everydayAccountRemainDOUpdate = new ArrayList<>();
-//        everydayAccountRemainDOList.forEach(a -> {
-//
-//            String account = a.getAccount();
-//            String payFinishTimeFormat = a.getPayFinishTimeFormat();
-//            EverydayAccountRemainDO remainDO = everydayAccountRemainService.lambdaQuery().
-//                    eq(EverydayAccountRemainDO::getAccount, account).
-//                    eq(EverydayAccountRemainDO::getPayFinishTimeFormat, payFinishTimeFormat).one();
-//            if (remainDO == null) {
-//                everydayAccountRemainDOSave.add(a);
-//            } else {
-//                a.setId(remainDO.getId());
-//                everydayAccountRemainDOUpdate.add(a);
-//            }
-//
-//        });
-//        if (!everydayAccountRemainDOSave.isEmpty()) {
-//            everydayAccountRemainService.saveBatch(everydayAccountRemainDOSave);
-//        }
-//        if (!everydayAccountRemainDOUpdate.isEmpty()) {
-//            everydayAccountRemainService.updateBatchById(everydayAccountRemainDOUpdate);
-//        }
 
 
     }
@@ -353,16 +124,8 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
 
         return null;
     }
-    private static final Set<Integer> INCOME_TYPE_SET = new HashSet<>(Arrays.asList(
-            RecordTypeEnum.ORDER.getCode(),
-            RecordTypeEnum.MERCHANT_SETTLEMENT_INCOME.getCode()
-    ));
 
-    private static final Set<Integer> EXPENSE_TYPE_SET = new HashSet<>(Arrays.asList(
-            RecordTypeEnum.AFTER_SALES_REFUND.getCode(),
-            RecordTypeEnum.CANCEL_ORDER_REFUND.getCode(),
-            RecordTypeEnum.PLATFORM_SETTLEMENT_EXPENSE.getCode()
-    ));
+
     @Override
     public void addMoneyFlow(AddMoneyFlow addMoneyFlow) {
         Long businessId = addMoneyFlow.getBusinessId();
@@ -411,9 +174,9 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
     private BigDecimal calculateAfterRemainMoney(RecordTypeEnum recordType, BigDecimal incomeMoney, BigDecimal beforeRemainMoney) {
         Integer code = recordType.getCode();
 
-        if (INCOME_TYPE_SET.contains(code)) {
+        if (RecordTypeEnum.INCOME_TYPE_SET.contains(code)) {
             return BigDecimalUtil.add(beforeRemainMoney, incomeMoney);
-        } else if (EXPENSE_TYPE_SET.contains(code)) {
+        } else if (RecordTypeEnum.EXPENSE_TYPE_SET.contains(code)) {
             return BigDecimalUtil.subtract(beforeRemainMoney, incomeMoney);
         } else {
             log.error("未知的记录类型");

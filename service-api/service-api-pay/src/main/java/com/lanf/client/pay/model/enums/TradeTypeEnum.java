@@ -1,4 +1,4 @@
-package com.lanf.pay.model.enums;
+package com.lanf.client.pay.model.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;

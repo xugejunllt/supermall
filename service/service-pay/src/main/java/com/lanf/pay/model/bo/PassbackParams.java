@@ -1,6 +1,6 @@
 package com.lanf.pay.model.bo;
 
-import com.lanf.pay.model.enums.TradeTypeEnum;
+import com.lanf.client.pay.model.enums.TradeTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,9 +11,10 @@ import java.io.Serializable;
 @Data
 public class PassbackParams implements Serializable {
 
-    private Long bathTradeOrderId;
+
     /**
      * 交易单id
+     * 如果是组合付款 那么是bathTradeOrderId
      */
     private Long tradeOrderId;
 

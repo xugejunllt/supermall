@@ -1,5 +1,7 @@
 package com.lanf.client.pay.mq.message;
 
+import com.lanf.client.pay.model.enums.TradeTypeEnum;
+import com.lanf.finance.model.enums.RecordTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -9,7 +11,7 @@ import java.math.BigDecimal;
 public class PayOrderFlowInsertSuccessMessage implements Serializable {
 
 
-    private Long orderId;
+    private Long bizOrderId;
     private String outTradeNo;
 
     /**
@@ -23,4 +25,9 @@ public class PayOrderFlowInsertSuccessMessage implements Serializable {
      * 实收金额
      */
     private BigDecimal receiptMoney;
+
+    private RecordTypeEnum recordType;
+
+    private TradeTypeEnum tradeTypeEnum;
+
 }

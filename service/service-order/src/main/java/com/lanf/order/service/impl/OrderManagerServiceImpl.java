@@ -315,7 +315,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     private void sendOrderCreateSuccessMessage(Long orderId) {
         PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
-        message.setOrderId(orderId);
+        message.setBizOrderId(orderId);
         rocketMqClient.sendMessage(TopicName.ORDER_CREATE_SUCCESS_TOPIC,  message);
     }
 

@@ -6,7 +6,6 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
 import com.lanf.finance.constant.FinanceMqGroupName;
 import com.lanf.finance.model.bo.AddMoneyFlow;
-import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.finance.service.IMoneyFlowService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -25,7 +24,7 @@ import org.springframework.stereotype.Component;
         topic = PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC,
         consumerGroup = FinanceMqGroupName.PAY_ORDER_FLOW_FINANCE_GROUP
 )
-public class PayOrderFlowInsertSuccessListener implements RocketMQListener<PayOrderFlowInsertSuccessMessage> {
+public class PayOrderFlowInsertSuccessFinanceListener implements RocketMQListener<PayOrderFlowInsertSuccessMessage> {
     @Autowired
     private IMoneyFlowService moneyFlowService;
 
@@ -36,8 +35,8 @@ public class PayOrderFlowInsertSuccessListener implements RocketMQListener<PayOr
 
         AddMoneyFlow addMoneyFlow = new AddMoneyFlow();
         addMoneyFlow.setBusinessId(Constants.PLATFORM_BUSINESS_ID);
-        addMoneyFlow.setBizOrderId(message.getOrderId());
-        addMoneyFlow.setRecordType(RecordTypeEnum.ORDER);
+        addMoneyFlow.setBizOrderId(message.getBizOrderId());
+        addMoneyFlow.setRecordType(message.getRecordType());
         addMoneyFlow.setIncomeMoney(message.getReceiptMoney());
         moneyFlowService.addMoneyFlow(addMoneyFlow);
 
