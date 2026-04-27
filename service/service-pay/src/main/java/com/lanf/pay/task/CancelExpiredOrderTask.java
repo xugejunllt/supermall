@@ -3,13 +3,16 @@ package com.lanf.pay.task;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lanf.client.pay.model.enums.TradeTypeEnum;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.enums.CancelSourceEnum;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
+import com.lanf.pay.service.trade.IPrepayPayTypeService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelExpiredOrderMessage;
+import com.lanf.rocketmq.model.message.CancelOrderMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +33,9 @@ public class CancelExpiredOrderTask {
 
     @Autowired
     private ITradeOrderService tradeOrderService;
+
+    @Autowired
+    private IPrepayPayTypeService prepayPayTypeService;
 
     /**
      * 取消超时待支付的交易单
@@ -66,12 +72,38 @@ public class CancelExpiredOrderTask {
             List<TradeOrderDO> records = tradeOrderService.page(page, queryChainWrapper).getRecords();
 
             for (TradeOrderDO a : records) {
+                TradeTypeEnum tradeType = a.getTradeType();
+                switch (tradeType){
+                    case REALTIME_ORDER:
+                        CancelExpiredOrderMessage message = new CancelExpiredOrderMessage();
+                        message.setOrderId(a.getOrderId());
+                        message.setCancelSource(CancelSourceEnum.SYSTEM_TIMEOUT.getCode());
+                        rocketMqClient.sendMessage(TopicName.CANCEL_EXPIRED_ORDER_TOPIC,
+                                JsonUtils.toJsonString(message));
+                        break;
+                    case  WALLET_RECHARGE:
 
-                CancelExpiredOrderMessage message = new CancelExpiredOrderMessage();
-                message.setOrderId(a.getOrderId());
-                message.setCancelSource(CancelSourceEnum.SYSTEM_TIMEOUT.getCode());
-                rocketMqClient.sendMessage(TopicName.CANCEL_EXPIRED_ORDER_TOPIC,
-                        JsonUtils.toJsonString(message));
+                        log.info("取消钱包充值订单");
+                        String outTradeNo = a.getOutTradeNo();
+                        List<Integer> payTypesByOutTradeNo = prepayPayTypeService.getPayTypesByOutTradeNo(outTradeNo);
+                        if (payTypesByOutTradeNo.isEmpty()) {
+                            log.info("未查询到支付方式");
+                            return;
+                        }
+
+                        for (Integer payType : payTypesByOutTradeNo){
+
+                            CancelOrderMessage cancelOrderMessage = new CancelOrderMessage();
+                            cancelOrderMessage.setOutTradeNo(outTradeNo);
+                            cancelOrderMessage.setPayType(payType);
+                            cancelOrderMessage.setCancelSource(null);
+                            //取消订单 全部退款时 outRequestNo = outTradeNo
+                            cancelOrderMessage.setOutRequestNo(outTradeNo);
+                            rocketMqClient.sendMessage(TopicName.CANCEL_PAY_ORDER_TOPIC, JsonUtils.toJsonString(cancelOrderMessage));
+
+                        }
+                }
+
             }
 
 
