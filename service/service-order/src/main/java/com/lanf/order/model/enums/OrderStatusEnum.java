@@ -1,6 +1,9 @@
 package com.lanf.order.model.enums;
 
 
+import com.baomidou.mybatisplus.annotation.EnumValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -31,7 +34,8 @@ public enum OrderStatusEnum {
     CLOSED(7, "已关闭,订单已终结"),
 
     ;
-
+    @EnumValue
+    @JsonValue
     private final Integer code;
     private final String name;
 
@@ -45,7 +49,10 @@ public enum OrderStatusEnum {
         this.code = code;
         this.name = name;
     }
-
+    @JsonValue
+    public Integer getCode() {
+        return code;
+    }
     public static boolean isCancelable(Integer code) {
         return CANCELABLE_STATUS_SET.contains(code);
     }
@@ -58,5 +65,16 @@ public enum OrderStatusEnum {
         }
         return WAIT_PAY;
     }
-
+    @JsonCreator
+    public static OrderStatusEnum getByCode(Integer code) {
+        if (code == null) {
+            return null;
+        }
+        for (OrderStatusEnum typeEnum : OrderStatusEnum.values()) {
+            if (code.equals(typeEnum.getCode())) {
+                return typeEnum;
+            }
+        }
+        return null;
+    }
 }
