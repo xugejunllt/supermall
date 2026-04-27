@@ -1,23 +1,15 @@
 package com.lanf.pay.service.trade.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
+import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IdUtils;
-import com.lanf.constant.exception.BizException;
 import com.lanf.pay.mapper.BathTradeOrderMapper;
-import com.lanf.pay.model.dto.BathCreatePrepayOrderDTO;
-import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
-import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
-import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.entity.BathTradeOrderDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
-import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
 import com.lanf.pay.model.enums.TradeTypeEnum;
-import com.lanf.pay.model.vo.CreatePrepayOrderVO;
-import com.lanf.pay.model.vo.PrepayOrderVO;
-import com.lanf.pay.service.pay.PaymentService;
-import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.pay.service.pay.config.PayConfig;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
@@ -157,31 +149,6 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
 
 
     }
-    @Override
-    public CreatePrepayOrderVO bathCreatePrepayOrder(BathCreatePrepayOrderDTO dto) {
 
-        BathTradeOrderDO bathTradeOrderDO = this.lambdaQuery().eq(BathTradeOrderDO::getMainOrderId, dto.getMainOrderId()).one();
-        if (bathTradeOrderDO == null) {
-            log.warn("批量交易单不存在");
-            throw new BizException("批量交易单不存在");
-        }
-        if ( !BathTradeOrderStatusEnum.PENDING.getCode().
-                equals(bathTradeOrderDO.getPayStatus())){
-            log.warn("交易单状态异常");
-            throw new BizException("交易单状态异常");
-        }
-
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
-        PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
-        prepayOrderDTO.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());
-        prepayOrderDTO.setTotalAmount(bathTradeOrderDO.getBatchFee());
-        prepayOrderDTO.setBathPay(true);
-        PrepayOrderVO prepayOrderVO = paymentService.createPrepayOrder(prepayOrderDTO);
-
-        CreatePrepayOrderVO vo = new CreatePrepayOrderVO();
-        vo.setOrderStr(prepayOrderVO.getOrderStr());
-
-        return vo;
-    }
 
 }
