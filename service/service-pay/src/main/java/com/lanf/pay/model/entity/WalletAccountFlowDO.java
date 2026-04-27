@@ -2,6 +2,7 @@ package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.pay.model.enums.WalletEventTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -43,7 +44,7 @@ private static final long serialVersionUID=1L;
     private Long bizOrderId;
 
     @ApiModelProperty(value = "0:充值，1：提现，2：下单")
-    private Integer eventType;
+    private WalletEventTypeEnum eventType;
 
 
 
