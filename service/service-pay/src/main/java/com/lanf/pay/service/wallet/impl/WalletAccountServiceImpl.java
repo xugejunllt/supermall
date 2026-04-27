@@ -1,13 +1,30 @@
 package com.lanf.pay.service.wallet.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.client.pay.model.enums.PayMethodEnum;
+import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
+import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.pay.mapper.WalletAccountMapper;
 import com.lanf.pay.model.bo.AddWalletAccount;
+import com.lanf.pay.model.dto.BalanceOrderDTO;
+import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.entity.WalletAccountDO;
+import com.lanf.pay.model.entity.WalletAccountFlowDO;
+import com.lanf.pay.model.enums.TradeOrderStatusEnum;
+import com.lanf.pay.model.enums.WalletEventTypeEnum;
+import com.lanf.pay.service.trade.ITradeOrderService;
+import com.lanf.pay.service.wallet.IWalletAccountFlowService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
+import com.lanf.pay.utils.PayServiceUtils;
+import com.lanf.security.utils.UserIdContext;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 /**
  * <p>
@@ -21,6 +38,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, WalletAccountDO> implements IWalletAccountService {
 
+    @Autowired
+    private ITradeOrderService tradeOrderService;
+
+    @Autowired
+    private IWalletAccountFlowService walletAccountFlowService;
+
     @Override
     public void addWalletAccount(AddWalletAccount dto) {
 
@@ -32,6 +55,78 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
             log.warn("该用户已存在钱包账户");
         }
 
+
+    }
+
+    @Transactional
+    @Override
+    public void balanceOrder(BalanceOrderDTO dto) {
+
+        Long userId = UserIdContext.getUserId();
+        String orderNumber = dto.getOrderNumber();
+        TradeOrderDO tradeOrderDO = tradeOrderService.lambdaQuery()
+                .eq(TradeOrderDO::getOrderNumber, orderNumber)
+                .one();
+        if (tradeOrderDO == null) {
+            log.error("该订单不存在");
+           throw new BizException("该订单不存在");
+        }
+        if ( !TradeOrderStatusEnum.PENDING.getCode().equals(tradeOrderDO.getPayStatus())){
+            log.warn("订单状态异常");
+            throw new BizException("订单状态异常");
+        }
+
+        BigDecimal tradeMoney = tradeOrderDO.getTradeMoney();
+
+        WalletAccountDO accountDO = this.lambdaQuery().eq(WalletAccountDO::getUserId, userId).one();
+        if (accountDO == null) {
+            log.error("用户钱包账户不存在");
+            throw new BizException("用户钱包账户不存在");
+        }
+        BigDecimal balance = accountDO.getBalance();
+        if (BigDecimalUtils.compareTo(balance, tradeMoney) == -1) {
+            log.warn("余额不足");
+            throw new BizException("余额不足");
+        }
+        BigDecimal afterBalance = balance.subtract(tradeMoney);
+
+        WalletAccountFlowDO walletAccountFlowDO = new WalletAccountFlowDO();
+        walletAccountFlowDO.setUserId(userId);
+        walletAccountFlowDO.setFlowNo(PayServiceUtils.generateOutTradeNo(orderNumber));
+        walletAccountFlowDO.setWalletAccountId(accountDO.getId());
+        walletAccountFlowDO.setBeforeBalance(balance);
+        walletAccountFlowDO.setAfterBalance(afterBalance);
+        walletAccountFlowDO.setChangeBalance(tradeMoney);
+        walletAccountFlowDO.setBizOrderId(tradeOrderDO.getId());
+        walletAccountFlowDO.setEventType(WalletEventTypeEnum.ORDER);
+
+        try {
+            walletAccountFlowService.save(walletAccountFlowDO);
+        } catch (Exception e) {
+            log.warn("钱包账户流水记录已存在");
+            return;
+        }
+        boolean update = this.lambdaUpdate()
+                .eq(WalletAccountDO::getId, accountDO.getId())
+                .eq(WalletAccountDO::getVersion, accountDO.getVersion())
+                .set(WalletAccountDO::getBalance, afterBalance)
+                .set(WalletAccountDO::getVersion, accountDO.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.warn("更新用户钱包账户失败");
+            throw new BizException("更新用户钱包账户失败");
+        }
+
+        PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
+        message.setBizOrderId(tradeOrderDO.getId());
+        message.setOutTradeNo(tradeOrderDO.getOutTradeNo());
+        message.setBathPay(false);
+        message.setPayType(null);
+        message.setTradeMoney(null);
+        message.setReceiptMoney(null);
+        message.setRecordType(null);
+        message.setTradeType(null);
+        message.setPayMethod(PayMethodEnum.WALLET_BALANCE);
 
     }
 }

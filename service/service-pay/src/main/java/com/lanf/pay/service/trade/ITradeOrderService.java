@@ -67,7 +67,7 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
      PaySuccessHandleResultBO paySuccessHandleBO(PaySuccessHandleBO paySuccessHandleBO);
 
     /**
-     * 创建充值交易单
+     * 创建钱包充值交易单
      *
      *
      */

@@ -32,7 +32,7 @@ public class PayOrderFlowInsertSuccessMessage implements Serializable {
 
     private RecordTypeEnum recordType;
 
-    private TradeTypeEnum tradeTypeEnum;
+    private TradeTypeEnum tradeType;
 
     private PayMethodEnum payMethod;
 }

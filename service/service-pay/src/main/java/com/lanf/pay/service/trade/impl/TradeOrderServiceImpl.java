@@ -519,7 +519,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         message.setReceiptMoney(resultBO.getReceiptMoney());
         message.setTradeMoney(resultBO.getTotalAmount());
         message.setRecordType(recordType);
-        message.setTradeTypeEnum(tradeType);
+        message.setTradeType(tradeType);
         message.setBizOrderId(passbackParams.getTradeOrderId());
         /**
          * 支付回调 那么一定是三方支付

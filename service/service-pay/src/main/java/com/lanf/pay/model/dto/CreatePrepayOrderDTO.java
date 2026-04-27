@@ -19,6 +19,4 @@ public class CreatePrepayOrderDTO implements Serializable {
     @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
     private Integer payType;
 
-    @NotNull(message = "交易类型不能为空")
-    private TradeTypeEnum tradeType;
 }

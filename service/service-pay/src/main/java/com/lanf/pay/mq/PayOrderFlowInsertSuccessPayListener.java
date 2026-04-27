@@ -74,7 +74,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         PaySceneEnum payScene = getPayScene(outTradeNo, bathPay);
         if (PaySceneEnum.SINGLE_ORDER_SINGLE_PAY.equals(payScene)) {
 
-            handleSinglePayScene(outTradeNo, payType,message.getTradeTypeEnum(), payMethod);
+            handleSinglePayScene(outTradeNo, payType,message.getTradeType(), payMethod);
         }
         if (PaySceneEnum.COMBINED_PAY.equals(payScene)) {
 
