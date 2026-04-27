@@ -6,7 +6,7 @@ import com.lanf.client.pay.model.dto.CreatePayOrderDTO;
 import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.client.pay.model.dto.TradeOrderQuantitySumDTO;
 import com.lanf.client.pay.model.enums.PayMethodEnum;
-import com.lanf.client.pay.model.enums.TradeTypeEnum;
+import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import com.lanf.client.pay.model.query.TradeOrderBathQuery;
 import com.lanf.client.pay.model.query.TradeOrderQuery;
 import com.lanf.client.pay.model.vo.*;
@@ -153,11 +153,11 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setExpireInterval(payConfig.getExpireInterval());
         tradeOrderDO.setExpireTime(expireTime);
         tradeOrderDO.setBusinessId(dto.getBusinessId());
-        tradeOrderDO.setTradeType(TradeTypeEnum.REALTIME_ORDER);
+        tradeOrderDO.setTradePurpose(TradePurposeEnum.REALTIME_ORDER);
         PassbackParams passbackParams = new PassbackParams();
         passbackParams.setBathPay(false);
         passbackParams.setTradeOrderId(tradeOrderDO.getId());
-        passbackParams.setTradeType(TradeTypeEnum.REALTIME_ORDER);
+        passbackParams.setTradeType(TradePurposeEnum.REALTIME_ORDER);
         tradeOrderDO.setPassbackParams(JsonUtils.toJsonString(passbackParams));
         return tradeOrderDO;
     }
@@ -512,8 +512,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         AddMoneyFlowMessage addMoneyFlowMessage = new AddMoneyFlowMessage();
         PassbackParams passbackParams = resultBO.getPassbackParams();
         RecordTypeEnum recordType = null;
-        TradeTypeEnum tradeType = passbackParams.getTradeType();
-        if (tradeType.equals(TradeTypeEnum.REALTIME_ORDER)){
+        TradePurposeEnum tradeType = passbackParams.getTradeType();
+        if (tradeType.equals(TradePurposeEnum.REALTIME_ORDER)){
             recordType = RecordTypeEnum.ORDER;
         } else {
             recordType = RecordTypeEnum.WALLET_RECHARGE;
@@ -532,9 +532,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         PassbackParams passbackParams = resultBO.getPassbackParams();
         RecordTypeEnum recordType = null;
         PayMethodEnum payMethod = null;
-        TradeTypeEnum tradeType = passbackParams.getTradeType();
+        TradePurposeEnum tradeType = passbackParams.getTradeType();
 
-        if (tradeType.equals(TradeTypeEnum.REALTIME_ORDER)){
+        if (tradeType.equals(TradePurposeEnum.REALTIME_ORDER)){
             recordType = RecordTypeEnum.ORDER;
             payMethod = PayMethodEnum.THIRD_PARTY_PAY;
         } else {
@@ -547,7 +547,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         message.setReceiptMoney(resultBO.getReceiptMoney());
         message.setTradeMoney(resultBO.getTotalAmount());
         message.setRecordType(recordType);
-        message.setTradeType(tradeType);
+        message.setTradePurpose(tradeType);
         message.setBizOrderId(passbackParams.getTradeOrderId());
         /**
          * 支付回调 那么一定是三方支付
@@ -765,7 +765,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setOrderNumber(dto.getOrderNumber());
         tradeOrderDO.setOutTradeNo(PayServiceUtils.generateOutTradeNo(dto.getOrderNumber()));
         tradeOrderDO.setTradeMoney(dto.getAmount());
-        tradeOrderDO.setTradeType(TradeTypeEnum.WALLET_RECHARGE);
+        tradeOrderDO.setTradePurpose(TradePurposeEnum.WALLET_RECHARGE);
         tradeOrderDO.setPayStatus(TradeOrderStatusEnum.PENDING.getCode());
         tradeOrderDO.setBathPay(0);
         tradeOrderDO.setExpireInterval(payConfig.getExpireInterval());

@@ -1,6 +1,6 @@
 package com.lanf.pay.model.bo;
 
-import com.lanf.client.pay.model.enums.TradeTypeEnum;
+import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -21,5 +21,5 @@ public class PassbackParams implements Serializable {
     //是否是批量付款
     private  Boolean bathPay;
 
-    private TradeTypeEnum tradeType;
+    private TradePurposeEnum tradeType;
 }

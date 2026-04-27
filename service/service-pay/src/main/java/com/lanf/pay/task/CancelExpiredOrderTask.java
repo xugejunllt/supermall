@@ -3,7 +3,7 @@ package com.lanf.pay.task;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.lanf.client.pay.model.enums.TradeTypeEnum;
+import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.enums.CancelSourceEnum;
 import com.lanf.pay.model.entity.TradeOrderDO;
@@ -72,7 +72,7 @@ public class CancelExpiredOrderTask {
             List<TradeOrderDO> records = tradeOrderService.page(page, queryChainWrapper).getRecords();
 
             for (TradeOrderDO a : records) {
-                TradeTypeEnum tradeType = a.getTradeType();
+                TradePurposeEnum tradeType = a.getTradePurpose();
                 switch (tradeType){
                     case REALTIME_ORDER:
                         CancelExpiredOrderMessage message = new CancelExpiredOrderMessage();

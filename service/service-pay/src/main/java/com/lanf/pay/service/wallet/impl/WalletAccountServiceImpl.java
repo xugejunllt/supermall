@@ -2,9 +2,11 @@ package com.lanf.pay.service.wallet.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.client.pay.model.enums.PayMethodEnum;
-import com.lanf.client.pay.model.enums.TradeTypeEnum;
+import com.lanf.client.pay.model.enums.TradePurposeEnum;
+import com.lanf.client.pay.mq.PayClientTopicName;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.pay.mapper.WalletAccountMapper;
@@ -19,6 +21,7 @@ import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.wallet.IWalletAccountFlowService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
 import com.lanf.pay.utils.PayServiceUtils;
+import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserIdContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +48,8 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
 
     @Autowired
     private IWalletAccountFlowService walletAccountFlowService;
+    @Autowired
+    private RocketMqClient rocketMqClient;
 
     @Override
     public void addWalletAccount(AddWalletAccount dto) {
@@ -119,6 +124,11 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
             throw new BizException("更新用户钱包账户失败");
         }
 
+        PayOrderFlowInsertSuccessMessage message = buildPayOrderFlowInsertSuccessMessage(tradeOrderDO, tradeMoney);
+        rocketMqClient.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC, JsonUtils.toJsonString(message));
+    }
+
+    private static PayOrderFlowInsertSuccessMessage buildPayOrderFlowInsertSuccessMessage(TradeOrderDO tradeOrderDO, BigDecimal tradeMoney) {
         PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
         message.setBizOrderId(tradeOrderDO.getId());
         message.setOutTradeNo(tradeOrderDO.getOutTradeNo());
@@ -127,8 +137,8 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         message.setTradeMoney(tradeMoney);
         message.setReceiptMoney(null);
         message.setRecordType(RecordTypeEnum.ORDER);
-        message.setTradeType(TradeTypeEnum.REALTIME_ORDER);
+        message.setTradePurpose(TradePurposeEnum.REALTIME_ORDER);
         message.setPayMethod(PayMethodEnum.WALLET_BALANCE);
-
+        return message;
     }
 }

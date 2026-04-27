@@ -1,6 +1,5 @@
 package com.lanf.pay.model.dto;
 
-import com.lanf.client.pay.model.enums.TradeTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

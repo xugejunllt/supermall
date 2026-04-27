@@ -11,7 +11,7 @@ import com.lanf.pay.mapper.BathTradeOrderMapper;
 import com.lanf.pay.model.bo.PassbackParams;
 import com.lanf.pay.model.entity.BathTradeOrderDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
-import com.lanf.client.pay.model.enums.TradeTypeEnum;
+import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import com.lanf.pay.service.pay.config.PayConfig;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
@@ -108,7 +108,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                     tradeOrderDO.setBathPay(1);
                     tradeOrderDO.setExpireTime(expireTime);
                     tradeOrderDO.setBusinessId(dto.getBusinessId());
-                    tradeOrderDO.setTradeType(TradeTypeEnum.REALTIME_ORDER);
+                    tradeOrderDO.setTradePurpose(TradePurposeEnum.REALTIME_ORDER);
                     return tradeOrderDO;
                 })
                 .collect(Collectors.toList());
@@ -145,7 +145,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
         PassbackParams passbackParams = new PassbackParams();
         passbackParams.setBathPay(true);
         passbackParams.setTradeOrderId(bathTradeOrderDO1.getId());
-        passbackParams.setTradeType(TradeTypeEnum.REALTIME_ORDER);
+        passbackParams.setTradeType(TradePurposeEnum.REALTIME_ORDER);
         bathTradeOrderDO1.setPassbackParams(JsonUtils.toJsonString(passbackParams));
         return bathTradeOrderDO1;
     }

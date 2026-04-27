@@ -67,6 +67,10 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
             return;
         }
         BigDecimal tradeMoney = orderFlowDO.getTradeMoney();
+
+        /**
+         * 这里使用抽象类
+         */
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
         CancelPaidOrderResultBO cancelled = paymentService.cancelPaidOrder(outTradeNo,
                 tradeMoney, "取消订单");

@@ -41,7 +41,9 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
          * 查询三方交易单状态
          */
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
-
+        /**
+         * 把钱包支付方式加入进去
+         */
         TradeStatusBO tradeStatusBO = paymentService.queryTradeStatus(outTradeNo);
         TradeStatusEnum tradeStatus = tradeStatusBO.getTradeStatus();
 

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.client.pay.model.enums.PayMethodEnum;
 import com.lanf.pay.model.enums.PayTypeEnum;
-import com.lanf.client.pay.model.enums.TradeTypeEnum;
+import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -48,12 +48,12 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "交易金额")
     private BigDecimal tradeMoney;
     /**
-     * 交易类型 0：实时下单 ，1：钱包充值
+     * 交易用途 0：实时下单 ，1：钱包充值
      * 支付回调通知时更新
      */
-    private TradeTypeEnum tradeType;
+    private TradePurposeEnum tradePurpose;
     /**
-     * 付款方式：0：三方支付，1：钱包余额
+     * 下单付款方式：0：三方支付，1：钱包余额
      * 支付回调通知时更新
      */
     private PayMethodEnum payMethod;
