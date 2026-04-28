@@ -27,5 +27,10 @@ public interface IWalletAccountService extends IService<WalletAccountDO> {
      */
     void balanceOrder(BalanceOrderDTO dto);
 
-
+    /**
+     *
+     * 钱包下单时 订单取消 回滚钱包金额
+     *
+     */
+    void rollbackWalletBalanceOnCancelOrder(Long bizOrderId);
 }

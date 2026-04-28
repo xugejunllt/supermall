@@ -10,7 +10,8 @@ public enum WalletEventTypeEnum {
 
     RECHARGE(0, "充值"),
     WITHDRAW(1, "提现"),
-    ORDER(2, "下单");
+    ORDER(2, "下单"),
+    CANCEL_ORDER_ROLLBACK(3, "取消订单回滚");
 
     @EnumValue
     @JsonValue

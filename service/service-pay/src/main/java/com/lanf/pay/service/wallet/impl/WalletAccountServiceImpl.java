@@ -128,6 +128,8 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         rocketMqClient.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC, JsonUtils.toJsonString(message));
     }
 
+
+
     private static PayOrderFlowInsertSuccessMessage buildPayOrderFlowInsertSuccessMessage(TradeOrderDO tradeOrderDO, BigDecimal tradeMoney) {
         PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
         message.setBizOrderId(tradeOrderDO.getId());
@@ -141,4 +143,77 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         message.setPayMethod(PayMethodEnum.WALLET_BALANCE);
         return message;
     }
+
+    @Override
+    public void rollbackWalletBalanceOnCancelOrder(Long bizOrderId) {
+
+        WalletAccountFlowDO accountFlowDO = walletAccountFlowService.lambdaQuery()
+                .eq(WalletAccountFlowDO::getBizOrderId, bizOrderId)
+                .eq(WalletAccountFlowDO::getEventType, WalletEventTypeEnum.ORDER)
+                .one();
+        if (accountFlowDO == null) {
+            log.error("该订单不存在钱包账户流水");
+            return;
+        }
+        Long walletAccountId = accountFlowDO.getWalletAccountId();
+        WalletAccountDO accountDO = this.getById(walletAccountId);
+        if (accountDO == null) {
+            log.error("用户钱包账户不存在");
+            return;
+        }
+
+        BigDecimal changeBalance = accountFlowDO.getChangeBalance();
+        BigDecimal currentBalance = accountDO.getBalance();
+        BigDecimal afterBalance = BigDecimalUtils.add(currentBalance, changeBalance);
+
+        WalletAccountFlowDO rollbackFlowDO = new WalletAccountFlowDO();
+        rollbackFlowDO.setUserId(accountDO.getUserId());
+        rollbackFlowDO.setFlowNo(PayServiceUtils.generateOutTradeNo(bizOrderId.toString() + "_rollback"));
+        rollbackFlowDO.setWalletAccountId(walletAccountId);
+        rollbackFlowDO.setBeforeBalance(currentBalance);
+        rollbackFlowDO.setAfterBalance(afterBalance);
+        rollbackFlowDO.setChangeBalance(changeBalance);
+        rollbackFlowDO.setBizOrderId(bizOrderId);
+        rollbackFlowDO.setEventType(WalletEventTypeEnum.CANCEL_ORDER_ROLLBACK);
+
+        try {
+            walletAccountFlowService.save(rollbackFlowDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("取消订单回滚流水记录已存在");
+            return;
+        }
+
+        boolean update = this.lambdaUpdate()
+                .eq(WalletAccountDO::getId, walletAccountId)
+                .eq(WalletAccountDO::getVersion, accountDO.getVersion())
+                .set(WalletAccountDO::getBalance, afterBalance)
+                .set(WalletAccountDO::getVersion, accountDO.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.warn("回滚用户钱包账户失败");
+            throw new BizException("回滚用户钱包账户失败");
+        }
+
+        log.info("订单 {} 取消成功，钱包余额回滚完成", bizOrderId);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

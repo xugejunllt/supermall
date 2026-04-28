@@ -1,9 +1,9 @@
-package com.lanf.pay.service.trade.impl;
+package com.lanf.pay.service.pay.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.pay.mapper.PrepayPayTypeMapper;
 import com.lanf.pay.model.entity.PrepayPayTypeDO;
-import com.lanf.pay.service.trade.IPrepayPayTypeService;
+import com.lanf.pay.service.pay.IPrepayPayTypeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;

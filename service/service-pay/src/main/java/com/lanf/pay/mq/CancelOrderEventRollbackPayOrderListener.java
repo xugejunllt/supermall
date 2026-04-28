@@ -4,7 +4,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.CancelPayOrderContext;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.service.pay.IPaymentCancelRecordService;
-import com.lanf.pay.service.trade.IPrepayPayTypeService;
+import com.lanf.pay.service.pay.IPrepayPayTypeService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.PayMethodHandler;
 import com.lanf.pay.service.trade.PayMethodHandlerFactory;
