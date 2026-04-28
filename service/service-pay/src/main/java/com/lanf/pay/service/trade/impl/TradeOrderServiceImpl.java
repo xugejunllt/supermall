@@ -529,22 +529,16 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private PayOrderFlowInsertSuccessMessage buildPayOrderFlowInsertSuccessMessage
             (CallbackResultBO resultBO,Integer payType){
         PassbackParams passbackParams = resultBO.getPassbackParams();
-        RecordTypeEnum recordType = RecordTypeEnum.ORDER;
-        PayMethodEnum payMethod = PayMethodEnum.THIRD_PARTY_PAY;
         TradePurposeEnum tradeType = passbackParams.getTradeType();
         PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
         message.setOutTradeNo(resultBO.getOutTradeNo());
         message.setBathPay(passbackParams.getBathPay());
         message.setPayType(payType);
-        message.setReceiptMoney(resultBO.getReceiptMoney());
-        message.setTradeMoney(resultBO.getTotalAmount());
-        message.setRecordType(recordType);
         message.setTradePurpose(tradeType);
-        message.setBizOrderId(passbackParams.getTradeOrderId());
         /**
          * 支付回调 那么一定是三方支付
          */
-        message.setPayMethod(payMethod);
+        message.setPayMethod(PayMethodEnum.THIRD_PARTY_PAY);
         return message;
     }
 

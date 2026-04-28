@@ -12,7 +12,6 @@ import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.pay.mapper.WalletAccountMapper;
 import com.lanf.pay.model.bo.AddWalletAccount;
 import com.lanf.pay.model.dto.BalanceOrderDTO;
@@ -133,13 +132,9 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
 
     private static PayOrderFlowInsertSuccessMessage buildPayOrderFlowInsertSuccessMessage(TradeOrderDO tradeOrderDO, BigDecimal tradeMoney) {
         PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
-        message.setBizOrderId(tradeOrderDO.getId());
         message.setOutTradeNo(tradeOrderDO.getOutTradeNo());
         message.setBathPay(false);
         message.setPayType(null);
-        message.setTradeMoney(tradeMoney);
-        message.setReceiptMoney(null);
-        message.setRecordType(RecordTypeEnum.ORDER);
         message.setTradePurpose(TradePurposeEnum.REALTIME_ORDER);
         message.setPayMethod(PayMethodEnum.WALLET_BALANCE);
         return message;
