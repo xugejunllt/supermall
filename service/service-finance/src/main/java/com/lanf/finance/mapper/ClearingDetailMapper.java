@@ -1,17 +1,16 @@
 package com.lanf.finance.mapper;
 
-import com.lanf.finance.model.entity.LiquidationDO;
+import com.lanf.finance.model.entity.ClearingDetailDO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
  * <p>
- * 清算单
- Mapper 接口
+ * 平台清算流水 Mapper 接口
  * </p>
  *
  * @author 江帅帅 Jss_forever
  * @since 2024-06-20
  */
-public interface LiquidationMapper extends BaseMapper<LiquidationDO> {
+public interface ClearingDetailMapper extends BaseMapper<ClearingDetailDO> {
 
 }

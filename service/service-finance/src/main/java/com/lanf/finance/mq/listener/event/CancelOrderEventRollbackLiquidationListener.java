@@ -1,9 +1,9 @@
 package com.lanf.finance.mq.listener.event;
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.finance.model.entity.LiquidationDO;
-import com.lanf.finance.model.enums.LiquidationStatusEnum;
-import com.lanf.finance.service.ILiquidationService;
+import com.lanf.finance.model.entity.ClearingOrderDO;
+import com.lanf.finance.model.enums.ClearingOrderStatusEnum;
+import com.lanf.finance.service.IClearingOrderService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 public class CancelOrderEventRollbackLiquidationListener implements RocketMQListener<CancelOrderEventMessage> {
 
     @Autowired
-    private ILiquidationService liquidationService;
+    private IClearingOrderService liquidationService;
 
     @Autowired
     private RocketMqClient rocketMqClient;
@@ -34,7 +34,7 @@ public class CancelOrderEventRollbackLiquidationListener implements RocketMQList
     public void onMessage(CancelOrderEventMessage message) {
         log.info("取消订单事件回滚三方支付订单开始:[{{}}]", JsonUtils.toJsonString(message));
         Long orderId = message.getOrderId();
-        LiquidationDO liquidationDO = liquidationService.lambdaQuery().eq(LiquidationDO::getOrderId, orderId).one();
+        ClearingOrderDO liquidationDO = liquidationService.lambdaQuery().eq(ClearingOrderDO::getOrderId, orderId).one();
         if (liquidationDO == null) {
             /**
              * 结算单创建是发生交易后异步执行的
@@ -44,16 +44,16 @@ public class CancelOrderEventRollbackLiquidationListener implements RocketMQList
             log.warn("结算单不存在");
             throw new MessageRetryConsumeException("结算单不存在");
         }
-        if ( !LiquidationStatusEnum.WAIT_SETTLEMENT.equals(liquidationDO.getStatus())){
+        if ( !ClearingOrderStatusEnum.WAIT_SETTLEMENT.equals(liquidationDO.getStatus())){
             log.warn("结算单状态异常");
             return;
         }
 
-        boolean update = liquidationService.lambdaUpdate().eq(LiquidationDO::getId, liquidationDO.getId())
-                .eq(LiquidationDO::getStatus, LiquidationStatusEnum.WAIT_SETTLEMENT)
-                .eq(LiquidationDO::getVersion, liquidationDO.getVersion())
-                .set(LiquidationDO::getStatus, LiquidationStatusEnum.CANCELLED)
-                .set(LiquidationDO::getVersion, liquidationDO.getVersion() + 1)
+        boolean update = liquidationService.lambdaUpdate().eq(ClearingOrderDO::getId, liquidationDO.getId())
+                .eq(ClearingOrderDO::getStatus, ClearingOrderStatusEnum.WAIT_SETTLEMENT)
+                .eq(ClearingOrderDO::getVersion, liquidationDO.getVersion())
+                .set(ClearingOrderDO::getStatus, ClearingOrderStatusEnum.CANCELLED)
+                .set(ClearingOrderDO::getVersion, liquidationDO.getVersion() + 1)
                 .update();
         if (!update){
             log.warn("更新结算单失败");

@@ -54,9 +54,9 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
     @Autowired
     private IContrastBillTrackService contrastBillTrackService;
     @Autowired
-    private ILiquidationService liquidationService;
+    private IClearingOrderService liquidationService;
     @Autowired
-    private ILiquidationFlowService liquidationFlowService;
+    private ClearingDetailService liquidationFlowService;
     @Autowired
     private IMoneyFlowService moneyFlowService;
     @Autowired
@@ -334,7 +334,7 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
 
         log.info("对比结算单开始");
         ContrastBillTrackDO contrastBillTrackDO = initContrastBillTrackDO(contrastBillId, trackStatus, contrastBillTrackDOS);
-        LiquidationDO liquidationDO = liquidationService.lambdaQuery().eq(LiquidationDO::getOrderId, orderId).eq(LiquidationDO::getSource, 0).one();
+        ClearingOrderDO liquidationDO = liquidationService.lambdaQuery().eq(ClearingOrderDO::getOrderId, orderId).eq(ClearingOrderDO::getSource, 0).one();
         if (liquidationDO == null) {
 
             contrastBillTrackDO.setResultStatus(1);
@@ -345,11 +345,11 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
             contrastBillTrackDO.setContent("清算单不存在");
 
         }
-        List<LiquidationFlowDO> liquidationFlowDOList = liquidationFlowService.lambdaQuery().eq(LiquidationFlowDO::getLiquidationId, liquidationDO.getId()).list();
+        List<ClearingDetailDO> liquidationFlowDOList = liquidationFlowService.lambdaQuery().eq(ClearingDetailDO::getLiquidationId, liquidationDO.getId()).list();
         OrderTradeVO orderTradeVO = bo.getOrderTradeVO();
         boolean hasIncome1 = false;
         boolean hasIncome2 = false;
-        for (LiquidationFlowDO a : liquidationFlowDOList) {
+        for (ClearingDetailDO a : liquidationFlowDOList) {
             if (a.getIncome().equals(0)) {
                 hasIncome1 = true;
                 BigDecimal incomeMoney = a.getIncomeMoney();
@@ -399,10 +399,10 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
                                       Long orderId, Long contrastBillId, Integer trackStatus, ContrastParBO bo) {
         log.info("对比资金流水开始");
 
-        LiquidationDO liquidationDO = liquidationService.lambdaQuery().eq(LiquidationDO::getOrderId, orderId).eq(LiquidationDO::getSource, 0).one();
-        List<LiquidationFlowDO> liquidationFlowDOList = liquidationFlowService.lambdaQuery().eq(LiquidationFlowDO::getLiquidationId, liquidationDO.getId()).list();
-        Map<Long, LiquidationFlowDO> liquidationMap = liquidationFlowDOList.stream()
-                .collect(Collectors.toMap(LiquidationFlowDO::getId, Function.identity()));
+        ClearingOrderDO liquidationDO = liquidationService.lambdaQuery().eq(ClearingOrderDO::getOrderId, orderId).eq(ClearingOrderDO::getSource, 0).one();
+        List<ClearingDetailDO> liquidationFlowDOList = liquidationFlowService.lambdaQuery().eq(ClearingDetailDO::getLiquidationId, liquidationDO.getId()).list();
+        Map<Long, ClearingDetailDO> liquidationMap = liquidationFlowDOList.stream()
+                .collect(Collectors.toMap(ClearingDetailDO::getId, Function.identity()));
         List<Long> liquidationFlowIdList = liquidationFlowDOList.stream().map(BaseEntity::getId).collect(Collectors.toList());
         List<SettlementFlowDO> settlementFlowDOS = settlementFlowService.lambdaQuery().in(SettlementFlowDO::getLiquidationFlowId, liquidationFlowIdList).list();
         Map<Long, SettlementFlowDO> settlementFlowMap = settlementFlowDOS.stream()
@@ -440,7 +440,7 @@ public class ContrastBillServiceImpl extends ServiceImpl<ContrastBillMapper, Con
             Long settlementFlowId = a.getSettlementFlowId();
             SettlementFlowDO settlementFlowDO = settlementFlowMap.get(settlementFlowId);
             Long liquidationFlowId = settlementFlowDO.getLiquidationFlowId();
-            LiquidationFlowDO liquidationFlowDO = liquidationMap.get(liquidationFlowId);
+            ClearingDetailDO liquidationFlowDO = liquidationMap.get(liquidationFlowId);
             BigDecimal incomeMoney = liquidationFlowDO.getIncomeMoney();
             if (BigDecimalUtil.compareTo(incomeMoney, a.getIncomeMoney()) != 0) {
                 contrastBillTrackDO.setResultStatus(1);

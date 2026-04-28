@@ -9,7 +9,7 @@ import lombok.Getter;
  * 清算单结算状态枚举
  */
 @Getter
-public enum LiquidationStatusEnum {
+public enum ClearingOrderStatusEnum {
 
     WAIT_SETTLEMENT(0, "待结算"),
     SETTLED(1, "已结算"),
@@ -27,7 +27,7 @@ public enum LiquidationStatusEnum {
     }
 
 
-    LiquidationStatusEnum(Integer code, String name) {
+    ClearingOrderStatusEnum(Integer code, String name) {
         this.code = code;
         this.name = name;
     }
@@ -38,11 +38,11 @@ public enum LiquidationStatusEnum {
      * @return 对应的枚举值，如果未找到返回null
      */
     @JsonCreator
-    public static LiquidationStatusEnum getByCode(Integer code) {
+    public static ClearingOrderStatusEnum getByCode(Integer code) {
         if (code == null) {
             return null;
         }
-        for (LiquidationStatusEnum statusEnum : LiquidationStatusEnum.values()) {
+        for (ClearingOrderStatusEnum statusEnum : ClearingOrderStatusEnum.values()) {
             if (code.equals(statusEnum.getCode())) {
                 return statusEnum;
             }

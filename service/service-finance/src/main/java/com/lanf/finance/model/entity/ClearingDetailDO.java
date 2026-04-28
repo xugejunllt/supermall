@@ -9,16 +9,11 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 /**
- * <p>
- * 平台清算流水
- * </p>
- *
- * @author 江帅帅 Jss_forever
- * @since 2024-06-20
+ 结算单明细
  */
 @Data
-@TableName("liquidation_flow")
-public class LiquidationFlowDO extends BaseEntity {
+@TableName("clearing_detail")
+public class ClearingDetailDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
@@ -27,8 +22,10 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "清分单id")
     private Long liquidationId;
-
-
+    /**
+     * 实际转账金额
+     */
+    private BigDecimal transferMoney;
 
     @ApiModelProperty(value = "清分单类型 0:商家收入")
     private LiquidationTypeEnum liquidationType;

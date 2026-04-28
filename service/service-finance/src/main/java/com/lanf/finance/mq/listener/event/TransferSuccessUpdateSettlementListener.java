@@ -4,10 +4,10 @@ import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.constant.TransferEventTagConstant;
 import com.lanf.client.pay.mq.message.TransferSuccessMessage;
-import com.lanf.finance.model.entity.LiquidationDO;
-import com.lanf.finance.model.enums.LiquidationStatusEnum;
+import com.lanf.finance.model.entity.ClearingOrderDO;
+import com.lanf.finance.model.enums.ClearingOrderStatusEnum;
 import com.lanf.finance.mq.constant.FinanceMqGroupName;
-import com.lanf.finance.service.ILiquidationService;
+import com.lanf.finance.service.IClearingOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 public class TransferSuccessUpdateSettlementListener implements RocketMQListener<TransferSuccessMessage> {
 
     @Autowired
-    private ILiquidationService liquidationService;
+    private IClearingOrderService liquidationService;
 
     @Override
     public void onMessage(TransferSuccessMessage message) {
@@ -38,9 +38,9 @@ public class TransferSuccessUpdateSettlementListener implements RocketMQListener
         Long bizOrderId = message.getBizOrderId();
         try {
             boolean updated = liquidationService.lambdaUpdate()
-                    .eq(LiquidationDO::getOrderId, bizOrderId)
-                    .eq(LiquidationDO::getStatus, LiquidationStatusEnum.WAIT_SETTLEMENT)
-                    .set(LiquidationDO::getStatus, LiquidationStatusEnum.SETTLED)
+                    .eq(ClearingOrderDO::getOrderId, bizOrderId)
+                    .eq(ClearingOrderDO::getStatus, ClearingOrderStatusEnum.WAIT_SETTLEMENT)
+                    .set(ClearingOrderDO::getStatus, ClearingOrderStatusEnum.SETTLED)
                     .update();
 
             if (updated) {

@@ -2,8 +2,8 @@ package com.lanf.finance.mq.listener.event;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.finance.mq.constant.FinanceMqGroupName;
-import com.lanf.finance.model.entity.LiquidationDO;
-import com.lanf.finance.service.ILiquidationService;
+import com.lanf.finance.model.entity.ClearingOrderDO;
+import com.lanf.finance.service.IClearingOrderService;
 import com.lanf.order.mq.OrderClientTopicName;
 import com.lanf.order.mq.message.SignOrderMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -26,7 +26,7 @@ import java.util.Date;
 public class SignOrderEventUpdateSaleExpireTimeListener implements RocketMQListener<SignOrderMessage> {
 
     @Autowired
-    private ILiquidationService liquidationService;
+    private IClearingOrderService liquidationService;
 
     @Autowired
     private RocketMqClient rocketMqClient;
@@ -40,8 +40,8 @@ public class SignOrderEventUpdateSaleExpireTimeListener implements RocketMQListe
         Date afterSaleExpireTime = new Date(signTime.getTime() + afterSaleDays * 24 * 60 * 60 * 1000);
 
         boolean update = liquidationService.lambdaUpdate()
-                .eq(LiquidationDO::getOrderId, orderId)
-                .set(LiquidationDO::getAfterSaleExpireTime, afterSaleExpireTime)
+                .eq(ClearingOrderDO::getOrderId, orderId)
+                .set(ClearingOrderDO::getAfterSaleExpireTime, afterSaleExpireTime)
                 .update();
         if (!update){
             log.error("更新结算单失败");

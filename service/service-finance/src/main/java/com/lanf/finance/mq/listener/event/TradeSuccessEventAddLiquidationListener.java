@@ -2,12 +2,12 @@ package com.lanf.finance.mq.listener.event;
 
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IdUtils;
-import com.lanf.finance.model.entity.LiquidationDO;
-import com.lanf.finance.model.entity.LiquidationFlowDO;
-import com.lanf.finance.model.enums.LiquidationStatusEnum;
+import com.lanf.finance.model.entity.ClearingOrderDO;
+import com.lanf.finance.model.entity.ClearingDetailDO;
+import com.lanf.finance.model.enums.ClearingOrderStatusEnum;
 import com.lanf.finance.model.enums.LiquidationTypeEnum;
-import com.lanf.finance.service.ILiquidationFlowService;
-import com.lanf.finance.service.ILiquidationService;
+import com.lanf.finance.service.ClearingDetailService;
+import com.lanf.finance.service.IClearingOrderService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.OrderPayInfo;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
@@ -33,12 +33,12 @@ import java.util.List;
 public class TradeSuccessEventAddLiquidationListener implements RocketMQListener<TradeSuccessEventMessage> {
 
     @Autowired
-    private ILiquidationService liquidationService;
+    private IClearingOrderService liquidationService;
     private static final BigDecimal HUNDRED = new BigDecimal(100);
 
     private static final BigDecimal ZERO_POINT_ZERO_ONE = new BigDecimal("0.01");
     @Autowired
-    private ILiquidationFlowService liquidationFlowService;
+    private ClearingDetailService liquidationFlowService;
     /**
      * 平台费率 5%
      */
@@ -50,8 +50,8 @@ public class TradeSuccessEventAddLiquidationListener implements RocketMQListener
 
         log.info("监听清算事件:{}", message);
 
-        List<LiquidationDO> liquidationDOList = new ArrayList<>();
-        List<LiquidationFlowDO> liquidationFlowDOList = new ArrayList<>();
+        List<ClearingOrderDO> liquidationDOList = new ArrayList<>();
+        List<ClearingDetailDO> liquidationFlowDOList = new ArrayList<>();
         List<OrderPayInfo> orderPayInfoList = message.getOrderPayInfoList();
         for (OrderPayInfo orderPayInfo : orderPayInfoList){
             Long orderId = orderPayInfo.getOrderId() ;
@@ -59,16 +59,15 @@ public class TradeSuccessEventAddLiquidationListener implements RocketMQListener
             BigDecimal payMoney = orderPayInfo.getPayMoney();
             Long  liquidationId = IdUtils.generateId();
 
-            LiquidationDO liquidationDO = new LiquidationDO();
+            ClearingOrderDO liquidationDO = new ClearingOrderDO();
             liquidationDO.setOrderId(orderId);
             liquidationDO.setPayMoney(payMoney);
             liquidationDO.setId(liquidationId);
-            liquidationDO.setPayType(orderPayInfo.getPayType());
-            liquidationDO.setStatus(LiquidationStatusEnum.WAIT_SETTLEMENT);
+            liquidationDO.setStatus(ClearingOrderStatusEnum.WAIT_SETTLEMENT);
             liquidationDOList.add(liquidationDO);
             //商家收入
             BigDecimal merchantIncomeMoney = calculateMerchantIncome(payMoney, rate);
-            LiquidationFlowDO merchantLiquidationFlowDO = new LiquidationFlowDO();
+            ClearingDetailDO merchantLiquidationFlowDO = new ClearingDetailDO();
             merchantLiquidationFlowDO.setLiquidationId(liquidationDO.getId());
             merchantLiquidationFlowDO.setMerchantId(orderPayInfo.getMerchantId());
             merchantLiquidationFlowDO.setLiquidationType(LiquidationTypeEnum.MERCHANT_INCOME);

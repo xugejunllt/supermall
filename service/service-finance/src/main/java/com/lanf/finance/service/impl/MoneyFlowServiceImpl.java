@@ -50,9 +50,9 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
 
 
     @Autowired
-    private ILiquidationService liquidationService;
+    private IClearingOrderService liquidationService;
     @Autowired
-    private ILiquidationFlowService liquidationFlowService;
+    private ClearingDetailService liquidationFlowService;
 
 
     /**

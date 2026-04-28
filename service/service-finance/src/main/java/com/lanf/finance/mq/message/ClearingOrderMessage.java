@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class SettlementTaskMessage implements Serializable {
+public class ClearingOrderMessage implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
