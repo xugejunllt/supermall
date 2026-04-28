@@ -19,6 +19,8 @@ import com.lanf.mybatis.base.PageResult;
 public interface IPayAccountService extends IService<PayAccountDO> {
 
 
+
+
     PayAccountApiVO payAccountQuery(PayAccountDTO dto);
 
     /**
@@ -29,4 +31,10 @@ public interface IPayAccountService extends IService<PayAccountDO> {
     void payAccountAdd(PayAccountAddDTO dto);
 
     PageResult<PayAccountDO> payAccountPage(PayAccountPageQuery query);
+
+
+
+
+    PayAccountDO getByMerchantIdAccount(Long merchantId,Integer accountType);
+
 }

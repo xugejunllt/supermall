@@ -9,8 +9,8 @@ import lombok.Getter;
 public enum ClearingStatusEnum {
 
     WAIT_CLEARING(0, "待结算"),
-    CLEARING(1, "结算中"),
-    CLEARING_COMPLETED(2, "结算完成"),
+    CLEARING(1, "结算中(进行转账)"),
+    CLEARING_COMPLETED(2, "结算完成(转账完成)"),
     CANCELLED(3, "已取消"),
     EXCEPTION(4, "异常");
 

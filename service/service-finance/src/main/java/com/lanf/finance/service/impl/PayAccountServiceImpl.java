@@ -106,4 +106,14 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
 
         return PageResult.toPageResult(payAccountPage);
     }
+
+    @Override
+    public PayAccountDO getByMerchantIdAccount(Long merchantId, Integer accountType) {
+
+
+        return this.lambdaQuery()
+                .eq(PayAccountDO::getBusinessId, merchantId)
+                .eq(PayAccountDO::getAccountType, accountType)
+                .one();
+    }
 }

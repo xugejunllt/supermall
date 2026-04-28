@@ -3,9 +3,11 @@ package com.lanf.finance.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.lanf.aftersales.api.AfterSalesOrderApiService;
+import com.lanf.finance.model.entity.ClearingDetailDO;
+import com.lanf.finance.model.enums.ClearingStatusEnum;
 import com.lanf.finance.mq.constant.FinanceMqTopicName;
 import com.lanf.finance.mq.message.ClearingOrderMessage;
+import com.lanf.finance.service.ClearingDetailService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +23,7 @@ public class SettlementTask {
 
 
     @Autowired
-    private AfterSalesOrderApiService afterSalesOrderApiService;
-    @Autowired
-    private IClearingOrderService liquidationService ;
+    private ClearingDetailService clearingDetailService;
     @Autowired
     private RocketMqClient rocketMqClient;
 
@@ -37,21 +37,21 @@ public class SettlementTask {
         int totalProcessed = 0;
         
         while (true) {
-            Page<ClearingOrderDO> page = new Page<>(currentPage, PAGE_SIZE);
+
+            Page<ClearingDetailDO> page = new Page<>(currentPage, PAGE_SIZE);
+            LambdaQueryWrapper<ClearingDetailDO> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(ClearingDetailDO::getStatus, ClearingStatusEnum.WAIT_CLEARING)
+                    .le(ClearingDetailDO::getAfterSaleExpireTime, new Date())
+                    .orderByAsc(ClearingDetailDO::getId);
             
-            LambdaQueryWrapper<ClearingOrderDO> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(ClearingOrderDO::getStatus, ClearingOrderStatusEnum.WAIT_SETTLEMENT)
-                    .le(ClearingOrderDO::getAfterSaleExpireTime, new Date())
-                    .orderByAsc(ClearingOrderDO::getId);
-            
-            Page<ClearingOrderDO> resultPage = liquidationService.page(page, queryWrapper);
-            List<ClearingOrderDO> liquidationList = resultPage.getRecords();
+            Page<ClearingDetailDO> resultPage = clearingDetailService.page(page, queryWrapper);
+            List<ClearingDetailDO> liquidationList = resultPage.getRecords();
             
             if ( liquidationList.isEmpty()) {
                 break;
             }
             
-            for (ClearingOrderDO liquidation : liquidationList) {
+            for (ClearingDetailDO liquidation : liquidationList) {
                 try {
                     processSettlement(liquidation);
                     totalProcessed++;
@@ -69,10 +69,10 @@ public class SettlementTask {
         log.info("结算任务执行完成，共处理 {} 条记录", totalProcessed);
     }
 
-    private void processSettlement(ClearingOrderDO liquidation) {
+    private void processSettlement(ClearingDetailDO liquidation) {
         log.info("处理清算单结算，订单ID: {}", liquidation.getOrderId());
         ClearingOrderMessage settlementTaskMessage = new ClearingOrderMessage();
-        settlementTaskMessage.setLiquidationId(liquidation.getId());
+        settlementTaskMessage.setClearingDetailId(liquidation.getId());
         settlementTaskMessage.setOrderId(liquidation.getOrderId());
         rocketMqClient.sendMessage(FinanceMqTopicName.SETTLEMENT_TASK_TOPIC, settlementTaskMessage);
 

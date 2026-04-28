@@ -12,10 +12,8 @@ public class ClearingOrderMessage implements Serializable {
     /**
      * 清算单ID
      */
-    private Long liquidationId;
+    private Long clearingDetailId;
 
-    /**
-     * 订单ID
-     */
     private Long orderId;
+
 }
