@@ -1,4 +1,4 @@
-package com.lanf.finance.mq.event;
+package com.lanf.finance.mq.listener.event;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.finance.model.entity.LiquidationDO;

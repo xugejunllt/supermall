@@ -1,4 +1,4 @@
-package com.lanf.finance.mq;
+package com.lanf.finance.mq.constant;
 
 public class FinanceClientTopicName {
 
@@ -7,6 +7,9 @@ public class FinanceClientTopicName {
      * 资金流水记录topic
      */
     public static  final String MONEY_FLOW_RECORD_TOPIC = "MONEY_FLOW_RECORD_TOPIC";
+
+
+
 
 
 

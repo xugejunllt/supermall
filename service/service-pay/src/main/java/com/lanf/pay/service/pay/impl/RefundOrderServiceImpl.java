@@ -6,7 +6,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.finance.model.enums.RecordTypeEnum;
-import com.lanf.finance.mq.FinanceClientTopicName;
+import com.lanf.finance.mq.constant.FinanceClientTopicName;
 import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.pay.mapper.RefundOrderMapper;
 import com.lanf.pay.model.bo.CancelPaidOrderResultBO;

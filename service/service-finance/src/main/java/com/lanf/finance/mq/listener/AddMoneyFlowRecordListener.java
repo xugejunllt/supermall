@@ -1,6 +1,7 @@
-package com.lanf.finance.mq;
+package com.lanf.finance.mq.listener;
 
 import com.lanf.finance.model.bo.AddMoneyFlow;
+import com.lanf.finance.mq.constant.FinanceClientTopicName;
 import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.finance.service.IMoneyFlowService;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
     topic = FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC,
     consumerGroup = FinanceClientTopicName.MONEY_FLOW_RECORD_GROUP
 )
-public class MoneyFlowRecordListener implements RocketMQListener<AddMoneyFlowMessage> {
+public class AddMoneyFlowRecordListener implements RocketMQListener<AddMoneyFlowMessage> {
 
     @Autowired
     private IMoneyFlowService moneyFlowService;

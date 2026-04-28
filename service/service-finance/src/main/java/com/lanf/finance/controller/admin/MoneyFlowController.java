@@ -5,7 +5,7 @@ import com.lanf.finance.model.entity.MoneyFlowDO;
 import com.lanf.finance.model.query.AccountMoneySumQuery;
 import com.lanf.finance.model.query.MoneyFlowPageQuery;
 import com.lanf.finance.service.IMoneyFlowService;
-import com.lanf.finance.task.ContrastBillTask;
+import com.lanf.finance.task.SettlementTask;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.rocketmq.model.message.MoneyFlowDTO;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -34,7 +34,7 @@ public class MoneyFlowController {
     @Autowired
     private RocketMqClient rocketMqClient;
     @Autowired
-    private ContrastBillTask contrastBillTask;
+    private SettlementTask contrastBillTask;
 
     @GetMapping("/moneyFlowPage")
     public Result<PageResult<MoneyFlowDO>> moneyFlowPage(MoneyFlowPageQuery query) {

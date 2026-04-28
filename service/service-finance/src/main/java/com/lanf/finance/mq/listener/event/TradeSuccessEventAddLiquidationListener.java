@@ -1,4 +1,4 @@
-package com.lanf.finance.mq;
+package com.lanf.finance.mq.listener.event;
 
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IdUtils;
@@ -22,12 +22,15 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 添加清分单
+ */
 @Slf4j
 @Component
 @RocketMQMessageListener(
         topic = TopicName.TRADE_SUCCESS_EVENT_TOPIC,
         consumerGroup = TopicName.TRADE_SUCCESS_ORDER_GROUP)
-public class TradeSuccessFinanceListener implements RocketMQListener<TradeSuccessEventMessage> {
+public class TradeSuccessEventAddLiquidationListener implements RocketMQListener<TradeSuccessEventMessage> {
 
     @Autowired
     private ILiquidationService liquidationService;

@@ -1,7 +1,7 @@
-package com.lanf.finance.mq.event;
+package com.lanf.finance.mq.listener.event;
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.finance.constant.FinanceMqGroupName;
+import com.lanf.finance.mq.constant.FinanceMqGroupName;
 import com.lanf.finance.model.entity.LiquidationDO;
 import com.lanf.finance.service.ILiquidationService;
 import com.lanf.order.mq.OrderClientTopicName;
@@ -23,7 +23,7 @@ import java.util.Date;
 @Slf4j
 @Component
 @RocketMQMessageListener(topic = OrderClientTopicName.SIGN_ORDER_EVENT_TOPIC, consumerGroup = FinanceMqGroupName.SIGN_ORDER_EVENT_FINANCE_GROUP)
-public class SignOrderEventFinanceListener implements RocketMQListener<SignOrderMessage> {
+public class SignOrderEventUpdateSaleExpireTimeListener implements RocketMQListener<SignOrderMessage> {
 
     @Autowired
     private ILiquidationService liquidationService;
@@ -33,7 +33,7 @@ public class SignOrderEventFinanceListener implements RocketMQListener<SignOrder
 
     @Override
     public void onMessage(SignOrderMessage message) {
-        log.info("取消订单事件回滚三方支付订单开始:[{{}}]", JsonUtils.toJsonString(message));
+        log.info("订单签收时开始:[{{}}]", JsonUtils.toJsonString(message));
         Long orderId = message.getOrderId();
         Date signTime = message.getSignTime();
         Integer afterSaleDays = message.getAfterSaleDays();
