@@ -3,6 +3,7 @@ package com.lanf.pay.service.wallet;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.pay.model.bo.AddWalletAccount;
 import com.lanf.pay.model.dto.BalanceOrderDTO;
+import com.lanf.pay.model.dto.WithdrawApplyDTO;
 import com.lanf.pay.model.entity.WalletAccountDO;
 
 /**
@@ -33,4 +34,18 @@ public interface IWalletAccountService extends IService<WalletAccountDO> {
      *
      */
     void rollbackWalletBalanceOnCancelOrder(Long bizOrderId);
+
+    /**
+     * 申请提现
+     *
+     * @param dto 提现申请信息
+     */
+    void applyWithdraw(WithdrawApplyDTO dto);
+
+    /**
+     * 同意提现并发送MQ消息
+     *
+     * @param withdrawId 提现单ID
+     */
+    void approveWithdraw(Long withdrawId);
 }

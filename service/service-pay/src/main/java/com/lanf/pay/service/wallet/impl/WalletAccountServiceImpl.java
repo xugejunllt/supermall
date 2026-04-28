@@ -2,24 +2,32 @@ package com.lanf.pay.service.wallet.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.client.pay.model.enums.PayMethodEnum;
+import com.lanf.client.pay.model.enums.PayTypeEnum;
 import com.lanf.client.pay.model.enums.TradePurposeEnum;
+import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
+import com.lanf.client.pay.mq.message.TransferMessage;
 import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.pay.mapper.WalletAccountMapper;
 import com.lanf.pay.model.bo.AddWalletAccount;
 import com.lanf.pay.model.dto.BalanceOrderDTO;
+import com.lanf.pay.model.dto.WithdrawApplyDTO;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.entity.WalletAccountDO;
 import com.lanf.pay.model.entity.WalletAccountFlowDO;
+import com.lanf.pay.model.entity.WalletWithdrawDO;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.model.enums.WalletEventTypeEnum;
+import com.lanf.pay.model.enums.WithdrawStatusEnum;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.wallet.IWalletAccountFlowService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
+import com.lanf.pay.service.wallet.IWalletWithdrawService;
 import com.lanf.pay.utils.PayServiceUtils;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserIdContext;
@@ -31,14 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
-/**
- * <p>
- * 钱包账户表 服务实现类
- * </p>
- *
- * @author jarven
- * @since 2026-04-27
- */
 @Slf4j
 @Service
 public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, WalletAccountDO> implements IWalletAccountService {
@@ -50,6 +50,8 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
     private IWalletAccountFlowService walletAccountFlowService;
     @Autowired
     private RocketMqClient rocketMqClient;
+    @Autowired
+    private IWalletWithdrawService walletWithdrawService;
 
     @Override
     public void addWalletAccount(AddWalletAccount dto) {
@@ -76,9 +78,9 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
                 .one();
         if (tradeOrderDO == null) {
             log.error("该订单不存在");
-           throw new BizException("该订单不存在");
+            throw new BizException("该订单不存在");
         }
-        if ( !TradeOrderStatusEnum.PENDING.getCode().equals(tradeOrderDO.getPayStatus())){
+        if (!TradeOrderStatusEnum.PENDING.getCode().equals(tradeOrderDO.getPayStatus())) {
             log.warn("订单状态异常");
             throw new BizException("订单状态异常");
         }
@@ -127,7 +129,6 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         PayOrderFlowInsertSuccessMessage message = buildPayOrderFlowInsertSuccessMessage(tradeOrderDO, tradeMoney);
         rocketMqClient.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC, JsonUtils.toJsonString(message));
     }
-
 
 
     private static PayOrderFlowInsertSuccessMessage buildPayOrderFlowInsertSuccessMessage(TradeOrderDO tradeOrderDO, BigDecimal tradeMoney) {
@@ -197,23 +198,140 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         log.info("订单 {} 取消成功，钱包余额回滚完成", bizOrderId);
     }
 
+    @Transactional
+    @Override
+    public void applyWithdraw(WithdrawApplyDTO dto) {
 
+        Long userId = UserIdContext.getUserId();
+        WalletAccountDO accountDO = this.lambdaQuery()
+                .eq(WalletAccountDO::getUserId, userId)
+                .one();
+        if (accountDO == null) {
+            log.error("用户钱包账户不存在");
+            throw new BizException("用户钱包账户不存在");
+        }
 
+        BigDecimal balance = accountDO.getBalance();
+        BigDecimal withdrawAmount = dto.getAmount();
+        
+        if (BigDecimalUtils.compareTo(balance, withdrawAmount) < 0) {
+            log.error("用户钱包余额不足，当前余额: {}, 提现金额: {}", balance, withdrawAmount);
+            throw new BizException("用户钱包余额不足");
+        }
 
+        long withdrawId = IdUtils.generateId();
+        String withdrawNo = PayServiceUtils.generateOutTradeNo("WD" + withdrawId);
+        
+        BigDecimal frozenBalance = BigDecimalUtils.add(accountDO.getFrozenBalance(), withdrawAmount);
+        BigDecimal afterBalance = BigDecimalUtils.subtract(balance, withdrawAmount);
 
+        WalletAccountFlowDO flowDO = new WalletAccountFlowDO();
+        flowDO.setUserId(userId);
+        flowDO.setFlowNo(PayServiceUtils.generateOutTradeNo(withdrawNo + "_flow"));
+        flowDO.setWalletAccountId(accountDO.getId());
+        flowDO.setBeforeBalance(balance);
+        flowDO.setAfterBalance(afterBalance);
+        flowDO.setChangeBalance(withdrawAmount);
+        flowDO.setBizOrderId(withdrawId);
+        flowDO.setEventType(WalletEventTypeEnum.WITHDRAW);
 
+        try {
+            walletAccountFlowService.save(flowDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("提现流水记录已存在");
+            return;
+        }
 
+        boolean update = this.lambdaUpdate()
+                .eq(WalletAccountDO::getId, accountDO.getId())
+                .eq(WalletAccountDO::getVersion, accountDO.getVersion())
+                .set(WalletAccountDO::getBalance, afterBalance)
+                .set(WalletAccountDO::getFrozenBalance, frozenBalance)
+                .set(WalletAccountDO::getVersion, accountDO.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.error("更新用户钱包账户失败");
+            throw new BizException("更新用户钱包账户失败");
+        }
 
+        WalletWithdrawDO withdraw = new WalletWithdrawDO();
+        withdraw.setId(withdrawId);
+        withdraw.setUserId(userId);
+        withdraw.setWalletAccountId(accountDO.getId());
+        withdraw.setWithdrawNo(withdrawNo);
+        withdraw.setAmount(withdrawAmount);
+        withdraw.setWithdrawType(dto.getWithdrawType());
+        withdraw.setPayeeAccount(dto.getPayeeAccount());
+        withdraw.setStatus(WithdrawStatusEnum.PENDING.getCode());
+        withdraw.setRemark(dto.getRemark());
+        withdraw.setVersion(0L);
 
+        try {
+            walletWithdrawService.save(withdraw);
+        } catch (DuplicateKeyException e) {
+            log.warn("提现记录已存在");
+            return;
+        }
 
+        log.info("用户 {} 申请提现成功，提现单号: {}, 金额: {}", userId, withdrawNo, withdrawAmount);
+    }
 
+    @Transactional
+    @Override
+    public void approveWithdraw(Long withdrawId) {
+        log.info("开始处理同意提现，提现单ID: {}", withdrawId);
 
+        WalletWithdrawDO withdraw = walletWithdrawService.getById(withdrawId);
+        if (withdraw == null) {
+            log.error("提现单不存在，ID: {}", withdrawId);
+            throw new BizException("提现单不存在");
+        }
 
+        if (!WithdrawStatusEnum.PENDING.getCode().equals(withdraw.getStatus())) {
+            log.warn("提现单状态不是待处理，当前状态: {}, ID: {}", withdraw.getStatus(), withdrawId);
+            throw new BizException("提现单状态不正确");
+        }
 
+        boolean updated = walletWithdrawService.lambdaUpdate()
+                .eq(WalletWithdrawDO::getId, withdrawId)
+                .eq(WalletWithdrawDO::getStatus, WithdrawStatusEnum.PENDING.getCode())
+                .set(WalletWithdrawDO::getStatus, WithdrawStatusEnum.PROCESSING.getCode())
+                .update();
 
+        if (!updated) {
+            log.error("更新提现单状态失败，ID: {}", withdrawId);
+            throw new BizException("更新提现单状态失败");
+        }
 
+        TransferMessage transferMessage = buildTransferMessage(withdraw);
+        rocketMqClient.sendMessage(PayClientTopicName.TRANSFER_TOPIC, JsonUtils.toJsonString(transferMessage));
 
+        log.info("同意提现成功，已发送转账消息，提现单ID: {}, 提现单号: {}", withdrawId, withdraw.getWithdrawNo());
+    }
 
+    private TransferMessage buildTransferMessage(WalletWithdrawDO withdraw) {
+        TransferMessage message = new TransferMessage();
+        message.setOutBizNo(withdraw.getWithdrawNo());
+        message.setUserId(withdraw.getUserId());
+        message.setMerchantId(null);
+        message.setBizOrderId(withdraw.getId());
+        message.setEventType(TransferEventTypeEnum.WALLET_WITHDRAW);
+        message.setTransferChannel(convertWithdrawTypeToPayType(withdraw.getWithdrawType()));
+        message.setFromAccount(null);
+        message.setIncomeAccount(withdraw.getPayeeAccount());
+        message.setTransAmount(withdraw.getAmount());
+        message.setOrderTitle("钱包提现");
+        return message;
+    }
 
+    private PayTypeEnum convertWithdrawTypeToPayType(Integer withdrawType) {
+        if (withdrawType == null) {
+            return PayTypeEnum.ALI_PAY;
+        }
+        if (withdrawType == 1) {
+            return PayTypeEnum.ALI_PAY;
+        }
+       throw new BizException("提现类型不支持");
+    }
 
 }

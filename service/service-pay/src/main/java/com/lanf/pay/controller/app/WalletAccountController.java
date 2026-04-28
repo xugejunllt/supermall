@@ -3,10 +3,13 @@ package com.lanf.pay.controller.app;
 
 import com.lanf.constant.result.Result;
 import com.lanf.pay.model.dto.RechargeDTO;
+import com.lanf.pay.model.dto.WithdrawApplyDTO;
 import com.lanf.pay.model.vo.CreateRechargeTradeOrderVO;
 import com.lanf.pay.service.trade.ITradeOrderService;
+import com.lanf.pay.service.wallet.IWalletAccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +31,8 @@ public class WalletAccountController {
 
     @Autowired
     private ITradeOrderService tradeOrderService;
+    @Autowired
+    private IWalletAccountService walletAccountService;
 
     /**
      * 创建充值交易单
@@ -42,7 +47,13 @@ public class WalletAccountController {
         return Result.ok(tradeOrderService.createRechargeTradeOrder(dto));
     }
 
+    @PostMapping("/createRechargeTradeOrder")
+    public Result<Void> applyWithdraw(@RequestBody @Validated WithdrawApplyDTO dto){
 
+        log.info("申请提现:dto{}", dto);
+        walletAccountService.applyWithdraw(dto);
+        return Result.ok();
+    }
 
 
 
