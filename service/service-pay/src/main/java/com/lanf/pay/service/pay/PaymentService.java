@@ -1,5 +1,6 @@
 package com.lanf.pay.service.pay;
 
+import com.lanf.pay.model.bo.TransferResult;
 import com.lanf.pay.model.bo.CallbackResultBO;
 import com.lanf.pay.model.bo.CancelPaidOrderResultBO;
 import com.lanf.pay.model.bo.TradeStatusBO;
@@ -57,4 +58,15 @@ public interface PaymentService {
      * @return 是否成功
      */
     CancelPaidOrderResultBO cancelPaidOrder(String outTradeNo, BigDecimal refundAmount, String refundReason) throws MessageRetryConsumeException;
+
+    /**
+     * 支付宝转账
+     *
+     * @param outBizNo 商户转账唯一订单号
+     * @param payeeAccount 收款方支付宝账号
+     * @param amount 转账金额
+     * @param remark 转账备注
+     * @return 转账结果
+     */
+    TransferResult alipayTransfer(String outBizNo, String payeeAccount, BigDecimal amount, String remark) throws MessageRetryConsumeException;
 }

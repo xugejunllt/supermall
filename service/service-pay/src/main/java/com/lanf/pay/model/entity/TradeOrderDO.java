@@ -3,7 +3,7 @@ package com.lanf.pay.model.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.client.pay.model.enums.PayMethodEnum;
-import com.lanf.pay.model.enums.PayTypeEnum;
+import com.lanf.client.pay.model.enums.PayTypeEnum;
 import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

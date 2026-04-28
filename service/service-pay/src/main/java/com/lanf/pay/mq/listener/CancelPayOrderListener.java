@@ -1,4 +1,4 @@
-package com.lanf.pay.mq;
+package com.lanf.pay.mq.listener;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.CancelPaidOrderBO;

@@ -1,28 +1,15 @@
-package com.lanf.pay.model.entity;
+package com.lanf.client.pay.mq.message;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.client.pay.model.enums.PayTypeEnum;
 import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
-import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
 
-/**
- * <p>
- * 转账单
- * </p>
- *
- * @author 江帅帅 Jss_forever
- * @since 2024-08-03
- */
 @Data
-@TableName("transfer_order")
-public class TransferOrderDO extends BaseEntity {
-
-private static final long serialVersionUID=1L;
+public class TransferMessage implements Serializable {
 
 
     @ApiModelProperty(value = "商家侧唯一订单号")
@@ -52,12 +39,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "订单总金额")
     private BigDecimal transAmount;
 
-    @ApiModelProperty(value = "转账订单号")
-    private String orderId;
-
-    @ApiModelProperty(value = "转账完成时间")
-    private Date payFinishTime;
-
     @ApiModelProperty(value = "转账业务的标题，用于在支付宝用户的账单里显示")
     private String orderTitle;
+
 }

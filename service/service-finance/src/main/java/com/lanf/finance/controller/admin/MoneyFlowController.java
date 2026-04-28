@@ -1,15 +1,13 @@
 package com.lanf.finance.controller.admin;
 
 
+import com.lanf.constant.result.Result;
 import com.lanf.finance.model.entity.MoneyFlowDO;
-import com.lanf.finance.model.query.AccountMoneySumQuery;
 import com.lanf.finance.model.query.MoneyFlowPageQuery;
 import com.lanf.finance.service.IMoneyFlowService;
 import com.lanf.finance.task.SettlementTask;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.rocketmq.model.message.MoneyFlowDTO;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,15 +46,6 @@ public class MoneyFlowController {
 
 
 
-    @GetMapping("/sendMq")
-    public String sendMq(AccountMoneySumQuery query) {
-
-        log.info("手动发送mq:query{}", query);
-        MoneyFlowDTO moneyFlowDTO = new MoneyFlowDTO();
-        contrastBillTask.startContrastBillTask();
-
-        return "ok";
-    }
 
 }
 

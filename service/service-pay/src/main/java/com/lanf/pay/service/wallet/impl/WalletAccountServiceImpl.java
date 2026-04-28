@@ -3,7 +3,7 @@ package com.lanf.pay.service.wallet.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.client.pay.model.enums.PayMethodEnum;
 import com.lanf.client.pay.model.enums.TradePurposeEnum;
-import com.lanf.client.pay.mq.PayClientTopicName;
+import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.JsonUtils;

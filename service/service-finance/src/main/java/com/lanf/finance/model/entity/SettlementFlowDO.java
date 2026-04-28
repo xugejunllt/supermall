@@ -1,15 +1,9 @@
 package com.lanf.finance.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 /**
  * <p>
@@ -29,7 +23,10 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "平台清分单id")
     private Long liquidationFlowId;
-
+    /**
+     * 商户id
+     */
+    private Long merchantId;
 
 
 

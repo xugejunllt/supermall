@@ -75,7 +75,6 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
         }
         payAccountDO1 = this.lambdaQuery().
                 eq(PayAccountDO::getAccountType, accountType).
-                eq(PayAccountDO::getUseTo,dto.getUseTo()).
                 one();
         if (payAccountDO1 != null) {
             throw new BizException("同个用途账户只能有一个");

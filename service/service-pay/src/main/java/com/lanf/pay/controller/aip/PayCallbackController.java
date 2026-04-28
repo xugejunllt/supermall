@@ -1,7 +1,7 @@
 package com.lanf.pay.controller.aip;
 
 import com.lanf.pay.model.dto.PayCallbackDTO;
-import com.lanf.pay.model.enums.PayTypeEnum;
+import com.lanf.client.pay.model.enums.PayTypeEnum;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,8 +1,8 @@
-package com.lanf.pay.mq;
+package com.lanf.pay.mq.listener;
 
 import com.lanf.client.pay.model.enums.PayMethodEnum;
 import com.lanf.client.pay.model.enums.TradePurposeEnum;
-import com.lanf.client.pay.mq.PayClientTopicName;
+import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.client.pay.mq.message.WalletRechargeMessage;
 import com.lanf.common.utils.JsonUtils;
@@ -188,20 +188,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
 
     }
 
-    private WalletRechargeMessage buildWalletRechargeMessage(Integer payType, TradeOrderDO tradeOrderDO) {
 
-        WalletRechargeMessage walletRechargeMessage = new WalletRechargeMessage();
-        walletRechargeMessage.setUserId(tradeOrderDO.getUserId());
-        walletRechargeMessage.setFlowNo(PayServiceUtils.generateOutTradeNo(tradeOrderDO.getOrderNumber()));
-        /**
-         * 充值金额 = 交易金额
-         */
-        walletRechargeMessage.setAmount(tradeOrderDO.getTradeMoney());
-        walletRechargeMessage.setBizOrderId(tradeOrderDO.getId());
-
-        return walletRechargeMessage;
-
-    }
 
     /**
      * 是否已经支付过 以唯一支付流水为准

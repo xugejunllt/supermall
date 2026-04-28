@@ -37,8 +37,7 @@ private static final long serialVersionUID=1L;
     private BigDecimal startRemainMoney;
     //当前余额
     private BigDecimal remainMoney;
-    //用途 0:订单账号
-    private Integer useTo;
+
 
 
 }

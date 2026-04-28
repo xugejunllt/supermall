@@ -1,4 +1,4 @@
-package com.lanf.client.pay.mq;
+package com.lanf.client.pay.mq.constant;
 
 public class PayClientTopicName {
 
@@ -19,6 +19,9 @@ public class PayClientTopicName {
      * 处理退款 - 支付服务消费组
      */
     public static final String PROCESS_REFUND_PAY_GROUP = "PROCESS_REFUND_PAY_GROUP";
-
+    /**
+     * 转账
+     */
+    public static final String TRANSFER_TOPIC = "TRANSFER_TOPIC";
 
 }

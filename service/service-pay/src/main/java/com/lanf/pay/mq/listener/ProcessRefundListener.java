@@ -1,6 +1,6 @@
-package com.lanf.pay.mq;
+package com.lanf.pay.mq.listener;
 
-import com.lanf.client.pay.mq.PayClientTopicName;
+import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.ProcessRefund;
 import com.lanf.client.pay.mq.message.ProcessRefundMessage;

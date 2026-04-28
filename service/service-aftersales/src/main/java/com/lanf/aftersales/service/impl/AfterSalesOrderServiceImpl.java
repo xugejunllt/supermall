@@ -22,7 +22,7 @@ import com.lanf.aftersales.mq.message.CloseOrderMessage;
 import com.lanf.aftersales.service.IAfterSalesOrderItemService;
 import com.lanf.aftersales.service.IAfterSalesOrderService;
 import com.lanf.client.pay.model.enums.RefundEventTypeEnum;
-import com.lanf.client.pay.mq.PayClientTopicName;
+import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.ProcessRefundMessage;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;

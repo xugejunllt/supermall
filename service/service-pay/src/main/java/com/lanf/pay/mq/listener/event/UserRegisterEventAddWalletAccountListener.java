@@ -1,4 +1,4 @@
-package com.lanf.pay.mq;
+package com.lanf.pay.mq.listener.event;
 
 import com.lanf.aftersales.mq.UserClientTopicName;
 import com.lanf.aftersales.mq.message.UserRegisterMessage;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
     topic = UserClientTopicName.USER_REGISTER_EVENT_TOPIC,
     consumerGroup = PayMqGroupName.USER_REGISTER_EVENT_PAY_GROUP
 )
-public class UserRegisterPayListener implements RocketMQListener<UserRegisterMessage> {
+public class UserRegisterEventAddWalletAccountListener implements RocketMQListener<UserRegisterMessage> {
 
     @Autowired
     private IWalletAccountService walletAccountService;

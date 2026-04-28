@@ -4,26 +4,14 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.AlipayConfig;
 import com.alipay.api.DefaultAlipayClient;
-import com.alipay.api.domain.AlipayTradeAppPayModel;
-import com.alipay.api.domain.AlipayTradeCloseModel;
-import com.alipay.api.domain.AlipayTradeQueryModel;
-import com.alipay.api.domain.AlipayTradeRefundModel;
+import com.alipay.api.domain.*;
 import com.alipay.api.internal.util.AlipaySignature;
-import com.alipay.api.request.AlipayTradeAppPayRequest;
-import com.alipay.api.request.AlipayTradeCloseRequest;
-import com.alipay.api.request.AlipayTradeQueryRequest;
-import com.alipay.api.request.AlipayTradeRefundRequest;
-import com.alipay.api.response.AlipayTradeAppPayResponse;
-import com.alipay.api.response.AlipayTradeCloseResponse;
-import com.alipay.api.response.AlipayTradeQueryResponse;
-import com.alipay.api.response.AlipayTradeRefundResponse;
+import com.alipay.api.request.*;
+import com.alipay.api.response.*;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.pay.model.bo.CallbackResultBO;
-import com.lanf.pay.model.bo.CancelPaidOrderResultBO;
-import com.lanf.pay.model.bo.PassbackParams;
-import com.lanf.pay.model.bo.TradeStatusBO;
+import com.lanf.pay.model.bo.*;
 import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.enums.TradeStatusEnum;
 import com.lanf.pay.model.vo.PrepayOrderVO;
@@ -355,4 +343,64 @@ public class AliPayPaymentServiceImpl implements PaymentService {
             throw new MessageRetryConsumeException("退款异常");
         }
     }
+
+    @Override
+    public TransferResult alipayTransfer(String outBizNo, String payeeAccount, BigDecimal amount, String remark)
+            throws MessageRetryConsumeException {
+        log.info("支付宝转账开始:outBizNo={},payeeAccount={},amount={},remark={}", 
+                outBizNo, payeeAccount, amount, remark);
+
+        TransferResult resultBO = new TransferResult();
+        resultBO.setOutBizNo(outBizNo);
+        resultBO.setTransferAmount(amount);
+        resultBO.setPayeeAccount(payeeAccount);
+
+        AlipayClient alipayClient = null;
+        try {
+            alipayClient = new DefaultAlipayClient(getAlipayConfig());
+
+            AlipayFundTransUniTransferRequest request = new AlipayFundTransUniTransferRequest();
+            AlipayFundTransUniTransferModel model = new AlipayFundTransUniTransferModel();
+            
+            model.setOutBizNo(outBizNo);
+            model.setProductCode("TRANS_ACCOUNT_NO_PWD");
+            model.setBizScene("DIRECT_TRANSFER");
+            model.setRemark(remark != null ? remark : "转账");
+            
+            com.alipay.api.domain.Participant payeeInfo = new com.alipay.api.domain.Participant();
+            payeeInfo.setIdentity(payeeAccount);
+            payeeInfo.setIdentityType("ALIPAY_LOGON_ID");
+            model.setPayeeInfo(payeeInfo);
+            
+            model.setTransAmount(amount.toString());
+            
+            request.setBizModel(model);
+
+            AlipayFundTransUniTransferResponse response = alipayClient.certificateExecute(request);
+            String code = response.getCode();
+            
+            if ("10000".equals(code)) {
+                resultBO.setStatus("SUCCESS");
+                resultBO.setOrderId(response.getOrderId());
+                resultBO.setFinishTime(DateUtils.parse(response.getTransDate(), DateUtils.DATE_TIME));
+                resultBO.setTransferSuccess( true);
+                log.info("支付宝转账成功:outBizNo={},orderId={}", outBizNo, response.getOrderId());
+
+            } else if ("10003".equals(code)) {
+                log.info("支付宝转账处理中:outBizNo={},orderId={}", outBizNo, response.getOrderId());
+                throw new MessageRetryConsumeException("支付宝转账处理中");
+            } else {
+                resultBO.setTransferSuccess( false);
+                log.error("支付宝转账失败:outBizNo={},code={},subCode={},msg={}",
+                        outBizNo, code, response.getSubCode(), response.getSubMsg());
+            }
+            return resultBO;
+
+        } catch (AlipayApiException e) {
+            log.warn("支付宝转账异常:outBizNo={}", outBizNo, e);
+            throw new MessageRetryConsumeException("转账异常");
+        }
+    }
+
+
 }

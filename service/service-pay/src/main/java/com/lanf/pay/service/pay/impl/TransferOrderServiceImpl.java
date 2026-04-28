@@ -1,9 +1,9 @@
-package com.lanf.pay.service.trade.impl;
+package com.lanf.pay.service.pay.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.pay.mapper.TransferOrderMapper;
 import com.lanf.pay.model.entity.TransferOrderDO;
-import com.lanf.pay.service.trade.ITransferOrderService;
+import com.lanf.pay.service.pay.ITransferOrderService;
 import org.springframework.stereotype.Service;
 
 /**
