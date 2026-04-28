@@ -61,7 +61,34 @@ public class RocketMqClient {
         }
 
     }
+    /**
+     * 发送带Tag的消息（同步）
+     * Topic格式: topic:tag
+     *
+     * @param topic 主题
+     * @param tag 标签（用于消息过滤）
+     * @param message 消息内容（JSON字符串）
+     */
+    public void sendMessageWithTags(String topic, String tag, String message){
 
+        String destination = topic + ":" + tag;
+        log.info("发送带Tag的mq消息开始:destination:{},tag:{},message:{}", destination, tag, message);
+
+        try {
+            SendResult sendResult = rocketMQTemplate.syncSend(destination, message);
+
+            if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())){
+                String sendResultJson = JsonUtils.toJsonString(sendResult);
+                log.error("发送带Tag的MQ消息失败,异常状态[{}]", sendResultJson);
+            } else {
+                log.info("发送带Tag的mq消息成功,tag:{}", tag);
+            }
+
+        } catch (Exception e) {
+            log.error("发送带Tag的MQ消息失败,destination:{},tag:{}", destination, tag, e);
+        }
+
+    }
     /**
      * 发送延迟消息
      *

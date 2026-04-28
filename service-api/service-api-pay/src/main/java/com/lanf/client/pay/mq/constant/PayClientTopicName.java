@@ -24,4 +24,9 @@ public class PayClientTopicName {
      */
     public static final String TRANSFER_TOPIC = "TRANSFER_TOPIC";
 
+    /**
+     * 转账成功通知
+     */
+    public static final String TRANSFER_SUCCESS_EVENT_TOPIC = "TRANSFER_SUCCESS_EVENT_TOPIC";
+
 }

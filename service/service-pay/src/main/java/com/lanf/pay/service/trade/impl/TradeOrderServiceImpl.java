@@ -499,7 +499,13 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         try {
             payOrderFlowService.save(payOrderFlowDO);
+            /**
+             * 下游业务处理
+             */
             rocketMqClient.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC, JsonUtils.toJsonString(message));
+            /**
+             * 添加资金流水
+             */
             rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
         } catch (DuplicateKeyException e) {
             log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
