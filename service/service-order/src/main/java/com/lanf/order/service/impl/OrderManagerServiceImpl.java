@@ -578,7 +578,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         CancelOrderEventMessage cancelOrderEventMessage = new CancelOrderEventMessage();
         cancelOrderEventMessage.setOrderId(dto.getOrderId());
         cancelOrderEventMessage.setSkuIdList(skuIdList);
-        cancelOrderEventMessage.setCancelSource(dto.getCancelSource());
         rocketMqClient.sendMessage(TopicName.CANCEL_ORDER_EVENT_TOPIC, JsonUtils.toJsonString(cancelOrderEventMessage));
     }
 

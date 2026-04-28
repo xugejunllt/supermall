@@ -5,37 +5,32 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
-/**
- * 清分单类型枚举
- */
 @Getter
-public enum LiquidationTypeEnum {
+public enum RecipientTypeEnum {
 
-    MERCHANT_INCOME(0, "商家收入"),
-    ;
+    MERCHANT(0, "商家");
 
     @EnumValue
     @JsonValue
     private final Integer code;
-
     private final String name;
 
-    LiquidationTypeEnum(Integer code, String name) {
+    RecipientTypeEnum(Integer code, String name) {
         this.code = code;
         this.name = name;
     }
 
-    /**
-     * 根据code获取枚举
-     * @param code 清分单类型代码
-     * @return 对应的枚举值，如果未找到返回null
-     */
+    @JsonValue
+    public Integer getCode() {
+        return code;
+    }
+
     @JsonCreator
-    public static LiquidationTypeEnum getByCode(Integer code) {
+    public static RecipientTypeEnum getByCode(Integer code) {
         if (code == null) {
             return null;
         }
-        for (LiquidationTypeEnum typeEnum : LiquidationTypeEnum.values()) {
+        for (RecipientTypeEnum typeEnum : RecipientTypeEnum.values()) {
             if (code.equals(typeEnum.getCode())) {
                 return typeEnum;
             }

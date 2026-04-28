@@ -1,13 +1,10 @@
 package com.lanf.finance.mq.listener.event;
 
 import com.lanf.common.utils.BigDecimalUtil;
-import com.lanf.common.utils.IdUtils;
-import com.lanf.finance.model.entity.ClearingOrderDO;
 import com.lanf.finance.model.entity.ClearingDetailDO;
-import com.lanf.finance.model.enums.ClearingOrderStatusEnum;
-import com.lanf.finance.model.enums.LiquidationTypeEnum;
+import com.lanf.finance.model.enums.ClearingStatusEnum;
+import com.lanf.finance.model.enums.RecipientTypeEnum;
 import com.lanf.finance.service.ClearingDetailService;
-import com.lanf.finance.service.IClearingOrderService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.OrderPayInfo;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
@@ -33,12 +30,12 @@ import java.util.List;
 public class TradeSuccessEventAddLiquidationListener implements RocketMQListener<TradeSuccessEventMessage> {
 
     @Autowired
-    private IClearingOrderService liquidationService;
+    private ClearingDetailService clearingDetailService;
+
     private static final BigDecimal HUNDRED = new BigDecimal(100);
 
     private static final BigDecimal ZERO_POINT_ZERO_ONE = new BigDecimal("0.01");
-    @Autowired
-    private ClearingDetailService liquidationFlowService;
+
     /**
      * 平台费率 5%
      */
@@ -50,34 +47,25 @@ public class TradeSuccessEventAddLiquidationListener implements RocketMQListener
 
         log.info("监听清算事件:{}", message);
 
-        List<ClearingOrderDO> liquidationDOList = new ArrayList<>();
-        List<ClearingDetailDO> liquidationFlowDOList = new ArrayList<>();
+        List<ClearingDetailDO> clearingDetailDOList = new ArrayList<>();
         List<OrderPayInfo> orderPayInfoList = message.getOrderPayInfoList();
         for (OrderPayInfo orderPayInfo : orderPayInfoList){
             Long orderId = orderPayInfo.getOrderId() ;
-
             BigDecimal payMoney = orderPayInfo.getPayMoney();
-            Long  liquidationId = IdUtils.generateId();
-
-            ClearingOrderDO liquidationDO = new ClearingOrderDO();
-            liquidationDO.setOrderId(orderId);
-            liquidationDO.setPayMoney(payMoney);
-            liquidationDO.setId(liquidationId);
-            liquidationDO.setStatus(ClearingOrderStatusEnum.WAIT_SETTLEMENT);
-            liquidationDOList.add(liquidationDO);
             //商家收入
             BigDecimal merchantIncomeMoney = calculateMerchantIncome(payMoney, rate);
             ClearingDetailDO merchantLiquidationFlowDO = new ClearingDetailDO();
-            merchantLiquidationFlowDO.setLiquidationId(liquidationDO.getId());
+            merchantLiquidationFlowDO.setOrderId(orderId);
+            merchantLiquidationFlowDO.setPayMoney(payMoney);
             merchantLiquidationFlowDO.setMerchantId(orderPayInfo.getMerchantId());
-            merchantLiquidationFlowDO.setLiquidationType(LiquidationTypeEnum.MERCHANT_INCOME);
-            merchantLiquidationFlowDO.setRate(rate);
+            merchantLiquidationFlowDO.setStatus(ClearingStatusEnum.WAIT_CLEARING);
+            merchantLiquidationFlowDO.setRecipientType(RecipientTypeEnum.MERCHANT);
             merchantLiquidationFlowDO.setIncomeMoney(merchantIncomeMoney);
-            liquidationFlowDOList.add(merchantLiquidationFlowDO);
+            merchantLiquidationFlowDO.setVersion(1L);
+            clearingDetailDOList.add(merchantLiquidationFlowDO);
         }
 
-        liquidationService.saveBatch(liquidationDOList);
-        liquidationFlowService.saveBatch(liquidationFlowDOList);
+        clearingDetailService.saveBatch(clearingDetailDOList);
 
     }
 

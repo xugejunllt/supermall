@@ -1,12 +1,14 @@
 package com.lanf.finance.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.lanf.finance.model.enums.LiquidationTypeEnum;
+import com.lanf.finance.model.enums.ClearingStatusEnum;
+import com.lanf.finance.model.enums.RecipientTypeEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  结算单明细
@@ -17,23 +19,30 @@ public class ClearingDetailDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
+    private Long orderId;
+
+    private BigDecimal payMoney;
+
+    private Date afterSaleExpireTime;
+
     @ApiModelProperty(value = "商家id")
     private Long merchantId;
 
-    @ApiModelProperty(value = "清分单id")
-    private Long liquidationId;
-    /**
-     * 实际转账金额
-     */
-    private BigDecimal transferMoney;
+    private ClearingStatusEnum status;
 
-    @ApiModelProperty(value = "清分单类型 0:商家收入")
-    private LiquidationTypeEnum liquidationType;
+    private RecipientTypeEnum recipientType;
 
     @ApiModelProperty(value = "费率百分比")
     private BigDecimal rate;
 
-    @ApiModelProperty(value = "收入支出金额")
+    @ApiModelProperty(value = "收入金额")
     private BigDecimal incomeMoney;
+
+    @ApiModelProperty(value = "实际转账金额")
+    private BigDecimal transferMoney;
+
+    private Long version;
+
+
 
 }

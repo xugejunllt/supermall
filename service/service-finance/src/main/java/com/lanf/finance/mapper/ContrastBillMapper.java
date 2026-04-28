@@ -1,7 +1,6 @@
 package com.lanf.finance.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lanf.finance.model.entity.ContrastBillDO;
 
 /**
  * <p>
