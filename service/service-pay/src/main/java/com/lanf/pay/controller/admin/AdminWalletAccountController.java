@@ -30,7 +30,11 @@ public class AdminWalletAccountController {
     @Autowired
     private IWalletAccountService walletAccountService;
 
-
+    /**
+     * 同意提现申请
+     *
+     *
+     */
     @PostMapping("/applyWithdraw")
     public Result<Void> applyWithdraw(@RequestBody @Validated ApproveWithdrawDTO dto){
 

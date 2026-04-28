@@ -2,6 +2,7 @@ package com.lanf.pay.controller.app;
 
 
 import com.lanf.constant.result.Result;
+import com.lanf.pay.model.dto.BalanceOrderDTO;
 import com.lanf.pay.model.dto.RechargeDTO;
 import com.lanf.pay.model.dto.WithdrawApplyDTO;
 import com.lanf.pay.model.vo.CreateRechargeTradeOrderVO;
@@ -36,26 +37,39 @@ public class WalletAccountController {
 
     /**
      * 创建充值交易单
-     *
-     *
      */
     @PostMapping("/createRechargeTradeOrder")
-    public Result<CreateRechargeTradeOrderVO> createRechargeTradeOrder(@RequestBody RechargeDTO dto){
+    public Result<CreateRechargeTradeOrderVO> createRechargeTradeOrder(@RequestBody RechargeDTO dto) {
 
         log.info("创建充值交易单:dto{}", dto);
 
         return Result.ok(tradeOrderService.createRechargeTradeOrder(dto));
     }
 
+    /**
+     * 钱包余额下单
+     *
+     * @param dto
+     * @return
+     */
+    @PostMapping("/balanceOrder")
+    public Result<Void> balanceOrder(@RequestBody @Validated BalanceOrderDTO dto) {
+
+        log.info("创建充值交易单:dto{}", dto);
+        walletAccountService.balanceOrder(dto);
+        return Result.ok();
+    }
+
+    /**
+     * 申请提现
+     */
     @PostMapping("/createRechargeTradeOrder")
-    public Result<Void> applyWithdraw(@RequestBody @Validated WithdrawApplyDTO dto){
+    public Result<Void> applyWithdraw(@RequestBody @Validated WithdrawApplyDTO dto) {
 
         log.info("申请提现:dto{}", dto);
         walletAccountService.applyWithdraw(dto);
         return Result.ok();
     }
-
-
 
 
 }
