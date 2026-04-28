@@ -6,7 +6,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -45,8 +44,6 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "提现状态：0-待处理，1-处理中，2-成功，3-失败，4-已取消")
     private Integer status;
 
-    @ApiModelProperty(value = "提现完成时间")
-    private LocalDateTime finishTime;
 
     @ApiModelProperty(value = "失败原因")
     private String failReason;

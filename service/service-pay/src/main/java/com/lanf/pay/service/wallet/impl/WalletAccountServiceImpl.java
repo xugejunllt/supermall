@@ -310,6 +310,7 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
     }
 
     private TransferMessage buildTransferMessage(WalletWithdrawDO withdraw) {
+
         TransferMessage message = new TransferMessage();
         message.setOutBizNo(withdraw.getWithdrawNo());
         message.setUserId(withdraw.getUserId());
@@ -317,6 +318,9 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         message.setBizOrderId(withdraw.getId());
         message.setEventType(TransferEventTypeEnum.WALLET_WITHDRAW);
         message.setTransferChannel(convertWithdrawTypeToPayType(withdraw.getWithdrawType()));
+        /**
+         * 待添加查询方法
+         */
         message.setFromAccount(null);
         message.setIncomeAccount(withdraw.getPayeeAccount());
         message.setTransAmount(withdraw.getAmount());
