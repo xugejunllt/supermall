@@ -517,15 +517,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private AddMoneyFlowMessage buildAddMoneyFlowMessage(CallbackResultBO resultBO){
 
         AddMoneyFlowMessage addMoneyFlowMessage = new AddMoneyFlowMessage();
-        PassbackParams passbackParams = resultBO.getPassbackParams();
-        RecordTypeEnum recordType = null;
-        TradePurposeEnum tradeType = passbackParams.getTradeType();
-        if (tradeType.equals(TradePurposeEnum.REALTIME_ORDER)){
-            recordType = RecordTypeEnum.ORDER;
-        } else {
-            recordType = RecordTypeEnum.WALLET_RECHARGE;
-        }
-        //商家id 暂时为null
+        RecordTypeEnum recordType = RecordTypeEnum.ORDER;
         addMoneyFlowMessage.setBusinessId(Constants.PLATFORM_BUSINESS_ID);
         addMoneyFlowMessage.setBizOrderId(resultBO.getPassbackParams().getTradeOrderId());
         addMoneyFlowMessage.setIncomeMoney(resultBO.getReceiptMoney());
@@ -537,16 +529,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private PayOrderFlowInsertSuccessMessage buildPayOrderFlowInsertSuccessMessage
             (CallbackResultBO resultBO,Integer payType){
         PassbackParams passbackParams = resultBO.getPassbackParams();
-        RecordTypeEnum recordType = null;
-        PayMethodEnum payMethod = null;
+        RecordTypeEnum recordType = RecordTypeEnum.ORDER;
+        PayMethodEnum payMethod = PayMethodEnum.THIRD_PARTY_PAY;
         TradePurposeEnum tradeType = passbackParams.getTradeType();
-
-        if (tradeType.equals(TradePurposeEnum.REALTIME_ORDER)){
-            recordType = RecordTypeEnum.ORDER;
-            payMethod = PayMethodEnum.THIRD_PARTY_PAY;
-        } else {
-            recordType = RecordTypeEnum.WALLET_RECHARGE;
-        }
         PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
         message.setOutTradeNo(resultBO.getOutTradeNo());
         message.setBathPay(passbackParams.getBathPay());
