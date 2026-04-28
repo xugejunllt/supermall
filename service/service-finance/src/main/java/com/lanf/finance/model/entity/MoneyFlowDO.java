@@ -34,7 +34,6 @@ public class MoneyFlowDO extends BaseEntity {
     @ApiModelProperty(value = "业务订单id")
     private Long bizOrderId;
 
-    @ApiModelProperty(value = "0:下单, 1:售后退款, 2: 取消订单退款, 3: 平台结算支出 , 4: 商家结算收入 ")
     private RecordTypeEnum recordType;
 
     @ApiModelProperty(value = "收入支出金额")
@@ -45,6 +44,10 @@ public class MoneyFlowDO extends BaseEntity {
 
     @ApiModelProperty(value = "变更前账户余额")
     private BigDecimal beforeRemainMoney;
+    /**
+     * 变更金额
+     */
+    private BigDecimal changeMoney;
 
     @ApiModelProperty(value = "变更后账户余额")
     private BigDecimal afterRemainMoney;

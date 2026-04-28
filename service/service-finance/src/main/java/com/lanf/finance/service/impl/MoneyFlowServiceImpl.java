@@ -1,32 +1,21 @@
 package com.lanf.finance.service.impl;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BigDecimalUtil;
-import com.lanf.common.utils.DateUtils;
-import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.finance.mapper.MoneyFlowMapper;
 import com.lanf.finance.model.bo.AddMoneyFlow;
 import com.lanf.finance.model.entity.MoneyFlowDO;
 import com.lanf.finance.model.entity.PayAccountDO;
 import com.lanf.finance.model.enums.RecordTypeEnum;
-import com.lanf.finance.model.query.AccountMoneySumQuery;
-import com.lanf.finance.model.query.MoneyFlowPageQuery;
-import com.lanf.finance.model.vo.AccountMoneySumVO;
-import com.lanf.finance.service.*;
-import com.lanf.mybatis.base.PageResult;
-import com.lanf.rocketmq.model.message.MoneyFlowDTO;
-import com.lanf.security.utils.UserUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.lanf.finance.service.ClearingDetailService;
+import com.lanf.finance.service.IMoneyFlowService;
+import com.lanf.finance.service.IPayAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 /**
  * <p>
@@ -39,8 +28,7 @@ import java.util.Date;
 @Service
 public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlowDO> implements IMoneyFlowService {
 
-    @Autowired
-    private ISettlementFlowService settlementFlowService;
+
     @Autowired
     private IPayAccountService payAccountService;
 
@@ -48,82 +36,12 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
     @Autowired
     private MoneyFlowMapper moneyFlowMapper;
 
-
-    @Autowired
-    private IClearingOrderService liquidationService;
     @Autowired
     private ClearingDetailService liquidationFlowService;
 
 
-    /**
-     * 这个方法批量执行 分布式锁串行执行 锁商家id
-     */
-    @Transactional
-    @Override
-    public void moneyFlowAdd(MoneyFlowDTO dto) {
 
 
-
-
-    }
-
-
-
-    @Override
-    public PageResult<MoneyFlowDO> moneyFlowPage(MoneyFlowPageQuery query) {
-
-        Long shopId = null;
-        String tenantCode = UserUtils.getTenantCode();
-        if ( !Constants.ADMIN_TENANT_CODE.equals(tenantCode)){
-            //平台管理员查询所有资金流水 租户查询自己的流水
-            shopId = UserUtils.getShopId();
-        }
-
-        Date startTime = null;
-        Date endTime = null;
-        if (!StringUtils.isEmpty(query.getStartTime())) {
-            String startTimeStr = query.getStartTime() + " 00:00:00";
-            startTime = DateUtils.parse(startTimeStr, DateUtils.DATE_TIME);
-        }
-        if (!StringUtils.isEmpty(query.getEndTime())) {
-            String endTimeStr = query.getEndTime() + " 23:59:59";
-            endTime = DateUtils.parse(endTimeStr, DateUtils.DATE_TIME);
-
-        }
-        IPage<MoneyFlowDO> page = new Page<>(query.getPage(), query.getPageSize());
-
-
-        return PageResult.toPageResult(null);
-    }
-
-
-    @Override
-    public AccountMoneySumVO accountMoneySumQuery(AccountMoneySumQuery query) {
-
-        Long shopId = UserUtils.getUserInfo().getShopId();
-        String incomeAccount = query.getIncomeAccount();
-        Date startTime = null;
-        Date endTime = null;
-        if (!StringUtils.isEmpty(query.getStartTime())) {
-            String startTimeStr = query.getStartTime() + " 00:00:00";
-            startTime = DateUtils.parse(startTimeStr, DateUtils.DATE_TIME);
-        }
-        if (!StringUtils.isEmpty(query.getEndTime())) {
-            String endTimeStr = query.getEndTime() + " 23:59:59";
-            endTime = DateUtils.parse(endTimeStr, DateUtils.DATE_TIME);
-        }
-        //收入金额
-        double incomeSumMoney = moneyFlowMapper.sumIncomeMoney(shopId, startTime, endTime, 0, incomeAccount);
-        //支出金额
-        double payOutSumMoney = moneyFlowMapper.sumIncomeMoney(shopId, startTime, endTime, 1, incomeAccount);
-        BigDecimal changeSumMoney = BigDecimalUtil.subtract(new BigDecimal(incomeSumMoney), new BigDecimal(payOutSumMoney));
-//        AccountMoneySumVO vo = new AccountMoneySumVO();
-//        vo.setIncomeSumMoney( BigDecimalUtil.scale(new BigDecimal(incomeSumMoney)));
-//        vo.setPayOutSumMoney( BigDecimalUtil.scale(new BigDecimal(payOutSumMoney)));
-//        vo.setChangeSumMoney(BigDecimalUtil.scale(changeSumMoney));
-
-        return null;
-    }
 
 
     @Override

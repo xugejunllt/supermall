@@ -21,9 +21,9 @@ public enum RecordTypeEnum {
     ORDER(0, "下单"),
     AFTER_SALES_REFUND(1, "售后退款"),
     CANCEL_ORDER_REFUND(2, "取消订单退款"),
-    PLATFORM_SETTLEMENT_EXPENSE(3, "平台结算支出"),
-    MERCHANT_SETTLEMENT_INCOME(4, "商家结算收入"),
-    WALLET_RECHARGE(5, "钱包充值"),
+    MERCHANT_SETTLEMENT_INCOME(3, "商家结算收入"),
+    WALLET_WITHDRAW(4, "用户钱包提现"),
+    WALLET_RECHARGE(5, "用户钱包充值"),
     ;
 
     public static final Set<Integer> INCOME_TYPE_SET = new HashSet<>(Arrays.asList(
@@ -35,7 +35,7 @@ public enum RecordTypeEnum {
     public static final Set<Integer> EXPENSE_TYPE_SET = new HashSet<>(Arrays.asList(
             RecordTypeEnum.AFTER_SALES_REFUND.getCode(),
             RecordTypeEnum.CANCEL_ORDER_REFUND.getCode(),
-            RecordTypeEnum.PLATFORM_SETTLEMENT_EXPENSE.getCode()));
+            RecordTypeEnum.WALLET_WITHDRAW.getCode()));
 
 
     @EnumValue

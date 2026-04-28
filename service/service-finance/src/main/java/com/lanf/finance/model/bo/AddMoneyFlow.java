@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 
 @Data
 public class AddMoneyFlow implements Serializable {
+
     private Long businessId;
 
     private Long bizOrderId;
