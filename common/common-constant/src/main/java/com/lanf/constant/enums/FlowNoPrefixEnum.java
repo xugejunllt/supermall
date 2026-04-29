@@ -11,7 +11,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum FlowNoPrefixEnum {
-    z
+
     /**
      * 交易订单流水号
      */
