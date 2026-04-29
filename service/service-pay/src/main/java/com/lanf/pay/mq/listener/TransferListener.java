@@ -1,9 +1,15 @@
 package com.lanf.pay.mq.listener;
 
+import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.TransferMessage;
 import com.lanf.client.pay.mq.message.TransferSuccessMessage;
+import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.finance.model.enums.RecordTypeEnum;
+import com.lanf.finance.mq.constant.FinanceClientTopicName;
+import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.pay.model.bo.TransferResult;
 import com.lanf.pay.model.entity.TransferOrderDO;
 import com.lanf.pay.mq.constant.PayMqGroupName;
@@ -42,7 +48,9 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
             log.warn("该转账单已存在");
             return;
         }
-
+        /**
+         * 进行转账
+         */
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(message.getTransferChannel().getCode());
         TransferResult result = paymentService.alipayTransfer(message.getOutBizNo(),
                 message.getIncomeAccount(), message.getTransAmount(), message.getOrderTitle());
@@ -60,8 +68,17 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
 
             TransferSuccessMessage successMessage = buildTransferSuccessMessage(message);
             String tag = message.getEventType().getTag();
+
+            AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(message, result, transferOrderDO);
+            /**
+             * 发送转账成功消息通知
+             */
             rocketMqClient.sendMessageWithTags(PayClientTopicName.TRANSFER_SUCCESS_EVENT_TOPIC, tag,
                     JsonUtils.toJsonString(successMessage));
+            /**
+             * 发送消息添加到资金流水
+             */
+            rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
             log.info("发送转账成功消息完成，eventType:{}, outBizNo:{}", message.getEventType(), outBizNo);
         } catch (DuplicateKeyException e) {
             log.warn("该转账单已存在");
@@ -69,6 +86,31 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
         }
 
 
+    }
+
+    private AddMoneyFlowMessage buildAddMoneyFlowMessage(TransferMessage message,
+                                                         TransferResult result, TransferOrderDO transferOrderDO){
+        RecordTypeEnum recordType = null;
+        TransferEventTypeEnum eventType = message.getEventType();
+        switch (eventType){
+            case ORDER_SETTLEMENT:
+                recordType = RecordTypeEnum.MERCHANT_SETTLEMENT_INCOME;
+                break;
+            case WALLET_WITHDRAW:
+                recordType = RecordTypeEnum.WALLET_WITHDRAW;
+                break;
+            default:
+                log.error("不支持的转账事件");
+                throw new BizException("不支持的转账事件");
+        }
+
+        AddMoneyFlowMessage addMoneyFlowMessage = new AddMoneyFlowMessage();
+        addMoneyFlowMessage.setBusinessId(message.getMerchantId());
+        addMoneyFlowMessage.setBizOrderId(transferOrderDO.getBizOrderId());
+        addMoneyFlowMessage.setFlowNo(CodeGenerateUtils.generateSerialNumber(transferOrderDO.getId().toString()));
+        addMoneyFlowMessage.setRecordType(recordType);
+        addMoneyFlowMessage.setIncomeMoney(result.getTransferAmount());
+        return addMoneyFlowMessage;
     }
 
 

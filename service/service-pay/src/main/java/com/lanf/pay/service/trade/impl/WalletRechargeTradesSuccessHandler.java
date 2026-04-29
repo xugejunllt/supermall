@@ -11,6 +11,9 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * 钱包充值成功处理
+ */
 @Service
 public class WalletRechargeTradesSuccessHandler implements TradeSuccessHandler {
 
@@ -35,7 +38,7 @@ public class WalletRechargeTradesSuccessHandler implements TradeSuccessHandler {
          */
         walletRechargeMessage.setAmount(tradeOrderDO.getTradeMoney());
         walletRechargeMessage.setBizOrderId(tradeOrderDO.getId());
-
+        z
         return walletRechargeMessage;
 
     }

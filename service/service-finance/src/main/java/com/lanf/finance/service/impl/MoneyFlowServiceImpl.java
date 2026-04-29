@@ -11,6 +11,7 @@ import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.finance.service.ClearingDetailService;
 import com.lanf.finance.service.IMoneyFlowService;
 import com.lanf.finance.service.IPayAccountService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -53,21 +54,10 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
             log.error("收支账户不存在");
            return;
         }
-        String flowNo = generateFlowNo(addMoneyFlow.getBizOrderId(),addMoneyFlow.getRecordType().getCode());
 
         BigDecimal afterRemainMoney = calculateAfterRemainMoney(addMoneyFlow.getRecordType(),
                 addMoneyFlow.getIncomeMoney(), payAccountDO.getRemainMoney());
-        MoneyFlowDO moneyFlowDO = new MoneyFlowDO();
-        // 生成流水号
-        moneyFlowDO.setFlowNo(flowNo);
-        // 设置其他字段
-        moneyFlowDO.setBusinessId(addMoneyFlow.getBusinessId());
-        moneyFlowDO.setBizOrderId(addMoneyFlow.getBizOrderId());
-        moneyFlowDO.setRecordType(addMoneyFlow.getRecordType());
-        moneyFlowDO.setIncomeMoney(addMoneyFlow.getIncomeMoney());
-        moneyFlowDO.setIncomeAccount(payAccountDO.getAccount());
-        moneyFlowDO.setBeforeRemainMoney(payAccountDO.getRemainMoney());
-        moneyFlowDO.setAfterRemainMoney(afterRemainMoney);
+        MoneyFlowDO moneyFlowDO = buildMoneyFlowDO(addMoneyFlow, payAccountDO, afterRemainMoney);
 
         try {
             this.save(moneyFlowDO);
@@ -76,6 +66,23 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
 
         }
     }
+
+    @NotNull
+    private static MoneyFlowDO buildMoneyFlowDO(AddMoneyFlow addMoneyFlow, PayAccountDO payAccountDO, BigDecimal afterRemainMoney) {
+        MoneyFlowDO moneyFlowDO = new MoneyFlowDO();
+        // 生成流水号
+        moneyFlowDO.setFlowNo(addMoneyFlow.getFlowNo());
+        // 设置其他字段
+        moneyFlowDO.setBusinessId(addMoneyFlow.getBusinessId());
+        moneyFlowDO.setBizOrderId(addMoneyFlow.getBizOrderId());
+        moneyFlowDO.setRecordType(addMoneyFlow.getRecordType());
+        moneyFlowDO.setIncomeMoney(addMoneyFlow.getIncomeMoney());
+        moneyFlowDO.setIncomeAccount(payAccountDO.getAccount());
+        moneyFlowDO.setBeforeRemainMoney(payAccountDO.getRemainMoney());
+        moneyFlowDO.setAfterRemainMoney(afterRemainMoney);
+        return moneyFlowDO;
+    }
+
     /**
      * 生成资金流水号
      * 格式: 业务订单ID + 记录类型code

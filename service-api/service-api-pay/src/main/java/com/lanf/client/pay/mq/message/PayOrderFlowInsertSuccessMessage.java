@@ -5,6 +5,7 @@ import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 public class PayOrderFlowInsertSuccessMessage implements Serializable {
@@ -20,4 +21,9 @@ public class PayOrderFlowInsertSuccessMessage implements Serializable {
     private TradePurposeEnum tradePurpose;
 
     private PayMethodEnum payMethod;
+    /**
+     * 用户实际支付的金额
+     */
+    private BigDecimal payMoney;
+
 }

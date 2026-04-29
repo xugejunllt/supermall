@@ -9,6 +9,10 @@ import java.io.Serializable;
 public class PostTradeSuccessHandlerContext implements Serializable {
 
     private Integer payType;
+    /**
+     * 用户实际支付金额
+     */
+    private Integer payMoney;
 
     private TradeOrderDO tradeOrderDO;
 }

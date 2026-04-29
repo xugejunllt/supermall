@@ -13,6 +13,7 @@ import com.lanf.client.pay.model.vo.*;
 import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
@@ -39,7 +40,10 @@ import com.lanf.pay.service.pay.IPrepayPayTypeService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.pay.service.pay.config.PayConfig;
-import com.lanf.pay.service.trade.*;
+import com.lanf.pay.service.trade.IBathTradeOrderService;
+import com.lanf.pay.service.trade.IPayOrderService;
+import com.lanf.pay.service.trade.ITradeOrderItemService;
+import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.utils.PayServiceUtils;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CompensatePaymentOrderMessage;
@@ -516,12 +520,28 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
     private AddMoneyFlowMessage buildAddMoneyFlowMessage(CallbackResultBO resultBO){
 
+
+        PassbackParams passbackParams = resultBO.getPassbackParams();
+        TradePurposeEnum tradePurposeEnum = passbackParams.getTradeType();
+        RecordTypeEnum recordType = null;
+        switch (tradePurposeEnum){
+            case REALTIME_ORDER:
+                recordType = RecordTypeEnum.ORDER;
+                break;
+            case WALLET_RECHARGE:
+                recordType = RecordTypeEnum.WALLET_RECHARGE;
+                break;
+            default:
+                log.error("不支持的用途");
+              throw new BizException("不支持的用途");
+
+        }
         AddMoneyFlowMessage addMoneyFlowMessage = new AddMoneyFlowMessage();
-        RecordTypeEnum recordType = RecordTypeEnum.ORDER;
         addMoneyFlowMessage.setBusinessId(Constants.PLATFORM_BUSINESS_ID);
         addMoneyFlowMessage.setBizOrderId(resultBO.getPassbackParams().getTradeOrderId());
         addMoneyFlowMessage.setIncomeMoney(resultBO.getReceiptMoney());
         addMoneyFlowMessage.setRecordType(recordType);
+        addMoneyFlowMessage.setFlowNo(CodeGenerateUtils.generateSerialNumber(passbackParams.getTradeOrderId().toString()));
 
         return addMoneyFlowMessage;
     }

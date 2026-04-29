@@ -18,8 +18,8 @@ import java.util.Set;
  * 1: 售后退款,  关联售后单
  * 2: 取消订单退款, 关联订单
  * 3: 商家结算收入 关联结算单
- * 4: 用户钱包提现 关联钱包流水
- * 5: 用户钱包充值  关联钱包流水
+ * 4: 用户钱包提现 关联提现单id
+ * 5: 用户钱包充值  关联交易单id
  *
  *
  */
@@ -31,9 +31,10 @@ public enum RecordTypeEnum {
     CANCEL_ORDER_REFUND(2, "取消订单退款"),
     MERCHANT_SETTLEMENT_INCOME(3, "商家结算收入"),
     WALLET_WITHDRAW(4, "用户钱包提现"),
+
     WALLET_RECHARGE(5, "用户钱包充值"),
     ;
-
+    z
     public static final Set<Integer> INCOME_TYPE_SET = new HashSet<>(Arrays.asList(
             RecordTypeEnum.ORDER.getCode(),
             RecordTypeEnum.MERCHANT_SETTLEMENT_INCOME.getCode(),

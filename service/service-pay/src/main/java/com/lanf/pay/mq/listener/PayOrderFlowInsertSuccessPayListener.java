@@ -4,7 +4,6 @@ import com.lanf.client.pay.model.enums.PayMethodEnum;
 import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
-import com.lanf.client.pay.mq.message.WalletRechargeMessage;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
@@ -23,7 +22,6 @@ import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.TradeSuccessHandler;
 import com.lanf.pay.service.trade.TradeSuccessHandlerFactory;
 import com.lanf.pay.service.trade.impl.PayRetryPolicyCacheService;
-import com.lanf.pay.utils.PayServiceUtils;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.OrderPayInfo;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
@@ -172,6 +170,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
 
                 throw new BizException("交易单更新失败");
             }
+
 
             /**
              * 交易成功 后置处理

@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 public class AddMoneyFlowMessage implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
+    private String flowNo;
     private Long businessId;
 
     private Long bizOrderId;

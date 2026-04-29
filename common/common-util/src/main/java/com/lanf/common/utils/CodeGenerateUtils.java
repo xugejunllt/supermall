@@ -1,5 +1,7 @@
 package com.lanf.common.utils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 
 public class CodeGenerateUtils {
@@ -38,5 +40,17 @@ public class CodeGenerateUtils {
         // 生成1000-9999之间的随机数，确保总是4位数
         int code = (int) (Math.random() * 9000) + 1000;
         return String.valueOf(code);
+    }
+
+    /**
+     *
+     *生成唯一流水号
+     *
+     */
+    public static String generateSerialNumber(String uniqueKey) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        String timeStr = sdf.format(new Date());
+
+        return  timeStr + uniqueKey;
     }
 }
