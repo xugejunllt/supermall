@@ -1,6 +1,6 @@
 package com.lanf.client.pay.mq.message;
 
-import com.lanf.client.pay.model.enums.PayTypeEnum;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -28,7 +28,7 @@ public class TransferMessage implements Serializable {
     private TransferEventTypeEnum eventType;
 
     @ApiModelProperty(value = "转账渠道：1-支付宝，2-微信支付，3-银行卡")
-    private PayTypeEnum transferChannel;
+    private PayChannelEnum transferChannel;
 
     @ApiModelProperty(value = "转账来源账户")
     private String fromAccount;

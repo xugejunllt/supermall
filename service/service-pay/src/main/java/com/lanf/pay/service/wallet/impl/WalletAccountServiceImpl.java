@@ -2,7 +2,7 @@ package com.lanf.pay.service.wallet.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.client.pay.model.enums.PayMethodEnum;
-import com.lanf.client.pay.model.enums.PayTypeEnum;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.client.pay.mq.constant.PayClientTopicName;
@@ -323,12 +323,12 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         return message;
     }
 
-    private PayTypeEnum convertWithdrawTypeToPayType(Integer withdrawType) {
+    private PayChannelEnum convertWithdrawTypeToPayType(Integer withdrawType) {
         if (withdrawType == null) {
-            return PayTypeEnum.ALI_PAY;
+            return PayChannelEnum.ALI_PAY;
         }
         if (withdrawType == 1) {
-            return PayTypeEnum.ALI_PAY;
+            return PayChannelEnum.ALI_PAY;
         }
        throw new BizException("提现类型不支持");
     }

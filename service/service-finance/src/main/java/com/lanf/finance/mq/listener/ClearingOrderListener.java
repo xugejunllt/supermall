@@ -2,7 +2,7 @@ package com.lanf.finance.mq.listener;
 
 import com.lanf.aftersales.api.AfterSalesOrderApiService;
 import com.lanf.aftersales.model.dto.UnderAfterSaleDTO;
-import com.lanf.client.pay.model.enums.PayTypeEnum;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.TransferMessage;
@@ -90,9 +90,9 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
 
     private TransferMessage buildTransferMessage(ClearingDetailDO liquidation){
         // 商家账户
-        PayAccountDO merchantAccount = payAccountService.getByMerchantIdAccount(liquidation.getMerchantId(), PayTypeEnum.ALI_PAY.getCode());
+        PayAccountDO merchantAccount = payAccountService.getByMerchantIdAccount(liquidation.getMerchantId(), PayChannelEnum.ALI_PAY.getCode());
         //平台账户
-        PayAccountDO platAccount = payAccountService.getByMerchantIdAccount(Constants.PLATFORM_BUSINESS_ID, PayTypeEnum.ALI_PAY.getCode());
+        PayAccountDO platAccount = payAccountService.getByMerchantIdAccount(Constants.PLATFORM_BUSINESS_ID, PayChannelEnum.ALI_PAY.getCode());
         Long liquidationId = liquidation.getId();
         String outBizNo = liquidationId.toString();
         TransferMessage transferMessage = new TransferMessage();
@@ -101,7 +101,7 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
         transferMessage.setBizOrderId(liquidationId);
         transferMessage.setEventType(TransferEventTypeEnum.ORDER_SETTLEMENT);
         //默认支付宝
-        transferMessage.setTransferChannel(PayTypeEnum.ALI_PAY);
+        transferMessage.setTransferChannel(PayChannelEnum.ALI_PAY);
         transferMessage.setFromAccount(platAccount.getAccount());
         transferMessage.setIncomeAccount(merchantAccount.getAccount());
         transferMessage.setTransAmount(liquidation.getIncomeMoney());

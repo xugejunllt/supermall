@@ -80,4 +80,14 @@ public interface PaymentService {
      * @return 转账结果
      */
     TransferResult alipayTransfer(String outBizNo, String payeeAccount, BigDecimal amount, String remark) throws MessageRetryConsumeException;
+    
+    /**
+     * 查询对账单下载URL
+     *
+     * @param billType 账单类型 trade-交易账单 signcustomer-签约客户账单
+     * @param billDate 账单日期 格式 yyyy-MM-dd
+     * @return 对账单下载URL结果
+     */
+    BillDownloadUrlResultBO queryBillDownloadUrl(String billType, String billDate);
+
 }

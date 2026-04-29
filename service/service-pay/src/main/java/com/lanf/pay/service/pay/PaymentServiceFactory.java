@@ -1,7 +1,7 @@
 package com.lanf.pay.service.pay;
 
 import com.lanf.constant.exception.BizException;
-import com.lanf.client.pay.model.enums.PayTypeEnum;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.pay.service.pay.impl.AliPayPaymentServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,7 +10,7 @@ public class PaymentServiceFactory {
 
 
     public static PaymentService getPaymentService(Integer type) {
-        if (PayTypeEnum.ALI_PAY.getCode().equals( type)) {
+        if (PayChannelEnum.ALI_PAY.getCode().equals( type)) {
             return new AliPayPaymentServiceImpl();
         }
 

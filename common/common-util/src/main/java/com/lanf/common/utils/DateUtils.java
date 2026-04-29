@@ -4,10 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.util.Date;
@@ -188,14 +185,25 @@ public class DateUtils {
         // format()为 “第3节 日期和字符串的格式转换“中自写的工具方法
         return format(date, pattern);
     }
+    /**
+     * 根据基准日期、偏移天数和目标格式，返回偏移后的日期字符串
+     * @param baseDate 基准日期
+     * @param daysOffset 偏移天数（负数为向前，正数为向后，如 -1 表示昨天，-2 表示前天，1 表示明天）
+     * @param pattern 输出格式，例如 "yyyy-MM-dd" 或 "yyyyMMdd"
+     * @return 格式化后的日期字符串
+     */
+    public static String getRelativeDateString(Date baseDate, int daysOffset, String pattern) {
+        // 将 java.util.Date 转换为 LocalDate（使用系统默认时区）
+        LocalDate localDate = baseDate.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
 
-    public static void main(String[] args) throws ParseException {
-        String time = "2023-04-03";
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-//1.string->date
-        Date parse = dateFormat.parse(time);
-        System.out.println(parse(time) );
+        // 偏移天数
+        LocalDate targetDate = localDate.plusDays(daysOffset);
 
-
+        // 格式化
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        return targetDate.format(formatter);
     }
+
 }

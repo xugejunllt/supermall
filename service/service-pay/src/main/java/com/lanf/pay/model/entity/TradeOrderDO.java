@@ -3,7 +3,7 @@ package com.lanf.pay.model.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.client.pay.model.enums.PayMethodEnum;
-import com.lanf.client.pay.model.enums.PayTypeEnum;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -60,7 +60,7 @@ private static final long serialVersionUID=1L;
     /**
      * 支付方式：0：支付宝，1：微信，2：银行卡
      */
-    private PayTypeEnum payType;
+    private PayChannelEnum payType;
 
     @ApiModelProperty(value = "支付状态 0:待支付 1.支付完成 3:已取消")
     private Integer payStatus;

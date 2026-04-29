@@ -1,6 +1,6 @@
 package com.lanf.pay.controller.aip;
 
-import com.lanf.client.pay.model.enums.PayTypeEnum;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.pay.model.dto.PayCallbackDTO;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
@@ -28,10 +28,10 @@ public class PayCallbackController {
 
         log.info("支付宝支付回调通知");
         PayCallbackDTO dto = new PayCallbackDTO();
-        dto.setPayType(PayTypeEnum.ALI_PAY.getCode());
+        dto.setPayType(PayChannelEnum.ALI_PAY.getCode());
         dto.setRequest(request);
         dto.setResponse(response);
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(PayTypeEnum.ALI_PAY.getCode());
+        PaymentService paymentService = PaymentServiceFactory.getPaymentService(PayChannelEnum.ALI_PAY.getCode());
         paymentService.payCallback(dto);
 
 

@@ -10,4 +10,11 @@ public class PayMqGroupName {
      * 转账成功事件 - 钱包提现处理组
      */
     public static final String TRANSFER_SUCCESS_WALLET_WITHDRAW_GROUP = "TRANSFER_SUCCESS_WALLET_WITHDRAW_GROUP";
+
+    /**
+     * 下载、解析并存储对账单
+     *
+     */
+    public static final String BILL_SYNCHRONIZER_GROUP = "BILL_SYNCHRONIZER_GROUP";
+
 }

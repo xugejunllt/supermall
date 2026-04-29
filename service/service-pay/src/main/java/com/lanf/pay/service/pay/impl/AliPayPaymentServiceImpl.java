@@ -401,6 +401,43 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             throw new MessageRetryConsumeException("转账异常");
         }
     }
+    @Override
+    public BillDownloadUrlResultBO queryBillDownloadUrl(String billType, String billDate) {
+        log.info("查询支付宝对账单下载URL:billType={},billDate={}", billType, billDate);
+
+        AlipayClient alipayClient = null;
+        try {
+            alipayClient = new DefaultAlipayClient(getAlipayConfig());
+            AlipayDataDataserviceBillDownloadurlQueryRequest request = new AlipayDataDataserviceBillDownloadurlQueryRequest();
+            AlipayDataDataserviceBillDownloadurlQueryModel model = new AlipayDataDataserviceBillDownloadurlQueryModel();
+            model.setBillType(billType);
+            model.setBillDate(billDate);
+            request.setBizModel(model);
+            AlipayDataDataserviceBillDownloadurlQueryResponse response = alipayClient.certificateExecute(request);
+
+            BillDownloadUrlResultBO result = new BillDownloadUrlResultBO();
+            result.setBillType(billType);
+            result.setBillDate(billDate);
+
+            if ( !(response.isSuccess() && "10000".equals(response.getCode()))) {
+                log.warn("查询支付宝对账单下载URL失败:billType={},billDate={},subCode={},subMsg={}",
+                        billType, billDate, response.getSubCode(), response.getSubMsg());
+               throw new MessageRetryConsumeException("查询对账单下载URL异常");
+
+            }
+            result.setBillDownloadUrl(response.getBillDownloadUrl());
+            result.setOriginalBillUrl(response.getBillDownloadUrl());
+
+            log.info("查询支付宝对账单下载URL成功:billType={},billDate={},url={}",
+                    billType, billDate, response.getBillDownloadUrl());
+            return result;
+
+        } catch (AlipayApiException e) {
+            log.warn("查询支付宝对账单下载URL异常:billType={},billDate={}", billType, billDate, e);
+            throw new MessageRetryConsumeException("查询对账单下载URL异常" );
+        }
+    }
+
 
 
 }
