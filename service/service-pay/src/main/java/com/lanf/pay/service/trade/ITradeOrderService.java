@@ -5,14 +5,15 @@ import com.lanf.client.pay.model.dto.CancelTradeOrderDTO;
 import com.lanf.client.pay.model.dto.CreatePayOrderDTO;
 import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.client.pay.model.dto.TradeOrderQuantitySumDTO;
-import com.lanf.client.pay.model.vo.*;
-import com.lanf.pay.model.bo.PaySuccessHandleBO;
-import com.lanf.pay.model.bo.PaySuccessHandleResultBO;
-import com.lanf.pay.model.dto.*;
-import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.client.pay.model.query.TradeOrderBathQuery;
 import com.lanf.client.pay.model.query.TradeOrderQuery;
-import com.lanf.pay.model.vo.*;
+import com.lanf.client.pay.model.vo.*;
+import com.lanf.pay.model.dto.BathCreatePrepayOrderDTO;
+import com.lanf.pay.model.dto.CreatePrepayOrderDTO;
+import com.lanf.pay.model.dto.RechargeDTO;
+import com.lanf.pay.model.entity.TradeOrderDO;
+import com.lanf.pay.model.vo.CreatePrepayOrderVO;
+import com.lanf.pay.model.vo.CreateRechargeTradeOrderVO;
 import com.lanf.rocketmq.model.message.RefundDTO;
 
 import java.util.List;
@@ -52,14 +53,6 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
      */
 
     CancelTradeOrderVO cancelTradeOrder(CancelTradeOrderDTO dto);
-
-
-    /**
-     * 支付成功处理
-     *
-     *
-     */
-     PaySuccessHandleResultBO paySuccessHandleBO(PaySuccessHandleBO paySuccessHandleBO);
 
     /**
      * 创建钱包充值交易单

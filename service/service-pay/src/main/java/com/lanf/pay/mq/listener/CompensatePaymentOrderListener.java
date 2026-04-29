@@ -164,8 +164,8 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
 
 
         PaySuccessHandleBO successHandleBO = buildPaySuccessHandleBO( payType,tradeStatusBO);
-
-        PaySuccessHandleResultBO resultBO = tradeOrderService.paySuccessHandleBO(successHandleBO);
+        PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
+        PaySuccessHandleResultBO resultBO = paymentService.paySuccessHandleBO(successHandleBO);
         if ( !resultBO.getHandleSuccess()) {
             log.warn("支付成功处理失败:outTradeNo={},payType={}", outTradeNo, payType);
             throw new BizException("支付成功处理失败");

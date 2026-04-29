@@ -10,7 +10,6 @@ import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import com.lanf.client.pay.model.query.TradeOrderBathQuery;
 import com.lanf.client.pay.model.query.TradeOrderQuery;
 import com.lanf.client.pay.model.vo.*;
-import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.CodeGenerateUtils;
@@ -21,15 +20,19 @@ import com.lanf.constant.enums.FrozenStatusEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.finance.model.enums.RecordTypeEnum;
-import com.lanf.finance.mq.constant.FinanceClientTopicName;
 import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.pay.config.PayConfig;
 import com.lanf.pay.mapper.TradeOrderMapper;
-import com.lanf.pay.model.bo.*;
-import com.lanf.pay.model.dto.*;
+import com.lanf.pay.model.bo.CallbackResultBO;
+import com.lanf.pay.model.bo.PassbackParams;
+import com.lanf.pay.model.bo.PayCompensateOrderRetryPolicyBO;
+import com.lanf.pay.model.dto.BathCreatePrepayOrderDTO;
+import com.lanf.pay.model.dto.CreatePrepayOrderDTO;
+import com.lanf.pay.model.dto.PrepayOrderDTO;
+import com.lanf.pay.model.dto.RechargeDTO;
 import com.lanf.pay.model.entity.*;
 import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
-import com.lanf.pay.model.enums.PaySceneEnum;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.model.tcc.CancelTradeOrderBO;
 import com.lanf.pay.model.vo.CreatePrepayOrderVO;
@@ -39,7 +42,6 @@ import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.pay.IPrepayPayTypeService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
-import com.lanf.pay.config.PayConfig;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.IPayOrderService;
 import com.lanf.pay.service.trade.ITradeOrderItemService;
@@ -427,83 +429,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         vo.setOrderStr(prepayOrderVO.getOrderStr());
 
         return vo;
-    }
-
-
-
-
-    private void handlePayCallback(PayCallbackDTO dto) {
-        z
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
-        CallbackResultBO resultBO = null;
-
-        try {
-            resultBO = paymentService.parse(dto.getRequest());
-        } catch (Exception e) {
-            paymentService.responsePayFail(dto.getResponse());
-            return;
-        }
-        PaySuccessHandleBO paySuccessHandleBO = new PaySuccessHandleBO();
-        paySuccessHandleBO.setPayType(dto.getPayType());
-        paySuccessHandleBO.setResultBO(resultBO);
-        PaySuccessHandleResultBO handleResultBO = paySuccessHandleBO(paySuccessHandleBO);
-        if (handleResultBO.getHandleSuccess()) {
-            paymentService.responsePayOk(dto.getResponse());
-        } else {
-            paymentService.responsePayFail(dto.getResponse());
-        }
-    }
-
-    /**
-     * 只要支付成功 就插入一笔支付流水
-     */
-    @Override
-    public PaySuccessHandleResultBO paySuccessHandleBO(PaySuccessHandleBO paySuccessHandleBO) {
-
-        CallbackResultBO resultBO = paySuccessHandleBO.getResultBO();
-        String outTradeNo = resultBO.getOutTradeNo();
-        Integer payType = paySuccessHandleBO.getPayType();
-        Boolean bathPay = resultBO.getPassbackParams().getBathPay();
-
-        BigDecimal totalAmount = resultBO.getTotalAmount();
-
-        BigDecimal tradeMoney = getTradeMoney(outTradeNo, bathPay);
-        if (tradeMoney == null) {
-
-            return new PaySuccessHandleResultBO(false);
-        }
-
-        if (!totalAmount.equals(tradeMoney)) {
-            log.error("交易金额异常 outTradeNo:[{}],totalAmount[{}],tradeMoney[{}]", outTradeNo, totalAmount, tradeMoney);
-            return new PaySuccessHandleResultBO(false);
-        }
-        boolean alreadyPaid = isAlreadyPaid(outTradeNo, payType);
-
-        if (alreadyPaid) {
-            log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
-            return new PaySuccessHandleResultBO(true);
-        }
-
-        PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(payType, resultBO);
-        PayOrderFlowInsertSuccessMessage message = buildPayOrderFlowInsertSuccessMessage( resultBO, payType);
-
-        AddMoneyFlowMessage addMoneyFlowMessage =  buildAddMoneyFlowMessage( resultBO);
-
-        try {
-            payOrderFlowService.save(payOrderFlowDO);
-            /**
-             * 下游业务处理
-             */
-            rocketMqClient.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC, JsonUtils.toJsonString(message));
-            /**
-             * 添加资金流水
-             */
-            rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
-        } catch (DuplicateKeyException e) {
-            log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
-            return new PaySuccessHandleResultBO(true);
-        }
-        return new PaySuccessHandleResultBO(true);
     }
 
     private AddMoneyFlowMessage buildAddMoneyFlowMessage(CallbackResultBO resultBO){
