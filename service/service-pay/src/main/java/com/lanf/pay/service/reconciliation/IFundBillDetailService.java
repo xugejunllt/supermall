@@ -1,7 +1,7 @@
 package com.lanf.pay.service.reconciliation;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.pay.model.entity.FundBillDetail;
+import com.lanf.pay.model.entity.FundBillDetailDO;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.lanf.pay.model.entity.FundBillDetail;
  * @author jarven
  * @since 2026-04-29
  */
-public interface IFundBillDetailService extends IService<FundBillDetail> {
+public interface IFundBillDetailService extends IService<FundBillDetailDO> {
 
 }
