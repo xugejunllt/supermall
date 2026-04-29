@@ -41,6 +41,10 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "用户支付完成时间")
     private Date payFinishTime;
+    /**
+     * 添加索引 T+1查询加速
+     */
+    private String payFinishDate;
 
     @ApiModelProperty(value = "支付账户")
     private String payAccount;

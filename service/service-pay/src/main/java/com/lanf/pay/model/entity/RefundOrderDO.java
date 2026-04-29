@@ -65,6 +65,9 @@ public class RefundOrderDO extends BaseEntity {
 
     @ApiModelProperty(value = "退款完成时间")
     private Date payFinishTime;
-
+    /**
+     * 添加索引 T+1查询加速
+     */
+    private String payFinishDate;
 
 }

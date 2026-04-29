@@ -16,6 +16,7 @@ import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
+import com.lanf.constant.enums.FlowNoPrefixEnum;
 import com.lanf.constant.enums.FrozenStatusEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
@@ -144,7 +145,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private static TradeOrderDO buildTradeOrderDO(CreateTradeOrderDTO dto) {
 
 
-        String outTradeNo = PayServiceUtils.generateOutTradeNo(dto.getOrderNumber());
+        String outTradeNo = CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.TRADE_ORDER,
+                dto.getOrderNumber());
         Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
 
         TradeOrderDO tradeOrderDO = new TradeOrderDO();
@@ -659,7 +661,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Override
     public CreateRechargeTradeOrderVO createRechargeTradeOrder(RechargeDTO dto) {
         Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
-
+        String outTradeNo = CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.TRADE_ORDER, dto.getOrderNumber());
         TradeOrderDO tradeOrderDO = new TradeOrderDO();
         tradeOrderDO.setUserId(UserIdContext.getUserId());
         tradeOrderDO.setOrderNumber(dto.getOrderNumber());
@@ -670,6 +672,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setBathPay(0);
         tradeOrderDO.setExpireInterval(payConfig.getExpireInterval());
         tradeOrderDO.setExpireTime(expireTime);
+        tradeOrderDO.setOutTradeNo(outTradeNo);
         String params = PayServiceUtils.buildPassbackParams(tradeOrderDO.getId(), false,
                 tradeOrderDO.getTradeMoney(),
                 TradePurposeEnum.REALTIME_ORDER);

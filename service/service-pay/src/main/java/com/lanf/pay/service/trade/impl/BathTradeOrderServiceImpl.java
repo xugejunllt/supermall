@@ -5,8 +5,10 @@ import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IdUtils;
+import com.lanf.constant.enums.FlowNoPrefixEnum;
 import com.lanf.pay.config.PayConfig;
 import com.lanf.pay.mapper.BathTradeOrderMapper;
 import com.lanf.pay.model.entity.BathTradeOrderDO;
@@ -95,7 +97,9 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
     private List<TradeOrderDO> buildTradeOrderDOList(CreateMergeTradeOrderDTO dto, BathTradeOrderDO bathTradeOrderDO,Date expireTime) {
         return dto.getTradeOrderItemList().stream()
                 .map(item -> {
-                    String outTradeNo = PayServiceUtils.generateOutTradeNo(item.getOrderNumber());
+
+                    String outTradeNo = CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.TRADE_ORDER,
+                            item.getOrderNumber());
                     Long id = IdUtils.generateId();
                     TradeOrderDO tradeOrderDO = new TradeOrderDO();
                     tradeOrderDO.setId(id);
@@ -120,7 +124,9 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                 .collect(Collectors.toList());
     }
     private BathTradeOrderDO buildBathTradeOrderDO(CreateMergeTradeOrderDTO dto, Date expireTime) {
-        String batchNo =  PayServiceUtils.generateOutTradeNo(dto.getMainOrderNumber());
+
+        String batchNo = CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.TRADE_ORDER,
+                dto.getMainOrderNumber());
         Integer batchNum = dto.getTradeOrderItemList().size();
 
         /**

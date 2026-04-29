@@ -2,6 +2,7 @@ package com.lanf.pay.service.pay.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.client.pay.model.enums.RefundEventTypeEnum;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
@@ -89,6 +90,9 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
             refundOrderDO.setPayType(payType);
             refundOrderDO.setRefundReason("取消订单");
             refundOrderDO.setRefundEventType(processRefund.getRefundEventTypeEnum());
+            refundOrderDO.setPayFinishTime(cancelled.getPayFinishTime());
+            String format = DateUtils.format(cancelled.getPayFinishTime(), DateUtils.DATE);
+            refundOrderDO.setPayFinishDate(format);
             ///
             AddMoneyFlowMessage moneyFlowMessage = buildAddMoneyFlowMessage(processRefund, cancelled.getReturnMoney());
             try {

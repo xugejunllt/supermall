@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Data
 public class CancelPaidOrderResultBO implements Serializable {
@@ -20,4 +21,6 @@ public class CancelPaidOrderResultBO implements Serializable {
 
     @ApiModelProperty(value = "用户的登录id【示例值】159****5620")
     private String buyerLogonId;
+
+    private Date payFinishTime;
 }

@@ -198,10 +198,10 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
         tradeStatusBO.setTotalAmount(new BigDecimal(response.getTotalAmount()));
         tradeStatusBO.setReceiptMoney(new BigDecimal(response.getReceiptAmount()));
         /**
-         * 返回当前时间
+         * 返回当前时间 待修改
          */
         Date date = new Date();
-        tradeStatusBO.setPayFinishTime(date);
+        tradeStatusBO.setPayFinishTime(response.getSendPayDate());
         tradeStatusBO.setNotifyTime(date);
         tradeStatusBO.setPayAccount(response.getBuyerLogonId());
         /**
@@ -209,8 +209,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
          */
         tradeStatusBO.setIncomeAccount(null);
         String passbackParams = response.getPassbackParams();
-        PassbackParams passbackParams1 = JsonUtils.toObject(passbackParams, PassbackParams.class);
-        tradeStatusBO.setPassbackParams(passbackParams1);
+        tradeStatusBO.setStrPassbackParams(passbackParams);
         tradeStatusBO.setAllParams(JsonUtils.toJsonString( response));
         return tradeStatusBO;
     }
@@ -330,12 +329,13 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             
             log.info("支付宝退款成功:outTradeNo={},tradeNo={},refundFee={}", 
                     outTradeNo, response.getTradeNo(), response.getRefundFee());
+            Date gmtRefundPay = response.getGmtRefundPay();
             CancelPaidOrderResultBO bo = new CancelPaidOrderResultBO();
             bo.setResult( true);
             bo.setTradeNo(response.getTradeNo());
             bo.setReturnMoney(new BigDecimal(response.getRefundFee()));
             bo.setBuyerLogonId(response.getBuyerLogonId());
-
+            bo.setPayFinishTime(gmtRefundPay);
             return bo;
 
         } catch (AlipayApiException e) {

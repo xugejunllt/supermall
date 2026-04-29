@@ -51,6 +51,7 @@ public class TradeStatusBO implements Serializable {
      * 回调参数
      */
     private PassbackParams passbackParams;
+    private String strPassbackParams;
 
     private String allParams;
 }

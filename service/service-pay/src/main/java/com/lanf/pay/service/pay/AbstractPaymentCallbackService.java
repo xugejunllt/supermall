@@ -5,6 +5,7 @@ import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.CodeGenerateUtils;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
@@ -154,7 +155,8 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
         payOrderFlowDO.setTradeNo(resultBO.getTradeNo());
         payOrderFlowDO.setPassbackParams(JsonUtils.toJsonString(resultBO.getPassbackParams()));
         payOrderFlowDO.setAllParams(resultBO.getAllParams());
-
+        String format = DateUtils.format(resultBO.getPayFinishTime(), DateUtils.DATE);
+        payOrderFlowDO.setPayFinishDate(format);
         return payOrderFlowDO;
     }
 

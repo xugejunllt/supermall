@@ -1,5 +1,7 @@
 package com.lanf.common.utils;
 
+import com.lanf.constant.enums.FlowNoPrefixEnum;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
@@ -39,7 +41,7 @@ public class CodeGenerateUtils {
     public static String generateFourDigitCode() {
         // 生成1000-9999之间的随机数，确保总是4位数
         int code = (int) (Math.random() * 9000) + 1000;
-        return String.valueOf(code);
+        return java.lang.String.valueOf(code);
     }
 
     /**
@@ -52,5 +54,9 @@ public class CodeGenerateUtils {
         String timeStr = sdf.format(new Date());
 
         return  timeStr + uniqueKey;
+    }
+    public static  String generateFlowNo(FlowNoPrefixEnum bizPrefix, String uniqueKey) {
+        // 直接拼接，不做额外处理
+        return bizPrefix.getPrefix() +uniqueKey;
     }
 }

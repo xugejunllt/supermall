@@ -17,7 +17,6 @@ public class DateUtils {
 
     // 例如:2020-03-15
     public static final String DATE = "yyyy-MM-dd";
-    public static final String DATE_ = "yyyyMMdd";
     // 例如:2020-03-15 10:00:00
     public static final String DATE_TIME = "yyyy-MM-dd HH:mm:ss";
 

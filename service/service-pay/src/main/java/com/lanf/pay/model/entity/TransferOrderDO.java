@@ -57,7 +57,10 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "转账完成时间")
     private Date payFinishTime;
-
+    /**
+     * 添加索引 T+1查询加速
+     */
+    private String payFinishDate;
     @ApiModelProperty(value = "转账业务的标题，用于在支付宝用户的账单里显示")
     private String orderTitle;
 }

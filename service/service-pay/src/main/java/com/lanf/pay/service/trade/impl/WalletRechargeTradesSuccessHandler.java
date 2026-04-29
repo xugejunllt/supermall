@@ -28,7 +28,7 @@ public class WalletRechargeTradesSuccessHandler implements TradeSuccessHandler {
         BigDecimal payMoney = context.getPayMoney();
         WalletRechargeMessage walletRechargeMessage = buildWalletRechargeMessage(tradeOrderDO,payMoney);
         rocketMqClient.sendMessage(PayClientTopicName.WALLET_RECHARGE_TOPIC, JsonUtils.toJsonString(walletRechargeMessage));
-
+        z
     }
 
     private WalletRechargeMessage buildWalletRechargeMessage( TradeOrderDO tradeOrderDO,BigDecimal payMoney){

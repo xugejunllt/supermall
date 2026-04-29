@@ -5,6 +5,7 @@ import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.TransferMessage;
 import com.lanf.client.pay.mq.message.TransferSuccessMessage;
 import com.lanf.common.utils.CodeGenerateUtils;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.finance.model.enums.RecordTypeEnum;
@@ -127,6 +128,8 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
         transferOrderDO.setTransAmount(message.getTransAmount());
         transferOrderDO.setOrderId(result.getOrderId());
         transferOrderDO.setPayFinishTime(result.getFinishTime());
+        String format = DateUtils.format(result.getFinishTime(), DateUtils.DATE);
+        transferOrderDO.setPayFinishDate(format);
         transferOrderDO.setOrderTitle(message.getOrderTitle());
         return transferOrderDO;
     }
