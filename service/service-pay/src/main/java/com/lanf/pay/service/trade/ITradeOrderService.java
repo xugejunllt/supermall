@@ -45,11 +45,6 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
      *
      */
     CreatePrepayOrderVO bathCreatePrepayOrder(BathCreatePrepayOrderDTO dto);
-    /**
-     * 支付成功回调通知
-     *
-     */
-    void payCallback(PayCallbackDTO dto);
 
     /**
      * 取消交易单

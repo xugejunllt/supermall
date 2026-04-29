@@ -1,4 +1,4 @@
-package com.lanf.pay.service.pay.config;
+package com.lanf.pay.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -17,5 +17,8 @@ public class PayConfig implements Serializable {
      * 支付超时时间（分钟）
      */
     private Integer expireInterval;
-
+    /**
+     * 签名密钥
+     */
+    private String signSecretKey;
 }

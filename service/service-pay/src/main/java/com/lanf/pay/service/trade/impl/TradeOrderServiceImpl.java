@@ -39,7 +39,7 @@ import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.pay.IPrepayPayTypeService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
-import com.lanf.pay.service.pay.config.PayConfig;
+import com.lanf.pay.config.PayConfig;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.IPayOrderService;
 import com.lanf.pay.service.trade.ITradeOrderItemService;
@@ -163,6 +163,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         passbackParams.setBathPay(false);
         passbackParams.setTradeOrderId(tradeOrderDO.getId());
         passbackParams.setTradeType(TradePurposeEnum.REALTIME_ORDER);
+        passbackParams.setSignValue(PayServiceUtils.generateSign(passbackParams));
         tradeOrderDO.setPassbackParams(JsonUtils.toJsonString(passbackParams));
         return tradeOrderDO;
     }
@@ -429,23 +430,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
 
-    @Override
-    public void payCallback(PayCallbackDTO dto) {
-
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
-        try {
-            handlePayCallback(dto);
-        } catch (Exception e) {
-            log.error("支付回调异常", e);
-            paymentService.responsePayFail(dto.getResponse());
-
-        }
-
-    }
 
 
     private void handlePayCallback(PayCallbackDTO dto) {
-
+        z
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
         CallbackResultBO resultBO = null;
 
@@ -587,25 +575,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         return tradeMoney;
     }
 
-    private PaySceneEnum getPayScene(String outTradeNo, Boolean bathPay) {
-
-        if (!bathPay) {
-            TradeOrderDO tradeOrderDO = this.lambdaQuery()
-                    .eq(TradeOrderDO::getOutTradeNo, outTradeNo)
-                    .one();
-            if (tradeOrderDO == null) {
-                throw new BizException("交易单不存在");
-            }
-            if (tradeOrderDO.getBathPay() == 0) {
-                return PaySceneEnum.SINGLE_ORDER_SINGLE_PAY;
-            }
-            return PaySceneEnum.COMBINED_TO_SINGLE_PAY;
-        }
-        log.info("组合付款");
-
-        return PaySceneEnum.COMBINED_PAY;
-
-    }
 
 
     /**
@@ -776,6 +745,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setBathPay(0);
         tradeOrderDO.setExpireInterval(payConfig.getExpireInterval());
         tradeOrderDO.setExpireTime(expireTime);
+        String params = PayServiceUtils.buildPassbackParams(tradeOrderDO.getId(), false,
+                tradeOrderDO.getTradeMoney(),
+                TradePurposeEnum.REALTIME_ORDER);
+        tradeOrderDO.setPassbackParams(params);
 
         try {
             this.save(tradeOrderDO);

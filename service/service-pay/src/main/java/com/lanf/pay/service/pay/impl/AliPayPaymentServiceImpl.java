@@ -11,12 +11,12 @@ import com.alipay.api.response.*;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.pay.config.AliPayConfig;
 import com.lanf.pay.model.bo.*;
 import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.enums.TradeStatusEnum;
 import com.lanf.pay.model.vo.PrepayOrderVO;
-import com.lanf.pay.service.pay.PaymentService;
-import com.lanf.pay.service.pay.config.AliPayConfig;
+import com.lanf.pay.service.pay.AbstractPaymentCallbackService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ import java.util.*;
 
 @Slf4j
 @Service
-public class AliPayPaymentServiceImpl implements PaymentService {
+public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
     @Value("${pay.ali.notifyUrl}")
     private String notifyUrl;
@@ -111,7 +111,7 @@ public class AliPayPaymentServiceImpl implements PaymentService {
         callbackResultBO.setNotifyTime(notifyTimeDate);
         callbackResultBO.setTradeNo(tradeNo);
         callbackResultBO.setOutTradeNo(outTradeNo);
-        callbackResultBO.setPassbackParams(JsonUtils.toObject(passbackParams, PassbackParams.class));
+        callbackResultBO.setStrPassbackParams(passbackParams);
         callbackResultBO.setAllParams(JsonUtils.toJsonString( params));
         return callbackResultBO;
     }

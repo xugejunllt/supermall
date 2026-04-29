@@ -16,7 +16,7 @@ import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
 import com.lanf.pay.model.enums.PaySceneEnum;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
-import com.lanf.pay.service.pay.config.PayConfig;
+import com.lanf.pay.config.PayConfig;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.TradeSuccessHandler;

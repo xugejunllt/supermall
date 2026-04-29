@@ -1,7 +1,9 @@
 package com.lanf.pay.controller.aip;
 
-import com.lanf.pay.model.dto.PayCallbackDTO;
 import com.lanf.client.pay.model.enums.PayTypeEnum;
+import com.lanf.pay.model.dto.PayCallbackDTO;
+import com.lanf.pay.service.pay.PaymentService;
+import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +31,9 @@ public class PayCallbackController {
         dto.setPayType(PayTypeEnum.ALI_PAY.getCode());
         dto.setRequest(request);
         dto.setResponse(response);
-        tradeOrderService.payCallback(dto);
+        PaymentService paymentService = PaymentServiceFactory.getPaymentService(PayTypeEnum.ALI_PAY.getCode());
+        paymentService.payCallback(dto);
+
 
     }
 

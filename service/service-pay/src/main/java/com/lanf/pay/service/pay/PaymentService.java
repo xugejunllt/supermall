@@ -1,9 +1,7 @@
 package com.lanf.pay.service.pay;
 
-import com.lanf.pay.model.bo.TransferResult;
-import com.lanf.pay.model.bo.CallbackResultBO;
-import com.lanf.pay.model.bo.CancelPaidOrderResultBO;
-import com.lanf.pay.model.bo.TradeStatusBO;
+import com.lanf.pay.model.bo.*;
+import com.lanf.pay.model.dto.PayCallbackDTO;
 import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.vo.PrepayOrderVO;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
@@ -14,6 +12,19 @@ import java.math.BigDecimal;
 
 public interface PaymentService {
 
+
+    /**
+     * 支付回调
+     *
+     */
+     void payCallback(PayCallbackDTO dto);
+
+    /**
+     * 支付回调 处理
+     *
+     *
+     */
+    PaySuccessHandleResultBO paySuccessHandleBO(PaySuccessHandleBO paySuccessHandleBO);
     /**
      * 创建预支付信息
      *

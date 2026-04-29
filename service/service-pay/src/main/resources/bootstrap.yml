@@ -39,6 +39,7 @@ mybatis-plus:
 pay:
   #支付操作时间 分钟
   expireInterval: 60
+  signSecretKey: asa1212121fdffdfhghghghgeererere
   channel:
     ali:
       notifyUrl: http://94kf749024wj.vicp.fun/pay/callback/aliPayCallback

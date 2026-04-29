@@ -4,6 +4,7 @@ import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 支付回调参数
@@ -20,6 +21,17 @@ public class PassbackParams implements Serializable {
 
     //是否是批量付款
     private  Boolean bathPay;
+    /**
+     * 交易金额
+     */
+    private BigDecimal tradeMoney;
+
 
     private TradePurposeEnum tradeType;
+    /**
+     * 参数签名值
+     */
+    private String signValue;
+
+
 }

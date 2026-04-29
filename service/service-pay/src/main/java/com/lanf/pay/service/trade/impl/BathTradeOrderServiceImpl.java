@@ -3,16 +3,14 @@ package com.lanf.pay.service.trade.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
+import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IdUtils;
-import com.lanf.common.utils.JsonUtils;
+import com.lanf.pay.config.PayConfig;
 import com.lanf.pay.mapper.BathTradeOrderMapper;
-import com.lanf.pay.model.bo.PassbackParams;
 import com.lanf.pay.model.entity.BathTradeOrderDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
-import com.lanf.client.pay.model.enums.TradePurposeEnum;
-import com.lanf.pay.service.pay.config.PayConfig;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.utils.PayServiceUtils;
@@ -98,7 +96,9 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
         return dto.getTradeOrderItemList().stream()
                 .map(item -> {
                     String outTradeNo = PayServiceUtils.generateOutTradeNo(item.getOrderNumber());
+                    Long id = IdUtils.generateId();
                     TradeOrderDO tradeOrderDO = new TradeOrderDO();
+                    tradeOrderDO.setId(id);
                     tradeOrderDO.setBathPayOrderId(bathTradeOrderDO.getId());
                     tradeOrderDO.setUserId(dto.getUserId());
                     tradeOrderDO.setOrderId(item.getOrderId());
@@ -109,6 +109,12 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                     tradeOrderDO.setExpireTime(expireTime);
                     tradeOrderDO.setBusinessId(dto.getBusinessId());
                     tradeOrderDO.setTradePurpose(TradePurposeEnum.REALTIME_ORDER);
+                    //
+                    String params = PayServiceUtils.buildPassbackParams(tradeOrderDO.getId(), false,
+                            tradeOrderDO.getTradeMoney(),
+                            TradePurposeEnum.REALTIME_ORDER);
+                    tradeOrderDO.setPassbackParams(params);
+
                     return tradeOrderDO;
                 })
                 .collect(Collectors.toList());
@@ -142,11 +148,9 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
         bathTradeOrderDO1.setExpireTime(expireTime);
         bathTradeOrderDO1.setBusinessId(dto.getBusinessId());
         //
-        PassbackParams passbackParams = new PassbackParams();
-        passbackParams.setBathPay(true);
-        passbackParams.setTradeOrderId(bathTradeOrderDO1.getId());
-        passbackParams.setTradeType(TradePurposeEnum.REALTIME_ORDER);
-        bathTradeOrderDO1.setPassbackParams(JsonUtils.toJsonString(passbackParams));
+        String params = PayServiceUtils.buildPassbackParams(bathTradeOrderDO1.getId(), true, bathTradeOrderDO1.getBatchFee(),
+                TradePurposeEnum.REALTIME_ORDER);
+        bathTradeOrderDO1.setPassbackParams(params);
         return bathTradeOrderDO1;
     }
 

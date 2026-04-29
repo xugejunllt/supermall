@@ -46,6 +46,8 @@ public class CallbackResultBO implements Serializable {
      */
     private PassbackParams passbackParams;
 
+    private String strPassbackParams;
+
     private String allParams;
 
 }
