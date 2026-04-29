@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,11 +72,12 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         String outTradeNo = message.getOutTradeNo();
         Boolean bathPay = message.getBathPay();
         Integer payType = message.getPayType();
+        BigDecimal payMoney = message.getPayMoney();
         PayMethodEnum payMethod = message.getPayMethod();
         PaySceneEnum payScene = getPayScene(outTradeNo, bathPay);
         if (PaySceneEnum.SINGLE_ORDER_SINGLE_PAY.equals(payScene)) {
 
-            handleSinglePayScene(outTradeNo, payType, message.getTradePurpose(), payMethod);
+            handleSinglePayScene(outTradeNo, payType, message.getTradePurpose(), payMethod, payMoney);
         }
         if (PaySceneEnum.COMBINED_PAY.equals(payScene)) {
 
@@ -116,7 +118,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
 
     @Transactional
     public void handleSinglePayScene(String outTradeNo, Integer payType,
-                                     TradePurposeEnum tradeType, PayMethodEnum payMethod) {
+                                     TradePurposeEnum tradeType, PayMethodEnum payMethod, BigDecimal payMoney) {
 
 
         TradeOrderDO tradeOrderDO = tradeOrderService.lambdaQuery()
@@ -179,6 +181,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
             PostTradeSuccessHandlerContext context = new PostTradeSuccessHandlerContext();
             context.setTradeOrderDO(tradeOrderDO);
             context.setPayType(payType);
+            context.setPayMoney(payMoney);
             tradeSuccessHandler.postTradeSuccessHandler(context);
 
         }
@@ -186,7 +189,6 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         throw new BizException("未知场景");
 
     }
-
 
 
     /**

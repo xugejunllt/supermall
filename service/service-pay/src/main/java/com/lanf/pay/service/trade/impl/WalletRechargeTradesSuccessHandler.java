@@ -11,6 +11,8 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 /**
  * 钱包充值成功处理
  */
@@ -23,22 +25,23 @@ public class WalletRechargeTradesSuccessHandler implements TradeSuccessHandler {
     public void postTradeSuccessHandler(PostTradeSuccessHandlerContext context) {
 
         TradeOrderDO tradeOrderDO = context.getTradeOrderDO();
-        WalletRechargeMessage walletRechargeMessage = buildWalletRechargeMessage(tradeOrderDO);
+        BigDecimal payMoney = context.getPayMoney();
+        WalletRechargeMessage walletRechargeMessage = buildWalletRechargeMessage(tradeOrderDO,payMoney);
         rocketMqClient.sendMessage(PayClientTopicName.WALLET_RECHARGE_TOPIC, JsonUtils.toJsonString(walletRechargeMessage));
 
     }
 
-    private WalletRechargeMessage buildWalletRechargeMessage( TradeOrderDO tradeOrderDO){
+    private WalletRechargeMessage buildWalletRechargeMessage( TradeOrderDO tradeOrderDO,BigDecimal payMoney){
 
         WalletRechargeMessage walletRechargeMessage = new WalletRechargeMessage();
         walletRechargeMessage.setUserId(tradeOrderDO.getUserId());
         walletRechargeMessage.setFlowNo(PayServiceUtils.generateOutTradeNo(tradeOrderDO.getOrderNumber()));
         /**
-         * 充值金额 = 交易金额
+         * 充值金额 = 支付回调返回的金额
          */
-        walletRechargeMessage.setAmount(tradeOrderDO.getTradeMoney());
+        walletRechargeMessage.setAmount(payMoney);
         walletRechargeMessage.setBizOrderId(tradeOrderDO.getId());
-        z
+
         return walletRechargeMessage;
 
     }

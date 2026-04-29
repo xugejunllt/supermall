@@ -4,6 +4,7 @@ import com.lanf.pay.model.entity.TradeOrderDO;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 public class PostTradeSuccessHandlerContext implements Serializable {
@@ -12,7 +13,7 @@ public class PostTradeSuccessHandlerContext implements Serializable {
     /**
      * 用户实际支付金额
      */
-    private Integer payMoney;
+    private BigDecimal payMoney;
 
     private TradeOrderDO tradeOrderDO;
 }

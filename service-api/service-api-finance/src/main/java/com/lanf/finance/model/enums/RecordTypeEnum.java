@@ -31,10 +31,9 @@ public enum RecordTypeEnum {
     CANCEL_ORDER_REFUND(2, "取消订单退款"),
     MERCHANT_SETTLEMENT_INCOME(3, "商家结算收入"),
     WALLET_WITHDRAW(4, "用户钱包提现"),
-
     WALLET_RECHARGE(5, "用户钱包充值"),
     ;
-    z
+
     public static final Set<Integer> INCOME_TYPE_SET = new HashSet<>(Arrays.asList(
             RecordTypeEnum.ORDER.getCode(),
             RecordTypeEnum.MERCHANT_SETTLEMENT_INCOME.getCode(),
