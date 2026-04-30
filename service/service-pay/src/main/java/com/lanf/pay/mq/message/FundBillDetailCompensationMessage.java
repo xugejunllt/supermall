@@ -9,6 +9,12 @@ import java.util.List;
 @Data
 public class FundBillDetailCompensationMessage implements Serializable {
 
+   private  String batchId;
+
+   private  String payChannel;
+
+   private Integer currentParseCount;
+
    private List<FundBillDetailDO> cachedDataList;
 
 }

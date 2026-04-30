@@ -8,6 +8,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.mapper.FundBillDetailMapper;
 import com.lanf.pay.model.entity.FundBillDetailDO;
 import com.lanf.pay.mq.constant.PayMqTopicName;
+import com.lanf.pay.mq.message.FundBillDetailCompensationMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 对账单 Excel 读取监听器
@@ -37,17 +39,25 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
     private final FundBillDetailMapper fundBillDetailMapper;
     private final String batchId;
     private final String payChannel;
+    private final RocketMqClient rocketMqClient;
+    private final AtomicInteger currentParseCount ;
+    private final ExcelParseProgressManager excelParseProgressManager;
 
-    public AalPayFundBillDetailReadListener(FundBillDetailMapper fundBillDetailMapper,
-                                            String batchId,
-                                            String payChannel) {
-        this.fundBillDetailMapper = fundBillDetailMapper;
+    public AalPayFundBillDetailReadListener(String batchId, String payChannel) {
+        this.fundBillDetailMapper = BeanUtil.getBean(FundBillDetailMapper.class);
         this.batchId = batchId;
         this.payChannel = payChannel;
+        this.rocketMqClient = BeanUtil.getBean(RocketMqClient.class);
+        this.currentParseCount = new AtomicInteger(0);
+        this.excelParseProgressManager = BeanUtil.getBean(ExcelParseProgressManager.class);
     }
 
     @Override
     public void invoke(AalPayFundBillDetailExcel data, AnalysisContext context) {
+
+        //数量+1
+        currentParseCount.getAndIncrement();
+
         // 转换 Excel 数据为 DO 对象
         FundBillDetailDO detailDO = convertToDO(data);
         
@@ -78,13 +88,21 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
      * 批量保存数据
      */
     private void saveBatch() {
+
         if (cachedDataList.isEmpty()) {
             return;
         }
 
+        int rows = currentParseCount.get();
+
+        if (excelParseProgressManager.isSaveBath(rows, payChannel, batchId)) {
+            log.info("已存储DB中");
+            return;
+        }
         try {
 
             fundBillDetailMapper.batchInsertIgnore(cachedDataList);
+            excelParseProgressManager.addRows(rows, payChannel, batchId);
 
         } catch (Exception e) {
             log.warn("批量插入对账单明细失败", e);
@@ -93,9 +111,15 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
              * 发送mq补偿
              */
             try {
-                RocketMqClient rocketMqClient = BeanUtil.getBean(RocketMqClient.class);
+                FundBillDetailCompensationMessage fundBillDetailCompensationMessage
+                        = new FundBillDetailCompensationMessage();
+                fundBillDetailCompensationMessage.setCachedDataList(cachedDataList);
+                fundBillDetailCompensationMessage.setCurrentParseCount(rows);
+                fundBillDetailCompensationMessage.setBatchId(batchId);
+                fundBillDetailCompensationMessage.setPayChannel(payChannel);
+
                 rocketMqClient.sendMessage(PayMqTopicName.FUND_BILL_DETAIL_COMPENSATION_TOPIC,
-                        JsonUtils.toJsonString(cachedDataList));
+                        JsonUtils.toJsonString(fundBillDetailCompensationMessage));
             } catch (Exception ex) {
                 log.error("发送对账单补偿失败", ex);
             }

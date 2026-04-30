@@ -1,5 +1,7 @@
 package com.lanf.pay.mq.listener;
 
+import com.lanf.cache.service.RedissonCacheService;
+import com.lanf.pay.excel.ExcelParseProgressManager;
 import com.lanf.pay.mapper.FundBillDetailMapper;
 import com.lanf.pay.model.entity.FundBillDetailDO;
 import com.lanf.pay.mq.constant.PayMqGroupName;
@@ -33,12 +35,19 @@ public class FundBillDetailCompensationListener implements RocketMQListener<Fund
     private IRefundOrderService refundOrderService;
     @Autowired
     private FundBillDetailMapper fundBillDetailMapper;
+    @Autowired
+    private  RedissonCacheService redissonCacheService;
+    @Autowired
+    private  ExcelParseProgressManager excelParseProgressManager;
     @Override
     public void onMessage(FundBillDetailCompensationMessage message) {
 
         List<FundBillDetailDO> cachedDataList = message.getCachedDataList();
         try {
             fundBillDetailMapper.batchInsertIgnore(cachedDataList);
+            excelParseProgressManager.addRows(message.getCurrentParseCount(),
+                    message.getPayChannel(), message.getBatchId());
+
         } catch (Exception e) {
            throw new MessageRetryConsumeException("批量插入对账单明细失败");
         }

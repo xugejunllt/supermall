@@ -32,8 +32,7 @@ public class FundBillDetailServiceImpl extends ServiceImpl<FundBillDetailMapper,
     public void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel) {
 
         log.info("开始导入对账单 Excel: batchId={}, payChannel={}", batchId, payChannel);
-        AalPayFundBillDetailReadListener listener = new AalPayFundBillDetailReadListener(
-                getBaseMapper(), batchId, payChannel.getCode().toString());
+        AalPayFundBillDetailReadListener listener = new AalPayFundBillDetailReadListener(batchId, payChannel.getCode().toString());
         Class<?> head = null;
         switch (payChannel){
             case ALI_PAY:
