@@ -87,7 +87,6 @@ public class BillReconciliationTask {
                 billExcelParseRetryMessage.setBillType(billSynchronizerMessage.getBillType());
                 billExcelParseRetryMessage.setBillDate(billSynchronizerMessage.getBillDate());
                 billExcelParseRetryMessage.setPayChannel(billSynchronizerMessage.getPayChannel());
-                billExcelParseRetryMessage.setFlowNo(flowNo);
                 rocketMqClient.sendDelayMessage(PayMqTopicName.BILL_EXCEL_PARSE_RETRY_TOPIC,
                         JsonUtils.toJsonString(billExcelParseRetryMessage), TimeUnit.HOURS, 1);
             }
