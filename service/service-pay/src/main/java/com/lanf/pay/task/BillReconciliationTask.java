@@ -17,7 +17,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -50,7 +50,7 @@ public class BillReconciliationTask {
         log.info("开始执行T+1下载对账单任务");
 
         String relativeDateString = DateUtils.getRelativeDateString(new Date(), -1, DateUtils.DATE);
-        List<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
+        Set<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
 
         BillSynchronizerMessage billSynchronizerMessage = new BillSynchronizerMessage();
 
@@ -72,23 +72,26 @@ public class BillReconciliationTask {
                     log.info("{}账单正在下载中", channel);
                     continue;
                 }
+
+                String flowNo = IdUtils.generateId() + "";
                 billSynchronizerMessage.setPayChannel(channel);
-                billSynchronizerMessage.setFlowNo(IdUtils.generateId() + "");
+                billSynchronizerMessage.setFlowNo(flowNo);
                 //
 
                 rocketMqClient.sendMessage(PayMqTopicName.BILL_SYNCHRONIZER_TOPIC,
                         JsonUtils.toJsonString(billSynchronizerMessage));
-
+                /**
+                * 发送一个超时检测任务 延迟1个小时
+                */
+                BillExcelParseRetryMessage billExcelParseRetryMessage = new BillExcelParseRetryMessage();
+                billExcelParseRetryMessage.setBillType(billSynchronizerMessage.getBillType());
+                billExcelParseRetryMessage.setBillDate(billSynchronizerMessage.getBillDate());
+                billExcelParseRetryMessage.setPayChannel(billSynchronizerMessage.getPayChannel());
+                billExcelParseRetryMessage.setFlowNo(flowNo);
+                rocketMqClient.sendDelayMessage(PayMqTopicName.BILL_EXCEL_PARSE_RETRY_TOPIC,
+                        JsonUtils.toJsonString(billExcelParseRetryMessage), TimeUnit.HOURS, 1);
             }
-            /**
-             * 发送一个超时检测任务 延迟1个小时
-             */
-            BillExcelParseRetryMessage billExcelParseRetryMessage = new BillExcelParseRetryMessage();
-            billExcelParseRetryMessage.setBillType(billSynchronizerMessage.getBillType());
-            billExcelParseRetryMessage.setBillDate(billSynchronizerMessage.getBillDate());
 
-            rocketMqClient.sendDelayMessage(PayMqTopicName.BILL_EXCEL_PARSE_RETRY_TOPIC,
-                    JsonUtils.toJsonString(billExcelParseRetryMessage), TimeUnit.HOURS, 1);
         }
         log.info("执行T+1定时下载对账单任务已启动");
     }
