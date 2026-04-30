@@ -9,6 +9,7 @@ import com.lanf.pay.mapper.FundBillDetailMapper;
 import com.lanf.pay.model.entity.FundBillDetailDO;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.FundBillDetailCompensationMessage;
+import com.lanf.rocketmq.model.enums.DelayLevelEnum;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 
@@ -117,9 +118,13 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
                 fundBillDetailCompensationMessage.setCurrentParseCount(rows);
                 fundBillDetailCompensationMessage.setBatchId(batchId);
                 fundBillDetailCompensationMessage.setPayChannel(payChannel);
-
-                rocketMqClient.sendMessage(PayMqTopicName.FUND_BILL_DETAIL_COMPENSATION_TOPIC,
-                        JsonUtils.toJsonString(fundBillDetailCompensationMessage));
+                /**
+                 *
+                 * 延迟5秒 让数据库恢复一下
+                 *
+                 */
+                rocketMqClient.sendDelayMessage(PayMqTopicName.FUND_BILL_DETAIL_COMPENSATION_TOPIC,
+                        JsonUtils.toJsonString(fundBillDetailCompensationMessage), DelayLevelEnum.LEVEL_2);
             } catch (Exception ex) {
                 log.error("发送对账单补偿失败", ex);
             }
