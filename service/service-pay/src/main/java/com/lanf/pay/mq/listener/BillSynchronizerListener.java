@@ -65,6 +65,9 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
             log.info("解析任务正在执行");
             return;
         }
+        /**
+         * 乐观锁 保证只有一个线程执行成功
+         */
         boolean update = channelBillDownloadProgressService.lambdaUpdate()
                 .eq(ChannelBillDownloadProgressDO::getId, one.getId())
                 .eq(ChannelBillDownloadProgressDO::getVersion, one.getVersion())
@@ -77,25 +80,42 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
 
         }
 
+        /**
+         * 这里继续优化 先下载 下载完成 解析账单
+         */
         Integer code = message.getPayChannel().getCode();
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(code);
 
         //1.获取下载账单下载地址
-        BillDownloadUrlResultBO billDownloadUrlResultBO = paymentService.queryBillDownloadUrl(message.getBillType(), message.getBillDate());
+        BillDownloadUrlResultBO billDownloadUrlResultBO = null;
+        File excelFile = null;
 
-        //2.下载文件到本地临时目录
-        String billDownloadUrl = billDownloadUrlResultBO.getBillDownloadUrl();
         String batchId = one.getBatchId();
         PayChannelEnum channel = message.getPayChannel();
-        File excelFile = downloadFileToLocal(billDownloadUrl, batchId, channel);
-
-        //3.解析账单
-        try (InputStream inputStream = Files.newInputStream(excelFile.toPath())) {
-            fundBillDetailService.importFromExcel(inputStream, batchId, channel,excelFile);
-        } catch (IOException e) {
-            log.error("解析账单失败",e);
+        try {
+            billDownloadUrlResultBO = paymentService.queryBillDownloadUrl(message.getBillType(), message.getBillDate());
+            //2.下载文件到本地临时目录
+            String billDownloadUrl = billDownloadUrlResultBO.getBillDownloadUrl();
+            excelFile = downloadFileToLocal(billDownloadUrl, batchId, channel);
+        } catch (Exception e) {
+            /**
+             * 清空流水号 这样就能重试下载任务
+             */
+            boolean updated = channelBillDownloadProgressService.lambdaUpdate()
+                    .eq(ChannelBillDownloadProgressDO::getId, one.getId())
+                    .set(ChannelBillDownloadProgressDO::getFlowNo, null)
+                    .update();
+            if (!updated) {
+                log.error("重置流水号失败");
+                return;
+            }
+            throw new MessageRetryConsumeException("查询下载地址失败");
         }
-
+        /**
+         * 3.异步解析账单
+         */
+        ParseExcelTask task =    new ParseExcelTask(  batchId,  channel, fundBillDetailService, excelFile);
+        taskScheduler.execute( task);
 
     }
 
@@ -103,8 +123,8 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
     /**
      * 下载文件到本地临时目录
      */
-    private File downloadFileToLocal(String downloadUrl, String batchId,
-                                     PayChannelEnum channel) {
+    private static File downloadFileToLocal(String downloadUrl, String batchId,
+                                            PayChannelEnum channel) {
 
         try {
             // 创建临时目录
@@ -147,5 +167,33 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
         }
     }
 
+    static  class  ParseExcelTask implements Runnable{
+
+
+        private final String batchId;
+        private final PayChannelEnum channel;
+        private final IFundBillDetailService fundBillDetailService;
+        private final File excelFile;
+
+        public ParseExcelTask( String batchId, PayChannelEnum channel, IFundBillDetailService fundBillDetailService,File excelFile) {
+            this.batchId = batchId;
+            this.channel = channel;
+            this.fundBillDetailService = fundBillDetailService;
+            this.excelFile = excelFile;
+        }
+
+        @Override
+        public void run() {
+
+            //3.解析账单
+            try (InputStream inputStream = Files.newInputStream(excelFile.toPath())) {
+
+                fundBillDetailService.importFromExcel(inputStream, batchId, channel,excelFile);
+
+            } catch (IOException e) {
+                log.error("解析账单失败",e);
+            }
+        }
+    }
 
 }

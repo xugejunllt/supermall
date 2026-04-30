@@ -43,7 +43,6 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
     private final AtomicInteger currentParseCount ;
     private final ExcelParseProgressManager excelParseProgressManager;
     private final IChannelBillDownloadProgressService channelBillDownloadProgressService;
-
     /**
      * 保存是否出现过异常
      */
@@ -94,16 +93,18 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
         /**
          * 更新任务状态为已完成
          */
-
+        if (hasExc){
+            log.warn("解析保存出现异常");
+            return;
+        }
         boolean update = channelBillDownloadProgressService.lambdaUpdate()
                 .eq(ChannelBillDownloadProgressDO::getBatchId, batchId)
                 .eq(ChannelBillDownloadProgressDO::getPayChannel, payChannel)
                 .set(ChannelBillDownloadProgressDO::getStatus, BillDownloadStatusEnum.COMPLETED)
                 .update();
         if (!update) {
-            log.error("更新渠道对账单下载进度失败");
+            log.warn("更新渠道对账单下载进度失败");
         }
-
     }
 
     /**

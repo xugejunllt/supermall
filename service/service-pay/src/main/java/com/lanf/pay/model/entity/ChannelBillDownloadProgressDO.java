@@ -1,5 +1,7 @@
 package com.lanf.pay.model.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.mybatis.base.BaseEntity;
@@ -27,9 +29,10 @@ public class ChannelBillDownloadProgressDO extends BaseEntity {
 
     private PayChannelEnum payChannel;
 
-    @ApiModelProperty(value = "0:初始化, 1:下载中，1：下载完成")
+    @ApiModelProperty(value = "1:下载中，1：下载完成")
     private BillDownloadStatusEnum status;
 
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String flowNo;
 
     private Long version;

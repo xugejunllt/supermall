@@ -12,6 +12,7 @@ import com.lanf.pay.service.reconciliation.IFundBillDetailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.InputStream;
 
 /**
@@ -29,10 +30,11 @@ public class FundBillDetailServiceImpl extends ServiceImpl<FundBillDetailMapper,
 
 
     @Override
-    public void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel) {
+    public void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel, File excelFile) {
 
         log.info("开始导入对账单 Excel: batchId={}, payChannel={}", batchId, payChannel);
-        AalPayFundBillDetailReadListener listener = new AalPayFundBillDetailReadListener(batchId, payChannel.getCode().toString());
+        AalPayFundBillDetailReadListener listener = new AalPayFundBillDetailReadListener
+                (batchId, payChannel.getCode().toString());
         Class<?> head = null;
         switch (payChannel){
             case ALI_PAY:
@@ -57,6 +59,16 @@ public class FundBillDetailServiceImpl extends ServiceImpl<FundBillDetailMapper,
         } catch (Exception e) {
             log.error("对账单 Excel 导入失败: batchId={}, payChannel={}", batchId, payChannel, e);
             throw new BizException("对账单导入失败");
+        } finally {
+            // 无论成功或失败，都删除临时文件
+            if (excelFile != null && excelFile.exists()) {
+                boolean deleted = excelFile.delete();
+                if (deleted) {
+                    log.info("临时文件已清理: {}", excelFile.getAbsolutePath());
+                } else {
+                    log.warn("临时文件清理失败: {}", excelFile.getAbsolutePath());
+                }
+            }
         }
     }
 }

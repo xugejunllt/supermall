@@ -16,10 +16,7 @@ public class BillSynchronizerMessage implements Serializable {
 
     private String flowNo;
 
-    /**
-     * 文件路径
-     */
-    private String filePath;
+
 
 
 }

@@ -8,10 +8,10 @@ public class PayMqTopicName {
     public static final String BILL_SYNCHRONIZER_TOPIC = "BILL_SYNCHRONIZER_TOPIC";
 
     /**
-     * 解析账单 批量保存失败时
-     *   通过mq进行补偿
-     *   mq可以自动进行重试
+     *
+     *下载解析对账单 Excel 超时后重试
+     *
      */
-    public static final String FUND_BILL_DETAIL_COMPENSATION_TOPIC = "FUND_BILL_DETAIL_COMPENSATION_TOPIC";
+    public static final String BILL_EXCEL_PARSE_RETRY_TOPIC = "BILL_EXCEL_PARSE_RETRY_TOPIC";
 
 }
