@@ -13,5 +13,12 @@ public class PayMqTopicName {
      *
      */
     public static final String BILL_EXCEL_PARSE_RETRY_TOPIC = "BILL_EXCEL_PARSE_RETRY_TOPIC";
+    /**
+     * 开始对账任务
+     */
+    public static final String RECONCILIATION_START_TOPIC = "RECONCILIATION_START_TOPIC";
+
+
+
 
 }

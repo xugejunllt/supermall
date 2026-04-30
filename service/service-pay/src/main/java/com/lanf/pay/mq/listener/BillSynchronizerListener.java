@@ -5,6 +5,7 @@ import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.BillDownloadUrlResultBO;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
+import com.lanf.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.BillSynchronizerMessage;
@@ -46,12 +47,15 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
     @Autowired
     private ThreadPoolTaskScheduler taskScheduler;
 
+
     @Override
     public void onMessage(BillSynchronizerMessage message) {
 
 
         String billDate = message.getBillDate();
         PayChannelEnum payChannel = message.getPayChannel();
+
+
         String flowNo = message.getFlowNo();
         ChannelBillDownloadProgressDO one = channelBillDownloadProgressService.lambdaQuery()
                 .eq(ChannelBillDownloadProgressDO::getBatchId, billDate)
@@ -59,6 +63,10 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
                 .one();
         if (one == null) {
             log.error("该批次不存在");
+            return;
+        }
+        if (BillDownloadStatusEnum.COMPLETED.equals(one.getStatus())) {
+            log.info("解析任务已完成");
             return;
         }
         if (!IStringUtils.isEmpty(one.getFlowNo())) {

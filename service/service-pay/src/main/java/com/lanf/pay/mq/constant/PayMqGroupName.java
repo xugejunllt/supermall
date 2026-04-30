@@ -20,5 +20,6 @@ public class PayMqGroupName {
 
     public static final String BILL_EXCEL_PARSE_RETRY_GROUP = "BILL_EXCEL_PARSE_RETRY_GROUP";
 
+    public static final String RECONCILIATION_START_GROUP = "RECONCILIATION_START_GROUP";
 
 }

@@ -43,9 +43,10 @@ public class BillReconciliationTask {
      * 下载账单到DB中
      * <p>
      * 使用mq 不同渠道不同mq任务处理
+     *
+     * 每天上午9点执行
      */
-    @Scheduled(cron = "0/5 * * * * *")
-    public void billSynchronizerTask() {
+    @Scheduled(cron = "0 0 9 * * ?", zone = "Asia/Shanghai")    public void billSynchronizerTask() {
 
         log.info("开始执行T+1下载对账单任务");
 
