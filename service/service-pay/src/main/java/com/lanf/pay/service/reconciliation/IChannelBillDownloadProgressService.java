@@ -4,8 +4,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 
-import java.util.List;
-
 /**
  * <p>
  * 渠道对账单下载进度 服务类
@@ -31,22 +29,10 @@ public interface IChannelBillDownloadProgressService extends IService<ChannelBil
     boolean exist(String batchId, PayChannelEnum payChannel);
 
     /**
-     *更新渠道对账单下载进度为已完成
+     * 重新投递mq 解析任务
      *
      */
-    void  updateFinish(String batchId, PayChannelEnum payChannel);
+    void redeliverTask(ChannelBillDownloadProgressDO downloadProgressDO,String billTyp);
 
-    /**
-     * 下载任务是否都完成
-     *
-     *
-     */
 
-    boolean allFinish(String batchId);
-
-    /**
-     * 获取可对账的支付渠道
-     *
-     */
-    List<PayChannelEnum> getUsablePayChannel();
 }

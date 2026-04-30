@@ -11,7 +11,7 @@ public class ThreadPoolTaskConfig {
     public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
 
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setPoolSize(5); // 设置线程池大小
+        scheduler.setPoolSize(50); // 设置线程池大小
         scheduler.setThreadNamePrefix("scheduled-task-"); // 设置线程名称前缀
         return scheduler;
     }
