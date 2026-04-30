@@ -4,11 +4,13 @@ import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.pay.mapper.FundBillDetailMapper;
-import com.lanf.pay.model.bo.BillSynchronizer;
-import com.lanf.pay.model.entity.ChannelBillDownloadProgress;
+import com.lanf.pay.model.bo.BillDownloadUrlResultBO;
+import com.lanf.pay.mq.message.BillSynchronizerMessage;
+import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 import com.lanf.pay.model.entity.FundBillDetailDO;
 import com.lanf.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
+import com.lanf.pay.service.reconciliation.IFundBillDetailService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -41,8 +49,13 @@ public class BillReconciliationTask {
     @Autowired
     private ThreadPoolTaskScheduler taskScheduler;
 
+    @Autowired
+    private IFundBillDetailService fundBillDetailService;
+
     /**
      * 下载账单到DB中
+     *
+     * 使用mq 不同渠道不同mq任务处理
      */
     @Scheduled(cron = "0/5 * * * * *")
     public void billSynchronizerTask() {
@@ -52,7 +65,7 @@ public class BillReconciliationTask {
         String relativeDateString = DateUtils.getRelativeDateString(new Date(), -1, DateUtils.DATE);
         List<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
 
-        BillSynchronizer billSynchronizerMessage = new BillSynchronizer();
+        BillSynchronizerMessage billSynchronizerMessage = new BillSynchronizerMessage();
 
         billSynchronizerMessage.setBillType("signcustomer");
 
@@ -73,15 +86,13 @@ public class BillReconciliationTask {
                     log.info("{}账单正在下载中", channel);
                     continue;
                 }
-                billSynchronizerMessage.setRetryCount(new AtomicInteger(0));
-                billSynchronizerTask(billSynchronizerMessage);
-
+                z
             }
         }
         log.info("结束执行T+1定时下载对账单任务");
     }
 
-    private static void billSynchronizerTask(BillSynchronizer billSynchronizer) {
+    private static void billSynchronizerTask(BillSynchronizerMessage billSynchronizer) {
         AtomicInteger retryCount = billSynchronizer.getRetryCount();
         int andIncrement = retryCount.get();
         if (andIncrement > 3) {
@@ -99,12 +110,12 @@ public class BillReconciliationTask {
      */
     static class BillSynchronizerTask implements Runnable {
 
-        private final BillSynchronizer billSynchronizer;
+        private final BillSynchronizerMessage billSynchronizer;
         private final ThreadPoolTaskScheduler taskScheduler;
         private final FundBillDetailMapper fundBillDetailMapper;
         private final IChannelBillDownloadProgressService channelBillDownloadProgressService;
 
-        public BillSynchronizerTask(BillSynchronizer billSynchronizer) {
+        public BillSynchronizerTask(BillSynchronizerMessage billSynchronizer) {
             this.billSynchronizer = billSynchronizer;
             this.fundBillDetailMapper = BeanUtil.getBean(FundBillDetailMapper.class);
             this.channelBillDownloadProgressService = BeanUtil.getBean(IChannelBillDownloadProgressService.class);
@@ -125,28 +136,42 @@ public class BillReconciliationTask {
                         batch.clear();
                     } catch (Exception e) {
                         log.warn("批量插入失败");
-
+                        /**
+                         * 休眠 10分钟 如果数据库此时出现异常 将一直不停的重试
+                         *
+                         *  future.cancel(true);
+                         *  线程被中断, 则任务将不会继续执行 因为有其他线程开始跑了
+                         */
+                        try {
+                            Thread.sleep( 600000L );
+                        } catch (InterruptedException ex) {
+                            log.warn("线程被中断");
+                            break;
+                        }
                     }
                 }
 
 
             });
             try {
-                future.get(2, TimeUnit.HOURS);
+                future.get(1, TimeUnit.HOURS);
             } catch (TimeoutException | InterruptedException | ExecutionException e) {
                 /**
                  * 超时 取消重试
                  */
 
                 future.cancel(true);
+                /**
+                 * 重新执行任务 重试 发送mq
+                 */
                 billSynchronizerTask( billSynchronizer);
             }
             /**
              * 账单解析成功
              */
-            ChannelBillDownloadProgress one = channelBillDownloadProgressService.lambdaQuery()
-                    .eq(ChannelBillDownloadProgress::getBatchId, billSynchronizer.getBillDate())
-                    .eq(ChannelBillDownloadProgress::getPayChannel, billSynchronizer.getPayChannel())
+            ChannelBillDownloadProgressDO one = channelBillDownloadProgressService.lambdaQuery()
+                    .eq(ChannelBillDownloadProgressDO::getBatchId, billSynchronizer.getBillDate())
+                    .eq(ChannelBillDownloadProgressDO::getPayChannel, billSynchronizer.getPayChannel())
                     .one();
             if (one == null) {
                 log.error("该批次不存在");
@@ -157,12 +182,12 @@ public class BillReconciliationTask {
                 return;
             }
             boolean update = channelBillDownloadProgressService.lambdaUpdate()
-                    .eq(ChannelBillDownloadProgress::getBatchId, billSynchronizer.getBillDate())
-                    .eq(ChannelBillDownloadProgress::getPayChannel, billSynchronizer.getPayChannel())
-                    .eq(ChannelBillDownloadProgress::getVersion, one.getVersion())
-                    .eq(ChannelBillDownloadProgress::getStatus, BillDownloadStatusEnum.DOWNLOADING)
-                    .set(ChannelBillDownloadProgress::getVersion, one.getVersion() + 1)
-                    .set(ChannelBillDownloadProgress::getStatus, BillDownloadStatusEnum.COMPLETED)
+                    .eq(ChannelBillDownloadProgressDO::getBatchId, billSynchronizer.getBillDate())
+                    .eq(ChannelBillDownloadProgressDO::getPayChannel, billSynchronizer.getPayChannel())
+                    .eq(ChannelBillDownloadProgressDO::getVersion, one.getVersion())
+                    .eq(ChannelBillDownloadProgressDO::getStatus, BillDownloadStatusEnum.DOWNLOADING)
+                    .set(ChannelBillDownloadProgressDO::getVersion, one.getVersion() + 1)
+                    .set(ChannelBillDownloadProgressDO::getStatus, BillDownloadStatusEnum.COMPLETED)
                     .update();
             if (!update) {
                 log.warn("更新失败");
@@ -173,4 +198,15 @@ public class BillReconciliationTask {
 
         return new ArrayList<>();
     }
+
+    /**
+     * 开始对账 启动时间比下载晚2个小时
+     */
+    @Scheduled(cron = "0/5 * * * * *")
+    public void startBillTask(){
+
+
+    }
+
+
 }

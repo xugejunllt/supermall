@@ -1,13 +1,12 @@
-package com.lanf.pay.model.bo;
+package com.lanf.pay.mq.message;
 
 import com.lanf.client.pay.model.enums.PayChannelEnum;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Data
-public class BillSynchronizer implements Serializable {
+public class BillSynchronizerMessage implements Serializable {
 
     private PayChannelEnum payChannel;
 
@@ -15,6 +14,12 @@ public class BillSynchronizer implements Serializable {
 
     private String billDate;
 
-    private AtomicInteger retryCount ;
+    private String flowNo;
+
+    /**
+     * 文件路径
+     */
+    private String filePath;
+
 
 }

@@ -1,10 +1,18 @@
 package com.lanf.pay.service.reconciliation.impl;
 
+import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
+import com.lanf.constant.exception.BizException;
+import com.lanf.pay.excel.AalPayFundBillDetailExcel;
+import com.lanf.pay.excel.AalPayFundBillDetailReadListener;
 import com.lanf.pay.mapper.FundBillDetailMapper;
 import com.lanf.pay.model.entity.FundBillDetailDO;
 import com.lanf.pay.service.reconciliation.IFundBillDetailService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.io.InputStream;
 
 /**
  * <p>
@@ -14,7 +22,42 @@ import org.springframework.stereotype.Service;
  * @author jarven
  * @since 2026-04-29
  */
+@Slf4j
 @Service
 public class FundBillDetailServiceImpl extends ServiceImpl<FundBillDetailMapper, FundBillDetailDO> implements IFundBillDetailService {
 
+
+
+    @Override
+    public void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel) {
+
+        log.info("开始导入对账单 Excel: batchId={}, payChannel={}", batchId, payChannel);
+        AalPayFundBillDetailReadListener listener = new AalPayFundBillDetailReadListener(
+                getBaseMapper(), batchId, payChannel.getCode().toString());
+        Class<?> head = null;
+        switch (payChannel){
+            case ALI_PAY:
+                head = AalPayFundBillDetailExcel.class;
+                break;
+            case WECHAT_PAY:
+                log.error("不支持的支付渠道: {}", payChannel);
+                break;
+            default:
+                log.error("不支持的支付渠道: {}", payChannel);
+                throw new BizException("不支持的支付渠道");
+        }
+
+        try {
+
+            EasyExcel.read(inputStream, head, listener)
+                    .sheet()
+                    .doRead();
+
+            log.info("对账单 Excel 导入完成: batchId={}, payChannel={}", batchId, payChannel);
+
+        } catch (Exception e) {
+            log.error("对账单 Excel 导入失败: batchId={}, payChannel={}", batchId, payChannel, e);
+            throw new BizException("对账单导入失败");
+        }
+    }
 }

@@ -2,7 +2,7 @@ package com.lanf.pay.service.reconciliation;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.client.pay.model.enums.PayChannelEnum;
-import com.lanf.pay.model.entity.ChannelBillDownloadProgress;
+import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
  * @author jarven
  * @since 2026-04-29
  */
-public interface IChannelBillDownloadProgressService extends IService<ChannelBillDownloadProgress> {
+public interface IChannelBillDownloadProgressService extends IService<ChannelBillDownloadProgressDO> {
 
     /**
      * 添加渠道对账单下载进度

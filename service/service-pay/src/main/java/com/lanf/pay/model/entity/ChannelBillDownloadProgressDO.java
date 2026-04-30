@@ -17,7 +17,7 @@ import lombok.Data;
  */
 @Data
 @TableName("channel_bill_download_progress")
-public class ChannelBillDownloadProgress extends BaseEntity {
+public class ChannelBillDownloadProgressDO extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
@@ -29,6 +29,8 @@ public class ChannelBillDownloadProgress extends BaseEntity {
 
     @ApiModelProperty(value = "0:初始化, 1:下载中，1：下载完成")
     private BillDownloadStatusEnum status;
+
+    private String flowNo;
 
     private Long version;
 

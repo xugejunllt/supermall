@@ -1,0 +1,161 @@
+package com.lanf.pay.mq.listener;
+
+import com.lanf.client.pay.model.enums.PayChannelEnum;
+import com.lanf.common.utils.IStringUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.pay.model.bo.BillDownloadUrlResultBO;
+import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
+import com.lanf.pay.mq.constant.PayMqGroupName;
+import com.lanf.pay.mq.constant.PayMqTopicName;
+import com.lanf.pay.mq.message.BillSynchronizerMessage;
+import com.lanf.pay.service.pay.PaymentService;
+import com.lanf.pay.service.pay.PaymentServiceFactory;
+import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
+import com.lanf.pay.service.reconciliation.IFundBillDetailService;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
+import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.stereotype.Component;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Files;
+
+/**
+ * 同步账单
+ */
+@Slf4j
+@Component
+@RocketMQMessageListener(
+        topic = PayMqTopicName.BILL_SYNCHRONIZER_TOPIC,
+        consumerGroup = PayMqGroupName.BILL_SYNCHRONIZER_GROUP
+)
+public class BillSynchronizerListener implements RocketMQListener<BillSynchronizerMessage> {
+
+    @Autowired
+    private IChannelBillDownloadProgressService channelBillDownloadProgressService;
+
+    @Autowired
+    private IFundBillDetailService fundBillDetailService;
+    @Qualifier("taskScheduler")
+    @Autowired
+    private ThreadPoolTaskScheduler taskScheduler;
+
+    @Override
+    public void onMessage(BillSynchronizerMessage message) {
+
+
+        String billDate = message.getBillDate();
+        PayChannelEnum payChannel = message.getPayChannel();
+        String flowNo = message.getFlowNo();
+        ChannelBillDownloadProgressDO one = channelBillDownloadProgressService.lambdaQuery()
+                .eq(ChannelBillDownloadProgressDO::getBatchId, billDate)
+                .eq(ChannelBillDownloadProgressDO::getPayChannel, payChannel)
+                .one();
+        if (one == null) {
+            log.error("该批次不存在");
+            return;
+        }
+        if (!IStringUtils.isEmpty(one.getFlowNo())) {
+            log.info("解析任务正在执行");
+            return;
+        }
+        boolean update = channelBillDownloadProgressService.lambdaUpdate()
+                .eq(ChannelBillDownloadProgressDO::getId, one.getId())
+                .eq(ChannelBillDownloadProgressDO::getVersion, one.getVersion())
+                .set(ChannelBillDownloadProgressDO::getFlowNo, flowNo)
+                .set(ChannelBillDownloadProgressDO::getVersion, one.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.warn("更新失败");
+            throw new MessageRetryConsumeException("更新失败");
+
+        }
+
+        Integer code = message.getPayChannel().getCode();
+        PaymentService paymentService = PaymentServiceFactory.getPaymentService(code);
+
+        //1.获取下载账单下载地址
+        BillDownloadUrlResultBO billDownloadUrlResultBO = paymentService.queryBillDownloadUrl(message.getBillType(), message.getBillDate());
+
+        //2.下载文件到本地临时目录
+        String billDownloadUrl = billDownloadUrlResultBO.getBillDownloadUrl();
+        String batchId = one.getBatchId();
+        PayChannelEnum channel = message.getPayChannel();
+        File excelFile = downloadFileToLocal(billDownloadUrl, batchId, channel, message.getFilePath());
+
+        //3.解析账单
+        try (InputStream inputStream = Files.newInputStream(excelFile.toPath())) {
+            fundBillDetailService.importFromExcel(inputStream, batchId, channel);
+        } catch (IOException e) {
+            log.error("解析账单失败",e);
+        }
+
+
+    }
+
+
+    /**
+     * 下载文件到本地临时目录
+     */
+    private File downloadFileToLocal(String downloadUrl, String batchId,
+                                     PayChannelEnum channel, String filePath) {
+
+        if (!IStringUtils.isEmpty(filePath)) {
+            File file = new File(filePath);
+            if (file.exists()) {
+                /**
+                 * 如果文件已经存在 直接返回
+                 */
+                return file;
+            }
+        }
+
+        try {
+            // 创建临时目录
+            String tempDir = System.getProperty("java.io.tmpdir") + "/bill_download/";
+            File dir = new File(tempDir);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            // 生成临时文件名
+            String fileName = String.format("%s_%s_%d.xlsx",
+                    batchId, channel.name(), System.currentTimeMillis());
+            File tempFile = new File(tempDir + fileName);
+
+            // 下载文件（使用 HttpURLConnection 或 HttpClient）
+            URL url = new URL(downloadUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(60000);
+
+            try (InputStream inputStream = connection.getInputStream();
+                 FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+
+            connection.disconnect();
+            log.info("文件下载成功: {}", tempFile.getAbsolutePath());
+
+            return tempFile;
+
+        } catch (Exception e) {
+            log.error("文件下载失败: url={}", downloadUrl, e);
+            throw new BizException("文件下载失败");
+        }
+    }
+
+
+}

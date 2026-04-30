@@ -1,7 +1,10 @@
 package com.lanf.pay.service.reconciliation;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.pay.model.entity.FundBillDetailDO;
+
+import java.io.InputStream;
 
 /**
  * <p>
@@ -13,4 +16,12 @@ import com.lanf.pay.model.entity.FundBillDetailDO;
  */
 public interface IFundBillDetailService extends IService<FundBillDetailDO> {
 
+    /**
+     * 从 Excel 文件导入对账单明细
+     *
+     * @param inputStream Excel 文件输入流
+     * @param batchId 批次ID（账单日期）
+     * @param payChannel 支付渠道
+     */
+    void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel);
 }

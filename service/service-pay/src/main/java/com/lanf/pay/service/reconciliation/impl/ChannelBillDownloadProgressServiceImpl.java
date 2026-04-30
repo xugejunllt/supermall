@@ -5,7 +5,7 @@ import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.mapper.ChannelBillDownloadProgressMapper;
-import com.lanf.pay.model.entity.ChannelBillDownloadProgress;
+import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 import com.lanf.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
 import lombok.extern.slf4j.Slf4j;
@@ -26,20 +26,20 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class ChannelBillDownloadProgressServiceImpl extends ServiceImpl<ChannelBillDownloadProgressMapper, ChannelBillDownloadProgress> implements IChannelBillDownloadProgressService {
+public class ChannelBillDownloadProgressServiceImpl extends ServiceImpl<ChannelBillDownloadProgressMapper, ChannelBillDownloadProgressDO> implements IChannelBillDownloadProgressService {
 
 
     @Override
     public boolean addChannelBillDownloadProgress(String batchId, PayChannelEnum payChannel) {
 
-        ChannelBillDownloadProgress one = this.lambdaQuery().eq(ChannelBillDownloadProgress::getBatchId, batchId)
-                .eq(ChannelBillDownloadProgress::getPayChannel, payChannel).one();
+        ChannelBillDownloadProgressDO one = this.lambdaQuery().eq(ChannelBillDownloadProgressDO::getBatchId, batchId)
+                .eq(ChannelBillDownloadProgressDO::getPayChannel, payChannel).one();
         if (one != null) {
             log.warn("该批次已存在");
             return false;
         }
 
-        ChannelBillDownloadProgress channelBillDownloadProgress = new ChannelBillDownloadProgress();
+        ChannelBillDownloadProgressDO channelBillDownloadProgress = new ChannelBillDownloadProgressDO();
         channelBillDownloadProgress.setBatchId(batchId);
         channelBillDownloadProgress.setPayChannel(payChannel);
         channelBillDownloadProgress.setStatus(BillDownloadStatusEnum.DOWNLOADING);
@@ -57,28 +57,28 @@ public class ChannelBillDownloadProgressServiceImpl extends ServiceImpl<ChannelB
     @Override
     public boolean exist(String batchId, PayChannelEnum payChannel) {
 
-        ChannelBillDownloadProgress one = this.lambdaQuery()
-                .eq(ChannelBillDownloadProgress::getBatchId, batchId)
-                .eq(ChannelBillDownloadProgress::getPayChannel, payChannel)
+        ChannelBillDownloadProgressDO one = this.lambdaQuery()
+                .eq(ChannelBillDownloadProgressDO::getBatchId, batchId)
+                .eq(ChannelBillDownloadProgressDO::getPayChannel, payChannel)
                 .one();
         return one != null;
     }
 
     @Override
     public void updateFinish(String batchId, PayChannelEnum payChannel) {
-        ChannelBillDownloadProgress one = this.lambdaQuery().eq(ChannelBillDownloadProgress::getBatchId, batchId)
-                .eq(ChannelBillDownloadProgress::getPayChannel, payChannel).one();
+        ChannelBillDownloadProgressDO one = this.lambdaQuery().eq(ChannelBillDownloadProgressDO::getBatchId, batchId)
+                .eq(ChannelBillDownloadProgressDO::getPayChannel, payChannel).one();
         if (one == null) {
             log.error("该批次不存在");
             throw new BizException("该批次不存在");
         }
         boolean update = this.lambdaUpdate()
-                .eq(ChannelBillDownloadProgress::getBatchId, batchId)
-                .eq(ChannelBillDownloadProgress::getVersion, one.getVersion())
-                .eq(ChannelBillDownloadProgress::getStatus,0)
-                .eq(ChannelBillDownloadProgress::getPayChannel, payChannel)
-                .set(ChannelBillDownloadProgress::getStatus, 1)
-                .set(ChannelBillDownloadProgress::getVersion, one.getVersion() + 1)
+                .eq(ChannelBillDownloadProgressDO::getBatchId, batchId)
+                .eq(ChannelBillDownloadProgressDO::getVersion, one.getVersion())
+                .eq(ChannelBillDownloadProgressDO::getStatus,0)
+                .eq(ChannelBillDownloadProgressDO::getPayChannel, payChannel)
+                .set(ChannelBillDownloadProgressDO::getStatus, 1)
+                .set(ChannelBillDownloadProgressDO::getVersion, one.getVersion() + 1)
                 .update();
         if (!update) {
             log.error("更新失败");
@@ -97,9 +97,9 @@ public class ChannelBillDownloadProgressServiceImpl extends ServiceImpl<ChannelB
         }
         
         // 查询该批次下所有状态为已完成（status=1）的记录
-        List<ChannelBillDownloadProgress> finishedRecords = this.lambdaQuery()
-                .eq(ChannelBillDownloadProgress::getBatchId, batchId)
-                .eq(ChannelBillDownloadProgress::getStatus, 1)
+        List<ChannelBillDownloadProgressDO> finishedRecords = this.lambdaQuery()
+                .eq(ChannelBillDownloadProgressDO::getBatchId, batchId)
+                .eq(ChannelBillDownloadProgressDO::getStatus, 1)
                 .list();
         
         if (finishedRecords == null || finishedRecords.isEmpty()) {

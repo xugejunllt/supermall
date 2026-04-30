@@ -17,4 +17,8 @@ public class PayMqGroupName {
      */
     public static final String BILL_SYNCHRONIZER_GROUP = "BILL_SYNCHRONIZER_GROUP";
 
+
+    public static final String FUND_BILL_DETAIL_COMPENSATION_GROUP = "FUND_BILL_DETAIL_COMPENSATION_GROUP";
+
+
 }
