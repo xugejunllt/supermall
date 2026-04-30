@@ -87,11 +87,11 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
         String billDownloadUrl = billDownloadUrlResultBO.getBillDownloadUrl();
         String batchId = one.getBatchId();
         PayChannelEnum channel = message.getPayChannel();
-        File excelFile = downloadFileToLocal(billDownloadUrl, batchId, channel, message.getFilePath());
+        File excelFile = downloadFileToLocal(billDownloadUrl, batchId, channel);
 
         //3.解析账单
         try (InputStream inputStream = Files.newInputStream(excelFile.toPath())) {
-            fundBillDetailService.importFromExcel(inputStream, batchId, channel);
+            fundBillDetailService.importFromExcel(inputStream, batchId, channel,excelFile);
         } catch (IOException e) {
             log.error("解析账单失败",e);
         }
@@ -104,17 +104,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
      * 下载文件到本地临时目录
      */
     private File downloadFileToLocal(String downloadUrl, String batchId,
-                                     PayChannelEnum channel, String filePath) {
-
-        if (!IStringUtils.isEmpty(filePath)) {
-            File file = new File(filePath);
-            if (file.exists()) {
-                /**
-                 * 如果文件已经存在 直接返回
-                 */
-                return file;
-            }
-        }
+                                     PayChannelEnum channel) {
 
         try {
             // 创建临时目录
