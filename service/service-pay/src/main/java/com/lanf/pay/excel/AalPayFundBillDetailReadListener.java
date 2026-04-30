@@ -4,12 +4,11 @@ package com.lanf.pay.excel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.read.listener.ReadListener;
 import com.lanf.common.utils.BeanUtil;
-import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.mapper.FundBillDetailMapper;
+import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 import com.lanf.pay.model.entity.FundBillDetailDO;
-import com.lanf.pay.mq.constant.PayMqTopicName;
-import com.lanf.pay.mq.message.FundBillDetailCompensationMessage;
-import com.lanf.rocketmq.model.enums.DelayLevelEnum;
+import com.lanf.pay.model.enums.BillDownloadStatusEnum;
+import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,6 +42,12 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
     private final RocketMqClient rocketMqClient;
     private final AtomicInteger currentParseCount ;
     private final ExcelParseProgressManager excelParseProgressManager;
+    private final IChannelBillDownloadProgressService channelBillDownloadProgressService;
+
+    /**
+     * 保存是否出现过异常
+     */
+    private Boolean hasExc;
 
     public AalPayFundBillDetailReadListener(String batchId, String payChannel) {
         this.fundBillDetailMapper = BeanUtil.getBean(FundBillDetailMapper.class);
@@ -51,6 +56,9 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
         this.rocketMqClient = BeanUtil.getBean(RocketMqClient.class);
         this.currentParseCount = new AtomicInteger(0);
         this.excelParseProgressManager = BeanUtil.getBean(ExcelParseProgressManager.class);
+        this.channelBillDownloadProgressService = BeanUtil.getBean(IChannelBillDownloadProgressService.class);
+        this.hasExc = false;
+
     }
 
     @Override
@@ -83,6 +91,19 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
             cachedDataList.clear();
         }
         log.info("Excel 解析完成");
+        /**
+         * 更新任务状态为已完成
+         */
+
+        boolean update = channelBillDownloadProgressService.lambdaUpdate()
+                .eq(ChannelBillDownloadProgressDO::getBatchId, batchId)
+                .eq(ChannelBillDownloadProgressDO::getPayChannel, payChannel)
+                .set(ChannelBillDownloadProgressDO::getStatus, BillDownloadStatusEnum.COMPLETED)
+                .update();
+        if (!update) {
+            log.error("更新渠道对账单下载进度失败");
+        }
+
     }
 
     /**
@@ -107,27 +128,28 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
 
         } catch (Exception e) {
             log.warn("批量插入对账单明细失败", e);
-            /**
-             * 解析账单任务 并发批量插入 DB压力大 可能超时
-             * 发送mq补偿
-             */
-            try {
-                FundBillDetailCompensationMessage fundBillDetailCompensationMessage
-                        = new FundBillDetailCompensationMessage();
-                fundBillDetailCompensationMessage.setCachedDataList(cachedDataList);
-                fundBillDetailCompensationMessage.setCurrentParseCount(rows);
-                fundBillDetailCompensationMessage.setBatchId(batchId);
-                fundBillDetailCompensationMessage.setPayChannel(payChannel);
-                /**
-                 *
-                 * 延迟5秒 让数据库恢复一下
-                 *
-                 */
-                rocketMqClient.sendDelayMessage(PayMqTopicName.FUND_BILL_DETAIL_COMPENSATION_TOPIC,
-                        JsonUtils.toJsonString(fundBillDetailCompensationMessage), DelayLevelEnum.LEVEL_2);
-            } catch (Exception ex) {
-                log.error("发送对账单补偿失败", ex);
-            }
+            hasExc = true;
+//            /**
+//             * 解析账单任务 并发批量插入 DB压力大 可能超时
+//             * 发送mq补偿
+//             */
+//            try {
+//                FundBillDetailCompensationMessage fundBillDetailCompensationMessage
+//                        = new FundBillDetailCompensationMessage();
+//                fundBillDetailCompensationMessage.setCachedDataList(cachedDataList);
+//                fundBillDetailCompensationMessage.setCurrentParseCount(rows);
+//                fundBillDetailCompensationMessage.setBatchId(batchId);
+//                fundBillDetailCompensationMessage.setPayChannel(payChannel);
+//                /**
+//                 *
+//                 * 延迟5秒 让数据库恢复一下
+//                 *
+//                 */
+//                rocketMqClient.sendDelayMessage(PayMqTopicName.FUND_BILL_DETAIL_COMPENSATION_TOPIC,
+//                        JsonUtils.toJsonString(fundBillDetailCompensationMessage), DelayLevelEnum.LEVEL_2);
+//            } catch (Exception ex) {
+//                log.error("发送对账单补偿失败", ex);
+//            }
         }
     }
 
