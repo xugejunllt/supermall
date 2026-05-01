@@ -29,7 +29,7 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<FundBillD
     private IFundBillDetailService fundBillDetailService;
 
     @Override
-    protected ReconciliationJobTypeEnum getJobType() {
+    public ReconciliationJobTypeEnum getJobType() {
 
         return ReconciliationJobTypeEnum.TRADE_SHORT_CHECK;
     }

@@ -30,7 +30,7 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<PayOrderFl
 
 
     @Override
-    protected ReconciliationJobTypeEnum getJobType() {
+    public ReconciliationJobTypeEnum getJobType() {
         return ReconciliationJobTypeEnum.TRADE_LONG_CHECK;
     }
 

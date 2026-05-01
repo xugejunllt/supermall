@@ -14,7 +14,6 @@ import com.lanf.pay.service.reconciliation.IReconciliationJobLogService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
