@@ -77,7 +77,7 @@ public class BillReconciliationTask {
 
         log.info("开始执行T+1下载对账单任务");
 
-        String relativeDateString = DateUtils.getRelativeDateString(new Date(), -1, DateUtils.DATE);
+        String relativeDateString = getBathId();
         Set<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
 
         BillSynchronizerMessage billSynchronizerMessage = new BillSynchronizerMessage();
@@ -122,7 +122,7 @@ public class BillReconciliationTask {
     @Scheduled(cron = "0 0 10-23 * * ?", zone = "Asia/Shanghai")
     public void isBillParsedTask() {
 
-        String bathId = DateUtils.getRelativeDateString(new Date(), -1, DateUtils.DATE);
+        String bathId = getBathId();
 
         List<ChannelBillDownloadProgressDO> downloadProgressDOS =
                 channelBillDownloadProgressService.lambdaQuery()
@@ -157,7 +157,7 @@ public class BillReconciliationTask {
     @Scheduled(cron = "0 0/30 10-23 * * ?", zone = "Asia/Shanghai")
     public void isAllBillParsedTask() {
 
-        String bathId = DateUtils.getRelativeDateString(new Date(), -1, DateUtils.DATE);
+        String bathId = getBathId();
         List<ChannelBillDownloadProgressDO> downloadProgressDOS =
                 channelBillDownloadProgressService.lambdaQuery()
                         .eq(ChannelBillDownloadProgressDO::getBatchId, bathId).list();
@@ -178,6 +178,33 @@ public class BillReconciliationTask {
             taskScheduler.execute(billScanTask);
         }
         log.info("批次号 {} 的对账任务已提交", bathId);
+    }
+
+    private String getBathId(){
+        return DateUtils.getRelativeDateString(new Date(), -1, DateUtils.DATE);
+    }
+    /**
+     * 检查扫描任务是否完成
+     */
+    @Scheduled(cron = "0 0 12-23 * * ?", zone = "Asia/Shanghai")
+    public void billScanCompletionCheckerTask(){
+
+        String bathId = getBathId();
+        List<ReconciliationJobLogDO> jobLogDOList = reconciliationJobLogService.lambdaQuery()
+                .eq(ReconciliationJobLogDO::getBatchId, bathId)
+                .list();
+        for (ReconciliationJobLogDO jobLogDO : jobLogDOList){
+
+            if (jobLogDO.getStatus().isExecuting()){
+                log.info("批次号 {} 的任务 {} 正在执行,重新投递", bathId, jobLogDO.getJobType());
+                BillScanTask billScanTask = new BillScanTask(bathId, jobLogDO.getJobType());
+                taskScheduler.execute(billScanTask);
+            }
+
+        }
+
+
+
     }
 
     static class BillScanTask implements Runnable {

@@ -109,14 +109,11 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
             /**
              * 清空流水号 这样就能重试下载任务
              */
-            boolean updated = channelBillDownloadProgressService.lambdaUpdate()
+             channelBillDownloadProgressService.lambdaUpdate()
                     .eq(ChannelBillDownloadProgressDO::getId, one.getId())
                     .set(ChannelBillDownloadProgressDO::getFlowNo, null)
                     .update();
-            if (!updated) {
-                log.error("重置流水号失败");
-                return;
-            }
+
             throw new MessageRetryConsumeException("查询下载地址失败");
         }
         /**

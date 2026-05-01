@@ -18,9 +18,14 @@ public enum ReconciliationJobStatusEnum {
     EXECUTING(0, "执行中"),
 
     /**
-     * 已完成
+     * 扫描已完成
      */
-    COMPLETED(2, "已完成");
+    SCAN_COMPLETED(1, "扫描已完成"),
+
+    /**
+     * 对账完成
+     */
+    COMPLETED(2, "对账完成");
 
     @EnumValue
     @JsonValue
@@ -68,5 +73,14 @@ public enum ReconciliationJobStatusEnum {
      */
     public boolean isExecuting() {
         return this == EXECUTING;
+    }
+
+    /**
+     * 判断扫描是否已完成
+     *
+     * @return 是否扫描完成
+     */
+    public boolean isScanCompleted() {
+        return this == SCAN_COMPLETED;
     }
 }
