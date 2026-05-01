@@ -4,7 +4,7 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.constant.exception.BizException;
-import com.lanf.pay.service.reconciliation.excel.AalPayFundBillDetailExcel;
+import com.lanf.pay.service.reconciliation.excel.AalPaySignCustomerFundBillDetailExcel;
 import com.lanf.pay.service.reconciliation.excel.FundBillDetailReadListener;
 import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
@@ -38,7 +38,7 @@ public class SignCustomerFundBillDetailServiceImpl extends ServiceImpl<SignCusto
         Class<?> head = null;
         switch (payChannel){
             case ALI_PAY:
-                head = AalPayFundBillDetailExcel.class;
+                head = AalPaySignCustomerFundBillDetailExcel.class;
                 break;
             case WECHAT_PAY:
                 log.error("不支持的支付渠道: {}", payChannel);
