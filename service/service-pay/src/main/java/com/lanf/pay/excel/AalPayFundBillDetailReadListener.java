@@ -3,13 +3,14 @@ package com.lanf.pay.excel;
 
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.read.listener.ReadListener;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.BeanUtil;
-import com.lanf.pay.mapper.FundBillDetailMapper;
+import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
-import com.lanf.pay.model.entity.FundBillDetailDO;
+import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.model.enums.BillDownloadStatusEnum;
+import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
-import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -34,12 +35,11 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
     /**
      * 缓存的数据列表
      */
-    private List<FundBillDetailDO> cachedDataList = new ArrayList<>(BATCH_COUNT);
+    private List<SignCustomerFundBillDetailDO> cachedDataList = new ArrayList<>(BATCH_COUNT);
 
-    private final FundBillDetailMapper fundBillDetailMapper;
+    private final SignCustomerFundBillDetailMapper fundBillDetailMapper;
     private final String batchId;
     private final String payChannel;
-    private final RocketMqClient rocketMqClient;
     private final AtomicInteger currentParseCount ;
     private final ExcelParseProgressManager excelParseProgressManager;
     private final IChannelBillDownloadProgressService channelBillDownloadProgressService;
@@ -49,10 +49,9 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
     private Boolean hasExc;
 
     public AalPayFundBillDetailReadListener(String batchId, String payChannel) {
-        this.fundBillDetailMapper = BeanUtil.getBean(FundBillDetailMapper.class);
+        this.fundBillDetailMapper = BeanUtil.getBean(SignCustomerFundBillDetailMapper.class);
         this.batchId = batchId;
         this.payChannel = payChannel;
-        this.rocketMqClient = BeanUtil.getBean(RocketMqClient.class);
         this.currentParseCount = new AtomicInteger(0);
         this.excelParseProgressManager = BeanUtil.getBean(ExcelParseProgressManager.class);
         this.channelBillDownloadProgressService = BeanUtil.getBean(IChannelBillDownloadProgressService.class);
@@ -67,10 +66,11 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
         currentParseCount.getAndIncrement();
 
         // 转换 Excel 数据为 DO 对象
-        FundBillDetailDO detailDO = convertToDO(data);
+        SignCustomerFundBillDetailDO detailDO = convertToDO(data);
         
         // 设置批次信息
-        detailDO.setPayChannel(payChannel);
+
+        detailDO.setPayChannel( PayChannelEnum.getByCode(Integer.parseInt(payChannel)));
         detailDO.setPayFinishDate(batchId);
         
         cachedDataList.add(detailDO);
@@ -130,42 +130,23 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
         } catch (Exception e) {
             log.warn("批量插入对账单明细失败", e);
             hasExc = true;
-//            /**
-//             * 解析账单任务 并发批量插入 DB压力大 可能超时
-//             * 发送mq补偿
-//             */
-//            try {
-//                FundBillDetailCompensationMessage fundBillDetailCompensationMessage
-//                        = new FundBillDetailCompensationMessage();
-//                fundBillDetailCompensationMessage.setCachedDataList(cachedDataList);
-//                fundBillDetailCompensationMessage.setCurrentParseCount(rows);
-//                fundBillDetailCompensationMessage.setBatchId(batchId);
-//                fundBillDetailCompensationMessage.setPayChannel(payChannel);
-//                /**
-//                 *
-//                 * 延迟5秒 让数据库恢复一下
-//                 *
-//                 */
-//                rocketMqClient.sendDelayMessage(PayMqTopicName.FUND_BILL_DETAIL_COMPENSATION_TOPIC,
-//                        JsonUtils.toJsonString(fundBillDetailCompensationMessage), DelayLevelEnum.LEVEL_2);
-//            } catch (Exception ex) {
-//                log.error("发送对账单补偿失败", ex);
-//            }
+
         }
     }
 
     /**
      * 转换 Excel 对象为 DO 对象
      */
-    private FundBillDetailDO convertToDO(AalPayFundBillDetailExcel excel) {
-        FundBillDetailDO detailDO = new FundBillDetailDO();
+    private SignCustomerFundBillDetailDO convertToDO(AalPayFundBillDetailExcel excel) {
+        SignCustomerFundBillDetailDO detailDO = new SignCustomerFundBillDetailDO();
         
         detailDO.setMerchantOrderNo(excel.getMerchantOrderNo());
         detailDO.setFinancialSerialNo(excel.getFinancialSerialNo());
         detailDO.setBusinessSerialNo(excel.getBusinessSerialNo());
         detailDO.setCounterpartyAccount(excel.getCounterpartyAccount());
         detailDO.setTransactionChannel(excel.getTransactionChannel());
-        detailDO.setBusinessType(excel.getBusinessType());
+        ReconciliationBusinessTypeEnum byCode = ReconciliationBusinessTypeEnum.getByCode(Integer.parseInt(excel.getBusinessType()));
+        detailDO.setBusinessType(byCode);
         detailDO.setRemark(excel.getRemark());
         
         // 转换金额

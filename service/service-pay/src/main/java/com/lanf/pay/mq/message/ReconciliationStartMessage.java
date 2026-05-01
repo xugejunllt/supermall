@@ -10,6 +10,9 @@ import java.util.List;
 @Data
 public class ReconciliationStartMessage implements Serializable {
 
+
+    private String bathId;
+
     private  ReconciliationJobTypeEnum jobType;
 
     private List<ReconciliationTradeInfo> reconciliationTradeInfoList;

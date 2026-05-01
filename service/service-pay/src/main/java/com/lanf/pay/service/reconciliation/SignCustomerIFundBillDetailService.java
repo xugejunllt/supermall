@@ -2,7 +2,7 @@ package com.lanf.pay.service.reconciliation;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.client.pay.model.enums.PayChannelEnum;
-import com.lanf.pay.model.entity.FundBillDetailDO;
+import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 
 import java.io.File;
 import java.io.InputStream;
@@ -15,7 +15,7 @@ import java.io.InputStream;
  * @author jarven
  * @since 2026-04-29
  */
-public interface IFundBillDetailService extends IService<FundBillDetailDO> {
+public interface SignCustomerIFundBillDetailService extends IService<SignCustomerFundBillDetailDO> {
 
     /**
      * 从 Excel 文件导入对账单明细

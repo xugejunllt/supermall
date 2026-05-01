@@ -12,7 +12,7 @@ import com.lanf.pay.mq.message.BillSynchronizerMessage;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
-import com.lanf.pay.service.reconciliation.IFundBillDetailService;
+import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -42,7 +42,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
     private IChannelBillDownloadProgressService channelBillDownloadProgressService;
 
     @Autowired
-    private IFundBillDetailService fundBillDetailService;
+    private SignCustomerIFundBillDetailService fundBillDetailService;
     @Qualifier("taskScheduler")
     @Autowired
     private ThreadPoolTaskScheduler taskScheduler;
@@ -177,10 +177,10 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
 
         private final String batchId;
         private final PayChannelEnum channel;
-        private final IFundBillDetailService fundBillDetailService;
+        private final SignCustomerIFundBillDetailService fundBillDetailService;
         private final File excelFile;
 
-        public ParseExcelTask( String batchId, PayChannelEnum channel, IFundBillDetailService fundBillDetailService,File excelFile) {
+        public ParseExcelTask(String batchId, PayChannelEnum channel, SignCustomerIFundBillDetailService fundBillDetailService, File excelFile) {
             this.batchId = batchId;
             this.channel = channel;
             this.fundBillDetailService = fundBillDetailService;

@@ -6,9 +6,9 @@ import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.excel.AalPayFundBillDetailExcel;
 import com.lanf.pay.excel.AalPayFundBillDetailReadListener;
-import com.lanf.pay.mapper.FundBillDetailMapper;
-import com.lanf.pay.model.entity.FundBillDetailDO;
-import com.lanf.pay.service.reconciliation.IFundBillDetailService;
+import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
+import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
+import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +25,7 @@ import java.io.InputStream;
  */
 @Slf4j
 @Service
-public class FundBillDetailServiceImpl extends ServiceImpl<FundBillDetailMapper, FundBillDetailDO> implements IFundBillDetailService {
+public class SignCustomerFundBillDetailServiceImpl extends ServiceImpl<SignCustomerFundBillDetailMapper, SignCustomerFundBillDetailDO> implements SignCustomerIFundBillDetailService {
 
 
 

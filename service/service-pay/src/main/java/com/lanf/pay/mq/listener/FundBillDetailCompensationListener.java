@@ -2,8 +2,8 @@ package com.lanf.pay.mq.listener;
 
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.pay.excel.ExcelParseProgressManager;
-import com.lanf.pay.mapper.FundBillDetailMapper;
-import com.lanf.pay.model.entity.FundBillDetailDO;
+import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
+import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.FundBillDetailCompensationMessage;
@@ -34,7 +34,7 @@ public class FundBillDetailCompensationListener implements RocketMQListener<Fund
     @Autowired
     private IRefundOrderService refundOrderService;
     @Autowired
-    private FundBillDetailMapper fundBillDetailMapper;
+    private SignCustomerFundBillDetailMapper fundBillDetailMapper;
     @Autowired
     private  RedissonCacheService redissonCacheService;
     @Autowired
@@ -42,7 +42,7 @@ public class FundBillDetailCompensationListener implements RocketMQListener<Fund
     @Override
     public void onMessage(FundBillDetailCompensationMessage message) {
 
-        List<FundBillDetailDO> cachedDataList = message.getCachedDataList();
+        List<SignCustomerFundBillDetailDO> cachedDataList = message.getCachedDataList();
         try {
             fundBillDetailMapper.batchInsertIgnore(cachedDataList);
             excelParseProgressManager.addRows(message.getCurrentParseCount(),

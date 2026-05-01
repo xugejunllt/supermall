@@ -1,6 +1,6 @@
 package com.lanf.pay.mq.message;
 
-import com.lanf.pay.model.entity.FundBillDetailDO;
+import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,6 +15,6 @@ public class FundBillDetailCompensationMessage implements Serializable {
 
    private Integer currentParseCount;
 
-   private List<FundBillDetailDO> cachedDataList;
+   private List<SignCustomerFundBillDetailDO> cachedDataList;
 
 }

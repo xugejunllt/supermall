@@ -1,20 +1,21 @@
 package com.lanf.pay.task;
 
 import com.lanf.client.pay.model.enums.PayChannelEnum;
-import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 import com.lanf.pay.model.entity.ReconciliationJobLogDO;
 import com.lanf.pay.model.enums.BillDownloadStatusEnum;
+import com.lanf.pay.model.enums.BillTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.BillSynchronizerMessage;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
-import com.lanf.pay.service.reconciliation.*;
-import com.lanf.pay.service.reconciliation.strategy.ReconciliationStrategy;
-import com.lanf.pay.service.reconciliation.strategy.ReconciliationStrategyFactory;
+import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
+import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
+import com.lanf.pay.service.reconciliation.IReconciliationJobLogService;
+import com.lanf.pay.service.reconciliation.IReconciliationResultService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ import java.util.Set;
  */
 @Slf4j
 @Component
-public class BillReconciliationTask {
+public class TradeBillReconciliationTask {
 
     @Autowired
     private RocketMqClient rocketMqClient;
@@ -43,7 +44,7 @@ public class BillReconciliationTask {
     private ThreadPoolTaskScheduler taskScheduler;
 
     @Autowired
-    private IFundBillDetailService fundBillDetailService;
+    private SignCustomerIFundBillDetailService fundBillDetailService;
 
     @Autowired
     private IReconciliationResultService reconciliationResultService;
@@ -54,27 +55,25 @@ public class BillReconciliationTask {
     @Autowired
     private IPayOrderFlowService payOrderFlowService;
 
-
-    private static final String BILL_TYPE = "signcustomer";
+    private final String billType = BillTypeEnum.TRADE.getCode();
 
     /**
-     * 下载账单到DB中
+     * 下载 Trade 账单到DB中
      * <p>
      * 使用mq 不同渠道不同mq任务处理
      * <p>
      * 每天上午9点执行
      */
     @Scheduled(cron = "0 0 9 * * ?", zone = "Asia/Shanghai")
-    public void billSynchronizerTask() {
+    public void billTradeSynchronizerTask() {
 
         log.info("开始执行T+1下载对账单任务");
-
         String relativeDateString = getBathId();
         Set<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
 
         BillSynchronizerMessage billSynchronizerMessage = new BillSynchronizerMessage();
 
-        billSynchronizerMessage.setBillType(BILL_TYPE);
+        billSynchronizerMessage.setBillType(billType);
 
         billSynchronizerMessage.setBillDate(relativeDateString);
         for (PayChannelEnum channel : availableChannels) {
@@ -108,16 +107,17 @@ public class BillReconciliationTask {
 
     /**
      * 每天10点之后 每隔1小时执行一次
-     * 检查当前账单是否全部解析完成
+     * 检查当前 Trade 账单是否全部解析完成
      * 如果没有 进行重新投递
      */
     @Scheduled(cron = "0 0 10-23 * * ?", zone = "Asia/Shanghai")
-    public void isBillParsedTask() {
+    public void isTradeBillParsedTask() {
 
         String bathId = getBathId();
 
         List<ChannelBillDownloadProgressDO> downloadProgressDOS =
                 channelBillDownloadProgressService.lambdaQuery()
+                        .eq(ChannelBillDownloadProgressDO::getBillType, billType)
                         .eq(ChannelBillDownloadProgressDO::getBatchId, bathId).list();
 
         for (ChannelBillDownloadProgressDO downloadProgressDO : downloadProgressDOS) {
@@ -129,7 +129,7 @@ public class BillReconciliationTask {
 
                 try {
 
-                    channelBillDownloadProgressService.redeliverTask(downloadProgressDO, BILL_TYPE);
+                    channelBillDownloadProgressService.redeliverTask(downloadProgressDO, billType);
 
                 } catch (Exception e) {
                     log.error("发送补投任务异常", e);
@@ -144,14 +144,15 @@ public class BillReconciliationTask {
 
     /**
      * 每天10点之后 每30分钟执行一次
-     * 检查当前账单是否全部解析完成
+     *  检查当前 Trade账单 是否全部解析完成
      */
     @Scheduled(cron = "0 0/30 10-23 * * ?", zone = "Asia/Shanghai")
-    public void isAllBillParsedTask() {
+    public void isTradeAllBillParsedTask() {
 
         String bathId = getBathId();
         List<ChannelBillDownloadProgressDO> downloadProgressDOS =
                 channelBillDownloadProgressService.lambdaQuery()
+                        .eq(ChannelBillDownloadProgressDO::getBillType, billType)
                         .eq(ChannelBillDownloadProgressDO::getBatchId, bathId).list();
         boolean allCompleted = downloadProgressDOS.stream()
                 .allMatch(progress -> BillDownloadStatusEnum.COMPLETED.equals(progress.getStatus()));
@@ -165,7 +166,7 @@ public class BillReconciliationTask {
          * 提交扫描任务
          *
          */
-        for (ReconciliationJobTypeEnum jobType : ReconciliationJobTypeEnum.values()) {
+        for (ReconciliationJobTypeEnum jobType : ReconciliationJobTypeEnum.TRADE_AND_REFUND_SET) {
             BillScanTask billScanTask = new BillScanTask(bathId, jobType);
             taskScheduler.execute(billScanTask);
         }
@@ -199,29 +200,7 @@ public class BillReconciliationTask {
 
     }
 
-    static class BillScanTask implements Runnable {
 
-        private final String bathId;
-        private final ReconciliationJobTypeEnum jobType;
-
-
-        private final ReconciliationStrategyFactory reconciliationStrategyFactory;
-
-        public BillScanTask(String bathId, ReconciliationJobTypeEnum jobType) {
-            this.bathId = bathId;
-            this.jobType = jobType;
-            this.reconciliationStrategyFactory = BeanUtil.getBean(ReconciliationStrategyFactory.class);
-        }
-
-        @Override
-        public void run() {
-
-            ReconciliationStrategy strategy = reconciliationStrategyFactory.getStrategy(jobType);
-            strategy.startScan(bathId);
-        }
-
-
-    }
 
 
 }

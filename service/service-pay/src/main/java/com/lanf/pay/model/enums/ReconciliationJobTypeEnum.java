@@ -1,11 +1,14 @@
 package com.lanf.pay.model.enums;
 
 
-
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 对账任务类型枚举
@@ -42,6 +45,24 @@ public enum ReconciliationJobTypeEnum {
      * 转账单短款扫描
      */
     TRANSFER_SHORT_CHECK(5, "转账单短款扫描");
+    /**
+     * 交易单和退款单任务类型集合
+     */
+    public static final Set<ReconciliationJobTypeEnum> TRADE_AND_REFUND_SET = Arrays.stream(values())
+            .filter(type -> type == TRADE_LONG_CHECK
+                    || type == TRADE_SHORT_CHECK
+                    || type == REFUND_LONG_CHECK
+                    || type == REFUND_SHORT_CHECK)
+            .collect(Collectors.toSet());
+
+    /**
+     * 转账单任务类型集合
+     */
+    public static final Set<ReconciliationJobTypeEnum> TRANSFER_SET = Arrays.stream(values())
+            .filter(type -> type == TRANSFER_LONG_CHECK
+                    || type == TRANSFER_SHORT_CHECK)
+            .collect(Collectors.toSet());
+
 
     @EnumValue
     @JsonValue

@@ -1,0 +1,19 @@
+package com.lanf.pay.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.lanf.pay.model.entity.TradeFundBillDetail;
+
+/**
+ * <p>
+ * 支付宝交易账单表 Mapper 接口
+ * </p>
+ *
+ * @author jarven
+ * @since 2026-05-02
+ */
+public interface TradeFundBillDetailMapper extends BaseMapper<TradeFundBillDetail> {
+
+
+
+
+}

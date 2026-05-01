@@ -19,8 +19,8 @@ import java.time.LocalDateTime;
  * @since 2026-04-29
  */
 @Data
-@TableName("fund_bill_detail")
-public class FundBillDetailDO extends BaseEntity {
+@TableName("signcustomer_fund_bill_detail")
+public class SignCustomerFundBillDetailDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 

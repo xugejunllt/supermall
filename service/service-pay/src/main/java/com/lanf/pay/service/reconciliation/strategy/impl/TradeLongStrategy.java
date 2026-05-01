@@ -9,6 +9,7 @@ import com.lanf.pay.model.bo.ReconciliationScanPageResult;
 import com.lanf.pay.model.bo.ReconciliationTradeInfo;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
+import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.reconciliation.strategy.AbstractReconciliationStrategy;
@@ -78,5 +79,16 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<PayOrderFl
         }
 
         return tradeInfoList;
+    }
+
+    @Override
+    protected ReconciliationDiffTypeEnum getDiffType() {
+        return ReconciliationDiffTypeEnum.LONG;
+    }
+
+    @Override
+    protected ReconciliationBusinessTypeEnum getBusinessType() {
+
+        return ReconciliationBusinessTypeEnum.PAYMENT;
     }
 }

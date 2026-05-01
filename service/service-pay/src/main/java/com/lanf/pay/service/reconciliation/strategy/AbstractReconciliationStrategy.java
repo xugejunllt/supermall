@@ -6,6 +6,8 @@ import com.lanf.pay.model.bo.ReconciliationScanPageResult;
 import com.lanf.pay.model.bo.ReconciliationTradeInfo;
 import com.lanf.pay.model.bo.SendMessageAndUpdateResult;
 import com.lanf.pay.model.entity.ReconciliationDiffMarkerDO;
+import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
+import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.mq.message.ReconciliationStartMessage;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
@@ -38,6 +40,9 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
 
     protected abstract List<ReconciliationTradeInfo> buildTradeInfoList(List<T> dataList);
 
+    protected abstract ReconciliationDiffTypeEnum getDiffType();
+
+    protected abstract ReconciliationBusinessTypeEnum getBusinessType();
 
     @Override
     public void startScan(String bathId) {
@@ -65,10 +70,14 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
             /**
              * 去重
              */
-            List<ReconciliationDiffMarkerDO> list = reconciliationDiffMarkerService.lambdaQuery()
-                    .in(ReconciliationDiffMarkerDO::getBusinessOrderNo, outTradeNoList).list();
+            Integer count = reconciliationDiffMarkerService.lambdaQuery()
+                    .eq(ReconciliationDiffMarkerDO::getBatchId, bathId)
+                    .eq(ReconciliationDiffMarkerDO::getDiffType, getDiffType())
+                    .eq(ReconciliationDiffMarkerDO::getBusinessType, getBusinessType())
+                    .in(ReconciliationDiffMarkerDO::getBusinessOrderNo, outTradeNoList)
+                    .count();
 
-            if (outTradeNoList.size() == list.size()) {
+            if ( count != null && outTradeNoList.size() == count) {
                 log.info("该批次已对账");
                 continue;
             }
@@ -78,7 +87,7 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
             ReconciliationStartMessage reconciliationStartMessage = new ReconciliationStartMessage();
             reconciliationStartMessage.setJobType(jobType);
             reconciliationStartMessage.setReconciliationTradeInfoList(tradeInfoList);
-
+            reconciliationStartMessage.setBathId(bathId);
             try {
 
                 SendMessageAndUpdateResult result = reconciliationJobLogService.sendMessageAndUpdate(reconciliationStartMessage, jobType,
