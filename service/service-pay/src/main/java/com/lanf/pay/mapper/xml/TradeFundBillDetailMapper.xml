@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lanf.pay.mapper.TradeFundBillDetailMapper">
+        <insert id="batchInsertIgnore">
+            INSERT IGNORE INTO trade_fund_bill_detail (
+            id,
+            bill_date,
+            customer_id,
+            partner_id,
+            trade_no,
+            out_trade_no,
+            out_refund_no,
+            amount,
+            fee,
+            settlement_amount,
+            discount_fee,
+            trade_type,
+            trade_status,
+            trade_time,
+            payment_time,
+            settlement_time,
+            goods_title,
+            goods_description,
+            buyer_account,
+            seller_account,
+            receipt_amount,
+            invoice_amount,
+            raw_data,
+            checksum,
+            create_time,
+            update_time
+            ) VALUES
+            <foreach collection="list" item="item" separator=",">
+                (
+                #{item.id},
+                #{item.billDate},
+                #{item.customerId},
+                #{item.partnerId},
+                #{item.tradeNo},
+                #{item.outTradeNo},
+                #{item.outRefundNo},
+                #{item.amount},
+                #{item.fee},
+                #{item.settlementAmount},
+                #{item.discountFee},
+                #{item.tradeType},
+                #{item.tradeStatus},
+                #{item.tradeTime},
+                #{item.paymentTime},
+                #{item.settlementTime},
+                #{item.goodsTitle},
+                #{item.goodsDescription},
+                #{item.buyerAccount},
+                #{item.sellerAccount},
+                #{item.receiptAmount},
+                #{item.invoiceAmount},
+                #{item.rawData},
+                #{item.checksum},
+                NOW(),
+                NOW()
+                )
+            </foreach>
+        </insert>
+
+
+
+</mapper>

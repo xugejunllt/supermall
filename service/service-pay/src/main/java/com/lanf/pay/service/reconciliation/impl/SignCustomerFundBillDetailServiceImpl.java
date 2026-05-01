@@ -4,8 +4,8 @@ import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.constant.exception.BizException;
-import com.lanf.pay.excel.AalPayFundBillDetailExcel;
-import com.lanf.pay.excel.AalPayFundBillDetailReadListener;
+import com.lanf.pay.service.reconciliation.excel.AalPayFundBillDetailExcel;
+import com.lanf.pay.service.reconciliation.excel.FundBillDetailReadListener;
 import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
@@ -33,8 +33,8 @@ public class SignCustomerFundBillDetailServiceImpl extends ServiceImpl<SignCusto
     public void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel, File excelFile) {
 
         log.info("开始导入对账单 Excel: batchId={}, payChannel={}", batchId, payChannel);
-        AalPayFundBillDetailReadListener listener = new AalPayFundBillDetailReadListener
-                (batchId, payChannel.getCode().toString());
+        FundBillDetailReadListener listener = new FundBillDetailReadListener
+                (batchId, payChannel.getCode().toString(),null);
         Class<?> head = null;
         switch (payChannel){
             case ALI_PAY:

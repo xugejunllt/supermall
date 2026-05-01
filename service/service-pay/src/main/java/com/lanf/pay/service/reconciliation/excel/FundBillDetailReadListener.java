@@ -1,4 +1,4 @@
-package com.lanf.pay.excel;
+package com.lanf.pay.service.reconciliation.excel;
 
 
 import com.alibaba.excel.context.AnalysisContext;
@@ -6,9 +6,11 @@ import com.alibaba.excel.read.listener.ReadListener;
 import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.BeanUtil;
 import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
+import com.lanf.pay.mapper.TradeFundBillDetailMapper;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.model.enums.BillDownloadStatusEnum;
+import com.lanf.pay.model.enums.BillTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 实现分批插入数据库
  */
 @Slf4j
-public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFundBillDetailExcel> {
+public class FundBillDetailReadListener implements ReadListener<AalPayFundBillDetailExcel> {
 
     /**
      * 批量插入阈值
@@ -40,21 +42,26 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
     private final SignCustomerFundBillDetailMapper fundBillDetailMapper;
     private final String batchId;
     private final String payChannel;
+    private final BillTypeEnum billTypeEnum;
+
     private final AtomicInteger currentParseCount ;
     private final ExcelParseProgressManager excelParseProgressManager;
     private final IChannelBillDownloadProgressService channelBillDownloadProgressService;
+    private final TradeFundBillDetailMapper tradeFundBillDetailMapper;
+
     /**
      * 保存是否出现过异常
      */
     private Boolean hasExc;
 
-    public AalPayFundBillDetailReadListener(String batchId, String payChannel) {
+    public FundBillDetailReadListener(String batchId, String payChannel, BillTypeEnum billTypeEnum) {
         this.fundBillDetailMapper = BeanUtil.getBean(SignCustomerFundBillDetailMapper.class);
         this.batchId = batchId;
         this.payChannel = payChannel;
         this.currentParseCount = new AtomicInteger(0);
         this.excelParseProgressManager = BeanUtil.getBean(ExcelParseProgressManager.class);
         this.channelBillDownloadProgressService = BeanUtil.getBean(IChannelBillDownloadProgressService.class);
+        this.tradeFundBillDetailMapper = BeanUtil.getBean(TradeFundBillDetailMapper.class);
         this.hasExc = false;
 
     }
@@ -67,12 +74,10 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
 
         // 转换 Excel 数据为 DO 对象
         SignCustomerFundBillDetailDO detailDO = convertToDO(data);
-        
         // 设置批次信息
-
         detailDO.setPayChannel( PayChannelEnum.getByCode(Integer.parseInt(payChannel)));
         detailDO.setPayFinishDate(batchId);
-        
+        /////
         cachedDataList.add(detailDO);
 
         // 达到批量阈值，执行插入
@@ -123,7 +128,16 @@ public class AalPayFundBillDetailReadListener implements ReadListener<AalPayFund
             return;
         }
         try {
+            switch (billTypeEnum){
 
+                case TRADE:
+                    tradeFundBillDetailMapper.batchInsertIgnore(cachedDataList);
+                    break;
+
+                case SIGN_CUSTOMER:
+                    fundBillDetailMapper.batchInsertIgnore(cachedDataList);
+                    break;
+            }
             fundBillDetailMapper.batchInsertIgnore(cachedDataList);
             excelParseProgressManager.addRows(rows, payChannel, batchId);
 
