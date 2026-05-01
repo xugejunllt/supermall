@@ -1,7 +1,10 @@
 package com.lanf.pay.service.reconciliation;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.pay.model.bo.SendMessageAndUpdateResult;
 import com.lanf.pay.model.entity.ReconciliationJobLogDO;
+import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
+import com.lanf.pay.mq.message.ReconciliationStartMessage;
 
 /**
  * <p>
@@ -12,5 +15,9 @@ import com.lanf.pay.model.entity.ReconciliationJobLogDO;
  * @since 2026-04-30
  */
 public interface IReconciliationJobLogService extends IService<ReconciliationJobLogDO> {
+
+
+    SendMessageAndUpdateResult sendMessageAndUpdate(ReconciliationStartMessage  message, ReconciliationJobTypeEnum jobType,
+                                                    String bathId, long currentPage, long  pages) throws Exception;
 
 }

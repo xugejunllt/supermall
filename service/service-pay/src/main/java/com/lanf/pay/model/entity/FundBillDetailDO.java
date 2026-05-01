@@ -1,7 +1,9 @@
 package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -22,7 +24,7 @@ public class FundBillDetailDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
-    private String payChannel;
+    private PayChannelEnum payChannel;
 
     private String payFinishDate;
 
@@ -54,7 +56,7 @@ private static final long serialVersionUID=1L;
     private String transactionChannel;
 
     @ApiModelProperty(value = "业务类型（如：在线支付、退款、转账、商家扣款）")
-    private String businessType;
+    private ReconciliationBusinessTypeEnum businessType;
 
     @ApiModelProperty(value = "备注")
     private String remark;
