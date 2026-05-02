@@ -333,7 +333,10 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             CancelPaidOrderResultBO bo = new CancelPaidOrderResultBO();
             bo.setResult( true);
             bo.setTradeNo(response.getTradeNo());
-            bo.setReturnMoney(new BigDecimal(response.getRefundFee()));
+            /**
+             * 本次商户实际退回金额
+             */
+            bo.setReturnMoney(new BigDecimal(response.getSendBackFee()));
             bo.setBuyerLogonId(response.getBuyerLogonId());
             bo.setPayFinishTime(gmtRefundPay);
             return bo;

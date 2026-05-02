@@ -98,7 +98,7 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
             refundOrderDO.setPayFinishDate(format);
             refundOrderDO.setPayMoney(receiptMoney);
             ///
-            AddMoneyFlowMessage moneyFlowMessage = buildAddMoneyFlowMessage(processRefund, cancelled.getReturnMoney());
+            AddMoneyFlowMessage moneyFlowMessage = buildAddMoneyFlowMessage(processRefund, receiptMoney);
             try {
                 this.save(refundOrderDO);
                 /**
