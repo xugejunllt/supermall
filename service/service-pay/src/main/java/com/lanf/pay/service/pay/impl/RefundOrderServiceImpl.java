@@ -67,14 +67,17 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
             log.info("该退款单已存在");
             return;
         }
-        BigDecimal tradeMoney = orderFlowDO.getTradeMoney();
+        /**
+         * 使用实际收入的金额进行退款
+         */
+        BigDecimal receiptMoney = orderFlowDO.getReceiptMoney();
 
         /**
          * 这里使用抽象类
          */
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
         CancelPaidOrderResultBO cancelled = paymentService.cancelPaidOrder(outTradeNo,
-                tradeMoney, "取消订单");
+                receiptMoney, "取消订单");
 
         if (cancelled != null && cancelled.getResult()){
             log.info("取消三方支付订单,退款成功");
@@ -93,6 +96,7 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
             refundOrderDO.setPayFinishTime(cancelled.getPayFinishTime());
             String format = DateUtils.format(cancelled.getPayFinishTime(), DateUtils.DATE);
             refundOrderDO.setPayFinishDate(format);
+            refundOrderDO.setPayMoney(receiptMoney);
             ///
             AddMoneyFlowMessage moneyFlowMessage = buildAddMoneyFlowMessage(processRefund, cancelled.getReturnMoney());
             try {

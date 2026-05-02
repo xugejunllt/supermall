@@ -66,34 +66,34 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
 
         try {
             transferOrderService.save(transferOrderDO);
-
-            TransferSuccessMessage successMessage = buildTransferSuccessMessage(message);
-            String tag = message.getEventType().getTag();
-
-            AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(message, result, transferOrderDO);
-            /**
-             * 发送转账成功消息通知
-             */
-            rocketMqClient.sendMessageWithTags(PayClientTopicName.TRANSFER_SUCCESS_EVENT_TOPIC, tag,
-                    JsonUtils.toJsonString(successMessage));
-            /**
-             * 发送消息添加到资金流水
-             */
-            rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
-            log.info("发送转账成功消息完成，eventType:{}, outBizNo:{}", message.getEventType(), outBizNo);
         } catch (DuplicateKeyException e) {
             log.warn("该转账单已存在");
+            return;
 
         }
+        TransferSuccessMessage successMessage = buildTransferSuccessMessage(message);
+        String tag = message.getEventType().getTag();
+
+        AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(message, result, transferOrderDO);
+        /**
+         * 发送转账成功消息通知
+         */
+        rocketMqClient.sendMessageWithTags(PayClientTopicName.TRANSFER_SUCCESS_EVENT_TOPIC, tag,
+                JsonUtils.toJsonString(successMessage));
+        /**
+         * 发送消息添加到资金流水
+         */
+        rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
+        log.info("发送转账成功消息完成，eventType:{}, outBizNo:{}", message.getEventType(), outBizNo);
 
 
     }
 
     private AddMoneyFlowMessage buildAddMoneyFlowMessage(TransferMessage message,
-                                                         TransferResult result, TransferOrderDO transferOrderDO){
+                                                         TransferResult result, TransferOrderDO transferOrderDO) {
         RecordTypeEnum recordType = null;
         TransferEventTypeEnum eventType = message.getEventType();
-        switch (eventType){
+        switch (eventType) {
             case ORDER_SETTLEMENT:
                 recordType = RecordTypeEnum.MERCHANT_SETTLEMENT_INCOME;
                 break;

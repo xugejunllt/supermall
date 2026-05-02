@@ -378,7 +378,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
             AlipayFundTransUniTransferResponse response = alipayClient.certificateExecute(request);
             String code = response.getCode();
-            
+            z
             if ("10000".equals(code)) {
                 resultBO.setStatus("SUCCESS");
                 resultBO.setOrderId(response.getOrderId());

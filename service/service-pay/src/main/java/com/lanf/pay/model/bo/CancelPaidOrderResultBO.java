@@ -16,11 +16,18 @@ public class CancelPaidOrderResultBO implements Serializable {
     @ApiModelProperty(value = "支付宝交易号")
     private String tradeNo;
 
-    @ApiModelProperty(value = "退款金额")
+    /**
+     * 实际退款金额
+     */
     private BigDecimal returnMoney;
 
     @ApiModelProperty(value = "用户的登录id【示例值】159****5620")
     private String buyerLogonId;
 
     private Date payFinishTime;
+
+    /**
+     * 发起退款时的退款金额
+     */
+    private BigDecimal preReturnMoney;
 }

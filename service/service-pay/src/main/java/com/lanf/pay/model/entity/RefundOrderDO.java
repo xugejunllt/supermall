@@ -36,7 +36,14 @@ public class RefundOrderDO extends BaseEntity {
     @ApiModelProperty(value = "支付宝交易号")
     private String tradeNo;
 
-    @ApiModelProperty(value = "退款金额")
+    /**
+     * 支付金额
+     */
+    private BigDecimal payMoney;
+
+    /**
+     * 实际退款金额
+     */
     private BigDecimal returnMoney;
 
     @ApiModelProperty(value = "用户的登录id【示例值】159****5620")

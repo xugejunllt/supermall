@@ -87,7 +87,7 @@ public class ReconciliationStartListener implements RocketMQListener<Reconciliat
 
             SignCustomerFundBillDetailDO fundBillDetailDO = fundBillDetailMap.get(outTradeNo);
             if (fundBillDetailDO == null){
-                //长款
+                //短款
                 ReconciliationDiffDO reconciliationDiffDO = new ReconciliationDiffDO();
                 reconciliationDiffDO.setBatchId(bathId);
                 reconciliationDiffDO.setBusinessOrderNo(outTradeNo);
