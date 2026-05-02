@@ -5,7 +5,6 @@ import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.TransferMessage;
 import com.lanf.client.pay.mq.message.TransferSuccessMessage;
 import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.finance.model.enums.RecordTypeEnum;
@@ -13,6 +12,7 @@ import com.lanf.finance.mq.constant.FinanceClientTopicName;
 import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.pay.model.bo.TransferResult;
 import com.lanf.pay.model.entity.TransferOrderDO;
+import com.lanf.pay.model.enums.TransferStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.service.pay.ITransferOrderService;
 import com.lanf.pay.service.pay.PaymentService;
@@ -49,7 +49,7 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
 
 
         if (one == null) {
-            TransferOrderDO transferOrderDO = buildTransferOrderDO(message, result);
+            TransferOrderDO transferOrderDO = buildTransferOrderDO(message);
             try {
                 transferOrderService.save(transferOrderDO);
             } catch (DuplicateKeyException e) {
@@ -65,7 +65,7 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(message.getTransferChannel().getCode());
         TransferResult result = paymentService.transfer(message.getOutBizNo(),
                 message.getIncomeAccount(), message.getTransAmount(), message.getOrderTitle());
-
+        z
 
 
 
@@ -133,9 +133,10 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
     }
 
 
-    private static TransferOrderDO buildTransferOrderDO(TransferMessage message, TransferResult result) {
+    private static TransferOrderDO buildTransferOrderDO(TransferMessage message) {
+
         TransferOrderDO transferOrderDO = new TransferOrderDO();
-        transferOrderDO.setOutBizNo(message.getOutBizNo());
+        transferOrderDO.setOutTradeNo(message.getOutBizNo());
         transferOrderDO.setUserId(message.getUserId());
         transferOrderDO.setMerchantId(message.getMerchantId());
         transferOrderDO.setBizOrderId(message.getBizOrderId());
@@ -144,11 +145,9 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
         transferOrderDO.setFromAccount(message.getFromAccount());
         transferOrderDO.setIncomeAccount(message.getIncomeAccount());
         transferOrderDO.setTransAmount(message.getTransAmount());
-        transferOrderDO.setOrderId(result.getOrderId());
-        transferOrderDO.setPayFinishTime(result.getFinishTime());
-        String format = DateUtils.format(result.getFinishTime(), DateUtils.DATE);
-        transferOrderDO.setPayFinishDate(format);
-        transferOrderDO.setOrderTitle(message.getOrderTitle());
+        transferOrderDO.setTransAmount(message.getTransAmount());
+        transferOrderDO.setStatus(TransferStatusEnum.REFUNDING);
+
         return transferOrderDO;
     }
 

@@ -37,6 +37,11 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "关联事件对应的业务单id")
     private Long bizOrderId;
+    @ApiModelProperty(value = "转账来源账户")
+    private String fromAccount;
+
+    @ApiModelProperty(value = "收款账号")
+    private String incomeAccount;
 
     @ApiModelProperty(value = "事件类型 0：订单结算给商家，1：用户钱包提现")
     private TransferEventTypeEnum eventType;

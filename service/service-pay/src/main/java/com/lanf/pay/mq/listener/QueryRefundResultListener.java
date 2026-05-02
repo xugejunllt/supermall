@@ -13,18 +13,21 @@ import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.finance.mq.constant.FinanceClientTopicName;
 import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.pay.model.bo.RefundQueryResultBO;
+import com.lanf.pay.model.entity.RefundOrderFlowDO;
 import com.lanf.pay.model.enums.RefundFlowStatusEnum;
 import com.lanf.pay.model.enums.RefundStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.QueryRefundResultMessage;
 import com.lanf.pay.mq.message.RefundQueryResultProcessorMessage;
+import com.lanf.pay.service.pay.IRefundOrderFlowService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,14 +46,42 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
 
     @Autowired
     private RocketMqClient rocketMqClient;
+    @Autowired
+    private IRefundOrderFlowService refundOrderFlowService;
+
 
     @Override
     public void onMessage(QueryRefundResultMessage message) {
 
+
+        RefundOrderFlowDO one = refundOrderFlowService.lambdaQuery().
+                eq(RefundOrderFlowDO::getOutTradeNo, message.getOutTradeNo())
+                .eq(RefundOrderFlowDO::getOutRequestNo, message.getOutRequestNo()).one();
+
+        if ( one!= null){
+            log.info("退款已处理");
+            return;
+        }
         PayChannelEnum payChannel = message.getPayChannel();
+
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(payChannel.getCode());
+
         RefundQueryResultBO refundQueryResultBO = paymentService.
                 queryRefundResult(message.getOutTradeNo(), message.getOutRequestNo());
+        RefundQueryResultProcessorMessage queryRefundResultProcessorMessage = getRefundQueryResultProcessorMessage(message, refundQueryResultBO, payChannel);
+        rocketMqClient.sendMessage(PayMqTopicName.QUERY_REFUND_RESULT_TOPIC, JsonUtils.toJsonString(queryRefundResultProcessorMessage));
+        if (refundQueryResultBO.getResult()){
+            /**
+             * 插入资金流水
+             */
+            AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(message, refundQueryResultBO.getSendBackFee());
+            rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
+
+        }
+    }
+
+    @NotNull
+    private static RefundQueryResultProcessorMessage getRefundQueryResultProcessorMessage(QueryRefundResultMessage message, RefundQueryResultBO refundQueryResultBO, PayChannelEnum payChannel) {
         RefundFlowStatusEnum refundFlowStatusEnum = null;
         RefundStatusEnum refundStatusEnum = null;
         if (refundQueryResultBO.getResult()) {
@@ -74,15 +105,7 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
         queryRefundResultProcessorMessage.setPayFinishTime(refundQueryResultBO.getGmtRefundPay());
         queryRefundResultProcessorMessage.setUpdateStatusRefundStatus(RefundStatusEnum.SUCCESS);
         queryRefundResultProcessorMessage.setFailReason(refundQueryResultBO.getErrorMsg());
-        rocketMqClient.sendMessage(PayMqTopicName.QUERY_REFUND_RESULT_TOPIC, JsonUtils.toJsonString(queryRefundResultProcessorMessage));
-        if (refundQueryResultBO.getResult()){
-            /**
-             * 插入资金流水
-             */
-            AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(message, refundQueryResultBO.getSendBackFee());
-            rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
-
-        }
+        return queryRefundResultProcessorMessage;
     }
 
 
