@@ -37,8 +37,7 @@ public class RefundQueryResultBO implements Serializable {
     @ApiModelProperty(value = "退款时间")
     private Date gmtRefundPay;
 
-    @ApiModelProperty(value = "总退款金额")
-    private BigDecimal totalRefundAmount;
+
 
     /**
      * 退款结果

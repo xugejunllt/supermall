@@ -23,9 +23,11 @@ public class PayMqTopicName {
      */
     public static final String QUERY_REFUND_RESULT_TOPIC = "QUERY_REFUND_RESULT_TOPIC";
     /**
-     * 退款查询结果处理
+     * 查询转账结果
      */
-    public static final String REFUND_QUERY_RESULT_TOPIC = "REFUND_QUERY_RESULT_TOPIC";
+    public static final String QUERY_TRANSFER_RESULT_TOPIC = "QUERY_REFUND_RESULT_TOPIC";
+
+
     /**
      * 转账查询结果处理
      */

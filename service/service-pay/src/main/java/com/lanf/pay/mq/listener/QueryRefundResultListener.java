@@ -6,30 +6,35 @@ package com.lanf.pay.mq.listener;
 
 import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.client.pay.model.enums.RefundEventTypeEnum;
+import com.lanf.common.utils.CodeGenerateUtils;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.constant.Constants;
+import com.lanf.constant.enums.FlowNoPrefixEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.finance.mq.constant.FinanceClientTopicName;
 import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.pay.model.bo.RefundQueryResultBO;
+import com.lanf.pay.model.entity.RefundOrderDO;
 import com.lanf.pay.model.entity.RefundOrderFlowDO;
 import com.lanf.pay.model.enums.RefundFlowStatusEnum;
 import com.lanf.pay.model.enums.RefundStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.QueryRefundResultMessage;
-import com.lanf.pay.mq.message.RefundQueryResultProcessorMessage;
 import com.lanf.pay.service.pay.IRefundOrderFlowService;
+import com.lanf.pay.service.pay.IRefundOrderService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -48,8 +53,10 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
     private RocketMqClient rocketMqClient;
     @Autowired
     private IRefundOrderFlowService refundOrderFlowService;
+    @Autowired
+    private IRefundOrderService refundOrderService;
 
-
+    @Transactional
     @Override
     public void onMessage(QueryRefundResultMessage message) {
 
@@ -58,7 +65,7 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
                 eq(RefundOrderFlowDO::getOutTradeNo, message.getOutTradeNo())
                 .eq(RefundOrderFlowDO::getOutRequestNo, message.getOutRequestNo()).one();
 
-        if ( one!= null){
+        if (one != null) {
             log.info("退款已处理");
             return;
         }
@@ -68,68 +75,98 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
 
         RefundQueryResultBO refundQueryResultBO = paymentService.
                 queryRefundResult(message.getOutTradeNo(), message.getOutRequestNo());
-        RefundQueryResultProcessorMessage queryRefundResultProcessorMessage = getRefundQueryResultProcessorMessage(message, refundQueryResultBO, payChannel);
-        rocketMqClient.sendMessage(PayMqTopicName.QUERY_REFUND_RESULT_TOPIC, JsonUtils.toJsonString(queryRefundResultProcessorMessage));
-        if (refundQueryResultBO.getResult()){
+
+
+        RefundOrderDO orderDO = refundOrderService.lambdaQuery().eq(RefundOrderDO::getOutTradeNo, message.getOutTradeNo()).one();
+        if (orderDO == null) {
+            log.error("退款单不存在");
+            throw new BizException("退款单不存在");
+        }
+        AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(refundQueryResultBO.getSendBackFee(), orderDO);
+        RefundOrderFlowDO refundOrderFlowDO = buildRefundOrderFlowDO(message,
+                refundQueryResultBO);
+
+        RefundStatusEnum refundStatusEnum = null;
+        if (refundQueryResultBO.getResult()) {
+            refundStatusEnum = RefundStatusEnum.SUCCESS;
+        } else {
+            refundStatusEnum = RefundStatusEnum.FAILED;
+        }
+        try {
+            refundOrderFlowService.save(refundOrderFlowDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("退款流水已存在");
+            throw new BizException("退款流水已存在");
+        }
+        boolean update = refundOrderService.lambdaUpdate()
+                .eq(RefundOrderDO::getId, orderDO.getId())
+                .eq(RefundOrderDO::getVersion, orderDO.getVersion())
+                .eq(RefundOrderDO::getStatus, RefundStatusEnum.REFUNDING)
+                .set(RefundOrderDO::getStatus, refundStatusEnum)
+                .set(RefundOrderDO::getVersion, orderDO.getVersion() + 1)
+                .update();
+
+        if (!update) {
+            log.warn("更新退款单失败");
+            throw new MessageRetryConsumeException("更新退款单失败");
+        }
+        if (refundQueryResultBO.getResult()) {
             /**
              * 插入资金流水
              */
-            AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(message, refundQueryResultBO.getSendBackFee());
             rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
-
         }
     }
 
-    @NotNull
-    private static RefundQueryResultProcessorMessage getRefundQueryResultProcessorMessage(QueryRefundResultMessage message, RefundQueryResultBO refundQueryResultBO, PayChannelEnum payChannel) {
+    private RefundOrderFlowDO buildRefundOrderFlowDO(QueryRefundResultMessage message,
+                                                     RefundQueryResultBO refundQueryResultBO) {
         RefundFlowStatusEnum refundFlowStatusEnum = null;
-        RefundStatusEnum refundStatusEnum = null;
         if (refundQueryResultBO.getResult()) {
             refundFlowStatusEnum = RefundFlowStatusEnum.SUCCESS;
-            refundStatusEnum = RefundStatusEnum.SUCCESS;
         } else {
             refundFlowStatusEnum = RefundFlowStatusEnum.FAILED;
-            refundStatusEnum = RefundStatusEnum.FAILED;
         }
+        RefundOrderFlowDO refundOrderFlowDO = new RefundOrderFlowDO();
+        refundOrderFlowDO.setOutTradeNo(message.getOutTradeNo());
+        refundOrderFlowDO.setOutRequestNo(message.getOutRequestNo());
+        refundOrderFlowDO.setTradeNo(refundQueryResultBO.getTradeNo());
+        refundOrderFlowDO.setPayMoney(refundQueryResultBO.getRefundAmount());
+        refundOrderFlowDO.setReturnMoney(refundQueryResultBO.getSendBackFee());
+        refundOrderFlowDO.setStatus(refundFlowStatusEnum);
+        refundOrderFlowDO.setPayChannelEnum(message.getPayChannel());
+        refundOrderFlowDO.setPayFinishTime(refundQueryResultBO.getGmtRefundPay());
+        refundOrderFlowDO.setPayFinishDate(DateUtils.format(refundQueryResultBO.getGmtRefundPay(),
+                DateUtils.DATE));
+        refundOrderFlowDO.setFailReason(refundQueryResultBO.getErrorMsg());
 
-        RefundQueryResultProcessorMessage queryRefundResultProcessorMessage =
-                new RefundQueryResultProcessorMessage();
-        queryRefundResultProcessorMessage.setOutTradeNo(refundQueryResultBO.getOutTradeNo());
-        queryRefundResultProcessorMessage.setOutRequestNo(refundQueryResultBO.getOutRequestNo());
-        queryRefundResultProcessorMessage.setTradeNo(refundQueryResultBO.getTradeNo());
-        queryRefundResultProcessorMessage.setPayMoney(refundQueryResultBO.getRefundAmount());
-        queryRefundResultProcessorMessage.setReturnMoney(refundQueryResultBO.getSendBackFee());
-        queryRefundResultProcessorMessage.setStatus(refundFlowStatusEnum);
-        queryRefundResultProcessorMessage.setPayOrderId(message.getPayOrderId());
-        queryRefundResultProcessorMessage.setPayChannelEnum(payChannel);
-        queryRefundResultProcessorMessage.setPayFinishTime(refundQueryResultBO.getGmtRefundPay());
-        queryRefundResultProcessorMessage.setUpdateStatusRefundStatus(RefundStatusEnum.SUCCESS);
-        queryRefundResultProcessorMessage.setFailReason(refundQueryResultBO.getErrorMsg());
-        return queryRefundResultProcessorMessage;
+        return refundOrderFlowDO;
     }
 
 
-    private AddMoneyFlowMessage buildAddMoneyFlowMessage( QueryRefundResultMessage message,BigDecimal incomeMoney){
+    private AddMoneyFlowMessage buildAddMoneyFlowMessage(BigDecimal incomeMoney, RefundOrderDO orderDO) {
+
+
+        RefundEventTypeEnum refundEventType = orderDO.getRefundEventType();
         RecordTypeEnum recordTypeEnum = null;
 
-        if (message.getRefundEventTypeEnum()
+        if (refundEventType
 
-                .equals(RefundEventTypeEnum.CANCEL_PAID_ORDER)){
+                .equals(RefundEventTypeEnum.CANCEL_PAID_ORDER)) {
             recordTypeEnum = RecordTypeEnum.CANCEL_ORDER_REFUND;
 
-        } else if (message.getRefundEventTypeEnum()
-                .equals(RefundEventTypeEnum.AFTER_SALES_REFUND)){
+        } else if (refundEventType
+                .equals(RefundEventTypeEnum.AFTER_SALES_REFUND)) {
             recordTypeEnum = RecordTypeEnum.AFTER_SALES_REFUND;
         } else {
             log.error("退款事件类型异常");
             throw new BizException("退款事件类型异常");
         }
-
         AddMoneyFlowMessage moneyFlowMessage = new AddMoneyFlowMessage();
-        moneyFlowMessage.setBusinessId(Constants.PLATFORM_BUSINESS_ID);
-        moneyFlowMessage.setBizOrderId(message.getBizOrderId());
         moneyFlowMessage.setIncomeMoney(incomeMoney);
         moneyFlowMessage.setRecordType(recordTypeEnum);
+        moneyFlowMessage.setFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.MONEY_FLOW,orderDO.getId().toString()));
+        moneyFlowMessage.setBusinessId(null);
+        moneyFlowMessage.setBizOrderId(orderDO.getBizOrderId());
 
         return moneyFlowMessage;
     }

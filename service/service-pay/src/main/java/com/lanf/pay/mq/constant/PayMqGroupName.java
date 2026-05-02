@@ -27,11 +27,11 @@ public class PayMqGroupName {
     public static final String QUERY_REFUND_RESULT_GROUP = "QUERY_REFUND_RESULT_GROUP";
 
 
+
     /**
-     * 退款查询结果处理
+     * 查询转账结果
      */
-    public static final String INSERT_REFUND_ORDER_FLOW_GROUP = "INSERT_REFUND_ORDER_FLOW_GROUP";
-    public static final String UPDATE_REFUND_ORDER_GROUP = "UPDATE_REFUND_ORDER_GROUP";
+    public static final String QUERY_TRANSFER_RESULT_GROUP = "QUERY_TRANSFER_RESULT_GROUP";
     /**
      * 转账查询结果处理
      */

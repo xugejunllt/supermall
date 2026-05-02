@@ -12,7 +12,6 @@ import com.lanf.pay.model.entity.RefundOrderDO;
 import com.lanf.pay.model.enums.RefundFlowStatusEnum;
 import com.lanf.pay.model.enums.RefundStatusEnum;
 import com.lanf.pay.mq.constant.PayMqTopicName;
-import com.lanf.pay.mq.message.QueryRefundResultMessage;
 import com.lanf.pay.mq.message.RefundQueryResultProcessorMessage;
 import com.lanf.pay.service.pay.*;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -91,32 +90,16 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
         CancelPaidOrderResultBO resultBO = paymentService.cancelPaidOrder(outTradeNo, receiptMoney, "取消订单");
 
-        if (resultBO.getResult()){
-            /**
-             * 发起退款成功 查询退款结果
-             */
-
-            QueryRefundResultMessage queryRefundResultMessage = new QueryRefundResultMessage();
-            queryRefundResultMessage.setOutTradeNo(outTradeNo);
-            queryRefundResultMessage.setOutRequestNo(outTradeNo);
-            queryRefundResultMessage.setPayOrderId(orderFlowDO.getId());
-            queryRefundResultMessage.setBizOrderId(processRefund.getBizOrderId());
-            queryRefundResultMessage.setRefundEventTypeEnum(processRefund.getRefundEventTypeEnum());
-            rocketMqClient.sendMessage(PayMqTopicName.QUERY_REFUND_RESULT_TOPIC, JsonUtils.toJsonString(queryRefundResultMessage));
-
-        } else {
-
-            RefundQueryResultProcessorMessage queryRefundResultProcessorMessage =
-                    new RefundQueryResultProcessorMessage();
-            queryRefundResultProcessorMessage.setOutTradeNo(outTradeNo);
-            queryRefundResultProcessorMessage.setOutRequestNo(outTradeNo);
-            queryRefundResultProcessorMessage.setStatus(RefundFlowStatusEnum.FAILED);
-            queryRefundResultProcessorMessage.setPayOrderId(orderFlowDO.getId());
-            queryRefundResultProcessorMessage.setPayChannelEnum(PayChannelEnum.getByCode(payType));
-            queryRefundResultProcessorMessage.setFailReason(resultBO.getErrorMsg());
-            queryRefundResultProcessorMessage.setUpdateStatusRefundStatus(RefundStatusEnum.FAILED);
-            rocketMqClient.sendMessage(PayMqTopicName.QUERY_REFUND_RESULT_TOPIC, JsonUtils.toJsonString(queryRefundResultProcessorMessage));
-        }
+        RefundQueryResultProcessorMessage queryRefundResultProcessorMessage =
+                new RefundQueryResultProcessorMessage();
+        queryRefundResultProcessorMessage.setOutTradeNo(outTradeNo);
+        queryRefundResultProcessorMessage.setOutRequestNo(outTradeNo);
+        queryRefundResultProcessorMessage.setStatus(RefundFlowStatusEnum.FAILED);
+        queryRefundResultProcessorMessage.setPayOrderId(orderFlowDO.getId());
+        queryRefundResultProcessorMessage.setPayChannelEnum(PayChannelEnum.getByCode(payType));
+        queryRefundResultProcessorMessage.setFailReason(resultBO.getErrorMsg());
+        queryRefundResultProcessorMessage.setUpdateStatusRefundStatus(RefundStatusEnum.FAILED);
+        rocketMqClient.sendMessage(PayMqTopicName.QUERY_REFUND_RESULT_TOPIC, JsonUtils.toJsonString(queryRefundResultProcessorMessage));
 
     }
 

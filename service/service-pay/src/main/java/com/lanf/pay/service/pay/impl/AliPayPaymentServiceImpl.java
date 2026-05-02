@@ -389,7 +389,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
                 result.setResult(true);
                 result.setTradeNo(response.getTradeNo());
                 result.setRefundAmount(new BigDecimal(response.getRefundAmount()));
-                result.setTotalRefundAmount(new BigDecimal(response.getSendBackFee()));
+                result.setSendBackFee(new BigDecimal(response.getSendBackFee()));
                 result.setGmtRefundPay(response.getGmtRefundPay());
                 log.info("查询支付宝退款结果成功:outTradeNo={},outRequestNo={},refundStatus={}",
                         outTradeNo, outRequestNo, response.getRefundStatus());

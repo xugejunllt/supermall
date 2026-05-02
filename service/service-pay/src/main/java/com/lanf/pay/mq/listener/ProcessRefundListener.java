@@ -13,7 +13,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * 处理退款消息消费者
- * 全部退款 原路返回
+ * 如全部退款 部分退款
+ *
  */
 @Slf4j
 @Component
