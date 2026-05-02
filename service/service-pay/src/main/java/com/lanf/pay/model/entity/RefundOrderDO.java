@@ -48,6 +48,7 @@ public class RefundOrderDO extends BaseEntity {
     @ApiModelProperty(value = "退款原因")
     private String refundReason;
 
+    private Long version;
 
 
 

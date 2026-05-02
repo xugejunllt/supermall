@@ -331,7 +331,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
                  * 系统错误 抛出异常重试
                  */
 
-                throw new MessageRetryConsumeException("退款异常");
+                throw new MessageRetryConsumeException("退款接口系统错误");
             } else if ( ! "10000".equals(code)) {
 
                 /**
@@ -345,7 +345,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
                 return new CancelPaidOrderResultBO();
             }
             
-            log.info("支付宝退款成功:outTradeNo={},tradeNo={},refundFee={}", 
+            log.info("支付宝发起退款成功:outTradeNo={},tradeNo={},refundFee={}",
                     outTradeNo, response.getTradeNo(), response.getRefundFee());
             CancelPaidOrderResultBO bo = new CancelPaidOrderResultBO();
             bo.setResult( true);
@@ -355,6 +355,72 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
         } catch (AlipayApiException e) {
             log.warn("支付宝退款异常:outTradeNo={}", outTradeNo, e);
             throw new MessageRetryConsumeException("退款异常");
+        }
+    }
+
+    /**
+     * 查询支付宝退款结果
+     *
+     * @param outTradeNo 商户订单号
+     * @param outRequestNo 商户退款请求号
+     * @return 退款查询结果
+     */
+    @Override
+    public RefundQueryResultBO queryRefundResult(String outTradeNo, String outRequestNo) {
+        log.info("查询支付宝退款结果开始:outTradeNo={},outRequestNo={}", outTradeNo, outRequestNo);
+
+        AlipayClient alipayClient = null;
+        try {
+            alipayClient = new DefaultAlipayClient(getAlipayConfig());
+
+            AlipayTradeFastpayRefundQueryRequest request = new AlipayTradeFastpayRefundQueryRequest();
+            AlipayTradeFastpayRefundQueryModel model = new AlipayTradeFastpayRefundQueryModel();
+            model.setOutTradeNo(outTradeNo);
+            model.setOutRequestNo(outRequestNo != null ? outRequestNo : "");
+            request.setBizModel(model);
+
+            AlipayTradeFastpayRefundQueryResponse response = alipayClient.certificateExecute(request);
+            
+            RefundQueryResultBO result = new RefundQueryResultBO();
+            result.setOutTradeNo(outTradeNo);
+            result.setOutRequestNo(outRequestNo);
+            String code = response.getCode();
+            String subCode = response.getSubCode();
+
+            if ( "ACQ.SYSTEM_ERROR".equals(subCode) ||
+                    "ACQ.ENTERPRISE_PAY_BIZ_ERROR".equals(subCode)  ) {
+                log.warn("支付宝退款失败:outTradeNo={},code={},subCode={},msg={}",
+                        outTradeNo, code, response.getSubCode(), response.getSubMsg());
+                /**
+                 * 系统错误 抛出异常重试
+                 */
+                throw new MessageRetryConsumeException("退款接口系统错误");
+            } else if ( ! "10000".equals(code)) {
+
+                /**
+                 * 其他业务错误
+                 */
+                log.error("支付宝退款失败:outTradeNo={},code={},subCode={},msg={}",
+                        outTradeNo, code, response.getSubCode(), response.getSubMsg());
+                result.setResult(false);
+                result.setErrorMsg(subCode+":"+response.getSubMsg());
+                return result;
+            }
+            
+            // 设置退款成功的结果
+            result.setResult(true);
+            result.setTradeNo(response.getTradeNo());
+            result.setRefundAmount(new BigDecimal(response.getRefundAmount()));
+            result.setTotalRefundAmount(new BigDecimal(response.getSendBackFee()));
+            result.setGmtRefundPay(response.getGmtRefundPay());
+
+            log.info("查询支付宝退款结果成功:outTradeNo={},outRequestNo={},refundStatus={}",
+                    outTradeNo, outRequestNo, response.getRefundStatus());
+            return result;
+
+        } catch (AlipayApiException e) {
+            log.warn("查询支付宝退款结果异常:outTradeNo={},outRequestNo={}", outTradeNo, outRequestNo, e);
+            throw new MessageRetryConsumeException("查询退款结果异常");
         }
     }
 

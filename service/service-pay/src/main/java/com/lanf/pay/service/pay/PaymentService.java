@@ -90,4 +90,13 @@ public interface PaymentService {
      */
     BillDownloadUrlResultBO queryBillDownloadUrl(String billType, String billDate);
 
+    /**
+     * 查询支付宝退款结果
+     *
+     * @param outTradeNo 商户订单号
+     * @param outRequestNo 商户退款请求号
+     * @return 退款查询结果
+     */
+    RefundQueryResultBO queryRefundResult(String outTradeNo, String outRequestNo);
+
 }

@@ -18,7 +18,14 @@ public class PayMqTopicName {
      */
     public static final String RECONCILIATION_START_TOPIC = "RECONCILIATION_START_TOPIC";
 
-
+    /**
+     * 查询退款结果
+     */
+    public static final String QUERY_REFUND_RESULT_TOPIC = "QUERY_REFUND_RESULT_TOPIC";
+    /**
+     * 退款查询结果处理
+     */
+    public static final String REFUND_QUERY_RESULT_TOPIC = "REFUND_QUERY_RESULT_TOPIC";
 
 
 }

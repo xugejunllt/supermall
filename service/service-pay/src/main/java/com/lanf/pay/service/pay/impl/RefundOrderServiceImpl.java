@@ -14,17 +14,18 @@ import com.lanf.pay.model.bo.CancelPaidOrderResultBO;
 import com.lanf.pay.model.bo.ProcessRefund;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.entity.RefundOrderDO;
+import com.lanf.pay.model.entity.RefundOrderFlowDO;
+import com.lanf.pay.model.enums.RefundFlowStatusEnum;
 import com.lanf.pay.model.enums.RefundStatusEnum;
-import com.lanf.pay.service.pay.IPayOrderFlowService;
-import com.lanf.pay.service.pay.IRefundOrderService;
-import com.lanf.pay.service.pay.PaymentService;
-import com.lanf.pay.service.pay.PaymentServiceFactory;
+import com.lanf.pay.mq.constant.PayMqTopicName;
+import com.lanf.pay.mq.message.QueryRefundResultMessage;
+import com.lanf.pay.mq.message.RefundQueryResultProcessorMessage;
+import com.lanf.pay.service.pay.*;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -45,8 +46,8 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
     private IPayOrderFlowService payOrderFlowService;
     @Autowired
     private RocketMqClient rocketMqClient;
-
-
+    @Autowired
+    private IRefundOrderFlowService refundOrderFlowService;
 
     @Override
     public void processRefund(ProcessRefund processRefund) {
@@ -84,7 +85,7 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
             try {
                 this.save(refundOrderDO);
             } catch (DuplicateKeyException e) {
-                log.warn("该支付订单已取消");
+                log.warn("退款单已存在");
 
             }
 
@@ -95,16 +96,29 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
          */
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
         CancelPaidOrderResultBO resultBO = paymentService.cancelPaidOrder(outTradeNo, receiptMoney, "取消订单");
+
         if (resultBO.getResult()){
             /**
-             * 退款成功
-             */
-        } else {
-            log.warn("取消三方支付订单,退款失败");
-            /**
-             * 插入流水
+             * 发起退款成功 查询退款结果
              */
 
+            QueryRefundResultMessage queryRefundResultMessage = new QueryRefundResultMessage();
+            queryRefundResultMessage.setOutTradeNo(outTradeNo);
+            queryRefundResultMessage.setOutRequestNo(outTradeNo);
+            queryRefundResultMessage.setPayOrderId(orderFlowDO.getId());
+            rocketMqClient.sendMessage(PayMqTopicName.QUERY_REFUND_RESULT_TOPIC, JsonUtils.toJsonString(queryRefundResultMessage));
+
+        } else {
+            RefundQueryResultProcessorMessage queryRefundResultProcessorMessage =
+                    new RefundQueryResultProcessorMessage();
+            queryRefundResultProcessorMessage.setOutTradeNo(outTradeNo);
+            queryRefundResultProcessorMessage.setOutRequestNo(outTradeNo);
+            queryRefundResultProcessorMessage.setStatus(RefundFlowStatusEnum.FAILED);
+            queryRefundResultProcessorMessage.setPayOrderId(orderFlowDO.getId());
+            queryRefundResultProcessorMessage.setPayChannelEnum(PayChannelEnum.getByCode(payType));
+            queryRefundResultProcessorMessage.setFailReason(resultBO.getErrorMsg());
+            queryRefundResultProcessorMessage.setUpdateStatusRefundStatus(RefundStatusEnum.FAILED);
+            rocketMqClient.sendMessage(PayMqTopicName.QUERY_REFUND_RESULT_TOPIC, JsonUtils.toJsonString(queryRefundResultProcessorMessage));
         }
 
         /**
@@ -158,4 +172,7 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
 
         return moneyFlowMessage;
     }
+
+
+
 }
