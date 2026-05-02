@@ -1,14 +1,16 @@
 package com.lanf.pay.service.reconciliation.impl;
 
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.read.listener.ReadListener;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.constant.exception.BizException;
-import com.lanf.pay.service.reconciliation.excel.AalPaySignCustomerFundBillDetailExcel;
-import com.lanf.pay.service.reconciliation.excel.FundBillDetailReadListener;
 import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
+import com.lanf.pay.model.enums.BillTypeEnum;
 import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
+import com.lanf.pay.service.reconciliation.excel.impl.AalPaySignCustomerFundBillDetailExcel;
+import com.lanf.pay.service.reconciliation.excel.impl.AalPayTradeFundBillDetailExcel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -30,23 +32,45 @@ public class SignCustomerFundBillDetailServiceImpl extends ServiceImpl<SignCusto
 
 
     @Override
-    public void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel, File excelFile) {
+    public void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel, File excelFile,String billType) {
 
         log.info("开始导入对账单 Excel: batchId={}, payChannel={}", batchId, payChannel);
-        FundBillDetailReadListener listener = new FundBillDetailReadListener
-                (batchId, payChannel.getCode().toString(),null);
+
+
         Class<?> head = null;
-        switch (payChannel){
-            case ALI_PAY:
-                head = AalPaySignCustomerFundBillDetailExcel.class;
-                break;
-            case WECHAT_PAY:
-                log.error("不支持的支付渠道: {}", payChannel);
-                break;
-            default:
-                log.error("不支持的支付渠道: {}", payChannel);
-                throw new BizException("不支持的支付渠道");
+        ReadListener<?> listener = null;
+
+
+        if (BillTypeEnum.SIGN_CUSTOMER.getCode().equals(billType)){
+            switch (payChannel){
+                case ALI_PAY:
+                    head = AalPaySignCustomerFundBillDetailExcel.class;
+                    listener = new AalPaySignCustomerFundBillDetailExcel(batchId, payChannel.getCode().toString());
+                    break;
+                case WECHAT_PAY:
+                    log.error("不支持的支付渠道: {}", payChannel);
+                    break;
+                default:
+                    log.error("不支持的支付渠道: {}", payChannel);
+                    throw new BizException("不支持的支付渠道");
+            }
         }
+        if (BillTypeEnum.TRADE.getCode().equals(billType)){
+            switch (payChannel){
+                case ALI_PAY:
+                    head = AalPayTradeFundBillDetailExcel.class;
+                    listener = new AalPayTradeFundBillDetailExcel(batchId,
+                            payChannel.getCode().toString());
+                    break;
+                case WECHAT_PAY:
+                    log.error("不支持的支付渠道: {}", payChannel);
+                    break;
+                default:
+                    log.error("不支持的支付渠道: {}", payChannel);
+                    throw new BizException("不支持的支付渠道");
+            }
+        }
+
 
         try {
 
@@ -58,7 +82,6 @@ public class SignCustomerFundBillDetailServiceImpl extends ServiceImpl<SignCusto
 
         } catch (Exception e) {
             log.error("对账单 Excel 导入失败: batchId={}, payChannel={}", batchId, payChannel, e);
-            throw new BizException("对账单导入失败");
         } finally {
             // 无论成功或失败，都删除临时文件
             if (excelFile != null && excelFile.exists()) {

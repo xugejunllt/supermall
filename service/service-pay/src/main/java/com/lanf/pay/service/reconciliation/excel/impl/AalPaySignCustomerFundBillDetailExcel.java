@@ -1,4 +1,4 @@
-package com.lanf.pay.service.reconciliation.excel;
+package com.lanf.pay.service.reconciliation.excel.impl;
 
 
 import com.alibaba.excel.annotation.ExcelProperty;
@@ -7,6 +7,7 @@ import com.lanf.common.utils.BeanUtil;
 import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
+import com.lanf.pay.service.reconciliation.excel.AbstractFundBillDetailReadListener;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +21,8 @@ import java.util.List;
 @Slf4j
 @Getter
 @Setter
-public class AalPaySignCustomerFundBillDetailExcel extends FundBillDetailReadListener<AalPaySignCustomerFundBillDetailExcel,
-        SignCustomerFundBillDetailDO>{
+public class AalPaySignCustomerFundBillDetailExcel extends AbstractFundBillDetailReadListener<AalPaySignCustomerFundBillDetailExcel,
+        SignCustomerFundBillDetailDO> {
 
     @ExcelProperty(index = 0, value = "支付渠道")
     private String payChannel;
@@ -71,7 +72,7 @@ public class AalPaySignCustomerFundBillDetailExcel extends FundBillDetailReadLis
     }
 
     @Override
-    SignCustomerFundBillDetailDO convertToDO(AalPaySignCustomerFundBillDetailExcel excel) {
+    protected SignCustomerFundBillDetailDO convertToDO(AalPaySignCustomerFundBillDetailExcel excel) {
         SignCustomerFundBillDetailDO detailDO = new SignCustomerFundBillDetailDO();
 
         detailDO.setMerchantOrderNo(excel.getMerchantOrderNo());
@@ -97,7 +98,7 @@ public class AalPaySignCustomerFundBillDetailExcel extends FundBillDetailReadLis
     }
 
     @Override
-    void batchInsertIgnore(List<SignCustomerFundBillDetailDO> list) {
+    protected void batchInsertIgnore(List<SignCustomerFundBillDetailDO> list) {
 
         SignCustomerFundBillDetailMapper detailMapper = BeanUtil.getBean(SignCustomerFundBillDetailMapper.class);
         detailMapper.batchInsertIgnore(list);

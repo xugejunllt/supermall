@@ -100,6 +100,9 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
 
         String batchId = one.getBatchId();
         PayChannelEnum channel = message.getPayChannel();
+        String billType = message.getBillType();
+
+
         try {
             billDownloadUrlResultBO = paymentService.queryBillDownloadUrl(message.getBillType(), message.getBillDate());
             //2.下载文件到本地临时目录
@@ -119,7 +122,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
         /**
          * 3.异步解析账单
          */
-        ParseExcelTask task =    new ParseExcelTask(  batchId,  channel, fundBillDetailService, excelFile);
+        ParseExcelTask task =    new ParseExcelTask(  batchId,  channel, fundBillDetailService, excelFile, billType);
         taskScheduler.execute( task);
 
     }
@@ -179,12 +182,16 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
         private final PayChannelEnum channel;
         private final SignCustomerIFundBillDetailService fundBillDetailService;
         private final File excelFile;
+        private final String billType;
 
-        public ParseExcelTask(String batchId, PayChannelEnum channel, SignCustomerIFundBillDetailService fundBillDetailService, File excelFile) {
+        public ParseExcelTask(String batchId, PayChannelEnum channel,
+                              SignCustomerIFundBillDetailService fundBillDetailService,
+                              File excelFile, String billType) {
             this.batchId = batchId;
             this.channel = channel;
             this.fundBillDetailService = fundBillDetailService;
             this.excelFile = excelFile;
+            this.billType = billType;
         }
 
         @Override
@@ -193,7 +200,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
             //3.解析账单
             try (InputStream inputStream = Files.newInputStream(excelFile.toPath())) {
 
-                fundBillDetailService.importFromExcel(inputStream, batchId, channel,excelFile);
+                fundBillDetailService.importFromExcel(inputStream, batchId, channel,excelFile, billType);
 
             } catch (IOException e) {
                 log.error("解析账单失败",e);

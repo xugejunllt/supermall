@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 实现分批插入数据库
  */
 @Slf4j
-public abstract class FundBillDetailReadListener<T,S> implements ReadListener<T> {
+public abstract class AbstractFundBillDetailReadListener<T,S> implements ReadListener<T> {
 
     /**
      * 批量插入阈值
@@ -47,7 +47,7 @@ public abstract class FundBillDetailReadListener<T,S> implements ReadListener<T>
 
 
 
-    public FundBillDetailReadListener(String batchId, String payChannel) {
+    public AbstractFundBillDetailReadListener(String batchId, String payChannel) {
         this.batchId = batchId;
         this.payChannel = payChannel;
         this.currentParseCount = new AtomicInteger(0);
@@ -126,15 +126,15 @@ public abstract class FundBillDetailReadListener<T,S> implements ReadListener<T>
 
         }
     }
-    abstract S convertToDO(T excel);
+    protected abstract S convertToDO(T excel);
 
-    abstract void batchInsertIgnore(List<S> list);
+    protected abstract void batchInsertIgnore(List<S> list);
 
 
     /**
      * 解析 BigDecimal
      */
-     BigDecimal parseBigDecimal(String str) {
+    protected BigDecimal parseBigDecimal(String str) {
         if (str == null || str.trim().isEmpty() || "0".equals(str)) {
             return BigDecimal.ZERO;
         }
@@ -149,7 +149,7 @@ public abstract class FundBillDetailReadListener<T,S> implements ReadListener<T>
     /**
      * 解析 LocalDateTime
      */
-     LocalDateTime parseLocalDateTime(String str) {
+    protected LocalDateTime parseLocalDateTime(String str) {
         if (str == null || str.trim().isEmpty()) {
             return null;
         }

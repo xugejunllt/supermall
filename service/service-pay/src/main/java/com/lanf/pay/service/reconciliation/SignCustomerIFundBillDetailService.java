@@ -24,5 +24,6 @@ public interface SignCustomerIFundBillDetailService extends IService<SignCustome
      * @param batchId 批次ID（账单日期）
      * @param payChannel 支付渠道
      */
-    void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel, File excelFile);
+    void importFromExcel(InputStream inputStream, String batchId,
+                         PayChannelEnum payChannel, File excelFile,String billType);
 }
