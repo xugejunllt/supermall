@@ -32,5 +32,11 @@ public class PayMqGroupName {
      */
     public static final String INSERT_REFUND_ORDER_FLOW_GROUP = "INSERT_REFUND_ORDER_FLOW_GROUP";
     public static final String UPDATE_REFUND_ORDER_GROUP = "UPDATE_REFUND_ORDER_GROUP";
+    /**
+     * 转账查询结果处理
+     */
+    public static final String INSERT_TRANSFER_ORDER_FLOW_GROUP = "INSERT_TRANSFER_ORDER_FLOW_GROUP";
+
+    public static final String UPDATE_TRANSFER_ORDER_GROUP = "UPDATE_TRANSFER_ORDER_GROUP";
 
 }

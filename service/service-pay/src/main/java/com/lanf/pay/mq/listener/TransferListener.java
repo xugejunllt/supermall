@@ -12,8 +12,10 @@ import com.lanf.finance.mq.constant.FinanceClientTopicName;
 import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.pay.model.bo.TransferResult;
 import com.lanf.pay.model.entity.TransferOrderDO;
+import com.lanf.pay.model.enums.TransferFlowStatusEnum;
 import com.lanf.pay.model.enums.TransferStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
+import com.lanf.pay.mq.message.TransferQueryResultProcessorMessage;
 import com.lanf.pay.service.pay.ITransferOrderService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
@@ -21,9 +23,12 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
+
+import static com.lanf.pay.mq.constant.PayMqTopicName.TRANSFER_QUERY_RESULT_TOPIC;
 
 @Slf4j
 @Component
@@ -46,8 +51,6 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
         String outBizNo = message.getOutBizNo();
         TransferOrderDO one = transferOrderService.lambdaQuery().eq(TransferOrderDO::getOutTradeNo,
                 outBizNo).one();
-
-
         if (one == null) {
             TransferOrderDO transferOrderDO = buildTransferOrderDO(message);
             try {
@@ -65,7 +68,16 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(message.getTransferChannel().getCode());
         TransferResult result = paymentService.transfer(message.getOutBizNo(),
                 message.getIncomeAccount(), message.getTransAmount(), message.getOrderTitle());
-        z
+
+        if ( !result.getTransferSuccess()){
+            /**
+             * 在发送查询转账结果前 提前发送查询结果
+             */
+            TransferQueryResultProcessorMessage successMessage = getTransferQueryResultProcessorMessage(message, result);
+            rocketMqClient.sendMessage(TRANSFER_QUERY_RESULT_TOPIC,
+                    JsonUtils.toJsonString(successMessage));
+        }
+
 
 
 
@@ -105,6 +117,20 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
         log.info("发送转账成功消息完成，eventType:{}, outBizNo:{}", message.getEventType(), outBizNo);
 
 
+    }
+
+    @NotNull
+    private static TransferQueryResultProcessorMessage getTransferQueryResultProcessorMessage(TransferMessage message, TransferResult result) {
+        TransferQueryResultProcessorMessage successMessage = new TransferQueryResultProcessorMessage();
+        successMessage.setOutTradeNo(message.getOutBizNo());
+        successMessage.setTransferChannel(message.getTransferChannel());
+        successMessage.setFromAccount(message.getFromAccount());
+        successMessage.setIncomeAccount(message.getIncomeAccount());
+        successMessage.setTotalAmount(message.getTransAmount());
+        successMessage.setStatus(TransferFlowStatusEnum.FAILED);
+        successMessage.setFailReason(result.getErrorMsg());
+        successMessage.setUpdateTransferStatus(TransferStatusEnum.FAILED);
+        return successMessage;
     }
 
     private AddMoneyFlowMessage buildAddMoneyFlowMessage(TransferMessage message,

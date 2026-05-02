@@ -51,11 +51,11 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "订单总金额，即发起转账时传入的金额")
     private BigDecimal totalAmount;
 
-    @ApiModelProperty(value = "实际转账金额")
-    private BigDecimal transAmount;
+
 
     @ApiModelProperty(value = "0:退款中 1：退款成功 2：退款失败")
     private TransferStatusEnum status;
 
+    private Long version;
 
 }

@@ -1,7 +1,7 @@
 package com.lanf.pay.service.pay;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.pay.model.entity.TransferOrderFlow;
+import com.lanf.pay.model.entity.TransferOrderFlowDO;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.lanf.pay.model.entity.TransferOrderFlow;
  * @author jarven
  * @since 2026-05-02
  */
-public interface ITransferOrderFlowService extends IService<TransferOrderFlow> {
+public interface ITransferOrderFlowService extends IService<TransferOrderFlowDO> {
 
 }

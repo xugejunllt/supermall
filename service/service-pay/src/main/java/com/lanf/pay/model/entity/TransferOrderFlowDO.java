@@ -1,13 +1,12 @@
 package com.lanf.pay.model.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.client.pay.model.enums.PayChannelEnum;
-import io.swagger.annotations.ApiModel;
+import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.pay.model.enums.TransferFlowStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -20,10 +19,8 @@ import java.util.Date;
  * @since 2026-05-02
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
-@ApiModel(value="TransferOrderFlow对象", description="转账单")
-public class TransferOrderFlow implements Serializable {
+@TableName("transfer_order_flow")
+public class TransferOrderFlowDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
@@ -46,7 +43,7 @@ private static final long serialVersionUID=1L;
     private BigDecimal transAmount;
 
     @ApiModelProperty(value = "0:退款成功 1：退款失败")
-    private Integer status;
+    private TransferFlowStatusEnum status;
 
     @ApiModelProperty(value = "转账完成时间")
     private Date payFinishTime;

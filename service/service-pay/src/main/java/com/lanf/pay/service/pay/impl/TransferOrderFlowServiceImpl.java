@@ -2,7 +2,7 @@ package com.lanf.pay.service.pay.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.pay.mapper.TransferOrderFlowMapper;
-import com.lanf.pay.model.entity.TransferOrderFlow;
+import com.lanf.pay.model.entity.TransferOrderFlowDO;
 import com.lanf.pay.service.pay.ITransferOrderFlowService;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +15,6 @@ import org.springframework.stereotype.Service;
  * @since 2026-05-02
  */
 @Service
-public class TransferOrderFlowServiceImpl extends ServiceImpl<TransferOrderFlowMapper, TransferOrderFlow> implements ITransferOrderFlowService {
+public class TransferOrderFlowServiceImpl extends ServiceImpl<TransferOrderFlowMapper, TransferOrderFlowDO> implements ITransferOrderFlowService {
 
 }
