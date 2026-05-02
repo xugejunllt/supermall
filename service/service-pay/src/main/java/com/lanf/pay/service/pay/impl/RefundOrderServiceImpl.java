@@ -1,8 +1,8 @@
 package com.lanf.pay.service.pay.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.client.pay.model.enums.RefundEventTypeEnum;
-import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
@@ -14,6 +14,7 @@ import com.lanf.pay.model.bo.CancelPaidOrderResultBO;
 import com.lanf.pay.model.bo.ProcessRefund;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.entity.RefundOrderDO;
+import com.lanf.pay.model.enums.RefundStatusEnum;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.pay.IRefundOrderService;
 import com.lanf.pay.service.pay.PaymentService;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -45,12 +47,12 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
     private RocketMqClient rocketMqClient;
 
 
+
     @Override
     public void processRefund(ProcessRefund processRefund) {
 
 
         String outTradeNo = processRefund.getOutRequestNo();
-        String outRequestNo = processRefund.getOutRequestNo();
         Integer payType = processRefund.getPayType();
         PayOrderFlowDO orderFlowDO = payOrderFlowService.lambdaQuery()
                 .eq(PayOrderFlowDO::getOutTradeNo, outTradeNo)
@@ -60,43 +62,58 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
             log.error("支付订单不存在");
             return;
         }
-        RefundOrderDO orderDO = this.lambdaQuery()
-                .eq(RefundOrderDO::getOutRequestNo, outTradeNo)
-                .eq(RefundOrderDO::getOutRequestNo, outRequestNo).one();
-        if ( orderDO != null){
-            log.info("该退款单已存在");
-            return;
-        }
         /**
-         * 使用实际收入的金额进行退款
+         * 只支持全额退款
          */
         BigDecimal receiptMoney = orderFlowDO.getReceiptMoney();
+        RefundOrderDO orderDO = this.lambdaQuery()
+                .eq(RefundOrderDO::getOutTradeNo, outTradeNo)
+                .one();
+
+        if (orderDO == null){
+
+            RefundOrderDO refundOrderDO = new RefundOrderDO();
+            refundOrderDO.setOutTradeNo(outTradeNo);
+            refundOrderDO.setReturnMoney(receiptMoney);
+            refundOrderDO.setStatus( RefundStatusEnum.REFUNDING);
+            refundOrderDO.setRefundEventType(RefundEventTypeEnum.CANCEL_PAID_ORDER);
+            refundOrderDO.setPayChannel(PayChannelEnum.getByCode(orderFlowDO.getPayType()));
+            refundOrderDO.setBizOrderId(processRefund.getBizOrderId());
+            //暂时写死
+            refundOrderDO.setRefundReason("取消订单");
+            try {
+                this.save(refundOrderDO);
+            } catch (DuplicateKeyException e) {
+                log.warn("该支付订单已取消");
+
+            }
+
+        }
 
         /**
-         * 这里使用抽象类
+         * 只保证请求发送成功 不作业务处理
          */
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
-        CancelPaidOrderResultBO cancelled = paymentService.cancelPaidOrder(outTradeNo,
-                receiptMoney, "取消订单");
+        CancelPaidOrderResultBO resultBO = paymentService.cancelPaidOrder(outTradeNo, receiptMoney, "取消订单");
+        if (resultBO.getResult()){
+            /**
+             * 退款成功
+             */
+        } else {
+            log.warn("取消三方支付订单,退款失败");
+            /**
+             * 插入流水
+             */
 
+        }
+
+        /**
+         * 待优化 退款成功 更新其状态
+         */
         if (cancelled != null && cancelled.getResult()){
             log.info("取消三方支付订单,退款成功");
             //
-            RefundOrderDO refundOrderDO = new RefundOrderDO();
-            refundOrderDO.setOutTradeNo(outTradeNo);
-            refundOrderDO.setOutRequestNo(outRequestNo);
-            refundOrderDO.setTradeNo(cancelled.getTradeNo());
-            refundOrderDO.setReturnMoney(cancelled.getReturnMoney());
-            refundOrderDO.setBuyerLogonId(cancelled.getBuyerLogonId());
-            refundOrderDO.setPayOrderId(orderFlowDO.getId());
-            refundOrderDO.setPartialRefund(0);
-            refundOrderDO.setPayType(payType);
-            refundOrderDO.setRefundReason("取消订单");
-            refundOrderDO.setRefundEventType(processRefund.getRefundEventTypeEnum());
-            refundOrderDO.setPayFinishTime(cancelled.getPayFinishTime());
-            String format = DateUtils.format(cancelled.getPayFinishTime(), DateUtils.DATE);
-            refundOrderDO.setPayFinishDate(format);
-            refundOrderDO.setPayMoney(receiptMoney);
+
             ///
             AddMoneyFlowMessage moneyFlowMessage = buildAddMoneyFlowMessage(processRefund, receiptMoney);
             try {

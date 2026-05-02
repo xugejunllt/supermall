@@ -48,8 +48,14 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "收款账号")
     private String incomeAccount;
+    /**
+     * 订单总金额，即发起转账时传入的金额
+     */
+    private BigDecimal totalAmount;
 
-    @ApiModelProperty(value = "订单总金额")
+    /**
+     * 实际转账金额
+     */
     private BigDecimal transAmount;
 
     @ApiModelProperty(value = "转账订单号")

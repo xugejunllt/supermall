@@ -320,25 +320,36 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
             AlipayTradeRefundResponse response = alipayClient.certificateExecute(request);
             String code = response.getCode();
-            
-            if (  !("10000".equals(code) && "Y".equals(response.getFundChange())) ) {
+            String subCode = response.getSubCode();
+            /**
+             * 只负责发送请求 最终通过查询保证退款成功
+             */
+            if (  ! "10000".equals(code) && "ACQ.SYSTEM_ERROR".equals(subCode)  ) {
                 log.warn("支付宝退款失败:outTradeNo={},code={},subCode={},msg={}",
                         outTradeNo, code, response.getSubCode(), response.getSubMsg());
+                /**
+                 * 系统错误 抛出异常重试
+                 */
+
                 throw new MessageRetryConsumeException("退款异常");
+            } else if ( ! "10000".equals(code)) {
+
+                /**
+                 * 其他业务错误
+                 */
+                log.error("支付宝退款失败:outTradeNo={},code={},subCode={},msg={}",
+                        outTradeNo, code, response.getSubCode(), response.getSubMsg());
+                CancelPaidOrderResultBO cancelPaidOrderResultBO = new CancelPaidOrderResultBO();
+                cancelPaidOrderResultBO.setResult(false);
+                cancelPaidOrderResultBO.setErrorMsg(subCode+":"+response.getSubMsg());
+                return new CancelPaidOrderResultBO();
             }
             
             log.info("支付宝退款成功:outTradeNo={},tradeNo={},refundFee={}", 
                     outTradeNo, response.getTradeNo(), response.getRefundFee());
-            Date gmtRefundPay = response.getGmtRefundPay();
             CancelPaidOrderResultBO bo = new CancelPaidOrderResultBO();
             bo.setResult( true);
-            bo.setTradeNo(response.getTradeNo());
-            /**
-             * 本次商户实际退回金额
-             */
-            bo.setReturnMoney(new BigDecimal(response.getSendBackFee()));
-            bo.setBuyerLogonId(response.getBuyerLogonId());
-            bo.setPayFinishTime(gmtRefundPay);
+
             return bo;
 
         } catch (AlipayApiException e) {
@@ -381,8 +392,9 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
             AlipayFundTransUniTransferResponse response = alipayClient.certificateExecute(request);
             String code = response.getCode();
-            z
-            if ("10000".equals(code)) {
+            String status = response.getStatus();
+            if ("10000".equals(code) && "SUCCESS".equals(status)) {
+
                 resultBO.setStatus("SUCCESS");
                 resultBO.setOrderId(response.getOrderId());
                 resultBO.setFinishTime(DateUtils.parse(response.getTransDate(), DateUtils.DATE_TIME));
