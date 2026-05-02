@@ -69,22 +69,22 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
             log.info("退款已处理");
             return;
         }
-        PayChannelEnum payChannel = message.getPayChannel();
+        RefundOrderDO orderDO = refundOrderService.lambdaQuery().eq(RefundOrderDO::getOutTradeNo, message.getOutTradeNo()).one();
+
+        if (orderDO == null) {
+            log.error("退款单不存在");
+            throw new BizException("退款单不存在");
+        }
+
+        PayChannelEnum payChannel = orderDO.getPayChannel();
 
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(payChannel.getCode());
 
         RefundQueryResultBO refundQueryResultBO = paymentService.
                 queryRefundResult(message.getOutTradeNo(), message.getOutRequestNo());
 
-
-        RefundOrderDO orderDO = refundOrderService.lambdaQuery().eq(RefundOrderDO::getOutTradeNo, message.getOutTradeNo()).one();
-        if (orderDO == null) {
-            log.error("退款单不存在");
-            throw new BizException("退款单不存在");
-        }
         AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(refundQueryResultBO.getSendBackFee(), orderDO);
-        RefundOrderFlowDO refundOrderFlowDO = buildRefundOrderFlowDO(message,
-                refundQueryResultBO);
+        RefundOrderFlowDO refundOrderFlowDO = buildRefundOrderFlowDO(refundQueryResultBO, orderDO);
 
         RefundStatusEnum refundStatusEnum = null;
         if (refundQueryResultBO.getResult()) {
@@ -118,8 +118,7 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
         }
     }
 
-    private RefundOrderFlowDO buildRefundOrderFlowDO(QueryRefundResultMessage message,
-                                                     RefundQueryResultBO refundQueryResultBO) {
+    private RefundOrderFlowDO buildRefundOrderFlowDO(RefundQueryResultBO refundQueryResultBO,RefundOrderDO orderDO) {
         RefundFlowStatusEnum refundFlowStatusEnum = null;
         if (refundQueryResultBO.getResult()) {
             refundFlowStatusEnum = RefundFlowStatusEnum.SUCCESS;
@@ -127,13 +126,13 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
             refundFlowStatusEnum = RefundFlowStatusEnum.FAILED;
         }
         RefundOrderFlowDO refundOrderFlowDO = new RefundOrderFlowDO();
-        refundOrderFlowDO.setOutTradeNo(message.getOutTradeNo());
-        refundOrderFlowDO.setOutRequestNo(message.getOutRequestNo());
+        refundOrderFlowDO.setOutTradeNo(orderDO.getOutTradeNo());
+        refundOrderFlowDO.setOutRequestNo(orderDO.getOutTradeNo());
         refundOrderFlowDO.setTradeNo(refundQueryResultBO.getTradeNo());
         refundOrderFlowDO.setPayMoney(refundQueryResultBO.getRefundAmount());
         refundOrderFlowDO.setReturnMoney(refundQueryResultBO.getSendBackFee());
         refundOrderFlowDO.setStatus(refundFlowStatusEnum);
-        refundOrderFlowDO.setPayChannelEnum(message.getPayChannel());
+        refundOrderFlowDO.setPayChannel(orderDO.getPayChannel());
         refundOrderFlowDO.setPayFinishTime(refundQueryResultBO.getGmtRefundPay());
         refundOrderFlowDO.setPayFinishDate(DateUtils.format(refundQueryResultBO.getGmtRefundPay(),
                 DateUtils.DATE));

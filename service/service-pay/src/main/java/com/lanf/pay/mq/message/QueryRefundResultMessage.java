@@ -1,8 +1,5 @@
 package com.lanf.pay.mq.message;
 
-import com.lanf.client.pay.model.enums.PayChannelEnum;
-import com.lanf.client.pay.model.enums.RefundEventTypeEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,15 +12,5 @@ public class QueryRefundResultMessage implements Serializable {
 
     private  String outRequestNo;
 
-    private PayChannelEnum payChannel;
-    @ApiModelProperty(value = "支付订单ID")
-    private Long payOrderId;
 
-
-    /**
-     * 业务单id
-     */
-    private Long bizOrderId;
-
-    private RefundEventTypeEnum refundEventTypeEnum;
 }

@@ -52,7 +52,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "支付订单ID")
     private Long payOrderId;
 
-    private PayChannelEnum payChannelEnum;
+    private PayChannelEnum payChannel;
 
     @ApiModelProperty(value = "退款完成时间")
     private Date payFinishTime;
