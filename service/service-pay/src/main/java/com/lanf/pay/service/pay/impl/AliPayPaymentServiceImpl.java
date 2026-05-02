@@ -395,7 +395,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
                  * 系统错误 抛出异常重试
                  */
                 throw new MessageRetryConsumeException("退款接口系统错误");
-            } else if ( ! "10000".equals(code)) {
+            } else if ( !"10000".equals(code)) {
 
                 /**
                  * 其他业务错误
