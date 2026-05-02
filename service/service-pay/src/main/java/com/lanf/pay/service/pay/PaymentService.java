@@ -71,7 +71,7 @@ public interface PaymentService {
     CancelPaidOrderResultBO cancelPaidOrder(String outTradeNo, BigDecimal refundAmount, String refundReason) throws MessageRetryConsumeException;
 
     /**
-     * 支付宝转账
+     * 转账
      *
      * @param outBizNo 商户转账唯一订单号
      * @param payeeAccount 收款方支付宝账号
@@ -79,7 +79,7 @@ public interface PaymentService {
      * @param remark 转账备注
      * @return 转账结果
      */
-    TransferResult alipayTransfer(String outBizNo, String payeeAccount, BigDecimal amount, String remark) throws MessageRetryConsumeException;
+    TransferResult transfer(String outBizNo, String payeeAccount, BigDecimal amount, String remark) throws MessageRetryConsumeException;
     
     /**
      * 查询对账单下载URL
@@ -98,5 +98,14 @@ public interface PaymentService {
      * @return 退款查询结果
      */
     RefundQueryResultBO queryRefundResult(String outTradeNo, String outRequestNo);
+
+    /**
+     * 查询支付宝转账业务单据
+     *
+     * @param outBizNo 商户转账唯一订单号
+     * @param orderId 支付宝转账单据号（与outBizNo二选一）
+     * @return 转账查询结果
+     */
+    TransferQueryResultBO queryTransferResult(String outBizNo, String orderId);
 
 }

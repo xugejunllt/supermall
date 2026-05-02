@@ -44,17 +44,36 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
         log.info("监听转账事件:{}", message);
 
         String outBizNo = message.getOutBizNo();
-        TransferOrderDO one = transferOrderService.lambdaQuery().eq(TransferOrderDO::getOutBizNo, outBizNo).one();
-        if (one != null) {
-            log.warn("该转账单已存在");
-            return;
+        TransferOrderDO one = transferOrderService.lambdaQuery().eq(TransferOrderDO::getOutTradeNo,
+                outBizNo).one();
+
+
+        if (one == null) {
+            TransferOrderDO transferOrderDO = buildTransferOrderDO(message, result);
+            try {
+                transferOrderService.save(transferOrderDO);
+            } catch (DuplicateKeyException e) {
+                log.warn("该转账单已存在");
+
+            }
+
         }
         /**
-         * 进行转账
+         *
+         * 发起转账
          */
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(message.getTransferChannel().getCode());
-        TransferResult result = paymentService.alipayTransfer(message.getOutBizNo(),
+        TransferResult result = paymentService.transfer(message.getOutBizNo(),
                 message.getIncomeAccount(), message.getTransAmount(), message.getOrderTitle());
+
+
+
+
+
+
+
+
+
         Boolean transferSuccess = result.getTransferSuccess();
         if (!transferSuccess) {
             log.warn("转账失败");
@@ -71,7 +90,6 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
             return;
 
         }
-        TransferSuccessMessage successMessage = buildTransferSuccessMessage(message);
         String tag = message.getEventType().getTag();
 
         AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(message, result, transferOrderDO);

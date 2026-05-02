@@ -4,11 +4,11 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.pay.model.enums.TransferStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 /**
  * <p>
@@ -25,8 +25,9 @@ public class TransferOrderDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
+
     @ApiModelProperty(value = "商家侧唯一订单号")
-    private String outBizNo;
+    private String outTradeNo;
 
     @ApiModelProperty(value = "用户id")
     private Long userId;
@@ -40,33 +41,16 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "事件类型 0：订单结算给商家，1：用户钱包提现")
     private TransferEventTypeEnum eventType;
 
-    @ApiModelProperty(value = "转账渠道：1-支付宝，2-微信支付，3-银行卡")
     private PayChannelEnum transferChannel;
 
-    @ApiModelProperty(value = "转账来源账户")
-    private String fromAccount;
-
-    @ApiModelProperty(value = "收款账号")
-    private String incomeAccount;
-    /**
-     * 订单总金额，即发起转账时传入的金额
-     */
+    @ApiModelProperty(value = "订单总金额，即发起转账时传入的金额")
     private BigDecimal totalAmount;
 
-    /**
-     * 实际转账金额
-     */
+    @ApiModelProperty(value = "实际转账金额")
     private BigDecimal transAmount;
 
-    @ApiModelProperty(value = "转账订单号")
-    private String orderId;
+    @ApiModelProperty(value = "0:退款中 1：退款成功 2：退款失败")
+    private TransferStatusEnum status;
 
-    @ApiModelProperty(value = "转账完成时间")
-    private Date payFinishTime;
-    /**
-     * 添加索引 T+1查询加速
-     */
-    private String payFinishDate;
-    @ApiModelProperty(value = "转账业务的标题，用于在支付宝用户的账单里显示")
-    private String orderTitle;
+
 }

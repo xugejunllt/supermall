@@ -9,6 +9,7 @@ import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.*;
 import com.alipay.api.response.*;
 import com.lanf.common.utils.DateUtils;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.config.AliPayConfig;
@@ -406,7 +407,11 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
                 result.setErrorMsg(subCode+":"+response.getSubMsg());
                 return result;
             }
-            
+            String refundStatus = response.getRefundStatus();
+            if (IStringUtils.isEmpty(refundStatus)) {
+                throw new MessageRetryConsumeException("退款失败");
+
+            }
             // 设置退款成功的结果
             result.setResult(true);
             result.setTradeNo(response.getTradeNo());
@@ -425,7 +430,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
     }
 
     @Override
-    public TransferResult alipayTransfer(String outBizNo, String payeeAccount, BigDecimal amount, String remark)
+    public TransferResult transfer(String outBizNo, String payeeAccount, BigDecimal amount, String remark)
             throws MessageRetryConsumeException {
         log.info("支付宝转账开始:outBizNo={},payeeAccount={},amount={},remark={}", 
                 outBizNo, payeeAccount, amount, remark);
@@ -482,6 +487,94 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             throw new MessageRetryConsumeException("转账异常");
         }
     }
+
+    /**
+     * 查询支付宝转账业务单据
+     *
+     * @param outBizNo 商户转账唯一订单号
+     * @param orderId 支付宝转账单据号（与outBizNo二选一）
+     * @return 转账查询结果
+     */
+    @Override
+    public TransferQueryResultBO queryTransferResult(String outBizNo, String orderId) {
+        log.info("查询支付宝转账结果开始:outBizNo={},orderId={}", outBizNo, orderId);
+
+        AlipayClient alipayClient = null;
+        try {
+            alipayClient = new DefaultAlipayClient(getAlipayConfig());
+
+            AlipayFundTransCommonQueryRequest request = new AlipayFundTransCommonQueryRequest();
+            AlipayFundTransCommonQueryModel model = new AlipayFundTransCommonQueryModel();
+
+            model.setProductCode("TRANS_ACCOUNT_NO_PWD");
+            model.setBizScene("DIRECT_TRANSFER");
+
+            if (orderId != null && !orderId.isEmpty()) {
+                model.setOrderId(orderId);
+            } else if (outBizNo != null && !outBizNo.isEmpty()) {
+                model.setOutBizNo(outBizNo);
+            } else {
+                throw new BizException("outBizNo和orderId不能同时为空");
+            }
+            request.setBizModel(model);
+            AlipayFundTransCommonQueryResponse response = alipayClient.certificateExecute(request);
+
+            String code = response.getCode();
+            String subCode = response.getSubCode();
+            if ( !"10000".equals(code) && "SYSTEM_ERROR".equals( subCode)){
+
+                throw new MessageRetryConsumeException("转账系统繁忙");
+            } else if ( !"10000".equals(code)) {
+                //其他错误场景
+                TransferQueryResultBO result = new TransferQueryResultBO();
+                result.setResult( false);
+                result.setErrorMsg(subCode+":"+response.getSubMsg());
+                return result;
+            }
+            String status = response.getStatus();
+
+            if ( "WAIT_PAY".equals( status)){
+                throw new MessageRetryConsumeException("等待支付");
+            }
+            if ( "CLOSED".equals( status) || "FAIL".equals( status)){
+                TransferQueryResultBO result = new TransferQueryResultBO();
+                result.setResult( false);
+                result.setErrorMsg(subCode+":"+response.getSubMsg());
+                return result;
+            }
+
+            if ("SUCCESS".equals( status)){
+                /**
+                 * 转账成功
+                 */
+
+                TransferQueryResultBO result = new TransferQueryResultBO();
+                result.setOutBizNo(outBizNo);
+                // 设置查询成功的结果
+                result.setResult(true);
+                result.setOrderId(response.getOrderId());
+                if (response.getTransAmount() != null && !response.getTransAmount().isEmpty()) {
+                    result.setTransAmount(new BigDecimal(response.getTransAmount()));
+                }
+
+                if (response.getPayDate() != null && !response.getPayDate().isEmpty()) {
+                    result.setFinishTime(DateUtils.parse(response.getPayDate(), DateUtils.DATE_TIME));
+                }
+
+                log.info("查询支付宝转账结果成功:outBizNo={},orderId={},status={}",
+                        outBizNo, orderId, response.getStatus());
+                return result;
+            } else {
+                throw new BizException("未知的转账状态");
+            }
+
+
+        } catch (AlipayApiException e) {
+            log.warn("查询支付宝转账结果异常:outBizNo={},orderId={}", outBizNo, orderId, e);
+            throw new MessageRetryConsumeException("查询转账结果异常");
+        }
+    }
+
     @Override
     public BillDownloadUrlResultBO queryBillDownloadUrl(String billType, String billDate) {
         log.info("查询支付宝对账单下载URL:billType={},billDate={}", billType, billDate);
