@@ -1,7 +1,10 @@
 package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.pay.model.enums.PayOrderTradeStatusEnum;
+import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -24,7 +27,7 @@ public class TradeFundBillDetail extends BaseEntity {
 
     @ApiModelProperty(value = "账单日期，即交易发生的日期")
     private String billDate;
-
+    private PayChannelEnum payChannel;
     @ApiModelProperty(value = "支付宝为商家分配的身份标识")
     private String customerId;
 
@@ -40,7 +43,7 @@ public class TradeFundBillDetail extends BaseEntity {
     @ApiModelProperty(value = "商户退款单号，退款时对应商户系统的退款单号，关联原始out_trade_no")
     private String outRefundNo;
 
-    @ApiModelProperty(value = "交易金额，正数为收入，负数为支出/退款")
+    @ApiModelProperty(value = "交易金额")
     private BigDecimal amount;
 
     @ApiModelProperty(value = "手续费，商家为这笔交易付出的成本")
@@ -52,11 +55,10 @@ public class TradeFundBillDetail extends BaseEntity {
     @ApiModelProperty(value = "优惠金额，平台或商家让利的金额")
     private BigDecimal discountFee;
 
-    @ApiModelProperty(value = "交易类型：PAYMENT（支付）, REFUND（退款）等")
-    private String tradeType;
 
-    @ApiModelProperty(value = "交易状态：SUCCESS（成功）, WAIT_BUYER_PAY（待支付）等")
-    private String tradeStatus;
+    private ReconciliationBusinessTypeEnum tradeType;
+
+    private PayOrderTradeStatusEnum tradeStatus;
 
     @ApiModelProperty(value = "交易发起时间")
     private LocalDateTime tradeTime;

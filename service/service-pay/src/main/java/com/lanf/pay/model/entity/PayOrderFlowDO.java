@@ -2,6 +2,7 @@ package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.pay.model.enums.PayOrderFlowStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -32,6 +33,10 @@ private static final long serialVersionUID=1L;
      * 交易单outTradeNo ，关联交易单
      */
     private String outTradeNo;
+    /**
+     * 0:交易成功 1：交易失败
+     */
+    private PayOrderFlowStatusEnum status;
 
     @ApiModelProperty(value = "交易金额")
     private BigDecimal tradeMoney;
@@ -63,6 +68,9 @@ private static final long serialVersionUID=1L;
     private String passbackParams;
 
     private String allParams;
-
+    /**
+     * 失败原因
+      */
+    private String failReason;
 
 }

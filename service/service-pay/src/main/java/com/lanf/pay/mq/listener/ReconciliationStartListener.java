@@ -1,16 +1,17 @@
 package com.lanf.pay.mq.listener;
 
 import com.lanf.pay.model.bo.ReconciliationTradeInfo;
-import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
+import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.entity.ReconciliationDiffDO;
 import com.lanf.pay.model.entity.ReconciliationDiffMarkerDO;
+import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.ReconciliationStartMessage;
-import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
+import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.reconciliation.IReconciliationDiffMarkerService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
@@ -38,9 +39,8 @@ public class ReconciliationStartListener implements RocketMQListener<Reconciliat
 
     @Autowired
     private RocketMqClient rocketMqClient;
-
     @Autowired
-    private SignCustomerIFundBillDetailService fundBillDetailService;
+    private IPayOrderFlowService payOrderFlowService;
 
     @Autowired
     private IReconciliationDiffMarkerService reconciliationDiffMarkerService;
@@ -56,6 +56,10 @@ public class ReconciliationStartListener implements RocketMQListener<Reconciliat
 
         String bathId = message.getBathId();
 
+
+        /**
+         * 去重
+         */
         List<String> outTradeNoList = reconciliationTradeInfoList.stream()
                 .map(ReconciliationTradeInfo::getOutTradeNo).collect(Collectors.toList());
 
@@ -70,23 +74,28 @@ public class ReconciliationStartListener implements RocketMQListener<Reconciliat
             log.info("该批次已对账");
             return;
         }
-        List<SignCustomerFundBillDetailDO> list = fundBillDetailService.lambdaQuery()
-                .eq(SignCustomerFundBillDetailDO::getPayFinishDate, bathId)
-                .in(SignCustomerFundBillDetailDO::getMerchantOrderNo, outTradeNoList).list();
+        List<PayOrderFlowDO> list = payOrderFlowService.lambdaQuery()
+                .in(PayOrderFlowDO::getOutTradeNo, outTradeNoList).list();
 
-        Map<String, SignCustomerFundBillDetailDO> fundBillDetailMap = list.stream()
-                .filter(detail -> detail.getMerchantOrderNo() != null) // 过滤掉 merchantOrderNo 为 null 的记录
+
+        Map<String, PayOrderFlowDO> payOrderFlowDOMap = list.stream()
+                .filter(detail -> detail.getOutTradeNo() != null) // 过滤掉 merchantOrderNo 为 null 的记录
                 .collect(Collectors.toMap(
-                        SignCustomerFundBillDetailDO::getMerchantOrderNo,
+                        PayOrderFlowDO::getOutTradeNo,
                         detail -> detail,
                         (existing, replacement) -> existing
                 ));
-
-        List<ReconciliationDiffDO> reconciliationDiffDOS = new ArrayList<>();
+        /**
+         * 长款
+         */
+        List<ReconciliationDiffDO> longDiffList = new ArrayList<>();
         for (String outTradeNo : outTradeNoList){
 
-            SignCustomerFundBillDetailDO fundBillDetailDO = fundBillDetailMap.get(outTradeNo);
-            if (fundBillDetailDO == null){
+            /**
+             * 1.找出长款
+             */
+            PayOrderFlowDO payOrderFlowDO = payOrderFlowDOMap.get(outTradeNo);
+            if (payOrderFlowDO == null){
                 //短款
                 ReconciliationDiffDO reconciliationDiffDO = new ReconciliationDiffDO();
                 reconciliationDiffDO.setBatchId(bathId);

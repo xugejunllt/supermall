@@ -41,8 +41,7 @@ public class TransferSuccessUpdateSettlementListener implements RocketMQListener
             return;
         }
         if (ClearingStatusEnum.CLEARING_COMPLETED.equals(clearingDetailDO.getStatus())
-         || ClearingStatusEnum.EXCEPTION.equals(clearingDetailDO.getStatus())
-         || ClearingStatusEnum.CANCELLED.equals(clearingDetailDO.getStatus())) {
+         || ClearingStatusEnum.EXCEPTION.equals(clearingDetailDO.getStatus())) {
             log.info("对账单已处理完成: {}", clearingDetailDO.getId());
             return;
         }

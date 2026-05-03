@@ -26,6 +26,8 @@ public class OrderDO extends BaseEntity {
 
     @ApiModelProperty(value = "店铺id")
     private Long shopId;
+    //商家id
+    private Long merchantId;
 
     @ApiModelProperty(value = "用户id")
     private Long userId;

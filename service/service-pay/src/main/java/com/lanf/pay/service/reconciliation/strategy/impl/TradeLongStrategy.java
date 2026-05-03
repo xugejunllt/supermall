@@ -6,13 +6,11 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.model.bo.ReconciliationScanPage;
 import com.lanf.pay.model.bo.ReconciliationScanPageResult;
 import com.lanf.pay.model.bo.ReconciliationTradeInfo;
-import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.model.entity.TradeFundBillDetail;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.service.reconciliation.ITradeFundBillDetailService;
-import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
 import com.lanf.pay.service.reconciliation.strategy.AbstractReconciliationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -74,8 +72,10 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundB
 
             ReconciliationTradeInfo tradeInfo = new ReconciliationTradeInfo();
             tradeInfo.setOutTradeNo(orderFlow.getOutTradeNo());
-            tradeInfo.setReceiptMoney(orderFlow.getIncomeAmount());
+            tradeInfo.setReceiptMoney(orderFlow.getReceiptAmount());
             tradeInfo.setPayChannel(orderFlow.getPayChannel());
+            tradeInfo.setTradeStatus(orderFlow.getTradeStatus());
+            tradeInfo.setTradeMoney(orderFlow.getAmount());
             tradeInfo.setReconciliationBusinessType(ReconciliationBusinessTypeEnum.PAYMENT);
             tradeInfoList.add(tradeInfo);
         }

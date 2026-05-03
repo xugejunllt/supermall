@@ -382,6 +382,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         signOrderMessage.setOrderId(orderId);
         signOrderMessage.setSignTime(new Date());
         signOrderMessage.setAfterSaleDays(orderDO.getAfterSaleDays());
+        signOrderMessage.setPayMoney(orderDO.getActualPayMoney());
+        signOrderMessage.setMerchantId(orderDO.getMerchantId());
+
         rocketMqClient.sendMessage(OrderClientTopicName.SIGN_ORDER_EVENT_TOPIC,
                 JsonUtils.toJsonString(signOrderMessage));
 
