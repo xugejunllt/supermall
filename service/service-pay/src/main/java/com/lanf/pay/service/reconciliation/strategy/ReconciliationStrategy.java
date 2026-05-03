@@ -1,13 +1,22 @@
 package com.lanf.pay.service.reconciliation.strategy;
 
-import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
+import com.lanf.pay.model.bo.ReconciliationStart;
 
 /**
- * 对账扫描策略接口
+ *
  */
 public interface ReconciliationStrategy {
 
-    ReconciliationJobTypeEnum getJobType();
 
+    /**
+     * 开始扫描
+     *
+     */
     void startScan(String bathId);
+
+    /**
+     * 开始对账
+     *
+     */
+    void startReconciliation(ReconciliationStart  start);
 }

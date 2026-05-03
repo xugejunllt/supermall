@@ -10,6 +10,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * <p>
@@ -64,7 +65,7 @@ public class TradeFundBillDetail extends BaseEntity {
     private LocalDateTime tradeTime;
 
     @ApiModelProperty(value = "用户实际付款时间")
-    private LocalDateTime paymentTime;
+    private Date paymentTime;
 
     @ApiModelProperty(value = "资金结算时间")
     private LocalDateTime settlementTime;

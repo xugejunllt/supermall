@@ -5,6 +5,7 @@ import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
+import com.lanf.pay.model.enums.ReconciliationTradeStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -40,6 +41,15 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "实际金额（渠道金额）")
     private BigDecimal actualAmount;
+
+    /**
+     * 我方状态 0:交易成功 1：交易失败
+     */
+    private ReconciliationTradeStatusEnum expectedStatus;
+    /**
+     * 三方状态 0:交易成功 1：交易失败
+     */
+    private ReconciliationTradeStatusEnum actualStatus;
 
     @ApiModelProperty(value = "差异金额（实际金额 - 预期金额）")
     private BigDecimal diffAmount;
