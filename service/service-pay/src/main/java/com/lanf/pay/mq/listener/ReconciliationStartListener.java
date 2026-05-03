@@ -1,30 +1,20 @@
 package com.lanf.pay.mq.listener;
 
-import com.lanf.common.utils.BigDecimalUtils;
-import com.lanf.pay.model.bo.ReconciliationTradeInfo;
-import com.lanf.pay.model.entity.PayOrderFlowDO;
-import com.lanf.pay.model.entity.ReconciliationDiffDO;
-import com.lanf.pay.model.entity.ReconciliationDiffMarkerDO;
-import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
-import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
+import com.lanf.pay.model.bo.ReconciliationStart;
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.ReconciliationStartMessage;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.reconciliation.IReconciliationDiffMarkerService;
+import com.lanf.pay.service.reconciliation.strategy.ReconciliationStrategy;
+import com.lanf.pay.service.reconciliation.strategy.ReconciliationStrategyFactory;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 开始对账任务
@@ -46,12 +36,23 @@ public class ReconciliationStartListener implements RocketMQListener<Reconciliat
     @Autowired
     private IReconciliationDiffMarkerService reconciliationDiffMarkerService;
 
+    @Autowired
+    private ReconciliationStrategy reconciliationStrategy;
+
+    @Autowired
+    private ReconciliationStrategyFactory reconciliationStrategyFactory;
 
     @Override
     public void onMessage(ReconciliationStartMessage message) {
 
+        ReconciliationJobTypeEnum jobType = message.getJobType();
 
-
+        ReconciliationStart start = new ReconciliationStart();
+        start.setBathId(message.getBathId());
+        start.setBathMaxId(message.getBathMaxId());
+        start.setReconciliationBusinessType(message.getReconciliationBusinessType());
+        start.setReconciliationTradeInfoList(message.getReconciliationTradeInfoList());
+        reconciliationStrategyFactory.getStrategy(jobType).startReconciliation(start);
 
 
     }

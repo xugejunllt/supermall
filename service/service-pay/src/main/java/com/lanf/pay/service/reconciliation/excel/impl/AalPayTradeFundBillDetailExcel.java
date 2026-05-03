@@ -109,14 +109,14 @@ public class AalPayTradeFundBillDetailExcel extends AbstractFundBillDetailReadLi
         detail.setDiscountFee(parseBigDecimal(excel.getDiscountFeeStr()));
         detail.setReceiptAmount(parseBigDecimal(excel.getReceiptAmountStr()));
         detail.setInvoiceAmount(parseBigDecimal(excel.getInvoiceAmountStr()));
-        
-        detail.setTradeType(excel.getTradeType());
-        detail.setTradeStatus(excel.getTradeStatus());
+//
+//        detail.setTradeType(excel.getTradeType());
+//        detail.setTradeStatus(excel.getTradeStatus());
         
         // 转换时间
-        detail.setTradeTime(parseLocalDateTime(excel.getTradeTimeStr()));
-        detail.setPaymentTime(parseLocalDateTime(excel.getPaymentTimeStr()));
-        detail.setSettlementTime(parseLocalDateTime(excel.getSettlementTimeStr()));
+//        detail.setTradeTime(parseLocalDateTime(excel.getTradeTimeStr()));
+//        detail.setPaymentTime(parseLocalDateTime(excel.getPaymentTimeStr()));
+//        detail.setSettlementTime(parseLocalDateTime(excel.getSettlementTimeStr()));
         
         detail.setGoodsTitle(excel.getGoodsTitle());
         detail.setGoodsDescription(excel.getGoodsDescription());

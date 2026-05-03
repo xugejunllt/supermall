@@ -2,6 +2,9 @@ package com.lanf.pay.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lanf.pay.model.entity.ReconciliationDiffDO;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,8 @@ import com.lanf.pay.model.entity.ReconciliationDiffDO;
  */
 public interface ReconciliationDiffMapper extends BaseMapper<ReconciliationDiffDO> {
 
+    /**
+     * 批量插入，忽略重复
+     */
+    int batchInsertIgnore(@Param("list") List<ReconciliationDiffDO> list);
 }

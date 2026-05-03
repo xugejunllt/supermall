@@ -3,6 +3,7 @@ package com.lanf.pay.service.reconciliation.strategy;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IStringUtils;
+import com.lanf.pay.mapper.ReconciliationDiffMapper;
 import com.lanf.pay.model.bo.*;
 import com.lanf.pay.model.entity.ReconciliationDiffDO;
 import com.lanf.pay.model.entity.ReconciliationDiffMarkerDO;
@@ -13,6 +14,7 @@ import com.lanf.pay.model.enums.ReconciliationTradeStatusEnum;
 import com.lanf.pay.mq.message.ReconciliationStartMessage;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.reconciliation.IReconciliationDiffMarkerService;
+import com.lanf.pay.service.reconciliation.IReconciliationDiffService;
 import com.lanf.pay.service.reconciliation.IReconciliationJobLogService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +44,12 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
     private  IReconciliationJobLogService reconciliationJobLogService;
     @Autowired
     private MaxIdTrackingBatchReconciler maxIdTrackingBatchReconciler;
+    @Autowired
+    private IReconciliationDiffService reconciliationDiffService;
+    @Autowired
+    private ReconciliationDiffMapper reconciliationDiffMapper;
 
-    protected abstract ReconciliationJobTypeEnum getJobType();
+
     protected abstract ReconciliationScanPageResult<T> doPage(ReconciliationScanPage page);
 
     protected abstract List<ReconciliationTradeInfo> buildTradeInfoList(List<T> dataList);
@@ -266,7 +272,14 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
             reconciliationDiffMarkerDO.setBusinessType(businessType);
             diffMarkerDOList.add(reconciliationDiffMarkerDO);
         }
+        /**
+         * 这里保存 系统与三方的交易单号
+         */
         reconciliationDiffMarkerService.saveBatch(diffMarkerDOList);
+        /**
+         * 主键冲突 也能插入 因为可能出现同一笔 金额或状态不一致的单
+         */
+        reconciliationDiffMapper.batchInsertIgnore(diffList);
         maxIdTrackingBatchReconciler.addMaxId(bathId, getDiffType(),
                 getBusinessType(), start.getBathMaxId());
     }
