@@ -2,6 +2,7 @@ package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.pay.model.enums.WithdrawStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -42,7 +43,7 @@ private static final long serialVersionUID=1L;
     private String payeeAccount;
 
     @ApiModelProperty(value = "提现状态：0-待处理，1-处理中，2-成功，3-失败，4-已取消")
-    private Integer status;
+    private WithdrawStatusEnum status;
 
 
     @ApiModelProperty(value = "失败原因")

@@ -2,6 +2,7 @@ package com.lanf.pay.mq.listener;
 
 import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.client.pay.mq.constant.PayClientTopicName;
+import com.lanf.client.pay.mq.message.TransferSuccessMessage;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
@@ -81,6 +82,9 @@ public class QueryTransferResultListener implements RocketMQListener<QueryTransf
 
 
         TransferOrderFlowDO transferOrderFlowDO = buildTransferOrderFlowDO(oned, queryResultBO);
+
+        TransferSuccessMessage transferSuccessMessage = buildTransferSuccessMessage(oned, queryResultBO);
+
         TransferStatusEnum transferStatusEnum = null;
         if (queryResultBO.getResult()) {
             transferStatusEnum = TransferStatusEnum.SUCCESS;
@@ -118,12 +122,21 @@ public class QueryTransferResultListener implements RocketMQListener<QueryTransf
          * 转账成功消息通知
          *
          */
+
         String tag = oned.getEventType().getTag();
         rocketMqClient.sendMessageWithTags(PayClientTopicName.TRANSFER_SUCCESS_EVENT_TOPIC, tag,
-                JsonUtils.toJsonString(addMoneyFlowMessage));
+                JsonUtils.toJsonString(transferSuccessMessage));
 
     }
 
+    private TransferSuccessMessage buildTransferSuccessMessage(TransferOrderDO oned, TransferQueryResultBO queryResultBO){
+        TransferSuccessMessage transferSuccessMessage = new TransferSuccessMessage();
+        transferSuccessMessage.setBizOrderId(oned.getBizOrderId());
+        transferSuccessMessage.setEventType(oned.getEventType());
+        transferSuccessMessage.setTransAmount(queryResultBO.getTransAmount());
+        transferSuccessMessage.setResult( queryResultBO.getResult());
+        return transferSuccessMessage;
+    }
 
     private TransferOrderFlowDO buildTransferOrderFlowDO(TransferOrderDO oned, TransferQueryResultBO queryResultBO) {
         TransferFlowStatusEnum transferFlowStatus = null;

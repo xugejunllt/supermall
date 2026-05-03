@@ -21,5 +21,10 @@ public class TransferSuccessMessage implements Serializable {
     @ApiModelProperty(value = "转账金额")
     private BigDecimal transAmount;
 
+    /**
+     * 转账结果
+     */
+    private Boolean result;
+
 
 }

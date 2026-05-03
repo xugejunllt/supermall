@@ -54,8 +54,9 @@ public class WalletRechargeListener implements RocketMQListener<WalletRechargeMe
             return;
 
         }
-        //可用余额
-        BigDecimal updateBalance = BigDecimalUtils.add(one.getBalance(), amount);
+        // 变更金额 = 可用余额+冻金额
+        BigDecimal updateBalance = BigDecimalUtils.add(one.getBalance(), amount)
+                .add(one.getFrozenBalance());
 
         WalletAccountFlowDO walletAccountFlowDO = new WalletAccountFlowDO();
         walletAccountFlowDO.setFlowNo(flowNo);

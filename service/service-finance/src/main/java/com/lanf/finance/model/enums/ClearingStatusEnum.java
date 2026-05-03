@@ -12,7 +12,7 @@ public enum ClearingStatusEnum {
     CLEARING(1, "结算中(进行转账)"),
     CLEARING_COMPLETED(2, "结算完成(转账完成)"),
     CANCELLED(3, "已取消"),
-    EXCEPTION(4, "异常");
+    EXCEPTION(4, "结算异常");
 
     @EnumValue
     @JsonValue

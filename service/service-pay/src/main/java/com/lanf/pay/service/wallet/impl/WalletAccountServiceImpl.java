@@ -9,8 +9,10 @@ import com.lanf.client.pay.mq.constant.PayClientTopicName;
 import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.client.pay.mq.message.TransferMessage;
 import com.lanf.common.utils.BigDecimalUtils;
+import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.enums.FlowNoPrefixEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.mapper.WalletAccountMapper;
 import com.lanf.pay.model.bo.AddWalletAccount;
@@ -210,33 +212,17 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         BigDecimal withdrawAmount = dto.getAmount();
         
         if (BigDecimalUtils.compareTo(balance, withdrawAmount) < 0) {
-            log.error("用户钱包余额不足，当前余额: {}, 提现金额: {}", balance, withdrawAmount);
+            log.warn("用户钱包余额不足，当前余额: {}, 提现金额: {}", balance, withdrawAmount);
             throw new BizException("用户钱包余额不足");
         }
 
-        long withdrawId = IdUtils.generateId();
-        String withdrawNo = PayServiceUtils.generateOutTradeNo("WD" + withdrawId);
-        
         BigDecimal frozenBalance = BigDecimalUtils.add(accountDO.getFrozenBalance(), withdrawAmount);
         BigDecimal afterBalance = BigDecimalUtils.subtract(balance, withdrawAmount);
+        WalletWithdrawDO walletWithdrawDO = buildWalletWithdrawDO(dto, accountDO);
 
-        WalletAccountFlowDO flowDO = new WalletAccountFlowDO();
-        flowDO.setUserId(userId);
-        flowDO.setFlowNo(PayServiceUtils.generateOutTradeNo(withdrawNo + "_flow"));
-        flowDO.setWalletAccountId(accountDO.getId());
-        flowDO.setBeforeBalance(balance);
-        flowDO.setAfterBalance(afterBalance);
-        flowDO.setChangeBalance(withdrawAmount);
-        flowDO.setBizOrderId(withdrawId);
-        flowDO.setEventType(WalletEventTypeEnum.WITHDRAW);
-
-        try {
-            walletAccountFlowService.save(flowDO);
-        } catch (DuplicateKeyException e) {
-            log.warn("提现流水记录已存在");
-            return;
-        }
-
+        /**
+         * 冻结钱金额
+         */
         boolean update = this.lambdaUpdate()
                 .eq(WalletAccountDO::getId, accountDO.getId())
                 .eq(WalletAccountDO::getVersion, accountDO.getVersion())
@@ -245,30 +231,34 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
                 .set(WalletAccountDO::getVersion, accountDO.getVersion() + 1)
                 .update();
         if (!update) {
-            log.error("更新用户钱包账户失败");
+            log.warn("更新用户钱包账户失败");
             throw new BizException("更新用户钱包账户失败");
         }
 
+        walletWithdrawService.save(walletWithdrawDO);
+
+
+    }
+
+
+    private WalletWithdrawDO buildWalletWithdrawDO(WithdrawApplyDTO dto, WalletAccountDO accountDO){
+
+        Long withdrawId = IdUtils.generateId();
+        String withdrawNo = CodeGenerateUtils.generateFlowNo(
+                FlowNoPrefixEnum.WALLET_FLOW , withdrawId.toString());
         WalletWithdrawDO withdraw = new WalletWithdrawDO();
         withdraw.setId(withdrawId);
-        withdraw.setUserId(userId);
+        withdraw.setUserId(UserIdContext.getUserId());
         withdraw.setWalletAccountId(accountDO.getId());
         withdraw.setWithdrawNo(withdrawNo);
-        withdraw.setAmount(withdrawAmount);
+        withdraw.setAmount(dto.getAmount());
         withdraw.setWithdrawType(dto.getWithdrawType());
         withdraw.setPayeeAccount(dto.getPayeeAccount());
-        withdraw.setStatus(WithdrawStatusEnum.PENDING.getCode());
+        withdraw.setStatus(WithdrawStatusEnum.PENDING);
         withdraw.setRemark(dto.getRemark());
         withdraw.setVersion(0L);
 
-        try {
-            walletWithdrawService.save(withdraw);
-        } catch (DuplicateKeyException e) {
-            log.warn("提现记录已存在");
-            return;
-        }
-
-        log.info("用户 {} 申请提现成功，提现单号: {}, 金额: {}", userId, withdrawNo, withdrawAmount);
+        return withdraw;
     }
 
     @Transactional
@@ -282,7 +272,7 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
             throw new BizException("提现单不存在");
         }
 
-        if (!WithdrawStatusEnum.PENDING.getCode().equals(withdraw.getStatus())) {
+        if (!WithdrawStatusEnum.PENDING.equals(withdraw.getStatus())) {
             log.warn("提现单状态不是待处理，当前状态: {}, ID: {}", withdraw.getStatus(), withdrawId);
             throw new BizException("提现单状态不正确");
         }

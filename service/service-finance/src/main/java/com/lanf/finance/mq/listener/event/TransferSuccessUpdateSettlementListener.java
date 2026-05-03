@@ -40,19 +40,30 @@ public class TransferSuccessUpdateSettlementListener implements RocketMQListener
             log.error("找不到对应的对账单: {}", message.getBizOrderId());
             return;
         }
-        if (ClearingStatusEnum.CLEARING_COMPLETED.equals(clearingDetailDO.getStatus())) {
+        if (ClearingStatusEnum.CLEARING_COMPLETED.equals(clearingDetailDO.getStatus())
+         || ClearingStatusEnum.EXCEPTION.equals(clearingDetailDO.getStatus())
+         || ClearingStatusEnum.CANCELLED.equals(clearingDetailDO.getStatus())) {
             log.info("对账单已处理完成: {}", clearingDetailDO.getId());
             return;
         }
-
         if (!ClearingStatusEnum.CLEARING.equals(clearingDetailDO.getStatus())) {
-            log.error("对账单状态不匹配，期望: CLEARING, 实际: {}", clearingDetailDO.getStatus());
+            log.error("结算单状态异常: {}", clearingDetailDO.getId());
+
             return;
         }
+
+        ClearingStatusEnum status = null;
+        if (message.getResult()) {
+            status = ClearingStatusEnum.CLEARING_COMPLETED;
+        } else {
+            status = ClearingStatusEnum.EXCEPTION;
+        }
+
         boolean update = clearingDetailService.lambdaUpdate()
                 .eq(ClearingDetailDO::getId, clearingDetailDO.getId())
+                .eq(ClearingDetailDO::getStatus, ClearingStatusEnum.CLEARING)
                 .eq(ClearingDetailDO::getVersion, clearingDetailDO.getVersion())
-                .set(ClearingDetailDO::getStatus, ClearingStatusEnum.CLEARING_COMPLETED)
+                .set(ClearingDetailDO::getStatus, status)
                 .set(ClearingDetailDO::getTransferMoney, message.getTransAmount())
                 .set(ClearingDetailDO::getVersion, clearingDetailDO.getVersion() + 1)
                 .update();
