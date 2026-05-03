@@ -3,7 +3,7 @@ package com.lanf.pay.service.reconciliation.excel.impl;
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.lanf.common.utils.BeanUtil;
 import com.lanf.pay.mapper.TradeFundBillDetailMapper;
-import com.lanf.pay.model.entity.TradeFundBillDetail;
+import com.lanf.pay.model.entity.TradeFundBillDetailDO;
 import com.lanf.pay.service.reconciliation.excel.AbstractFundBillDetailReadListener;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +18,7 @@ import java.util.List;
 @Slf4j
 @Getter
 @Setter
-public class AalPayTradeFundBillDetailExcel extends AbstractFundBillDetailReadListener<AalPayTradeFundBillDetailExcel, TradeFundBillDetail> {
+public class AalPayTradeFundBillDetailExcel extends AbstractFundBillDetailReadListener<AalPayTradeFundBillDetailExcel, TradeFundBillDetailDO> {
 
     @ExcelProperty(index = 0, value = "账单日期")
     private String billDate;
@@ -92,8 +92,8 @@ public class AalPayTradeFundBillDetailExcel extends AbstractFundBillDetailReadLi
     }
 
     @Override
-    protected TradeFundBillDetail convertToDO(AalPayTradeFundBillDetailExcel excel) {
-        TradeFundBillDetail detail = new TradeFundBillDetail();
+    protected TradeFundBillDetailDO convertToDO(AalPayTradeFundBillDetailExcel excel) {
+        TradeFundBillDetailDO detail = new TradeFundBillDetailDO();
 
         detail.setBillDate(excel.getBillDate());
         detail.setCustomerId(excel.getCustomerId());
@@ -128,7 +128,7 @@ public class AalPayTradeFundBillDetailExcel extends AbstractFundBillDetailReadLi
     }
 
     @Override
-   protected   void batchInsertIgnore(List<TradeFundBillDetail> list) {
+   protected   void batchInsertIgnore(List<TradeFundBillDetailDO> list) {
         TradeFundBillDetailMapper detailMapper = BeanUtil.getBean(TradeFundBillDetailMapper.class);
         detailMapper.batchInsertIgnore(list);
     }

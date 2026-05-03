@@ -1,7 +1,7 @@
 package com.lanf.pay.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lanf.pay.model.entity.TradeFundBillDetail;
+import com.lanf.pay.model.entity.TradeFundBillDetailDO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -14,11 +14,11 @@ import java.util.List;
  * @author jarven
  * @since 2026-05-02
  */
-public interface TradeFundBillDetailMapper extends BaseMapper<TradeFundBillDetail> {
+public interface TradeFundBillDetailMapper extends BaseMapper<TradeFundBillDetailDO> {
 
     /**
      * 批量插入，忽略重复
      */
-    int batchInsertIgnore(@Param("list") List<TradeFundBillDetail> list);
+    int batchInsertIgnore(@Param("list") List<TradeFundBillDetailDO> list);
 
 }

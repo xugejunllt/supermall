@@ -9,7 +9,7 @@ import com.lanf.pay.model.bo.ReconciliationScanPage;
 import com.lanf.pay.model.bo.ReconciliationScanPageResult;
 import com.lanf.pay.model.bo.ReconciliationTradeInfo;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
-import com.lanf.pay.model.entity.TradeFundBillDetail;
+import com.lanf.pay.model.entity.TradeFundBillDetailDO;
 import com.lanf.pay.model.enums.*;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.reconciliation.ITradeFundBillDetailService;
@@ -23,7 +23,7 @@ import java.util.*;
  * 交易单长款扫描策略
  */
 @Component
-public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundBillDetail> {
+public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundBillDetailDO> {
 
 
 
@@ -41,24 +41,24 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundB
     }
 
     @Override
-    protected ReconciliationScanPageResult<TradeFundBillDetail> doPage(ReconciliationScanPage pages) {
+    protected ReconciliationScanPageResult<TradeFundBillDetailDO> doPage(ReconciliationScanPage pages) {
 
 
         long currentPage = pages.getCurrentPage();
         long pageSize = pages.getPageSize();
         String bathId = pages.getBathId();
 
-        Page<TradeFundBillDetail> page = new Page<>(currentPage, pageSize);
+        Page<TradeFundBillDetailDO> page = new Page<>(currentPage, pageSize);
         /**
          * 根据id升序
          */
-        IPage<TradeFundBillDetail> resultPage = tradeFundBillDetailService.lambdaQuery()
-                .eq(TradeFundBillDetail::getBillDate, bathId)
-                .eq(TradeFundBillDetail::getTradeType, ReconciliationBusinessTypeEnum.PAYMENT.getCode().toString())
+        IPage<TradeFundBillDetailDO> resultPage = tradeFundBillDetailService.lambdaQuery()
+                .eq(TradeFundBillDetailDO::getBillDate, bathId)
+                .eq(TradeFundBillDetailDO::getTradeType, ReconciliationBusinessTypeEnum.PAYMENT.getCode().toString())
                 .orderByAsc(BaseEntity::getId)
                 .page(page);
 
-        ReconciliationScanPageResult<TradeFundBillDetail> result = new ReconciliationScanPageResult<>();
+        ReconciliationScanPageResult<TradeFundBillDetailDO> result = new ReconciliationScanPageResult<>();
         result.setDataList(resultPage.getRecords());
         result.setPages(resultPage.getPages());
 
@@ -67,10 +67,10 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundB
     }
 
     @Override
-    protected List<ReconciliationTradeInfo> buildTradeInfoList(List<TradeFundBillDetail> dataList) {
+    protected List<ReconciliationTradeInfo> buildTradeInfoList(List<TradeFundBillDetailDO> dataList) {
 
         List<ReconciliationTradeInfo> tradeInfoList = new ArrayList<>();
-        for (TradeFundBillDetail orderFlow : dataList) {
+        for (TradeFundBillDetailDO orderFlow : dataList) {
 
             Date paymentTime = orderFlow.getPaymentTime();
             String payFinishTime = null;
@@ -80,7 +80,7 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundB
 
             ReconciliationTradeInfo tradeInfo = new ReconciliationTradeInfo();
             tradeInfo.setOutTradeNo(orderFlow.getOutTradeNo());
-            tradeInfo.setReceiptMoney(orderFlow.getReceiptAmount());
+            tradeInfo.setReceiptMoney(orderFlow.getSettlementAmount());
             tradeInfo.setPayChannel(orderFlow.getPayChannel());
             tradeInfo.setReconciliationTradeStatus(toReconciliationTradeStatus(orderFlow));
             tradeInfo.setPayFinishTime(payFinishTime);
@@ -105,7 +105,7 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundB
     }
 
     @Override
-    protected ReconciliationTradeStatusEnum toReconciliationTradeStatus(TradeFundBillDetail data) {
+    protected ReconciliationTradeStatusEnum toReconciliationTradeStatus(TradeFundBillDetailDO data) {
 
         PayOrderTradeStatusEnum tradeStatus = data.getTradeStatus();
         if (tradeStatus == PayOrderTradeStatusEnum.TRADE_SUCCESS) {

@@ -22,7 +22,7 @@ import java.util.Date;
  */
 @Data
 @TableName("trade_fund_bill_detail")
-public class TradeFundBillDetail extends BaseEntity {
+public class TradeFundBillDetailDO extends BaseEntity {
 
 
 
@@ -55,7 +55,8 @@ public class TradeFundBillDetail extends BaseEntity {
 
     @ApiModelProperty(value = "优惠金额，平台或商家让利的金额")
     private BigDecimal discountFee;
-
+    @ApiModelProperty(value = "实收金额，买家实际支付的现金（不包含优惠）")
+    private BigDecimal receiptAmount;
 
     private ReconciliationBusinessTypeEnum tradeType;
 
@@ -70,6 +71,8 @@ public class TradeFundBillDetail extends BaseEntity {
     @ApiModelProperty(value = "资金结算时间")
     private LocalDateTime settlementTime;
 
+
+
     @ApiModelProperty(value = "商品标题")
     private String goodsTitle;
 
@@ -82,8 +85,7 @@ public class TradeFundBillDetail extends BaseEntity {
     @ApiModelProperty(value = "卖家支付宝账号")
     private String sellerAccount;
 
-    @ApiModelProperty(value = "实收金额，买家实际支付的现金（不包含优惠）")
-    private BigDecimal receiptAmount;
+
 
     @ApiModelProperty(value = "可开票金额")
     private BigDecimal invoiceAmount;

@@ -2,7 +2,7 @@ package com.lanf.pay.service.reconciliation;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.pay.model.entity.TradeFundBillDetail;
+import com.lanf.pay.model.entity.TradeFundBillDetailDO;
 
 /**
  * <p>
@@ -12,7 +12,7 @@ import com.lanf.pay.model.entity.TradeFundBillDetail;
  * @author jarven
  * @since 2026-05-02
  */
-public interface ITradeFundBillDetailService extends IService<TradeFundBillDetail> {
+public interface ITradeFundBillDetailService extends IService<TradeFundBillDetailDO> {
 
 
 

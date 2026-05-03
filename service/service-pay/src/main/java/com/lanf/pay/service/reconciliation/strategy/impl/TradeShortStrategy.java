@@ -3,24 +3,21 @@ package com.lanf.pay.service.reconciliation.strategy.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lanf.client.pay.model.enums.PayChannelEnum;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.model.bo.ReconciliationScanPage;
 import com.lanf.pay.model.bo.ReconciliationScanPageResult;
 import com.lanf.pay.model.bo.ReconciliationTradeInfo;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
-import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
-import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
-import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
-import com.lanf.pay.model.enums.ReconciliationTradeStatusEnum;
+import com.lanf.pay.model.entity.TradeFundBillDetailDO;
+import com.lanf.pay.model.enums.*;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
+import com.lanf.pay.service.reconciliation.ITradeFundBillDetailService;
 import com.lanf.pay.service.reconciliation.strategy.AbstractReconciliationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * 交易单长款扫描策略
@@ -30,7 +27,8 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<PayOrderF
 
     @Autowired
     private IPayOrderFlowService payOrderFlowService;
-
+    @Autowired
+    private ITradeFundBillDetailService tradeFundBillDetailService ;
 
     @Override
     public ReconciliationJobTypeEnum getJobType() {
@@ -51,7 +49,7 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<PayOrderF
          */
         IPage<PayOrderFlowDO> resultPage = payOrderFlowService.lambdaQuery()
                 .eq(PayOrderFlowDO::getPayFinishDate, bathId)
-                .orderByDesc(BaseEntity::getId)
+                .orderByAsc(BaseEntity::getId)
                 .page(page);
 
         List<PayOrderFlowDO> orderFlowList = resultPage.getRecords();
@@ -71,10 +69,19 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<PayOrderF
         List<ReconciliationTradeInfo> tradeInfoList = new ArrayList<>();
         for (PayOrderFlowDO orderFlow : dataList) {
 
+            Date paymentTime = orderFlow.getPayFinishTime();
+            String payFinishTime = null;
+            if (paymentTime != null) {
+                payFinishTime = DateUtils.format(paymentTime, DateUtils.DATE_TIME);
+            }
+
             ReconciliationTradeInfo tradeInfo = new ReconciliationTradeInfo();
             tradeInfo.setOutTradeNo(orderFlow.getOutTradeNo());
             tradeInfo.setReceiptMoney(orderFlow.getReceiptMoney());
             tradeInfo.setPayChannel(PayChannelEnum.getByCode(orderFlow.getPayType()));
+            tradeInfo.setReconciliationTradeStatus(toReconciliationTradeStatus(orderFlow));
+            tradeInfo.setPayFinishTime(payFinishTime);
+            tradeInfo.setId(orderFlow.getId());
             tradeInfoList.add(tradeInfo);
         }
 
@@ -83,7 +90,7 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<PayOrderF
 
     @Override
     protected ReconciliationDiffTypeEnum getDiffType() {
-        return ReconciliationDiffTypeEnum.LONG;
+        return ReconciliationDiffTypeEnum.SHORT;
     }
 
     @Override
@@ -94,11 +101,46 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<PayOrderF
 
     @Override
     protected ReconciliationTradeStatusEnum toReconciliationTradeStatus(PayOrderFlowDO data) {
-        return null;
+
+        PayOrderFlowStatusEnum status = data.getStatus();
+        if (status == PayOrderFlowStatusEnum.SUCCESS) {
+            return ReconciliationTradeStatusEnum.SUCCESS;
+        }
+
+        return ReconciliationTradeStatusEnum.FAILED;
     }
 
     @Override
     protected Map<String, ReconciliationTradeInfo> toReconciliationTradeInfoMap(List<String> outTradeNoList) {
-        return null;
+        List<TradeFundBillDetailDO> list = tradeFundBillDetailService.lambdaQuery()
+                .in(TradeFundBillDetailDO::getOutTradeNo, outTradeNoList).list();
+        Map<String, ReconciliationTradeInfo> tradeInfoMap =  new HashMap<>();
+        for (TradeFundBillDetailDO payOrderFlowDO : list) {
+
+            PayOrderTradeStatusEnum status = payOrderFlowDO.getTradeStatus();
+
+            ReconciliationTradeInfo tradeInfo = getReconciliationTradeInfo(payOrderFlowDO, status);
+            tradeInfoMap.put(payOrderFlowDO.getOutTradeNo(), tradeInfo);
+        }
+
+
+        return tradeInfoMap;
+    }
+
+
+    private static ReconciliationTradeInfo getReconciliationTradeInfo(TradeFundBillDetailDO payOrderFlowDO, PayOrderTradeStatusEnum status) {
+        ReconciliationTradeStatusEnum reconciliationTradeStatus = null;
+        if (status == PayOrderTradeStatusEnum.TRADE_SUCCESS){
+            reconciliationTradeStatus = ReconciliationTradeStatusEnum.SUCCESS;
+        } else {
+            reconciliationTradeStatus = ReconciliationTradeStatusEnum.FAILED;
+        }
+
+        ReconciliationTradeInfo tradeInfo = new ReconciliationTradeInfo();
+        tradeInfo.setOutTradeNo(payOrderFlowDO.getOutTradeNo());
+        tradeInfo.setPayChannel(payOrderFlowDO.getPayChannel());
+        tradeInfo.setReceiptMoney(payOrderFlowDO.getSettlementAmount());
+        tradeInfo.setReconciliationTradeStatus(reconciliationTradeStatus);
+        return tradeInfo;
     }
 }
