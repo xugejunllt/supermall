@@ -141,7 +141,11 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
                 paymentStatus = CompensatePaymentStatusEnum.SUCCESS;
                 break;
             case WAIT_BUYER_PAY:
+
             case UNKNOWN:
+                /**
+                 * 可能丢单 即没有流水记录 取消交易单时 插入流水记录
+                 */
                 paymentStatus = CompensatePaymentStatusEnum.CONTINUE;
                 break;
             case NOT_EXIST:
