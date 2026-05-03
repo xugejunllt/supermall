@@ -133,26 +133,30 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
         TradeStatusBO tradeStatusBO = paymentService.queryTradeStatus(outTradeNo);
         TradeStatusEnum tradeStatus = tradeStatusBO.getTradeStatus();
 
-        CompensatePaymentStatusEnum paymentStatus;
+        CompensatePaymentStatusEnum paymentStatus = null;
         switch (tradeStatus) {
             case TRADE_SUCCESS:
+
                 log.info("三方支付成功，准备执行补偿:outTradeNo={},payType={}", outTradeNo, payType);
                 paymentStatus = CompensatePaymentStatusEnum.SUCCESS;
                 break;
             case WAIT_BUYER_PAY:
-            case NOT_EXIST:
             case UNKNOWN:
-                log.info("订单待支付，等待支付完成:outTradeNo={},payType={}", outTradeNo, payType);
                 paymentStatus = CompensatePaymentStatusEnum.CONTINUE;
                 break;
-            case TRADE_FINISHED:
+            case NOT_EXIST:
             case TRADE_CLOSED:
+            case TRADE_FINISHED:
+                /**
+                 * 不作处理 等取消延迟任务来关单
+                 */
                 log.info("订单支付完成，结束补投:outTradeNo={},payType={}", outTradeNo, payType);
                 paymentStatus = CompensatePaymentStatusEnum.FINISH;
                 break;
             default:
-                paymentStatus = CompensatePaymentStatusEnum.CONTINUE;
-                break;
+                log.error("未知交易状态");
+                throw new BizException("支付状态异常");
+
         }
 
         return new QueryThirdPartyPaymentStatusBO(paymentStatus, tradeStatusBO);
