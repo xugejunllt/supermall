@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @Data
 public class ReconciliationTradeInfo implements Serializable {
 
+    private Long id;
 
     private PayChannelEnum payChannel;
 

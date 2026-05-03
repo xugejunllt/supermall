@@ -4,7 +4,6 @@ import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.pay.model.bo.*;
-import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.entity.ReconciliationDiffDO;
 import com.lanf.pay.model.entity.ReconciliationDiffMarkerDO;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
@@ -18,6 +17,7 @@ import com.lanf.pay.service.reconciliation.IReconciliationJobLogService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -40,7 +40,8 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
     private  RocketMqClient rocketMqClient;
     @Autowired
     private  IReconciliationJobLogService reconciliationJobLogService;
-
+    @Autowired
+    private MaxIdTrackingBatchReconciler maxIdTrackingBatchReconciler;
 
     protected abstract ReconciliationJobTypeEnum getJobType();
     protected abstract ReconciliationScanPageResult<T> doPage(ReconciliationScanPage page);
@@ -72,34 +73,34 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
             pages.setCurrentPage(currentPage);
             pages.setPageSize(pageSize);
             ReconciliationScanPageResult<T> resultPage = doPage(pages);
-            List<String> outTradeNoList = resultPage.getOutTradeNoList();
             List<T> dataList = resultPage.getDataList();
             if (IStringUtils.isEmpty(dataList)){
 
                 return;
             }
+
+            List<ReconciliationTradeInfo> tradeInfoList = buildTradeInfoList(dataList);
+            /**
+             * tradeInfoList 是根据id升序 所以取集合最后一个
+             */
+            ReconciliationTradeInfo tradeInfo = tradeInfoList.get(tradeInfoList.size() - 1);
             /**
              * 去重
              */
-            Integer count = reconciliationDiffMarkerService.lambdaQuery()
-                    .eq(ReconciliationDiffMarkerDO::getBatchId, bathId)
-                    .eq(ReconciliationDiffMarkerDO::getDiffType, getDiffType())
-                    .eq(ReconciliationDiffMarkerDO::getBusinessType, getBusinessType())
-                    .in(ReconciliationDiffMarkerDO::getBusinessOrderNo, outTradeNoList)
-                    .count();
 
-            if ( count != null && outTradeNoList.size() == count) {
+            boolean saveBath = maxIdTrackingBatchReconciler.isSaveBath(bathId, getDiffType(),
+                    getBusinessType(), tradeInfo.getId());
+            if ( saveBath) {
                 log.info("该批次已对账");
                 continue;
             }
-
-            List<ReconciliationTradeInfo> tradeInfoList = buildTradeInfoList(dataList);
 
             ReconciliationStartMessage reconciliationStartMessage = new ReconciliationStartMessage();
             reconciliationStartMessage.setJobType(jobType);
             reconciliationStartMessage.setReconciliationTradeInfoList(tradeInfoList);
             reconciliationStartMessage.setBathId(bathId);
             reconciliationStartMessage.setReconciliationBusinessType(getBusinessType());
+            reconciliationStartMessage.setBathMaxId(tradeInfo.getId());
             try {
 
                 SendMessageAndUpdateResult result = reconciliationJobLogService.sendMessageAndUpdate(reconciliationStartMessage, jobType,
@@ -121,16 +122,23 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
         log.info("批次号 {} 交易单长款扫描完成", bathId);
     }
 
-
+    @Transactional
     @Override
     public void startReconciliation(ReconciliationStart start) {
 
+        String bathId = start.getBathId();
+        ReconciliationBusinessTypeEnum businessType = start.getReconciliationBusinessType();
+        boolean saveBath = maxIdTrackingBatchReconciler.isSaveBath(bathId, getDiffType(),
+                getBusinessType(), start.getBathMaxId());
+        if ( saveBath) {
+            log.info("该批次已对账");
+            return;
+        }
 
         List<ReconciliationTradeInfo> reconciliationTradeInfoList =
                 start.getReconciliationTradeInfoList();
 
-        String bathId = start.getBathId();
-        ReconciliationBusinessTypeEnum businessType = start.getReconciliationBusinessType();
+
 
         /**
          * 去重
@@ -138,19 +146,6 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
         List<String> outTradeNoList = reconciliationTradeInfoList.stream()
                 .map(ReconciliationTradeInfo::getOutTradeNo).collect(Collectors.toList());
 
-        Integer count = reconciliationDiffMarkerService.lambdaQuery()
-                .eq(ReconciliationDiffMarkerDO::getBatchId, bathId)
-                .eq(ReconciliationDiffMarkerDO::getDiffType,getDiffType())
-                .eq(ReconciliationDiffMarkerDO::getBusinessType, businessType)
-                .in(ReconciliationDiffMarkerDO::getBusinessOrderNo, outTradeNoList)
-                .count();
-        Integer size = outTradeNoList.size();
-        if ( size.equals( count)){
-            log.info("该批次已对账");
-            return;
-        }
-        List<PayOrderFlowDO> list = payOrderFlowService.lambdaQuery()
-                .in(PayOrderFlowDO::getOutTradeNo, outTradeNoList).list();
 
 
         Map<String, ReconciliationTradeInfo> tradeInfoMap = toReconciliationTradeInfoMap( outTradeNoList);
@@ -260,6 +255,19 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
             }
 
         }
+        List<ReconciliationDiffMarkerDO> diffMarkerDOList = new ArrayList<>();
 
+        for (ReconciliationTradeInfo reconciliationTradeInfo : reconciliationTradeInfoList){
+
+            ReconciliationDiffMarkerDO reconciliationDiffMarkerDO = new ReconciliationDiffMarkerDO();
+            reconciliationDiffMarkerDO.setBatchId(bathId);
+            reconciliationDiffMarkerDO.setBusinessOrderNo(reconciliationTradeInfo.getOutTradeNo());
+            reconciliationDiffMarkerDO.setDiffType(getDiffType());
+            reconciliationDiffMarkerDO.setBusinessType(businessType);
+            diffMarkerDOList.add(reconciliationDiffMarkerDO);
+        }
+        reconciliationDiffMarkerService.saveBatch(diffMarkerDOList);
+        maxIdTrackingBatchReconciler.addMaxId(bathId, getDiffType(),
+                getBusinessType(), start.getBathMaxId());
     }
 }

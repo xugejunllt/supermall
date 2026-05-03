@@ -11,6 +11,7 @@ import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
+import com.lanf.pay.model.enums.ReconciliationTradeStatusEnum;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.reconciliation.strategy.AbstractReconciliationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -58,7 +60,6 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<PayOrderF
          */
         ReconciliationScanPageResult<PayOrderFlowDO> result = new ReconciliationScanPageResult<>();
         result.setDataList(orderFlowList);
-        result.setOutTradeNoList(orderFlowList.stream().map(PayOrderFlowDO::getOutTradeNo).collect(Collectors.toList()));
         result.setPages(resultPage.getPages());
 
         return result;
@@ -74,7 +75,6 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<PayOrderF
             tradeInfo.setOutTradeNo(orderFlow.getOutTradeNo());
             tradeInfo.setReceiptMoney(orderFlow.getReceiptMoney());
             tradeInfo.setPayChannel(PayChannelEnum.getByCode(orderFlow.getPayType()));
-            tradeInfo.setReconciliationBusinessType(ReconciliationBusinessTypeEnum.PAYMENT);
             tradeInfoList.add(tradeInfo);
         }
 
@@ -90,5 +90,15 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<PayOrderF
     protected ReconciliationBusinessTypeEnum getBusinessType() {
 
         return ReconciliationBusinessTypeEnum.PAYMENT;
+    }
+
+    @Override
+    protected ReconciliationTradeStatusEnum toReconciliationTradeStatus(PayOrderFlowDO data) {
+        return null;
+    }
+
+    @Override
+    protected Map<String, ReconciliationTradeInfo> toReconciliationTradeInfoMap(List<String> outTradeNoList) {
+        return null;
     }
 }

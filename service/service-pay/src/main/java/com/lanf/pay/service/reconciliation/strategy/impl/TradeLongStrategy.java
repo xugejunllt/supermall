@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 交易单长款扫描策略
@@ -51,19 +50,18 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundB
 
         Page<TradeFundBillDetail> page = new Page<>(currentPage, pageSize);
         /**
-         * 根据id排序
+         * 根据id升序
          */
         IPage<TradeFundBillDetail> resultPage = tradeFundBillDetailService.lambdaQuery()
                 .eq(TradeFundBillDetail::getBillDate, bathId)
                 .eq(TradeFundBillDetail::getTradeType, ReconciliationBusinessTypeEnum.PAYMENT.getCode().toString())
-                .orderByDesc(BaseEntity::getId)
+                .orderByAsc(BaseEntity::getId)
                 .page(page);
 
         ReconciliationScanPageResult<TradeFundBillDetail> result = new ReconciliationScanPageResult<>();
         result.setDataList(resultPage.getRecords());
         result.setPages(resultPage.getPages());
-        result.setOutTradeNoList(resultPage.getRecords().stream().map(TradeFundBillDetail::getOutTradeNo)
-                .collect(Collectors.toList()));
+
 
         return result;
     }
@@ -86,6 +84,7 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundB
             tradeInfo.setPayChannel(orderFlow.getPayChannel());
             tradeInfo.setReconciliationTradeStatus(toReconciliationTradeStatus(orderFlow));
             tradeInfo.setPayFinishTime(payFinishTime);
+            tradeInfo.setId(orderFlow.getId());
             tradeInfoList.add(tradeInfo);
         }
 

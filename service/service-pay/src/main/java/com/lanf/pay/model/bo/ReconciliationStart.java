@@ -9,7 +9,10 @@ import java.util.List;
 
 @Data
 public class ReconciliationStart implements Serializable {
-
+    /**
+     * 该批次 最大的id
+     */
+    private Long bathMaxId;
     private String bathId;
 
     private ReconciliationBusinessTypeEnum reconciliationBusinessType;

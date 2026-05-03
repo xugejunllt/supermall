@@ -10,8 +10,10 @@ import java.util.List;
 
 @Data
 public class ReconciliationStartMessage implements Serializable {
-
-
+    /**
+     * 该批次 最大的id
+     */
+    private Long bathMaxId;
     private String bathId;
 
     private  ReconciliationJobTypeEnum jobType;
