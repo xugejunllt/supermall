@@ -1,9 +1,8 @@
 package com.lanf.storage.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.storage.model.enums.StockFlowTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -22,33 +21,33 @@ public class StockFlowDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
+    @ApiModelProperty(value = "唯一流水号")
+    private String flowNo;
+
+    @ApiModelProperty(value = "库存id")
     private Long stockId;
 
-    /**
-     * 0:销售单出库 1:销售单换货入库 2:销售退货退款入库 3:销售单换货出库 4.采购入库
-     */
-    private Integer orderType;
+    private StockFlowTypeEnum flowType;
 
     @ApiModelProperty(value = "商品sku编码")
     private String skuCode;
 
+    @ApiModelProperty(value = "关联业务单id")
+    private Long bizOrderId;
 
-    @ApiModelProperty(value = "出入库单id")
-    private String bizNumber;
+    @ApiModelProperty(value = "变更前数量")
+    private Integer beforeQuantity;
 
-    @ApiModelProperty(value = "出库数量")
-    private Integer outQuantity;
+    @ApiModelProperty(value = "变动数量")
+    private Integer changeQuantity;
 
-    @ApiModelProperty(value = "入库数量")
-    private Integer inQuantity;
+    @ApiModelProperty(value = "变更后数量")
+    private Integer afterQuantity;
 
-    @ApiModelProperty(value = "仓库id")
     private Long warehouseId;
 
     @ApiModelProperty(value = "仓库名称")
     private String warehouseName;
 
-
-    @TableField( fill = FieldFill.INSERT)
-    private Long  tenantId;
+    private Long tenantId;
 }

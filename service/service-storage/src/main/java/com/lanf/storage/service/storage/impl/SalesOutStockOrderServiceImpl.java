@@ -261,7 +261,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             stockUpdate.forEach(a -> {
                 stockService.lambdaUpdate().
                         eq(StockDO::getId, a.getId()).
-                        set(StockDO::getTotalStock, a.getTotalStock());
+                        set(StockDO::getUsableStock, a.getTotalStock());
 
             });
         }
@@ -327,7 +327,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             if (stockDO == null) {
                 throw new BizException("商品" + skuCode + "不存在");
             }
-            if (a.getActualQuantity() > stockDO.getTotalStock()) {
+            if (a.getActualQuantity() > stockDO.getUsableStock()) {
                 throw new BizException("商品" + skuCode + "库存不足");
             }
 
@@ -430,7 +430,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     private List<StockUpdateBO> buildStockUpdate(List<OutStockItemDTO> inStorageItemList) {
 
         List<String> skuCodeList = inStorageItemList.stream().map(OutStockItemDTO::getSkuCode).collect(Collectors.toList());
-        ThreadLocalUtils.addIgnoreTableName(true);
         List<StockDO> stockDOlist = stockService.lambdaQuery().in(StockDO::getSkuCode, skuCodeList).list();
         Map<String, StockDO> stockDOMap = stockDOlist.stream()
                 .collect(Collectors.toMap(StockDO::getSkuCode, Function.identity()));
@@ -439,8 +438,8 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             String skuCode = st.getSkuCode();
             StockDO stockDO = stockDOMap.get(skuCode);
             //更新
-            Integer totalStock =  stockDO.getTotalStock() - st.getActualQuantity();
-            Integer usableStock = stockDO.getTotalStock() + st.getActualQuantity();
+            Integer totalStock =  stockDO.getUsableStock() - st.getActualQuantity();
+            Integer usableStock = stockDO.getUsableStock() + st.getActualQuantity();
 
             StockUpdateBO stockUpdateBO = new StockUpdateBO();
             stockUpdateBO.setTotalStock(totalStock);

@@ -36,8 +36,11 @@ public enum FlowNoPrefixEnum {
     /**
      * 资金流水号
      */
-    MONEY_FLOW("MF", "资金流水号");
-
+    MONEY_FLOW("MF", "资金流水号"),
+    /**
+     * 库存流水号
+     */
+    STOCK_FLOW("SF", "库存流水号");
     /**
      * 前缀字符串
      */

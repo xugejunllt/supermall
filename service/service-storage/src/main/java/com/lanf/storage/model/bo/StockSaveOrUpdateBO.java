@@ -15,10 +15,13 @@ public class StockSaveOrUpdateBO implements Serializable {
    private  List<StockUpdateBO> stockUpdate;
 
    private Map<String,Long> stockDOIdMap;
-
-   public StockSaveOrUpdateBO(List<StockDO> stockSave, List<StockUpdateBO> stockUpdate, Map<String, Long> stockDOIdMap) {
+   private Map<String, Integer> currentTotalStockMap;
+   public StockSaveOrUpdateBO(List<StockDO> stockSave,
+                              List<StockUpdateBO> stockUpdate, Map<String, Long> stockDOIdMap
+    , Map<String, Integer> currentTotalStockMap) {
       this.stockSave = stockSave;
       this.stockUpdate = stockUpdate;
       this.stockDOIdMap = stockDOIdMap;
+      this.currentTotalStockMap = currentTotalStockMap;
    }
 }
