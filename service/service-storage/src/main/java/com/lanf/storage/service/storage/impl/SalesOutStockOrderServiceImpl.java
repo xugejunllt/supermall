@@ -32,7 +32,6 @@ import com.lanf.storage.service.stock.IStockFlowService;
 import com.lanf.storage.service.stock.IStockService;
 import com.lanf.storage.service.storage.IInOutStockOrderItemService;
 import com.lanf.storage.service.storage.ISalesOutStockOrderService;
-import com.lanf.storage.service.storage.IStorageFlowService;
 import com.lanf.storage.service.warehous.IWarehouseService;
 import com.lanf.system.api.SystemService;
 import lombok.extern.slf4j.Slf4j;
@@ -67,8 +66,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     private IInOutStockOrderItemService iInOutStockOrderItemService;
     @Autowired
     private IStockService stockService;
-    @Autowired
-    private IStorageFlowService storageFlowService;
+
     @Autowired
     private IStockFlowService stockFlowService;
     @Autowired
@@ -137,24 +135,9 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
 
     }
 
-    private Long getWarehouseId(boolean ignoreTableName) {
-        //获取仓库id
-        ThreadLocalUtils.addIgnoreTableName(ignoreTableName);
-        WarehouseDO one = warehouseService.lambdaQuery().one();
-
-        return one.getId();
-
-    }
-
-    private Long getWarehouseId(Long shopId) {
-        String tenantCode = systemService.getTenantCodeByShopId(shopId).getData();
-        ThreadLocalUtils.addIgnoreTableName(true);
-        WarehouseDO warehouseDO = warehouseService.lambdaQuery().
-                one();
 
 
-        return warehouseDO.getId();
-    }
+
 
     @Transactional
     @Override

@@ -2,6 +2,7 @@ package com.lanf.order.controller.admin;
 
 
 import com.lanf.mybatis.base.PageResult;
+import com.lanf.order.model.dto.AllowOutboundDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.query.OrderPageQuery2;
 import com.lanf.order.model.vo.OrderDetailVO2;
@@ -31,7 +32,13 @@ public class OrderAdminController {
     private IOrderService orderService;
     @Autowired
     private InterfaceLayoutService interfaceLayoutService;
+    @PostMapping("/allowOutbound")
+    public Result<Void> allowOutbound(@Validated @RequestBody AllowOutboundDTO dto) {
 
+        log.info("允许发货:{}dto", dto);
+        orderService.allowOutbound(dto);
+        return Result.ok();
+    }
 
     @PostMapping("/delivery")
     public Result delivery(@Validated @RequestBody DeliveryDTO dto) {

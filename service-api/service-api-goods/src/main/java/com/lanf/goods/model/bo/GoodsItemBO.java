@@ -19,7 +19,7 @@ public class GoodsItemBO implements Serializable {
     private Integer quantity;
     //价格
     private BigDecimal price;
-
+    private String skuCode;
 
     private Long goodsId;
     private String goodsTitle;
@@ -28,4 +28,6 @@ public class GoodsItemBO implements Serializable {
     private Long goodsVersion;
     //sku 版本
     private Long skuVersion;
+    private Long warehouseId;
+
 }

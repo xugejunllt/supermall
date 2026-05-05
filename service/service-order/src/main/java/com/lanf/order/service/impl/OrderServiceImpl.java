@@ -32,6 +32,8 @@ import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.query.OrderPageQuery2;
 import com.lanf.order.model.vo.*;
 import com.lanf.order.mq.OrderClientTopicName;
+import com.lanf.order.mq.message.AddSalesOutStockOrderMessage;
+import com.lanf.order.mq.message.InOutStockOrderItem;
 import com.lanf.order.mq.message.SignOrderMessage;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
@@ -275,6 +277,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             log.warn("订单状态异常");
             throw new BizException("订单状态异常");
         }
+        AddSalesOutStockOrderMessage addSalesOutStockOrderMessage = buildAddSalesOutStockOrderMessage(orderId);
+
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, orderId)
                 .eq(OrderDO::getVersion, orderDO.getVersion())
@@ -285,8 +289,30 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             log.warn("订单状态更新异常");
             throw new BizException("订单状态更新异常");
         }
-        z
+        rocketMqClient.sendMessage(OrderClientTopicName.SIGN_ORDER_EVENT_TOPIC, JsonUtils.
+                toJsonString(addSalesOutStockOrderMessage));
 
+    }
+
+    private AddSalesOutStockOrderMessage buildAddSalesOutStockOrderMessage(Long orderId){
+        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery()
+                .eq(OrderItemDO::getOrderId, orderId)
+                .list();
+        AddSalesOutStockOrderMessage addSalesOutStockOrderMessage = new AddSalesOutStockOrderMessage();
+        List<InOutStockOrderItem> items = orderItemDOList.stream()
+                .map(orderItemDO -> {
+                    InOutStockOrderItem inOutStockOrderItem = new InOutStockOrderItem();
+                    inOutStockOrderItem.setGoodsName(orderItemDO.getGoodsName());
+                    inOutStockOrderItem.setSkuCode(orderItemDO.getSkuCode());
+                    inOutStockOrderItem.setTotalQuantity(orderItemDO.getQuantity());
+                    inOutStockOrderItem.setUnit(orderItemDO.getSkuName());
+                    inOutStockOrderItem.setWarehouseId(orderItemDO.getWarehouseId());
+
+                    return inOutStockOrderItem;
+                }).collect(Collectors.toList());
+        addSalesOutStockOrderMessage.setOrderId(orderId);
+        addSalesOutStockOrderMessage.setItems( items);
+        return addSalesOutStockOrderMessage;
     }
 
     @Override

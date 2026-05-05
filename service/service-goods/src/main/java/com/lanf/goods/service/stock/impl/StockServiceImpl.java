@@ -114,6 +114,15 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
         /**
+         * 查询返回需要的数据
+         */
+        GoodsSkuDO goodsSkuDO = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getSkuCode, skuCode)
+                .one();
+
+        Long goodsId = goodsSkuDO.getGoodsId();
+        GoodsDO goodsDO = goodsService.getById(goodsId);
+
+        /**
          * DB操作
          */
         tccOperationService.tryOperation(bizKey,null);
@@ -128,28 +137,25 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             log.info("扣减库存失败");
             throw new BizException("扣减库存失败");
         }
-        return buildDeductStockVO( skuCode, deductStockDTO.getQuantity());
+        return buildDeductStockVO(deductStockDTO.getQuantity(),goodsSkuDO,goodsDO,stockDO);
     }
 
 
-    private DeductStockVO buildDeductStockVO(String skuCode,Integer  quantity) {
+    private DeductStockVO buildDeductStockVO(Integer  quantity,
+                                             GoodsSkuDO goodsSkuDO,GoodsDO goodsDO, StockDO stockDO) {
 
-        GoodsSkuDO goodsSkuDO = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getSkuCode, skuCode)
-                .one();
 
-        Long goodsId = goodsSkuDO.getGoodsId();
-        GoodsDO goodsDO = goodsService.getById(goodsId);
 
         //订单总金额
         BigDecimal totalAmount =  GoodsServiceUtils.calculateTotalAmount(goodsSkuDO.getPrice(), quantity);
-        GoodsSkuBO goodsSkuBO = buildGoodsSkuBO(goodsSkuDO, goodsDO);
+        GoodsSkuBO goodsSkuBO = buildGoodsSkuBO(goodsSkuDO, goodsDO, stockDO);
         DeductStockVO deductStockVO = new DeductStockVO();
         deductStockVO.setTotalAmount(totalAmount);
         deductStockVO.setGoodsSkuBO(goodsSkuBO);
         return deductStockVO;
     }
 
-    private  GoodsSkuBO buildGoodsSkuBO(GoodsSkuDO goodsSkuDO, GoodsDO goodsDO) {
+    private  GoodsSkuBO buildGoodsSkuBO(GoodsSkuDO goodsSkuDO, GoodsDO goodsDO,StockDO stockDO) {
         GoodsSkuBO goodsSkuBO = new GoodsSkuBO();
         goodsSkuBO.setSkuId(goodsSkuDO.getId());
         goodsSkuBO.setGoodsId(goodsSkuDO.getGoodsId());
@@ -161,6 +167,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         goodsSkuBO.setSkuVersion(goodsSkuDO.getVersion());
         goodsSkuBO.setGoodsVersion(goodsDO.getVersion());
         goodsSkuBO.setGoodsTitle(goodsDO.getTitle());
+        goodsSkuBO.setWarehouseId(stockDO.getWarehouseId());
         return goodsSkuBO;
     }
 

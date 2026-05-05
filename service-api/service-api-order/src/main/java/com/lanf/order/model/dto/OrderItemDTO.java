@@ -23,7 +23,7 @@ public class OrderItemDTO implements Serializable {
 
     @ApiModelProperty(value = "skuId")
     private Long skuId;
-
+    private String skuCode;
     @ApiModelProperty(value = "sku名称")
     private String skuName;
 
@@ -38,5 +38,5 @@ public class OrderItemDTO implements Serializable {
     private Long goodsVersion;
     //sku 版本
     private Long skuVersion;
-
+    private Long warehouseId;
 }

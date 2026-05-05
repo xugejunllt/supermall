@@ -30,4 +30,6 @@ public class GoodsSkuBO implements Serializable {
 
     private Long skuVersion;
     private Long goodsVersion;
+
+    private Long warehouseId;
 }

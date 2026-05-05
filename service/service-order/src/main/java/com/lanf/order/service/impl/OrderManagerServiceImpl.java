@@ -235,6 +235,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderItem.setUnitPrice(goodsSkuBO.getPrice());
         orderItem.setGoodsVersion(goodsSkuBO.getGoodsVersion());
         orderItem.setSkuVersion(goodsSkuBO.getSkuVersion());
+        orderItem.setSkuCode(goodsSkuBO.getSkuCode());
+        orderItem.setWarehouseId(goodsSkuBO.getWarehouseId());
         return orderItem;
     }
     /**
@@ -537,6 +539,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderItemDTO.setUnitPrice(cartItem.getPrice());
         orderItemDTO.setGoodsVersion(cartItem.getGoodsVersion());
         orderItemDTO.setSkuVersion(cartItem.getSkuVersion());
+        orderItemDTO.setSkuCode(cartItem.getSkuCode());
         return orderItemDTO;
     }
 

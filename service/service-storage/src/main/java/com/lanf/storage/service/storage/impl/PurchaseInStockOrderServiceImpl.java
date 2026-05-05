@@ -27,7 +27,6 @@ import com.lanf.storage.service.stock.IStockFlowService;
 import com.lanf.storage.service.stock.IStockService;
 import com.lanf.storage.service.storage.IInOutStockOrderItemService;
 import com.lanf.storage.service.storage.IPurchaseInStockOrderService;
-import com.lanf.storage.service.storage.IStorageFlowService;
 import com.lanf.storage.service.supplier.ISupplierService;
 import com.lanf.storage.service.warehous.IWarehouseService;
 import lombok.extern.slf4j.Slf4j;
