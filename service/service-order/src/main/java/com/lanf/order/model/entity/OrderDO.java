@@ -2,6 +2,7 @@ package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.order.model.enums.OrderStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -49,7 +50,7 @@ public class OrderDO extends BaseEntity {
     @ApiModelProperty(value = "收货地址")
     private String takeAddress;
     @ApiModelProperty(value = "0:待付款, 1:待出库 2：已出库 3：已发货，4：已完成，5：已取消 6.已关闭")
-    private Integer status;
+    private OrderStatusEnum status;
 
     /**
      * 0：正常,1: 冻结状态 用于分布式事务try阶段更新，

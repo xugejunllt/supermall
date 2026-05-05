@@ -130,7 +130,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         if (FrozenStatusEnum.FROZEN.getCode().equals(orderDO.getFrozen())) {
             throw new BizException("订单已冻结");
         }
-        if (!OrderStatusEnum.isCancelable(orderDO.getStatus())) {
+        if (!OrderStatusEnum.isCancelable(orderDO.getStatus().getCode())) {
             log.error("订单状态异常status:[{}]", orderDO.getStatus());
             throw new BizException("订单状态异常");
         }
@@ -147,7 +147,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                 .eq(OrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
                 .eq(OrderDO::getStatus, orderDO.getStatus())
                 .eq(OrderDO::getVersion, orderDO.getVersion())
-                .set(OrderDO::getStatus, OrderStatusEnum.CANCELLED.getCode())
+                .set(OrderDO::getStatus, OrderStatusEnum.CANCELLED)
                 .set(OrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
                 .set(OrderDO::getVersion, orderDO.getVersion() + 1)
                 .update();
@@ -180,7 +180,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
          */
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, orderDO.getId())
-                .eq(OrderDO::getStatus, OrderStatusEnum.CANCELLED.getCode())
+                .eq(OrderDO::getStatus, OrderStatusEnum.CANCELLED)
                 .eq(OrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
                 .eq(OrderDO::getVersion, orderDO.getVersion())
                 .set(OrderDO::getVersion, orderDO.getVersion() + 1)
@@ -213,7 +213,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
          */
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, orderDO.getId())
-                .eq(OrderDO::getStatus, OrderStatusEnum.CANCELLED.getCode())
+                .eq(OrderDO::getStatus, OrderStatusEnum.CANCELLED)
                 .eq(OrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
                 .eq(OrderDO::getVersion, orderDO.getVersion())
                 .set(OrderDO::getStatus, cancelOrderBO.getCurrentOrderStatus())
@@ -253,13 +253,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             throw new BizException("订单不存在");
         }
 
-        Integer status = orderDO.getStatus();
-        if (status != 0) {
+        OrderStatusEnum status = orderDO.getStatus();
+        if (OrderStatusEnum.WAIT_PAY.equals( status)) {
+            log.info("订单状态更新异常");
             throw new BizException("订单状态更新异常");
         }
         OrderDO orderDOUpdate = new OrderDO();
         orderDOUpdate.setId(orderDO.getId());
-        orderDOUpdate.setStatus(1);
+        orderDOUpdate.setStatus(OrderStatusEnum.PAID);
 
         this.updateById(orderDOUpdate);
     }
