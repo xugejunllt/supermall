@@ -147,7 +147,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     public void salesStockOrderAdd(SalesInStockOrderAddMessage message) {
 
 
-
         List<SalesOutStockOrderDO> salesOutStockOrderDOList = new ArrayList<>();
         List<InOutStockOrderItemDO> inOutStockOrderItemDOList = new ArrayList<>();
 
@@ -163,11 +162,11 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         salesOutStockOrderDO.setId(id);
         salesOutStockOrderDO.setCode(CodeGenerateUtils.generaCode());
         salesOutStockOrderDO.setOrderId(message.getAfterSalesOrderId());
-       // salesOutStockOrderDO.setExpectQuantity(message.getTotalQuantity());
+        // salesOutStockOrderDO.setExpectQuantity(message.getTotalQuantity());
         salesOutStockOrderDO.setActualQuantity(0);
         salesOutStockOrderDO.setStorageStatus(0);
-       // salesOutStockOrderDO.setShopId(message.getShopId());
-      //  salesOutStockOrderDO.setWarehouseId(shopVO.getBusinessId());
+        // salesOutStockOrderDO.setShopId(message.getShopId());
+        //  salesOutStockOrderDO.setWarehouseId(shopVO.getBusinessId());
         salesOutStockOrderDOList.add(salesOutStockOrderDO);
         //
         List<SalesInStockOrderItemAdd> inOutStockOrderItemDTOList = message.getSalesInStockOrderItemAddDTOList();
@@ -225,7 +224,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         Long salesOutStockOrderId = dto.getSalesOutStockOrderId();
         List<OutStockItemDTO> outStockItemList = dto.getOutStockItemList();
         SalesOutStockOrderDO salesOutStockOrderDO = this.getById(salesOutStockOrderId);
-        Long shopId = salesOutStockOrderDO.getShopId();
         List<InOutStockOrderItemDO> storageOrderItemDetailList = iInOutStockOrderItemService.lambdaQuery().
                 eq(InOutStockOrderItemDO::getInOutStockOrderId, salesOutStockOrderId).list();
         Map<Long, InOutStockOrderItemDO> purchaseOrderItemDOMap = storageOrderItemDetailList.stream()
@@ -241,34 +239,42 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             totalQuantity += is.getActualQuantity();
         }
         WarehouseDO warehouseDO = warehouseService.getById(getWarehouseId());
-        //生成入库明细
-        StorageFlowDO storageDetailsDO = buildStorageDetailsDO(warehouseDO, salesOutStockOrderDO, totalQuantity);
-        //生成库存流水
 
+        //生成库存流水
         List<StockFlowDO> stockFlowList = buildStockFlowDO(outStockItemList, purchaseOrderItemDOMap, salesOutStockOrderDO, warehouseDO);
-        //更新入库单实际库存和状态
-        SalesOutStockOrderDO purchaseStorageOrderDOUpdate = buildPurchaseStorageOrderDO(salesOutStockOrderDO, totalQuantity);
         //更新商品库存
         List<StockUpdateBO> stockUpdate = buildStockUpdate(outStockItemList);
-        //数据库操作
         //更新入库单
-        this.updateById(purchaseStorageOrderDOUpdate);
+        SalesOutStockOrderDO one = this.lambdaQuery().eq(SalesOutStockOrderDO::getId, salesOutStockOrderId).one();
+        if (one == null){
+            log.error("入库单不存在");
+            throw new BizException("入库单不存在");
+        }
+        boolean update1 = this.lambdaUpdate().eq(BaseEntity::getId, salesOutStockOrderId)
+                .eq(SalesOutStockOrderDO::getVersion, one.getVersion())
+                .set(SalesOutStockOrderDO::getActualQuantity, totalQuantity)
+                .set(SalesOutStockOrderDO::getVersion, one.getVersion() + 1)
+                .update();
+        if (!update1) {
+            throw new BizException("更新入库单失败");
+        }
         //更新入库单item数量
         iInOutStockOrderItemService.updateBatchById(storageOrderItemDetailsDOUpdate);
-        //保存入库详细
-        storageFlowService.save(storageDetailsDO);
-        if (!stockUpdate.isEmpty()) {
-            stockUpdate.forEach(a -> {
-                stockService.lambdaUpdate().
-                        eq(StockDO::getId, a.getId()).
-                        set(StockDO::getUsableStock, a.getTotalStock());
-
-            });
-        }
+        stockUpdate.forEach(a -> {
+            boolean update = stockService.lambdaUpdate().
+                    eq(StockDO::getId, a.getId())
+                    .eq(StockDO::getVersion, a.getVersion())
+                    .set(StockDO::getLockStock, a.getLockStock())
+                    .set(StockDO::getVersion, a.getVersion() + 1)
+                    .update();
+            if (!update) {
+                throw new BizException("更新库存失败");
+            }
+        });
         //保存库存流水
         stockFlowService.saveBatch(stockFlowList);
         Integer inStorageStatus = getInStorageStatus(salesOutStockOrderDO, totalQuantity);
-        if (inStorageStatus == 2 ) {
+        if (inStorageStatus == 2) {
             //销售单出库完成
             log.info("出库完成");
             String finishContent = "打包完成";
@@ -293,7 +299,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         if (salesOutStockOrderDO == null) {
             throw new BizException("出库单不存在");
         }
-        if (salesOutStockOrderDO.getStorageStatus() == 2) {
+        if (salesOutStockOrderDO.getStorageStatus() == 1) {
 
             throw new BizException("已完成出库");
         }
@@ -327,7 +333,10 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             if (stockDO == null) {
                 throw new BizException("商品" + skuCode + "不存在");
             }
-            if (a.getActualQuantity() > stockDO.getUsableStock()) {
+            /**
+             * 扣减锁住的库存
+             */
+            if (a.getActualQuantity() > stockDO.getLockStock()) {
                 throw new BizException("商品" + skuCode + "库存不足");
             }
 
@@ -353,21 +362,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         return storageOrderItemDetailsDOUpdate;
     }
 
-    private StorageFlowDO buildStorageDetailsDO(WarehouseDO warehouseDO, SalesOutStockOrderDO salesOutStockOrderDO
-            , Integer outQuantity) {
 
-        StorageFlowDO storageDetailsDO = new StorageFlowDO();
-//        Integer orderType = getOrderType(inOutStatus);
-//        storageDetailsDO.setOrderType(getOrderType(inOutStatus));
-//        storageDetailsDO.setBizNumber(salesOutStockOrderDO.getCode());
-//        if (orderType == 0 || orderType == 3) {
-//            storageDetailsDO.setOutQuantity(outQuantity);
-//        } else {
-//            storageDetailsDO.setInQuantity(outQuantity);
-//        }
-
-        return storageDetailsDO;
-    }
 
     private Integer getOrderType(Integer inOutStatus) {
 
@@ -381,14 +376,9 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         for (OutStockItemDTO is : inStorageItemList) {
             InOutStockOrderItemDO storageOrderItemDetailsDO = purchaseOrderItemDOMap.get(is.getId());
             StockFlowDO stockFlowDO = new StockFlowDO();
-//            stockFlowDO.setOrderType(orderType);
-//            stockFlowDO.setSkuCode(storageOrderItemDetailsDO.getSkuCode());
-//            stockFlowDO.setBizNumber(salesOutStockOrderDO.getCode());
-//            if (orderType == 0 || orderType == 3) {
-//                stockFlowDO.setOutQuantity(is.getActualQuantity());
-//            } else {
-//                stockFlowDO.setInQuantity(is.getActualQuantity());
-//            }
+            stockFlowDO.setBizOrderId(storageOrderItemDetailsDO.getInOutStockOrderId());
+//            stockFlowDO.setStockId(storageOrderItemDetailsDO.getStockId());
+
             stockFlowList.add(stockFlowDO);
         }
         return stockFlowList;
@@ -438,13 +428,11 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             String skuCode = st.getSkuCode();
             StockDO stockDO = stockDOMap.get(skuCode);
             //更新
-            Integer totalStock =  stockDO.getUsableStock() - st.getActualQuantity();
-            Integer usableStock = stockDO.getUsableStock() + st.getActualQuantity();
-
+            Integer lockStock = stockDO.getLockStock() - st.getActualQuantity();
             StockUpdateBO stockUpdateBO = new StockUpdateBO();
-            stockUpdateBO.setTotalStock(totalStock);
-            stockUpdateBO.setUsableStock(usableStock);
+            stockUpdateBO.setLockStock(lockStock);
             stockUpdateBO.setId(stockDO.getId());
+            stockUpdateBO.setVersion(stockDO.getVersion());
             stockDOUpdate.add(stockUpdateBO);
 
         }

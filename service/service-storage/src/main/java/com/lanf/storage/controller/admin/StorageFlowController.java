@@ -1,8 +1,7 @@
-package com.lanf.storage.controller.storage;
+package com.lanf.storage.controller.admin;
 
 
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.storage.model.entity.StorageFlowDO;
 import com.lanf.storage.model.query.StorageFlowPageQuery;
 import com.lanf.storage.service.storage.IStorageFlowService;
 import com.lanf.constant.result.Result;

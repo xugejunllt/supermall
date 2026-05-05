@@ -1,4 +1,4 @@
-package com.lanf.storage.controller.storage;
+package com.lanf.storage.controller.admin;
 
 
 import com.lanf.mybatis.base.PageResult;

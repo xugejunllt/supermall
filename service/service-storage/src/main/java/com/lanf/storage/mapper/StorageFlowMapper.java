@@ -1,7 +1,6 @@
 package com.lanf.storage.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lanf.storage.model.entity.StorageFlowDO;
 
 /**
  * <p>

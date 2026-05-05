@@ -32,7 +32,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "实际出库数量")
     private Integer actualQuantity;
 
-    @ApiModelProperty(value = "出库状态0:待出库, 2:已出库 ")
+    @ApiModelProperty(value = "出库状态0:待出库, 1:已出库 ")
     private Integer storageStatus;
 
     @ApiModelProperty(value = "物流公司")
@@ -47,6 +47,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "备注")
     private String remarks;
 
+    private Long version;
 
 
 
