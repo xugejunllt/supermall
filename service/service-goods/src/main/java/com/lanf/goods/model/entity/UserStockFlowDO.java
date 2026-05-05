@@ -31,15 +31,15 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "变更前的数量")
     private Integer beforeQuantity;
+    /**
+     * 变更数量
+     */
+    private Integer changeQuantity;
 
     @ApiModelProperty(value = "变更后数量")
     private Integer afterQuantity;
 
-    @ApiModelProperty(value = "出库数量")
-    private Integer outQuantity;
 
-    @ApiModelProperty(value = "入库数量")
-    private Integer inQuantity;
 
 
 

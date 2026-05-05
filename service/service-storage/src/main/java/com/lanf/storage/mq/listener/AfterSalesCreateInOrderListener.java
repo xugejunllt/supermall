@@ -1,4 +1,4 @@
-package com.lanf.storage.mq.event;
+package com.lanf.storage.mq.listener;
 
 /**
  * 售后退货创建商品入库单

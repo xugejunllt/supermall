@@ -43,7 +43,7 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "版本号 乐观锁控制")
     private Long version;
-    private Long  tenantId;
+    private Long  merchantId;
 
 
 

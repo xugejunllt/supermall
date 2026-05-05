@@ -7,7 +7,6 @@ import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.StockEnoughVO;
-import com.lanf.rocketmq.model.message.UserStockAddMsg;
 
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,7 @@ import java.util.Map;
 public interface IStockService extends IService<StockDO> {
 
 
-    void addUserStock(UserStockAddMsg message);
+
 
     //key:skuCode
     Map<String,SkuCodeStockBO> findBySkuCode(List<String> skuCode);

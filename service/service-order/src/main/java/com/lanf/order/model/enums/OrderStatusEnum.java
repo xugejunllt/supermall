@@ -14,24 +14,28 @@ import java.util.Set;
 public enum OrderStatusEnum {
 
     WAIT_PAY(0, "待付款"),
-    WAIT_OUTBOUND(1, "待出库"),
-    OUTBOUNDED(2, "已出库"),
-    SHIPPED(3, "已发货"),
-    WAIT_COMMENT(4, "待评价"),
+    PAID(1, "已付款"),
+    /**
+     * 商家审核通过后 已 1-->2 生成销售出库单
+     */
+    WAIT_OUTBOUND(2, "待出库"),
+    OUTBOUNDED(3, "已出库"),
+    SHIPPED(4, "已发货"),
+    WAIT_COMMENT(5, "待评价"),
     /**
      * 1.主动评价
      * 2.如果超过7天没有评价，系统自动评价
      *
      */
-    COMPLETED(5, "已评价(已完成)"),
+    COMPLETED(6, "已评价(已完成)"),
 
-    CANCELLED(6, "已取消"),
+    CANCELLED(7, "已取消"),
     /**
      *
      *  1.已取消订单 3天之后 转成 已关闭
      *  失败终态（取消、退款）
      */
-    CLOSED(7, "已关闭,订单已终结"),
+    CLOSED(8, "已关闭,订单已终结"),
 
     ;
     @EnumValue

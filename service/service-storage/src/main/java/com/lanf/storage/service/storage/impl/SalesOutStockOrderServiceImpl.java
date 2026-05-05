@@ -264,7 +264,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             boolean update = stockService.lambdaUpdate().
                     eq(StockDO::getId, a.getId())
                     .eq(StockDO::getVersion, a.getVersion())
-                    .set(StockDO::getLockStock, a.getLockStock())
+                    .set(StockDO::getPreStock, a.getLockStock())
                     .set(StockDO::getVersion, a.getVersion() + 1)
                     .update();
             if (!update) {
@@ -336,7 +336,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             /**
              * 扣减锁住的库存
              */
-            if (a.getActualQuantity() > stockDO.getLockStock()) {
+            if (a.getActualQuantity() > stockDO.getPreStock()) {
                 throw new BizException("商品" + skuCode + "库存不足");
             }
 
@@ -428,7 +428,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             String skuCode = st.getSkuCode();
             StockDO stockDO = stockDOMap.get(skuCode);
             //更新
-            Integer lockStock = stockDO.getLockStock() - st.getActualQuantity();
+            Integer lockStock = stockDO.getPreStock() - st.getActualQuantity();
             StockUpdateBO stockUpdateBO = new StockUpdateBO();
             stockUpdateBO.setLockStock(lockStock);
             stockUpdateBO.setId(stockDO.getId());

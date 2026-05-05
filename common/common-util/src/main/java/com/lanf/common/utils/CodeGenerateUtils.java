@@ -59,4 +59,14 @@ public class CodeGenerateUtils {
         // 直接拼接，不做额外处理
         return bizPrefix.getPrefix() +uniqueKey;
     }
+    public static  String generateFlowNo(FlowNoPrefixEnum bizPrefix) {
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        String timeStr = sdf.format(new Date());
+
+        return bizPrefix.getPrefix()+ timeStr ;
+    }
+
+
+
 }

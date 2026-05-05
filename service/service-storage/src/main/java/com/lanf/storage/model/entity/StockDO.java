@@ -39,8 +39,10 @@ private static final long serialVersionUID=1L;
      */
     private Integer usableStock;
 
-    @ApiModelProperty(value = "锁住的库存")
-    private Integer lockStock;
+    /**
+     * 预售库存
+     */
+    private Integer preStock;
 
 
 

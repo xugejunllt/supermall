@@ -1,4 +1,4 @@
-package com.lanf.storage.mq.event;
+package com.lanf.storage.mq.listener;
 
 
 import com.lanf.rocketmq.model.TopicName;

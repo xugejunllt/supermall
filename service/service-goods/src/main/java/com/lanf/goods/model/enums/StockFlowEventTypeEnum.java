@@ -8,7 +8,6 @@ public enum StockFlowEventTypeEnum {
 
     ORDER_OUTBOUND(0, "下单出库"),
     CANCEL_ORDER_INBOUND(1, "取消订单入库"),
-    STOCK_INBOUND(2, "上架库存"),
 
     ;
 

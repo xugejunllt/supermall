@@ -40,7 +40,11 @@ public enum FlowNoPrefixEnum {
     /**
      * 库存流水号
      */
-    STOCK_FLOW("SF", "库存流水号");
+    STOCK_FLOW("SF", "库存流水号"),
+    /**
+     * 发布预售库存流水号
+     */
+    PUBLISH_PREORDER_STOCK_FLOW("PSF", "发布预售库存流水号");
     /**
      * 前缀字符串
      */
@@ -53,6 +57,7 @@ public enum FlowNoPrefixEnum {
 
     /**
      * 根据code获取枚举
+     *
      * @param prefix 前缀字符串
      * @return 枚举值
      */

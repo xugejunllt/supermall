@@ -299,7 +299,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
                 stock.setId(id);
                 stock.setSkuCode(st.getSkuCode());
                 stock.setUsableStock(st.getActualQuantity());
-                stock.setLockStock(0);
+                stock.setPreStock(0);
                 stock.setWarehouseId(warehouseDO.getId());
                 stock.setGoodsName(st.getGoodsName());
                 stock.setUnit(st.getUnit());
@@ -311,7 +311,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
             } else {
                 //更新
                 //总库存 = 可用库存 + 入库数量 + 锁住的库存
-                Integer totalStock = stockDO.getUsableStock()+ stockDO.getLockStock();
+                Integer totalStock = stockDO.getUsableStock()+ stockDO.getPreStock();
                 StockUpdateBO stockUpdateBO = getStockUpdateBO(st, stockDO);
                 stockDOUpdate.add(stockUpdateBO);
                 stockDOIdMap.put(key, stockDO.getId());

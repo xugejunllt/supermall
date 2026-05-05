@@ -1,4 +1,4 @@
-package com.lanf.goods.mq;
+package com.lanf.goods.mq.listener;
 
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
@@ -114,7 +114,7 @@ public class CancelOrderEventRollbackStockListener implements RocketMQListener<C
         return userStockFlowDOList.stream()
                 .collect(Collectors.groupingBy(
                         UserStockFlowDO::getUserStockId,
-                        Collectors.summingInt(UserStockFlowDO::getOutQuantity)
+                        Collectors.summingInt(UserStockFlowDO::getChangeQuantity)
                 ));
     }
 
@@ -143,8 +143,8 @@ public class CancelOrderEventRollbackStockListener implements RocketMQListener<C
             a.setEventType(StockFlowEventTypeEnum.CANCEL_ORDER_INBOUND.getCode());
             a.setAfterQuantity(totalQuantity);
             a.setBeforeQuantity(totalQuantity+changeQuantity);
-            a.setOutQuantity(0);
-            a.setInQuantity(changeQuantity);
+            a.setChangeQuantity(changeQuantity);
+
         });
 
         return saveUserStockFlowDOList;

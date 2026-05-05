@@ -18,6 +18,11 @@
             <version>1.6.2</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-mybatis</artifactId>
+            <version>${common-mybatis.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
