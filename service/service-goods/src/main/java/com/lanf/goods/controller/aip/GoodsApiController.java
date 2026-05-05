@@ -13,7 +13,7 @@ import com.lanf.goods.service.base.IBaseGoodsService;
 import com.lanf.goods.service.goods.ICartService;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
-import com.lanf.goods.service.goods.IStockService;
+import com.lanf.goods.service.stock.IStockService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

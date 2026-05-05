@@ -17,6 +17,7 @@ import com.lanf.goods.model.vo.*;
 import com.lanf.goods.service.goods.*;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.cache.service.DistributedLocker;
+import com.lanf.goods.service.stock.IStockService;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
@@ -368,9 +369,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         return JsonUtils.toObject(cache, UserGoodsDetailVO.class);
     }
 
-    private void deleteCache(Long keyPrefix) {
-        redisCache.deleteObject(RedisCacheConstants.getGOODS_DETAIL(keyPrefix));
-    }
+
 
 
     private List<UnitCodeSkuCodeBO> buildUnitCodeSkuCodeVOList(List<GoodsSkuDO> goodsSkuDOList) {

@@ -16,7 +16,7 @@ import com.lanf.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.goods.model.vo.*;
 import com.lanf.goods.service.base.IBaseGoodsService;
 import com.lanf.goods.service.base.IBaseGoodsSkuService;
-import com.lanf.goods.service.goods.IStockService;
+import com.lanf.goods.service.stock.IStockService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.common.utils.MerchantIdContext;

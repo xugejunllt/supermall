@@ -4,7 +4,7 @@ import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.constant.exception.BizException;
 import com.lanf.goods.model.entity.StockDO;
-import com.lanf.goods.service.goods.IStockService;
+import com.lanf.goods.service.stock.IStockService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;

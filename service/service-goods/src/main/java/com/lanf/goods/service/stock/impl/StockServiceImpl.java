@@ -1,13 +1,10 @@
-package com.lanf.goods.service.goods.impl;
+package com.lanf.goods.service.stock.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.IdUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.bo.GoodsSkuBO;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
-import com.lanf.goods.model.bo.StockSaveOrUpdateBO;
 import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.entity.*;
@@ -15,9 +12,8 @@ import com.lanf.goods.model.enums.StockFlowEventTypeEnum;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.service.goods.*;
+import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.utils.GoodsServiceUtils;
-import com.lanf.rocketmq.model.message.UserStockAddMsg;
-import com.lanf.rocketmq.model.message.UserStockMsg;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
@@ -27,12 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * <p>
