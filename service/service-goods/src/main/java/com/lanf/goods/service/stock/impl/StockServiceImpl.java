@@ -216,7 +216,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         // 总库存 = 可使用+已冻结
         userStockFlowDO.setBeforeQuantity(totalStock);
         userStockFlowDO.setAfterQuantity(totalStock - deductStockDTO.getQuantity());
-        userStockFlowDO.setOutQuantity(deductStockDTO.getQuantity());
+        userStockFlowDO.setChangeQuantity(deductStockDTO.getQuantity());
         return userStockFlowDO;
     }
     @Transactional

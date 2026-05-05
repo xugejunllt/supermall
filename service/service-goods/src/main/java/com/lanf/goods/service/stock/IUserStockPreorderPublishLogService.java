@@ -1,6 +1,7 @@
-package com.lanf.goods.service.goods;
+package com.lanf.goods.service.stock;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.goods.model.dto.RecycleStockDTO;
 import com.lanf.goods.model.entity.UserStockPreorderPublishLogDO;
 
 /**
@@ -13,4 +14,11 @@ import com.lanf.goods.model.entity.UserStockPreorderPublishLogDO;
  */
 public interface IUserStockPreorderPublishLogService extends IService<UserStockPreorderPublishLogDO> {
 
+
+    /**
+     * 回收库存
+     *
+     *
+     */
+    void recycleStock(RecycleStockDTO recycleStockDTO);
 }

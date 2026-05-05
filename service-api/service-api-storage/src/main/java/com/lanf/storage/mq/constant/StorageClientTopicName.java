@@ -7,4 +7,8 @@ public class StorageClientTopicName {
      */
     public static final String PUBLISH_STOCK_TOPIC = "PUBLISH_STOCK_TOPIC";
 
+    /**
+     * 回收预售库存
+     */
+    public static final String RECYCLE_STOCK_TOPIC = "RECYCLE_STOCK_TOPIC";
 }
