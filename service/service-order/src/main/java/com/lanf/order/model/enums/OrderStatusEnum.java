@@ -19,7 +19,7 @@ public enum OrderStatusEnum {
      * 商家审核通过后 已 1-->2 生成销售出库单
      */
     WAIT_OUTBOUND(2, "待出库"),
-    OUTBOUNDED(3, "已出库"),
+    //OUTBOUNDED(3, "已出库"),
     SHIPPED(4, "已发货"),
     WAIT_COMMENT(5, "待评价"),
     /**

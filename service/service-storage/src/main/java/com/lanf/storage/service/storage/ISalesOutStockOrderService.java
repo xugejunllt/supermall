@@ -18,12 +18,7 @@ import com.lanf.storage.model.vo.SalesOutStockOrderPageVO;
  * @since 2024-06-09
  */
 public interface ISalesOutStockOrderService extends IService<SalesOutStockOrderDO> {
-    /**
-     *
-     *
-     *添加销售出库单
-     */
-    void salesOutStockOrderAdd(Long orderId);
+
 
     /**
      * 售后时 创建退货 商品入库单

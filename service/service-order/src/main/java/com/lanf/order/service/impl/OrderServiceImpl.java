@@ -23,10 +23,7 @@ import com.lanf.mybatis.base.PageResult;
 import com.lanf.order.mapper.OrderMapper;
 import com.lanf.order.model.bo.CancelOrderBO;
 import com.lanf.order.model.bo.CancelOrderOrderStatusBO;
-import com.lanf.order.model.dto.CreateOrderDTO;
-import com.lanf.order.model.dto.DeliveryDTO;
-import com.lanf.order.model.dto.OrderItemDTO;
-import com.lanf.order.model.dto.SignForDTO;
+import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.enums.OrderStatusEnum;
@@ -263,6 +260,33 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         orderDOUpdate.setStatus(OrderStatusEnum.PAID);
 
         this.updateById(orderDOUpdate);
+    }
+    @Transactional
+    @Override
+    public void allowOutbound(AllowOutboundDTO dto) {
+        Long orderId = dto.getOrderId();
+        OrderDO orderDO = this.getById(orderId);
+
+        if (orderDO == null) {
+            log.error("订单不存在");
+            throw new BizException("订单不存在");
+        }
+        if ( !OrderStatusEnum.PAID.equals(orderDO.getStatus())) {
+            log.warn("订单状态异常");
+            throw new BizException("订单状态异常");
+        }
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, orderId)
+                .eq(OrderDO::getVersion, orderDO.getVersion())
+                .set(OrderDO::getStatus, OrderStatusEnum.WAIT_OUTBOUND)
+                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.warn("订单状态更新异常");
+            throw new BizException("订单状态更新异常");
+        }
+        z
+
     }
 
     @Override

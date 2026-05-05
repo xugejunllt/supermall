@@ -3,25 +3,22 @@ package com.lanf.storage.service.storage.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
+import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.IdUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.constant.enums.LogisticsTrackStatusEnum;
 import com.lanf.constant.exception.BizException;
-import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
-import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.order.api.OrderApiService;
-import com.lanf.order.model.vo.OrderItemVO;
-import com.lanf.order.model.vo.OrderVO;
 import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.model.message.OutStockFinishEventMessage;
 import com.lanf.rocketmq.util.MessageBuildAdapter;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.mapper.SalesOutStockOrderMapper;
 import com.lanf.storage.model.bo.StockUpdateBO;
 import com.lanf.storage.model.dto.OutStockDTO;
@@ -44,7 +41,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -82,66 +82,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     @Autowired
     private ISendMqMessageService sendMqMessageService;
 
-
-    @Transactional
-    @Override
-    public void salesOutStockOrderAdd(Long orderId) {
-
-        /**
-         * 远程调用订单服务 查询订单信息
-         */
-        List<OrderVO> data = orderApiService.queryByOrderId(Arrays.asList(orderId)).getData();
-        if (data == null || data.isEmpty()) {
-            throw new BizException("订单信息查询异常");
-        }
-        OrderVO orderVO = data.get(0);
-        SalesOutStockOrderDO one = this.lambdaQuery().ge(SalesOutStockOrderDO::getOrderId, orderVO.getOrderId()).one();
-        if (one != null) {
-            throw new BizException("订单出库单已存在");
-        }
-
-        List<InOutStockOrderItemDO> inOutStockOrderItemDOList = new ArrayList<>();
-
-        Long id = IdUtils.generateId();
-        SalesOutStockOrderDO salesOutStockOrderDO = new SalesOutStockOrderDO();
-        salesOutStockOrderDO.setId(id);
-        salesOutStockOrderDO.setCode(CodeGenerateUtils.generaCode());
-        salesOutStockOrderDO.setOrderId(orderVO.getOrderId());
-        salesOutStockOrderDO.setExpectQuantity(orderVO.getTotalQuantity());
-        salesOutStockOrderDO.setActualQuantity(0);
-        salesOutStockOrderDO.setStorageStatus(0);
-        salesOutStockOrderDO.setExpressCompany(orderVO.getExpressCompany());
-        salesOutStockOrderDO.setShopId(orderVO.getShopId());
-        salesOutStockOrderDO.setWarehouseId(getWarehouseId(orderVO.getShopId()));
-        //
-        List<OrderItemVO> inOutStockOrderItemDTOList = orderVO.getInOutStockOrderItemDTOList();
-        inOutStockOrderItemDTOList.forEach(b -> {
-            //
-            InOutStockOrderItemDO inOutStockOrderItemDO = new InOutStockOrderItemDO();
-            inOutStockOrderItemDO.setGoodsName(b.getGoodsName());
-            inOutStockOrderItemDO.setSkuCode(b.getSkuCode());
-            inOutStockOrderItemDO.setTotalQuantity(b.getQuantity());
-            inOutStockOrderItemDO.setSurplusQuantity(b.getQuantity());
-            inOutStockOrderItemDO.setUnit(b.getUnit());
-            inOutStockOrderItemDO.setInOutStockOrderId(id);
-            inOutStockOrderItemDOList.add(inOutStockOrderItemDO);
-        });
-
-        //进行保存
-        this.save(salesOutStockOrderDO);
-        iInOutStockOrderItemService.saveBatch(inOutStockOrderItemDOList);
-//        /**
-//         * 发送mq给物流服务
-//         */
-//        Integer code = LogisticsTrackStatusEnum.PLACE_AN_ORDER_PLATFORM_INCOME.getCode();
-//        String finishContent = "待拣货";
-//        String key = orderVO.getOrderId() + ":" + finishContent + ":" + code;
-//        LogisticsTrackBathAddDTO logisticsTrackBathAddDTO = MessageBuildAdapter.buildLogisticsTrackAddDTO(orderVO.getOrderId(), finishContent, code);
-//        logisticsTrackBathAddDTO.setBizKeyValue(key);
-//        sendMqMessageService.sendMessage(TopicName.BATH_ADD_LOGISTICS_TRACK_TOPIC, logisticsTrackBathAddDTO);
-    }
-
-
     @Transactional
     @Override
     public void salesStockOrderAdd(SalesInStockOrderAddMessage message) {
@@ -163,7 +103,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         salesOutStockOrderDO.setCode(CodeGenerateUtils.generaCode());
         salesOutStockOrderDO.setOrderId(message.getAfterSalesOrderId());
         // salesOutStockOrderDO.setExpectQuantity(message.getTotalQuantity());
-        salesOutStockOrderDO.setActualQuantity(0);
         salesOutStockOrderDO.setStorageStatus(0);
         // salesOutStockOrderDO.setShopId(message.getShopId());
         //  salesOutStockOrderDO.setWarehouseId(shopVO.getBusinessId());
@@ -252,7 +191,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         }
         boolean update1 = this.lambdaUpdate().eq(BaseEntity::getId, salesOutStockOrderId)
                 .eq(SalesOutStockOrderDO::getVersion, one.getVersion())
-                .set(SalesOutStockOrderDO::getActualQuantity, totalQuantity)
                 .set(SalesOutStockOrderDO::getVersion, one.getVersion() + 1)
                 .update();
         if (!update1) {
@@ -273,7 +211,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         });
         //保存库存流水
         stockFlowService.saveBatch(stockFlowList);
-        Integer inStorageStatus = getInStorageStatus(salesOutStockOrderDO, totalQuantity);
+        Integer inStorageStatus = null;
         if (inStorageStatus == 2) {
             //销售单出库完成
             log.info("出库完成");
@@ -364,10 +302,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
 
 
 
-    private Integer getOrderType(Integer inOutStatus) {
 
-        return inOutStatus;
-    }
 
     private List<StockFlowDO> buildStockFlowDO(List<OutStockItemDTO> inStorageItemList, Map<Long,
             InOutStockOrderItemDO> purchaseOrderItemDOMap, SalesOutStockOrderDO salesOutStockOrderDO, WarehouseDO warehouseDO) {
@@ -384,38 +319,10 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         return stockFlowList;
     }
 
-    private SalesOutStockOrderDO buildPurchaseStorageOrderDO(SalesOutStockOrderDO storageOrderDO, Integer enterQuantity) {
 
-        Integer actualStorageQuantity = getActualStorageQuantity(storageOrderDO, enterQuantity);
-        Integer status = getInStorageStatus(storageOrderDO, enterQuantity);
-        SalesOutStockOrderDO purchaseStorageOrderDOUpdate = new SalesOutStockOrderDO();
-        purchaseStorageOrderDOUpdate.setId(storageOrderDO.getId());
-        purchaseStorageOrderDOUpdate.setStorageStatus(status);
-        purchaseStorageOrderDOUpdate.setActualQuantity(actualStorageQuantity);
-        return purchaseStorageOrderDOUpdate;
-    }
 
-    private Integer getActualStorageQuantity(SalesOutStockOrderDO storageOrderDO, Integer outQuantity) {
 
-        return storageOrderDO.getActualQuantity() + outQuantity;
-    }
 
-    /**
-     * 获取入库状态
-     * 1:部分出库
-     * 2:全部出库
-     */
-    private Integer getInStorageStatus(SalesOutStockOrderDO storageOrderDO, Integer enterQuantity) {
-
-        Integer actualStorageQuantity = getActualStorageQuantity(storageOrderDO, enterQuantity);
-        Integer status = null;
-        if (actualStorageQuantity.equals(storageOrderDO.getExpectQuantity())) {
-            status = 2;
-        } else {
-            status = 1;
-        }
-        return status;
-    }
 
     private List<StockUpdateBO> buildStockUpdate(List<OutStockItemDTO> inStorageItemList) {
 
@@ -445,7 +352,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
 
         IPage<SalesOutStockOrderDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<SalesOutStockOrderDO> purchaseStorageOrderPage = this.lambdaQuery().
-                eq(SalesOutStockOrderDO::getShopId, UserUtils.getShopId()).
                 eq(query.getInStockStatus() != null, SalesOutStockOrderDO::getStorageStatus, query.getInStockStatus()).
                 eq(!ObjectUtils.isEmpty(query.getOrderId()), SalesOutStockOrderDO::getOrderId, query.getOrderId()).
                 orderByDesc(BaseEntity::getUpdateTime)
@@ -462,20 +368,20 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         /**
          * 填充关联属性
          */
-        //用set接收 去重
-        Set<Long> warehouseIdList = records.stream().map(SalesOutStockOrderDO::getWarehouseId).collect(Collectors.toSet());
-        ThreadLocalUtils.addIgnoreTableName(true);
-
-        Map<Long, WarehouseDO> warehouseMap = warehouseService.lambdaQuery().in(WarehouseDO::getId, warehouseIdList).list().stream().
-                collect(Collectors.toMap(WarehouseDO::getId, Function.identity()));
-
-        pageResult.getRecords().forEach(vo -> {
-            WarehouseDO warehouseDO = warehouseMap.get(vo.getWarehouseId());
-            if (warehouseDO != null) {
-                vo.setWarehouseName(warehouseDO.getName());
-            }
-
-        });
+//        //用set接收 去重
+//        Set<Long> warehouseIdList = records.stream().map(SalesOutStockOrderDO::getWarehouseId).collect(Collectors.toSet());
+//        ThreadLocalUtils.addIgnoreTableName(true);
+//
+//        Map<Long, WarehouseDO> warehouseMap = warehouseService.lambdaQuery().in(WarehouseDO::getId, warehouseIdList).list().stream().
+//                collect(Collectors.toMap(WarehouseDO::getId, Function.identity()));
+//
+//        pageResult.getRecords().forEach(vo -> {
+//            WarehouseDO warehouseDO = warehouseMap.get(vo.getWarehouseId());
+//            if (warehouseDO != null) {
+//                vo.setWarehouseName(warehouseDO.getName());
+//            }
+//
+//        });
 
         return pageResult;
     }
@@ -492,13 +398,8 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         if (storageOrderItemDetailsList.isEmpty()) {
             throw new BizException("销售出库单商品不存在");
         }
-        Long warehouseId = storageOrderDO.getWarehouseId();
-        ThreadLocalUtils.addIgnoreTableName(true);
-        String warehouseName = warehouseService.getById(warehouseId).getName();
+        String warehouseName =null;
 
-        Integer totalExpectStorageQuantity = storageOrderDO.getExpectQuantity();
-        Integer totalActualStorageQuantity = storageOrderDO.getActualQuantity();
-        Integer totalActualSurplusQuantity = totalExpectStorageQuantity - totalActualStorageQuantity;
         List<PurchaseInStockOrderItemDetailVO> purchaseStorageOrderItemDetailVOList =
                 BeanCopyUtils.copyBeanList(storageOrderItemDetailsList, PurchaseInStockOrderItemDetailVO.class);
         purchaseStorageOrderItemDetailVOList.forEach(a -> {
@@ -507,9 +408,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         });
         SalesOutStockOrderDetailVO purchaseStorageOrderDetailVO = new SalesOutStockOrderDetailVO();
         BeanCopyUtils.copy(storageOrderDO, purchaseStorageOrderDetailVO);
-        purchaseStorageOrderDetailVO.setTotalExpectStorageQuantity(totalExpectStorageQuantity);
-        purchaseStorageOrderDetailVO.setTotalActualStorageQuantity(totalActualStorageQuantity);
-        purchaseStorageOrderDetailVO.setTotalActualSurplusQuantity(totalActualSurplusQuantity);
         purchaseStorageOrderDetailVO.setCode(storageOrderDO.getCode());
         purchaseStorageOrderDetailVO.setPurchaseStorageOrderItemDetailVOList(purchaseStorageOrderItemDetailVOList);
         purchaseStorageOrderDetailVO.setWarehouseName(warehouseName);

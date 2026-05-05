@@ -1,9 +1,9 @@
-package com.lanf.storage.model.entity;
+package com.lanf.order.mq.message;
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * <p>
@@ -14,13 +14,10 @@ import lombok.Data;
  * @since 2024-06-07
  */
 @Data
-@TableName("in_out_stock_order_item")
-public class InOutStockOrderItemDO extends BaseEntity {
+public class InOutStockOrderItem implements Serializable {
 
 private static final long serialVersionUID=1L;
 
-
-    private Long inOutStockOrderId;
 
     @ApiModelProperty(value = "商品名称")
     private String goodsName;
@@ -30,9 +27,6 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "总数量")
     private Integer totalQuantity;
-
-    @ApiModelProperty(value = "剩余数量")
-    private Integer surplusQuantity;
 
     @ApiModelProperty(value = "单位")
     private String unit;

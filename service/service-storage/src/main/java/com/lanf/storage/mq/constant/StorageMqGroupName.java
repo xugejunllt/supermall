@@ -6,5 +6,8 @@ public class StorageMqGroupName {
      */
     public static final String RECYCLE_STOCK_GROUP = "RECYCLE_STOCK_GROUP";
 
-
+    /**
+     * 添加销售出库单
+     */
+    public static final String ADD_SALES_OUT_STOCK_ORDER_GROUP = "ADD_SALES_OUT_STOCK_ORDER_GROUP";
 }

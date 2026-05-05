@@ -44,7 +44,12 @@ public enum FlowNoPrefixEnum {
     /**
      * 发布预售库存流水号
      */
-    PUBLISH_PREORDER_STOCK_FLOW("PSF", "发布预售库存流水号");
+    PUBLISH_PREORDER_STOCK_FLOW("PSF", "发布预售库存流水号"),
+    /**
+     * 销售出库单流水号
+     */
+    SALES_OUTBOUND_ORDER("SOO", "销售出库单流水号");
+    ;
     /**
      * 前缀字符串
      */

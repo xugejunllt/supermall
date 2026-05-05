@@ -2,6 +2,7 @@ package com.lanf.storage.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.storage.model.enums.StorageStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -26,26 +27,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "订单id")
     private Long orderId;
 
-    @ApiModelProperty(value = "预计出库数量")
-    private Integer expectQuantity;
-
-    @ApiModelProperty(value = "实际出库数量")
-    private Integer actualQuantity;
-
-    @ApiModelProperty(value = "出库状态0:待出库, 1:已出库 ")
-    private Integer storageStatus;
-
-    @ApiModelProperty(value = "物流公司")
-    private String expressCompany;
-
-    @ApiModelProperty(value = "店铺id")
-    private Long shopId;
-
-    @ApiModelProperty(value = "仓库id")
-    private Long warehouseId;
-
-    @ApiModelProperty(value = "备注")
-    private String remarks;
+    private StorageStatusEnum storageStatus;
 
     private Long version;
 

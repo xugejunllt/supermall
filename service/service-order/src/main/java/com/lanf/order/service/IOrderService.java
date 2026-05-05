@@ -48,6 +48,12 @@ public interface IOrderService extends IService<OrderDO> {
      */
 
     void orderPaySuccess(Long orderId);
+
+    /**
+     * 允许出库
+     *
+     */
+    void allowOutbound(AllowOutboundDTO dto);
     /**
      * 发货
      */
