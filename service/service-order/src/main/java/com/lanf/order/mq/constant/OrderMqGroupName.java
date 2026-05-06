@@ -1,10 +1,8 @@
 package com.lanf.order.mq.constant;
 
 public class OrderMqGroupName {
-    /**
-     * 查询订单详情
-     */
-    public static final String QUERY_ORDER_ITEM_GROUP = "QUERY_ORDER_ITEM_GROUP";
+
+    public static final String SALES_OUT_STOCK_ORDER_FINISH_GROUP = "SALES_OUT_STOCK_ORDER_FINISH_GROUP";
 
 
 }

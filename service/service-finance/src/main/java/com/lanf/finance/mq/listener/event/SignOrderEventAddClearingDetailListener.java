@@ -7,7 +7,6 @@ import com.lanf.finance.model.enums.ClearingStatusEnum;
 import com.lanf.finance.model.enums.RecipientTypeEnum;
 import com.lanf.finance.mq.constant.FinanceMqGroupName;
 import com.lanf.finance.service.ClearingDetailService;
-import com.lanf.order.mq.OrderClientTopicName;
 import com.lanf.order.mq.message.SignOrderMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;

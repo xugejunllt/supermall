@@ -16,7 +16,10 @@ public class StorageClientTopicName {
      */
     public static final String ADD_RECONCILIATION_ORDER_TOPIC = "ADD_RECONCILIATION_ORDER_TOPIC";
 
-
+    /**
+     * 销售出库单 出库完成
+     */
+    public static final String SALES_OUT_STOCK_ORDER_FINISH_TOPIC = "SALES_OUT_STOCK_ORDER_FINISH_TOPIC";
 
 
 

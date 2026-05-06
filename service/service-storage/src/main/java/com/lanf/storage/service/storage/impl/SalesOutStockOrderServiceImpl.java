@@ -5,10 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
-import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.common.utils.IdUtils;
-import com.lanf.common.utils.ThreadLocalUtils;
+import com.lanf.common.utils.*;
 import com.lanf.constant.enums.LogisticsTrackStatusEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
@@ -28,6 +25,8 @@ import com.lanf.storage.model.query.SalesOutStockOrderPageQuery;
 import com.lanf.storage.model.vo.PurchaseInStockOrderItemDetailVO;
 import com.lanf.storage.model.vo.SalesOutStockOrderDetailVO;
 import com.lanf.storage.model.vo.SalesOutStockOrderPageVO;
+import com.lanf.storage.mq.constant.StorageClientTopicName;
+import com.lanf.storage.mq.message.SalesOutStockOrderFinishMessage;
 import com.lanf.storage.service.stock.IStockFlowService;
 import com.lanf.storage.service.stock.IStockService;
 import com.lanf.storage.service.storage.IInOutStockOrderItemService;
@@ -210,7 +209,12 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             message.setLogisticsTrackBathAddDTO(logisticsTrackBathAddDTO);
             //sendMqMessageService.sendMessage(TopicName.OUT_STOCK_FINISH_EVENT_TOPIC, message);
         }
-
+        /**
+         * 出库完成 发送给订单消息 --更新为已出库状态
+         */
+        SalesOutStockOrderFinishMessage message = new SalesOutStockOrderFinishMessage();
+        message.setOrderId(salesOutStockOrderDO.getOrderId());
+        rocketMqClient.sendMessage(StorageClientTopicName.SALES_OUT_STOCK_ORDER_FINISH_TOPIC, JsonUtils.toJsonString(message));
 
     }
 

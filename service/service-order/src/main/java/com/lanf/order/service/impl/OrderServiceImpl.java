@@ -31,9 +31,10 @@ import com.lanf.order.model.query.ContrastBillOrderQuery;
 import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.query.OrderPageQuery2;
 import com.lanf.order.model.vo.*;
-import com.lanf.order.mq.OrderClientTopicName;
+import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.message.AddSalesOutStockOrderMessage;
 import com.lanf.order.mq.message.InOutStockOrderItem;
+import com.lanf.order.mq.message.OrderOutBoundedMessage;
 import com.lanf.order.mq.message.SignOrderMessage;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
@@ -418,14 +419,35 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     public void outStockFinish(Long orderId) {
 
         OrderDO orderDO = this.getById(orderId);
-        Integer status = orderDO.getStatus();
-        if (status != 1) {
-            throw new BizException("订单状态异常");
+        OrderStatusEnum status = orderDO.getStatus();
+        if (OrderStatusEnum.OUTBOUNDED.equals( status)){
+            log.warn("订单已出库");
+            return;
         }
-        OrderDO orderDOUpdate = new OrderDO();
-        orderDOUpdate.setId(orderId);
-        orderDOUpdate.setStatus(2);
-        this.updateById(orderDOUpdate);
+        if ( !OrderStatusEnum.WAIT_OUTBOUND.equals( status)){
+            log.error("订单状态异常");
+            return;
+        }
+        boolean update = this.lambdaUpdate()
+                .eq(OrderDO::getId, orderId)
+                .eq(OrderDO::getVersion, orderDO.getVersion())
+                .set(OrderDO::getStatus, OrderStatusEnum.OUTBOUNDED.getCode())
+                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
+                .update();
+        if (!update){
+            log.warn("订单状态更新失败");
+           throw new MessageRetryConsumeException("订单状态更新失败");
+        }
+        orderStatusTraceService.addOrderStatusTrace(orderId,
+                OrderStatusEnum.WAIT_OUTBOUND, OrderStatusEnum.OUTBOUNDED);
+        /**
+         * 发布订单出库成功事件
+         */
+        OrderOutBoundedMessage message = new OrderOutBoundedMessage();
+        message.setOrderId(orderId);
+        rocketMqClient.sendMessage( OrderClientTopicName.ORDER_OUT_BOUNDED_EVENT_TOPIC,
+                JsonUtils.toJsonString(message));
+
 
     }
 
