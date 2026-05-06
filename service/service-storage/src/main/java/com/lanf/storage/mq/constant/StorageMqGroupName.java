@@ -16,4 +16,7 @@ public class StorageMqGroupName {
      */
     public static final String BUILD_RECONCILIATION_ORDER_DETAIL_GROUP = "BUILD_RECONCILIATION_ORDER_DETAIL_GROUP";
 
+    public static final String UPDATE_RECONCILIATION_ORDER_ITEM_GROUP = "UPDATE_RECONCILIATION_ORDER_ITEM_GROUP";
+
+
 }
