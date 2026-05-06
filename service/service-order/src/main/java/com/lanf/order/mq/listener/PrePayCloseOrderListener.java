@@ -1,4 +1,4 @@
-package com.lanf.order.mq;
+package com.lanf.order.mq.listener;
 
 import com.lanf.messagemanager.client.annotation.ConsumeMessage;
 import com.lanf.order.service.IOrderService;

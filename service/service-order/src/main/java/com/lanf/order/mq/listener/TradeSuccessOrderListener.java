@@ -1,4 +1,4 @@
-package com.lanf.order.mq;
+package com.lanf.order.mq.listener;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;

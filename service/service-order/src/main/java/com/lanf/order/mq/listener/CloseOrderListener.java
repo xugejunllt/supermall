@@ -1,4 +1,4 @@
-package com.lanf.order.mq;
+package com.lanf.order.mq.listener;
 
 import com.lanf.aftersales.mq.AftersalesClientTopicName;
 import com.lanf.aftersales.mq.message.CloseOrderMessage;
