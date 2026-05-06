@@ -9,6 +9,7 @@ import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.enums.StockFlowEventTypeEnum;
+import com.lanf.goods.model.enums.UserStockFlowEventTypeEnum;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.service.goods.*;
@@ -216,11 +217,10 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         //总库存 = 可使用+已冻结
         Integer totalStock = stockDO.getUsableStock()+ deductStockDTO.getQuantity();
-        Integer eventType = StockFlowEventTypeEnum.ORDER_OUTBOUND.getCode();
         UserStockFlowDO userStockFlowDO = new UserStockFlowDO();
         userStockFlowDO.setUserStockId(stockDO.getId());
         userStockFlowDO.setOrderId(deductStockDTO.getOrderId());
-        userStockFlowDO.setEventType(eventType);
+        userStockFlowDO.setEventType(UserStockFlowEventTypeEnum.ORDER_OUTBOUND);
         // 总库存 = 可使用+已冻结
         userStockFlowDO.setBeforeQuantity(totalStock);
         userStockFlowDO.setAfterQuantity(totalStock - deductStockDTO.getQuantity());
