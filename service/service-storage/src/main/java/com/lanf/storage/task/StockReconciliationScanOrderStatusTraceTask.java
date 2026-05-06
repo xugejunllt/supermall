@@ -8,10 +8,15 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.model.bo.ReconciliationOrderDetailBO;
 import com.lanf.storage.model.entity.ReconciliationOrderDetailDO;
+import com.lanf.storage.model.entity.StockFlowDO;
+import com.lanf.storage.model.enums.StockFlowTypeEnum;
 import com.lanf.storage.mq.constant.StorageMqTopicName;
+import com.lanf.storage.mq.message.LongStockReconciliation;
+import com.lanf.storage.mq.message.LongStockReconciliationMessage;
 import com.lanf.storage.mq.message.ShortStockReconciliation;
 import com.lanf.storage.mq.message.ShortStockReconciliationMessage;
 import com.lanf.storage.service.reconciliation.IReconciliationOrderDetailService;
+import com.lanf.storage.service.stock.IStockFlowService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,7 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- *
+ *库存对账
  */
 @Slf4j
 @Component
@@ -32,12 +37,15 @@ public class StockReconciliationScanOrderStatusTraceTask {
     private RocketMqClient rocketMqClient;
     @Autowired
     private IReconciliationOrderDetailService reconciliationOrderDetailService;
+    @Autowired
+    private IStockFlowService stockFlowService;
+
 
     /**
-     * 每日 9 点 扫描订单轨迹
+     * 每日 9 点 扫描
      */
     @Scheduled(cron = "0 0 9 * * ?")
-    public void scanOrderStatusTraceTask() {
+    public void shortStockReconciliationScanTask() {
         String bathId = getBathId();
 
         long pageNum = 1;
@@ -85,5 +93,47 @@ public class StockReconciliationScanOrderStatusTraceTask {
         return DateUtils.getRelativeDateString(new Date(), -1, DateUtils.DATE);
     }
 
+    /**
+     * 每日 9 点 扫描
+     */
+    @Scheduled(cron = "0 0 9 * * ?")
+    public void longStockReconciliationScanTask() {
+
+            String createDate = getBathId();
+
+            long pageNum = 1;
+            long pageSize = 100;
+            Page<StockFlowDO> page;
+
+            do {
+                LambdaQueryWrapper<StockFlowDO> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(StockFlowDO::getCreateDate, createDate)
+                        .eq(StockFlowDO::getFlowType, StockFlowTypeEnum.SALES_OUTBOUND)
+                        .orderByAsc(StockFlowDO::getId);
+
+                page = stockFlowService.page(new Page<>(pageNum, pageSize), queryWrapper);
+
+                List<StockFlowDO> stockFlowList = page.getRecords();
+                if (!IStringUtils.isEmpty(stockFlowList)) {
+
+                    List<LongStockReconciliation> reconciliationList = stockFlowList.stream().map(a -> {
+                        LongStockReconciliation reconciliation = new LongStockReconciliation();
+                        reconciliation.setOrderId(a.getOrderId());
+                        reconciliation.setSkuCode(a.getSkuCode());
+                        reconciliation.setQuantity(a.getChangeQuantity());
+                        reconciliation.setWarehouseId(a.getWarehouseId());
+                        reconciliation.setStockFlowId(a.getId());
+                        return reconciliation;
+                    }).collect(Collectors.toList());
+                    LongStockReconciliationMessage message = new LongStockReconciliationMessage();
+                    message.setBathId(createDate);
+                    message.setReconciliationList(reconciliationList);
+                    rocketMqClient.sendMessage(StorageMqTopicName.LONG_STOCK_RECONCILIATION_TOPIC,
+                            JsonUtils.toJsonString(message));
+                }
+
+                pageNum++;
+            } while (page.getCurrent() < page.getPages());
+        }
 
 }

@@ -20,5 +20,10 @@ public class StorageMqGroupName {
 
     public static final String SHORT_STOCK_RECONCILIATION_GROUP = "SHORT_STOCK_RECONCILIATION_GROUP";
 
+    /**
+     * 长库存对账
+     */
+    public static final String LONG_STOCK_RECONCILIATION_GROUP = "LONG_STOCK_RECONCILIATION_GROUP";
+
 
 }
