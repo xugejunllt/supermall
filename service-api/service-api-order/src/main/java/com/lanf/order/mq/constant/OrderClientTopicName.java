@@ -13,5 +13,8 @@ public class OrderClientTopicName {
      * 订单出库成功事件
      */
     public static final String ORDER_OUT_BOUNDED_EVENT_TOPIC = "ORDER_OUT_BOUNDED_EVENT_TOPIC";
-
+    /**
+     * 取消订单事件
+     */
+    public static final String ORDER_CANCEL_EVENT_TOPIC = "ORDER_CANCEL_EVENT_TOPIC";
 }

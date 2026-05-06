@@ -33,6 +33,7 @@ import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;
+import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.OrderManagerService;
@@ -589,7 +590,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         CancelOrderEventMessage cancelOrderEventMessage = new CancelOrderEventMessage();
         cancelOrderEventMessage.setOrderId(dto.getOrderId());
         cancelOrderEventMessage.setSkuIdList(skuIdList);
-        rocketMqClient.sendMessage(TopicName.CANCEL_ORDER_EVENT_TOPIC, JsonUtils.toJsonString(cancelOrderEventMessage));
+        rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CANCEL_EVENT_TOPIC, JsonUtils.toJsonString(cancelOrderEventMessage));
     }
 
     private CancelTradeOrderVO  cancelTradeOrder(CancelOrderBO dto, String  bizKeySuffix){

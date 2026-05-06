@@ -105,10 +105,7 @@ public class TopicName {
      * 交易成功事件
      */
     public static final String TRADE_SUCCESS_EVENT_TOPIC = "TRADE_SUCCESS_EVENT_TOPIC";
-    /**
-     * 取消订单事件
-     */
-    public static final String CANCEL_ORDER_EVENT_TOPIC = "CANCEL_ORDER_EVENT_TOPIC";
+
     /**
      * 取消三方支付的订单
      */
