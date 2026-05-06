@@ -16,7 +16,7 @@ public class StorageClientTopicName {
      * 构建ReconciliationOrderDetail 事件
      */
 
-    public static final String BUILD_RECONCILIATION_ORDER_DETAIL_EVENT_TOPIC = "BUILD_RECONCILIATION_ORDER_DETAIL_EVENT_TOPIC";
+    public static final String BUILD_RECONCILIATION_ORDER_DETAIL_TOPIC = "BUILD_RECONCILIATION_ORDER_DETAIL_TOPIC";
 
 
 }

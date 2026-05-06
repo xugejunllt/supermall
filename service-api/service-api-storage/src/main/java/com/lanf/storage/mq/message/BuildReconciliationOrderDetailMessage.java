@@ -1,15 +1,16 @@
 package com.lanf.storage.mq.message;
 
-import com.lanf.storage.model.enums.ReconciliationOrderStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 public class BuildReconciliationOrderDetailMessage implements Serializable {
 
+    private String bathId;
 
-    private Long orderId;
+    private Long maxOrderId;
+    private List<ReconciliationOrderDetail> orderDetails;
 
-    private ReconciliationOrderStatusEnum orderStatus;
 }

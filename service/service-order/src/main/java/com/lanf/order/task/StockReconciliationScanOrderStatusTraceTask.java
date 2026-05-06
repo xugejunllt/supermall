@@ -12,6 +12,7 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.model.enums.ReconciliationOrderStatusEnum;
 import com.lanf.storage.mq.constant.StorageClientTopicName;
 import com.lanf.storage.mq.message.BuildReconciliationOrderDetailMessage;
+import com.lanf.storage.mq.message.ReconciliationOrderDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -67,9 +68,19 @@ public class StockReconciliationScanOrderStatusTraceTask {
 
                 List<OrderStatusTraceDO> traceList = page.getRecords();
                 if ( !IStringUtils.isEmpty(traceList)) {
-                    List<BuildReconciliationOrderDetailMessage> messageList = convertToReconciliationMessage(traceList);
-                    rocketMqClient.sendMessage(StorageClientTopicName.BUILD_RECONCILIATION_ORDER_DETAIL_EVENT_TOPIC,
-                            JsonUtils.toJsonString(messageList));
+                    /**
+                     * 取该批次 订单id最大一个
+                     */
+                    OrderStatusTraceDO orderStatusTraceDO = traceList.get(traceList.size() - 1);
+
+                    List<ReconciliationOrderDetail> messageList = convertToReconciliationMessage(traceList);
+                    BuildReconciliationOrderDetailMessage buildReconciliationOrderDetailMessage
+                            = new BuildReconciliationOrderDetailMessage();
+                    buildReconciliationOrderDetailMessage.setBathId(createDate);
+                    buildReconciliationOrderDetailMessage.setMaxOrderId(orderStatusTraceDO.getOrderId());
+                    buildReconciliationOrderDetailMessage.setOrderDetails(messageList);
+                    rocketMqClient.sendMessage(StorageClientTopicName.BUILD_RECONCILIATION_ORDER_DETAIL_TOPIC,
+                            JsonUtils.toJsonString(buildReconciliationOrderDetailMessage));
 
 
                 }
@@ -85,9 +96,9 @@ public class StockReconciliationScanOrderStatusTraceTask {
     /**
      * 将订单轨迹列表转换为对账订单明细消息列表
      */
-    private List<BuildReconciliationOrderDetailMessage> convertToReconciliationMessage(List<OrderStatusTraceDO> traceList) {
+    private List<ReconciliationOrderDetail> convertToReconciliationMessage(List<OrderStatusTraceDO> traceList) {
         return traceList.stream().map(trace -> {
-            BuildReconciliationOrderDetailMessage message = new BuildReconciliationOrderDetailMessage();
+            ReconciliationOrderDetail message = new ReconciliationOrderDetail();
             message.setOrderId(trace.getOrderId());
             message.setOrderStatus(convertOrderStatus(trace.getToStatus()));
             return message;

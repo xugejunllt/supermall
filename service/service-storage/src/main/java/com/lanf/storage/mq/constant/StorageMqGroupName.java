@@ -10,4 +10,10 @@ public class StorageMqGroupName {
      * 添加销售出库单
      */
     public static final String ADD_SALES_OUT_STOCK_ORDER_GROUP = "ADD_SALES_OUT_STOCK_ORDER_GROUP";
+
+    /**
+     * 构建ReconciliationOrderDetail 事件 新增 ReconciliationOrderDetail
+     */
+    public static final String BUILD_RECONCILIATION_ORDER_DETAIL_GROUP = "BUILD_RECONCILIATION_ORDER_DETAIL_GROUP";
+
 }
