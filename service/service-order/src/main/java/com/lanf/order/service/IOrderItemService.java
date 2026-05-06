@@ -2,6 +2,8 @@ package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.order.model.entity.OrderItemDO;
+import com.lanf.order.model.query.ReconciliationOrderItemQuery;
+import com.lanf.order.model.vo.ReconciliationOrderItemVO;
 
 /**
  * <p>
@@ -14,5 +16,5 @@ import com.lanf.order.model.entity.OrderItemDO;
 public interface IOrderItemService extends IService<OrderItemDO> {
 
 
-
+    ReconciliationOrderItemVO reconciliationOrderItemQuery(ReconciliationOrderItemQuery  query);
 }

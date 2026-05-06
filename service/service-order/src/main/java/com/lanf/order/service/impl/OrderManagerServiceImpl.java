@@ -2,9 +2,12 @@ package com.lanf.order.service.impl;
 
 
 import com.lanf.cache.aop.DistributedLock;
-import com.lanf.order.model.dto.BathCreateOrderDTO;
-import com.lanf.order.model.dto.CreateOrderDTO;
-import com.lanf.order.model.dto.OrderItemDTO;
+import com.lanf.client.pay.api.PayApiService;
+import com.lanf.client.pay.model.dto.CancelTradeOrderDTO;
+import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
+import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
+import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
+import com.lanf.client.pay.model.vo.CancelTradeOrderVO;
 import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
@@ -30,18 +33,12 @@ import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;
+import com.lanf.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.utils.OrderServiceUtils;
-import com.lanf.client.pay.api.PayApiService;
-import com.lanf.client.pay.model.dto.CancelTradeOrderDTO;
-import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
-import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
-import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
-import com.lanf.client.pay.model.vo.CancelTradeOrderVO;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
-import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.api.WelfareApiService;
@@ -316,8 +313,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
     private void sendOrderCreateSuccessMessage(Long orderId) {
-        PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
-        rocketMqClient.sendMessage(TopicName.ORDER_CREATE_SUCCESS_TOPIC,  message);
+        OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
+        message.setOrderId(orderId);
+        rocketMqClient.sendMessage(TopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
     }
 
 
@@ -398,6 +396,17 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          */
         BathCreateOrderDTO bathCreateOrderDTO1 = buildBathCreateOrderDTO(submitCartOrderInitParamsBO, dto, clearCartVO);
         RpcResultParser.parseResult(orderApiService.bathCreateOrder(bathCreateOrderDTO1));
+
+        /**
+         * 发布订单创建成功事件
+         *
+         */
+        List<CreateOrderDTO> createOrderDTOList = bathCreateOrderDTO1.getCreateOrderDTOList();
+        for (CreateOrderDTO createOrderDTO : createOrderDTOList) {
+            OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
+            message.setOrderId(createOrderDTO.getOrderId());
+            rocketMqClient.sendMessage(TopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
+        }
 
         /**
          * 构建返回值

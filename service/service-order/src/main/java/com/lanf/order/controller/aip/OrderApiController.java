@@ -4,9 +4,12 @@ import com.lanf.constant.result.Result;
 import com.lanf.order.model.dto.BathCreateOrderDTO;
 import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
+import com.lanf.order.model.query.ReconciliationOrderItemQuery;
 import com.lanf.order.model.vo.OrderVO;
 import com.lanf.order.model.vo.OrderVO2;
+import com.lanf.order.model.vo.ReconciliationOrderItemVO;
 import com.lanf.order.service.IMainOrderService;
+import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,9 @@ public class OrderApiController {
     private IOrderService orderService;
     @Autowired
     private IMainOrderService mainOrderService;
+    @Autowired
+    private IOrderItemService orderItemService;
+
 
     @PostMapping("/createOrder")
     public Result<Void> createOrder(@Validated @RequestBody CreateOrderDTO dto) {
@@ -41,15 +47,13 @@ public class OrderApiController {
         mainOrderService.bathCreateOrder(dto);
         return Result.ok();
     }
-//    @PostMapping("/cancelOrder")
-//    public Result<Void> cancelOrder(@Validated @RequestBody CancelOrderApiDTO dto) {
-//
-//        log.info("取消订单:dto{}", dto);
-//        orderService.cancelOrder(dto);
-//        return Result.ok();
-//    }
+    @PostMapping("/reconciliationOrderItemQuery")
+    public Result<ReconciliationOrderItemVO> cancelOrder(@Validated @RequestBody ReconciliationOrderItemQuery query) {
 
+        log.info("查询订单轨迹信息{}", query);
 
+        return Result.ok( orderItemService.reconciliationOrderItemQuery(query));
+    }
 
     @Deprecated
     @PostMapping("/queryByOrderId")

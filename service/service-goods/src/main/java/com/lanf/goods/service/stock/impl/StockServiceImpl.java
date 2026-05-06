@@ -13,6 +13,7 @@ import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.service.goods.*;
 import com.lanf.goods.service.stock.IStockService;
+import com.lanf.goods.service.stock.IUserStockFlowService;
 import com.lanf.goods.utils.GoodsServiceUtils;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;

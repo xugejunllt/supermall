@@ -7,7 +7,7 @@ import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
 import com.lanf.goods.model.enums.StockFlowEventTypeEnum;
 import com.lanf.goods.service.stock.IStockService;
-import com.lanf.goods.service.goods.IUserStockFlowService;
+import com.lanf.goods.service.stock.IUserStockFlowService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import lombok.extern.slf4j.Slf4j;

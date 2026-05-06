@@ -11,12 +11,9 @@ public class StorageMqGroupName {
      */
     public static final String ADD_SALES_OUT_STOCK_ORDER_GROUP = "ADD_SALES_OUT_STOCK_ORDER_GROUP";
 
-    /**
-     * 构建ReconciliationOrderDetail 事件 新增 ReconciliationOrderDetail
-     */
-    public static final String BUILD_RECONCILIATION_ORDER_DETAIL_GROUP = "BUILD_RECONCILIATION_ORDER_DETAIL_GROUP";
+    public static final String ORDER_CREATE_SUCCESS_EVENT_ADD_RECONCILIATION_ORDER_GROUP = "ORDER_CREATE_SUCCESS_EVENT_ADD_RECONCILIATION_ORDER_GROUP";
 
-    public static final String UPDATE_RECONCILIATION_ORDER_ITEM_GROUP = "UPDATE_RECONCILIATION_ORDER_ITEM_GROUP";
+    public static final String ADD_RECONCILIATION_ORDER_GROUP = "ADD_RECONCILIATION_ORDER_GROUP";
 
 
 }

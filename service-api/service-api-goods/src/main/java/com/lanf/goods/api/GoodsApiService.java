@@ -2,6 +2,7 @@ package com.lanf.goods.api;
 
 import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.*;
+import com.lanf.goods.model.query.ReconciliationStockFlowQuery;
 import com.lanf.goods.model.vo.*;
 import org.dromara.hmily.annotation.Hmily;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -32,6 +33,11 @@ public interface GoodsApiService {
     @Hmily
     @PostMapping("/goods/api/clearCart")
     public Result<ClearCartVO>  clearCart(@RequestBody @Validated ClearCartDTO dto);
+
+    @PostMapping("/goods/api/reconciliationStockFlowQuery")
+    public Result<ReconciliationStockFlowVO> reconciliationStockFlowQuery(@RequestBody  ReconciliationStockFlowQuery query);
+
+
 
     @Deprecated
     @PostMapping("/goods/goodsApi/emptyCart")

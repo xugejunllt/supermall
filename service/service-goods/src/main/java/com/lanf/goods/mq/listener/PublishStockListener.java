@@ -5,7 +5,7 @@ import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockPreorderPublishLogDO;
 import com.lanf.goods.mq.constant.GoodsMqGroupName;
 import com.lanf.goods.service.stock.IStockService;
-import com.lanf.goods.service.goods.IUserStockFlowService;
+import com.lanf.goods.service.stock.IUserStockFlowService;
 import com.lanf.goods.service.stock.IUserStockPreorderPublishLogService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.storage.model.enums.PublishStatusEnum;

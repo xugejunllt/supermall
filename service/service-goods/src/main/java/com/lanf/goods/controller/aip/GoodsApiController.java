@@ -5,15 +5,14 @@ import com.lanf.goods.model.dto.CalculateOrderTotalAmountDTO;
 import com.lanf.goods.model.dto.ClearCartDTO;
 import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.dto.ValidateCartDTO;
-import com.lanf.goods.model.vo.CalculateOrderTotalAmountVO;
-import com.lanf.goods.model.vo.ClearCartVO;
-import com.lanf.goods.model.vo.DeductStockVO;
-import com.lanf.goods.model.vo.ValidateCartItemVO;
+import com.lanf.goods.model.query.ReconciliationStockFlowQuery;
+import com.lanf.goods.model.vo.*;
 import com.lanf.goods.service.base.IBaseGoodsService;
 import com.lanf.goods.service.goods.ICartService;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
 import com.lanf.goods.service.stock.IStockService;
+import com.lanf.goods.service.stock.IUserStockFlowService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -38,6 +37,9 @@ public class GoodsApiController {
 
     @Autowired
     private IGoodsSkuService goodsSkuService;
+
+    @Autowired
+    private IUserStockFlowService userStockFlowService;
 
     /**
      * 扣减库存
@@ -91,4 +93,21 @@ public class GoodsApiController {
         return Result.ok(cartService.clearCart(dto));
 
     }
+
+    /**
+     * 查询库存对账单 库存流水
+     *
+     *
+     */
+    @PostMapping("/reconciliationStockFlowQuery")
+    public Result<ReconciliationStockFlowVO> reconciliationStockFlowQuery(@RequestBody @Validated ReconciliationStockFlowQuery query){
+
+
+        log.info("查询库存对账单 库存流水[{}]", query);
+
+        return Result.ok(userStockFlowService.reconciliationStockFlowQuery( query));
+    }
+
+
+
 }

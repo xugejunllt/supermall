@@ -1,7 +1,9 @@
-package com.lanf.goods.service.goods;
+package com.lanf.goods.service.stock;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.goods.model.entity.UserStockFlowDO;
+import com.lanf.goods.model.query.ReconciliationStockFlowQuery;
+import com.lanf.goods.model.vo.ReconciliationStockFlowVO;
 
 /**
  * <p>
@@ -13,4 +15,5 @@ import com.lanf.goods.model.entity.UserStockFlowDO;
  */
 public interface IUserStockFlowService extends IService<UserStockFlowDO> {
 
+    ReconciliationStockFlowVO reconciliationStockFlowQuery(ReconciliationStockFlowQuery query);
 }

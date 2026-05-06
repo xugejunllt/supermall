@@ -1,6 +1,7 @@
 package com.lanf.goods.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.goods.model.enums.UserStockFlowEventTypeEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -30,8 +31,8 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "订单id")
     private Long orderId;
 
-    @ApiModelProperty(value = "0:下单出库，1：取消订单入库")
-    private Integer eventType;
+
+    private UserStockFlowEventTypeEnum eventType;
 
     @ApiModelProperty(value = "变更前的数量")
     private Integer beforeQuantity;
