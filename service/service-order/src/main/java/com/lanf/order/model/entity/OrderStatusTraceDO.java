@@ -25,11 +25,13 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "订单ID")
     private Long orderId;
 
-    @ApiModelProperty(value = "变更前状态：0-待付款 1-待出库 2-已出库 3-已发货 4-待评价 5-已完成 6-已取消 7-已关闭；NULL表示新建")
     private OrderStatusEnum fromStatus;
 
     @ApiModelProperty(value = "变更后状态（同状态枚举）")
     private OrderStatusEnum toStatus;
+
+    private String createDate;
+
     /**
      * 操作者 用户: user:123 管理员:admin:123 定时任务:system:123
      */

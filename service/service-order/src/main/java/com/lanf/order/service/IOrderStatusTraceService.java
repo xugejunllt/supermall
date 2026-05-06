@@ -1,8 +1,8 @@
 package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.order.model.bo.AddOrderStatusTrace;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
+import com.lanf.order.model.enums.OrderStatusEnum;
 
 /**
  * <p>
@@ -15,5 +15,5 @@ import com.lanf.order.model.entity.OrderStatusTraceDO;
 public interface IOrderStatusTraceService extends IService<OrderStatusTraceDO> {
 
 
-    void addOrderStatusTrace(AddOrderStatusTrace addOrderStatusTrace);
+    void addOrderStatusTrace(Long orderId, OrderStatusEnum fromStatus, OrderStatusEnum toStatus);
 }

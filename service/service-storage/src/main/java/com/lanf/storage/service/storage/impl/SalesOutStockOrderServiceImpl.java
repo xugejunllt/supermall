@@ -295,6 +295,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             InOutStockOrderItemDO storageOrderItemDetailsDO = purchaseOrderItemDOMap.get(is.getId());
             StockFlowDO stockFlowDO = new StockFlowDO();
             stockFlowDO.setBizOrderId(storageOrderItemDetailsDO.getInOutStockOrderId());
+            stockFlowDO.setOrderId(salesOutStockOrderDO.getOrderId());
 //            stockFlowDO.setStockId(storageOrderItemDetailsDO.getStockId());
 
             stockFlowList.add(stockFlowDO);

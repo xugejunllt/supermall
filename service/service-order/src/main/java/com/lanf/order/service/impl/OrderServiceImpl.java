@@ -37,7 +37,9 @@ import com.lanf.order.mq.message.InOutStockOrderItem;
 import com.lanf.order.mq.message.SignOrderMessage;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
+import com.lanf.order.service.IOrderStatusTraceService;
 import com.lanf.order.utils.OrderServiceUtils;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserUtils;
@@ -84,6 +86,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     private ISendMqMessageService sendMqMessageService;
     @Autowired
     private ITccOperationService tccOperationService;
+    @Autowired
+    private IOrderStatusTraceService orderStatusTraceService;
 
 
     @Override
@@ -110,7 +114,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             return;
         }
         orderItemService.save(orderItemDO);
-
+        orderStatusTraceService.addOrderStatusTrace(orderDO.getId(), null,
+                OrderStatusEnum.WAIT_PAY);
     }
 
     public void cancelCreateOrder(CreateOrderDTO dto) {
@@ -168,7 +173,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         }
 
         String bizKey = buildCancelOrderBizKey(dto.getBizKeySuffix());
-
+        String parameter = tccOperationService.getParameter(bizKey);
+        CancelOrderOrderStatusBO cancelOrderBO = JsonUtils.toObject(parameter, CancelOrderOrderStatusBO.class);
         boolean operation = tccOperationService.confirmOperation(bizKey);
         if (!operation) {
             log.info("confirm已执行");
@@ -189,6 +195,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             log.error("订单状态更新异常");
             throw new BizException("订单状态更新异常");
         }
+        orderStatusTraceService.addOrderStatusTrace(orderDO.getId(), cancelOrderBO.getCurrentOrderStatus(),
+                OrderStatusEnum.CANCELLED);
     }
 
     @Override
@@ -249,19 +257,32 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     public void orderPaySuccess(Long orderId) {
         OrderDO orderDO = this.lambdaQuery().eq(OrderDO::getId, orderId).one();
         if (orderDO == null) {
+            log.error("订单不存在");
             throw new BizException("订单不存在");
         }
 
         OrderStatusEnum status = orderDO.getStatus();
-        if (OrderStatusEnum.WAIT_PAY.equals( status)) {
-            log.info("订单状态更新异常");
+        if ( OrderStatusEnum.PAID.equals( status)) {
+            log.warn("订单已更新");
+           return;
+        }
+        if ( !OrderStatusEnum.WAIT_PAY.equals( status)) {
+            log.warn("订单状态更新异常");
             throw new BizException("订单状态更新异常");
         }
-        OrderDO orderDOUpdate = new OrderDO();
-        orderDOUpdate.setId(orderDO.getId());
-        orderDOUpdate.setStatus(OrderStatusEnum.PAID);
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, orderId)
+                .eq(OrderDO::getVersion, orderDO.getVersion())
+                .set(OrderDO::getStatus, OrderStatusEnum.PAID)
+                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.warn("订单状态更新异常");
+            throw new MessageRetryConsumeException("订单状态更新异常");
+        }
+        orderStatusTraceService.addOrderStatusTrace(orderDO.getId(), orderDO.getStatus(),
+                OrderStatusEnum.PAID);
 
-        this.updateById(orderDOUpdate);
     }
     @Transactional
     @Override
@@ -272,6 +293,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         if (orderDO == null) {
             log.error("订单不存在");
             throw new BizException("订单不存在");
+        }
+        if ( OrderStatusEnum.WAIT_OUTBOUND.equals(orderDO.getStatus())) {
+            log.warn("订单已允许发货");
+           return;
         }
         if ( !OrderStatusEnum.PAID.equals(orderDO.getStatus())) {
             log.warn("订单状态异常");
@@ -289,6 +314,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             log.warn("订单状态更新异常");
             throw new BizException("订单状态更新异常");
         }
+        orderStatusTraceService.addOrderStatusTrace(orderDO.getId(), orderDO.getStatus(),
+                OrderStatusEnum.WAIT_OUTBOUND);
         rocketMqClient.sendMessage(OrderClientTopicName.SIGN_ORDER_EVENT_TOPIC, JsonUtils.
                 toJsonString(addSalesOutStockOrderMessage));
 
@@ -324,13 +351,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         if (orderDO == null) {
             throw new BizException("订单不存在");
         }
-        Integer status = orderDO.getStatus();
-        if (status != 2) {
-            throw new BizException("订单状态异常");
-        }
+//        Integer status = orderDO.getStatus();
+//        if (status != 2) {
+//            throw new BizException("订单状态异常");
+//        }
         OrderDO orderDOUpdate = new OrderDO();
         orderDOUpdate.setId(orderId);
-        orderDOUpdate.setStatus(3);
+        orderDOUpdate.setStatus(null);
         this.updateById(orderDOUpdate);
 
     }
@@ -367,7 +394,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             vo.setInOutStockOrderItemDTOList(inOutStockOrderItemDTOList);
             vo.setOrderId(a.getId());
             vo.setShopId(a.getShopId());
-            vo.setOrderStatus(a.getStatus());
+           // vo.setOrderStatus(a.getStatus());
             List<OrderItemDO> orderItemDOList1 = orderItemMap.get(id);
             for (OrderItemDO b : orderItemDOList1) {
 

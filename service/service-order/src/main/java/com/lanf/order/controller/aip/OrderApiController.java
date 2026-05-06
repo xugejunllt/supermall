@@ -1,14 +1,13 @@
 package com.lanf.order.controller.aip;
 
+import com.lanf.constant.result.Result;
 import com.lanf.order.model.dto.BathCreateOrderDTO;
-import com.lanf.order.model.dto.CancelOrderApiDTO;
 import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
 import com.lanf.order.model.vo.OrderVO;
 import com.lanf.order.model.vo.OrderVO2;
 import com.lanf.order.service.IMainOrderService;
 import com.lanf.order.service.IOrderService;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -42,13 +41,13 @@ public class OrderApiController {
         mainOrderService.bathCreateOrder(dto);
         return Result.ok();
     }
-    @PostMapping("/cancelOrder")
-    public Result<Void> cancelOrder(@Validated @RequestBody CancelOrderApiDTO dto) {
-
-        log.info("取消订单:dto{}", dto);
-        orderService.cancelOrder(dto);
-        return Result.ok();
-    }
+//    @PostMapping("/cancelOrder")
+//    public Result<Void> cancelOrder(@Validated @RequestBody CancelOrderApiDTO dto) {
+//
+//        log.info("取消订单:dto{}", dto);
+//        orderService.cancelOrder(dto);
+//        return Result.ok();
+//    }
 
 
 

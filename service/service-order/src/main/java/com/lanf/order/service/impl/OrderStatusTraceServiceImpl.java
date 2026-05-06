@@ -1,12 +1,14 @@
 package com.lanf.order.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.order.mapper.OrderStatusTraceMapper;
-import com.lanf.order.model.bo.AddOrderStatusTrace;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
 import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.service.IOrderStatusTraceService;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 
 /**
  * <p>
@@ -19,12 +21,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderStatusTraceServiceImpl extends ServiceImpl<OrderStatusTraceMapper, OrderStatusTraceDO> implements IOrderStatusTraceService {
 
+
     @Override
-    public void addOrderStatusTrace(AddOrderStatusTrace addOrderStatusTrace) {
+    public void addOrderStatusTrace(Long orderId, OrderStatusEnum fromStatus, OrderStatusEnum toStatus) {
 
-
-        OrderStatusEnum fromStatus = addOrderStatusTrace.getFromStatus();
-        OrderStatusEnum toStatus = addOrderStatusTrace.getToStatus();
+        Date date = new Date();
+        OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
+        orderStatusTraceDO.setOrderId(orderId);
+        orderStatusTraceDO.setFromStatus(fromStatus);
+        orderStatusTraceDO.setToStatus(toStatus);
+        orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+        this.save(orderStatusTraceDO);
 
 
 

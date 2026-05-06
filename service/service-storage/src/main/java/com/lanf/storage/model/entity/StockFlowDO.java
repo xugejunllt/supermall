@@ -35,6 +35,8 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "关联业务单id")
     private Long bizOrderId;
 
+    private Long orderId;
+
     @ApiModelProperty(value = "变更前数量")
     private Integer beforeQuantity;
 
@@ -50,4 +52,8 @@ private static final long serialVersionUID=1L;
     private String warehouseName;
 
     private Long tenantId;
+
+    private String createDate;
+
+
 }
