@@ -551,9 +551,15 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
         long decremented = redissonCacheService.decrementAndGet(stockKey);
         if ( decremented >= 0 ){
             //秒杀成功
+            try {
+
+            } catch (Exception e){
+                //打印erro 人工处理
+                log.error("秒杀成功,同步订单消息失败: userId={}, seckillItemId={}",
+                        userId, seckillItemId, e);
 
 
-
+            }
 
         } else if ( decremented == -1){
             //秒杀失败 redis出现异常 删除次数限制

@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.lanf.seckill.service.impl.SeckillActivityServiceImpl.SECKILL_TOKEN_KEY_PRX;
-
 @Slf4j
 @Component
 public class SeckillFilter implements Filter {
@@ -116,14 +114,7 @@ public class SeckillFilter implements Filter {
             ResponseUtil.out(response, Result.fail(100004, "请求人数太多,清稍微再试"));
             return;
         }
-        String userTokenKey = String.format(SECKILL_TOKEN_KEY_PRX, userId, skillItemId);
-        String cacheToken = redissonCacheService.get(userTokenKey);
-        if (IStringUtils.isEmpty(cacheToken)){
-            ResponseUtil.out(response, Result.fail(100005, "你已参与过秒杀了"));
-            return;
-        }
-        //token只能用一次
-        redissonCacheService.delete(userTokenKey);
+
         // 检查用户是否已经参与过该商品的秒杀（使用 Redis 递增）
         String participatedKey = String.format(USER_PARTICIPATED_KEY_PRX, userId, skillItemId);
         long participateCount = redissonCacheService.incrementAndGet(participatedKey, 1, TimeUnit.DAYS);
