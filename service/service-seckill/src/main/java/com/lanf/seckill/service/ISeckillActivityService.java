@@ -3,6 +3,7 @@ package com.lanf.seckill.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.seckill.model.dto.AddSeckillActivityDTO;
 import com.lanf.seckill.model.dto.AddSeckillItemDTO;
+import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
 import com.lanf.seckill.model.entity.SeckillActivityDO;
 
 /**
@@ -26,6 +27,12 @@ public interface ISeckillActivityService extends IService<SeckillActivityDO> {
      *
      */
     void addAddSeckillItem(AddSeckillItemDTO dto);
+
+    /**
+     * 上架秒杀商品
+     *
+     */
+    void launcherSeckillItem(LauncherSeckillItemDTO itemDTO);
 
 
 }
