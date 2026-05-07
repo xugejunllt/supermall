@@ -5,6 +5,9 @@ import com.lanf.seckill.model.dto.AddSeckillActivityDTO;
 import com.lanf.seckill.model.dto.AddSeckillItemDTO;
 import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
 import com.lanf.seckill.model.entity.SeckillActivityDO;
+import com.lanf.seckill.model.vo.SeckillItemDetailVO;
+import com.lanf.seckill.model.vo.SeckillItemVO;
+import java.util.List;
 
 /**
  * <p>
@@ -33,6 +36,28 @@ public interface ISeckillActivityService extends IService<SeckillActivityDO> {
      *
      */
     void launcherSeckillItem(LauncherSeckillItemDTO itemDTO);
+
+    /**
+     * 分页查询秒杀商品列表
+     * 
+     * @param activityId 活动ID
+     * @param pageNum 页码（从1开始）
+     * @param pageSize 每页大小
+     * @return 秒杀商品VO列表
+     */
+    List<SeckillItemVO> pageQuerySeckillItems(Long activityId, int pageNum, int pageSize);
+
+    /**
+     * 查询秒杀商品详情
+     * 
+     * @param activityId 活动ID
+     * @param seckillItemId 秒杀商品ID
+     * @return 商品详情VO
+     */
+    SeckillItemDetailVO getSeckillItemDetail( Long seckillItemId);
+
+
+
 
 
 }

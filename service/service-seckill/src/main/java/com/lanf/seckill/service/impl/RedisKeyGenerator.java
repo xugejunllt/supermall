@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -174,6 +175,15 @@ public class RedisKeyGenerator {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 随机获取一个数字后缀（1-8）
+     *
+     * @return 随机的数字后缀
+     */
+    public static Integer getRandomDigitSuffix() {
+        int randomIndex = ThreadLocalRandom.current().nextInt(ALL_DIGIT_SUFFIXES.size());
+        return ALL_DIGIT_SUFFIXES.get(randomIndex);
+    }
     /**
      * 获取所有数字后缀集合
      * 

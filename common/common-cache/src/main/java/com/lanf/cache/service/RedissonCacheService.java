@@ -1,10 +1,7 @@
 package com.lanf.cache.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RBucket;
-import org.redisson.api.RList;
-import org.redisson.api.RSet;
-import org.redisson.api.RedissonClient;
+import org.redisson.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,11 +17,16 @@ public class RedissonCacheService {
     private RedissonClient redissonClient;
 
 
+
+    public RBuckets getBuckets(){
+
+     return redissonClient.getBuckets();
+    }
+
     public  void set(String key, String value, long expireTime, TimeUnit timeUnit) {
-        
         try {
             RBucket<String> bucket = redissonClient.getBucket(key);
-            
+
             if (expireTime > 0) {
                 bucket.set(value, expireTime, timeUnit);
                 log.debug("设置缓存:key={},expire={}{}", key, expireTime, timeUnit);
@@ -203,6 +205,179 @@ public class RedissonCacheService {
         } catch (Exception e) {
             log.error("List缓存分页查询异常:key={},pageNum={},pageSize={}", key, pageNum, pageSize, e);
             return java.util.Collections.emptyList();
+        }
+    }
+
+    /**
+     * 设置 AtomicLong 初始值
+     * 
+     * @param key Redis key
+     * @param initialValue 初始值
+     * @param expireTime 过期时间（秒），0表示不过期
+     * @param timeUnit 时间单位
+     */
+    public void setAtomicLong(String key, long initialValue, long expireTime, TimeUnit timeUnit) {
+        try {
+            RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
+            atomicLong.set(initialValue);
+            
+            if (expireTime > 0) {
+                atomicLong.expire(expireTime, timeUnit);
+                log.info("设置AtomicLong初始值:key={},value={},expire={}{}", key, initialValue, expireTime, timeUnit);
+            } else {
+                log.info("设置AtomicLong初始值(无过期):key={},value={}", key, initialValue);
+            }
+        } catch (Exception e) {
+            log.error("设置AtomicLong初始值异常:key={},value={}", key, initialValue, e);
+        }
+    }
+
+    /**
+     * 原子递增（+1）
+     * 
+     * @param key Redis key
+     * @return 递增后的值
+     */
+    public long incrementAndGet(String key) {
+
+        try {
+            RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
+            long newValue = atomicLong.incrementAndGet();
+            log.debug("AtomicLong递增:key={},newValue={}", key, newValue);
+            return newValue;
+        } catch (Exception e) {
+            log.error("AtomicLong递增异常:key={}", key, e);
+            return -1L;
+        }
+    }
+    public long incrementGet(String key) {
+
+        try {
+            RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
+            long newValue = atomicLong.get();
+            log.debug("AtomicLong递增:key={},newValue={}", key, newValue);
+            return newValue;
+        } catch (Exception e) {
+            log.error("AtomicLong递增异常:key={}", key, e);
+            return -1L;
+        }
+    }
+    /**
+     * 原子递增指定值
+     * 
+     * @param key Redis key
+     * @param delta 递增值
+     * @return 递增后的值
+     */
+    public long incrementAndGet(String key, long delta) {
+        try {
+            RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
+            long newValue = atomicLong.addAndGet(delta);
+            log.debug("AtomicLong递增:key={},delta={},newValue={}", key, delta, newValue);
+            return newValue;
+        } catch (Exception e) {
+            log.error("AtomicLong递增异常:key={},delta={}", key, delta, e);
+            return -1L;
+        }
+    }
+
+    /**
+     * 原子递减（-1）
+     * 
+     * @param key Redis key
+     * @return 递减后的值
+     */
+    public long decrementAndGet(String key) {
+        try {
+            RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
+            long newValue = atomicLong.decrementAndGet();
+            log.debug("AtomicLong递减:key={},newValue={}", key, newValue);
+            return newValue;
+        } catch (Exception e) {
+            log.error("AtomicLong递减异常:key={}", key, e);
+            return -1L;
+        }
+    }
+
+    /**
+     * 原子递减指定值
+     * 
+     * @param key Redis key
+     * @param delta 递减值
+     * @return 递减后的值
+     */
+    public long decrementAndGet(String key, long delta) {
+        try {
+            RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
+            long newValue = atomicLong.addAndGet(-delta);
+            log.debug("AtomicLong递减:key={},delta={},newValue={}", key, delta, newValue);
+            return newValue;
+        } catch (Exception e) {
+            log.error("AtomicLong递减异常:key={},delta={}", key, delta, e);
+            return -1L;
+        }
+    }
+
+    /**
+     * 获取当前值
+     * 
+     * @param key Redis key
+     * @return 当前值，如果不存在返回 -1
+     */
+    public long getAtomicLong(String key) {
+        try {
+            RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
+            if (!atomicLong.isExists()) {
+                log.debug("AtomicLong不存在:key={}", key);
+                return -1L;
+            }
+            long value = atomicLong.get();
+            log.debug("获取AtomicLong值:key={},value={}", key, value);
+            return value;
+        } catch (Exception e) {
+            log.error("获取AtomicLong值异常:key={}", key, e);
+            return -1L;
+        }
+    }
+
+    /**
+     * 比较并设置（CAS操作）
+     * 
+     * @param key Redis key
+     * @param expectedValue 期望值
+     * @param newValue 新值
+     * @return 是否设置成功
+     */
+    public boolean compareAndSet(String key, long expectedValue, long newValue) {
+        try {
+            RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
+            boolean success = atomicLong.compareAndSet(expectedValue, newValue);
+            log.debug("AtomicLong CAS操作:key={},expected={},new={},success={}", 
+                    key, expectedValue, newValue, success);
+            return success;
+        } catch (Exception e) {
+            log.error("AtomicLong CAS操作异常:key={},expected={},new={}", key, expectedValue, newValue, e);
+            return false;
+        }
+    }
+
+    /**
+     * 删除 AtomicLong
+     * 
+     * @param key Redis key
+     * @return 是否删除成功
+     */
+    public boolean deleteAtomicLong(String key) {
+        try {
+            RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
+            boolean deleted = atomicLong.delete();
+            if (deleted) {
+                log.debug("删除AtomicLong成功:key={}", key);
+            }
+            return deleted;
+        } catch (Exception e) {
+            log.error("删除AtomicLong异常:key={}", key, e);
+            return false;
         }
     }
 
