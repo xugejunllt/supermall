@@ -1,4 +1,4 @@
-package com.lanf.seckill.controller.admin;
+package com.lanf.seckill.controller.app;
 
 
 import com.alibaba.nacos.api.model.v2.Result;
@@ -19,11 +19,16 @@ import java.util.List;
  * @since 2026-05-07
  */
 @RestController
-@RequestMapping("/seckillActivity")
+@RequestMapping("/app/seckillActivity")
 public class SeckillActivityController {
     @Autowired
     private ISeckillActivityService seckillActivityService;
 
+    /**
+     *
+     * 获取秒杀商品列表
+     *
+     */
     @GetMapping("/items/{activityId}")
     public Result<List<SeckillItemVO>> getSeckillItems(
             @PathVariable Long activityId,

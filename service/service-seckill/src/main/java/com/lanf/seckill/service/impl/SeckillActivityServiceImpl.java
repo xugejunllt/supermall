@@ -437,6 +437,7 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
 
                 return null;
             }
+
             SeckillItemDetail detail = JsonUtils.toObject(data, SeckillItemDetail.class);
             SeckillItemDetailVO vo = convertToDetailVO(detail);
             vo.setStockCount(stock > 0 ? stock : 0);

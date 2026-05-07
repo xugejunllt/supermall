@@ -50,7 +50,6 @@ public interface ISeckillActivityService extends IService<SeckillActivityDO> {
     /**
      * 查询秒杀商品详情
      * 
-     * @param activityId 活动ID
      * @param seckillItemId 秒杀商品ID
      * @return 商品详情VO
      */
