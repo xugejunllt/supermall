@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 public class AddSeckillItemDTO implements Serializable {
 
 
+    private String orderNumber;
+
     @ApiModelProperty(value = "所属活动ID")
     private Long activityId;
 
