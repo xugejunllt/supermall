@@ -2,10 +2,13 @@ package com.lanf.seckill.controller.app;
 
 
 import com.alibaba.nacos.api.model.v2.Result;
+import com.lanf.seckill.model.dto.GetSeckillTokenDTO;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
+import com.lanf.seckill.model.vo.SeckillTokenVO;
 import com.lanf.seckill.service.ISeckillActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +24,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/app/seckillActivity")
 public class SeckillActivityController {
+
+
     @Autowired
     private ISeckillActivityService seckillActivityService;
 
@@ -48,6 +53,13 @@ public class SeckillActivityController {
 
 
         return Result.success(detail);
+    }
+
+    @PostMapping("/item/detail/getSeckillToken")
+    public Result<SeckillTokenVO> getSeckillToken(@Validated @RequestBody GetSeckillTokenDTO dto) {
+
+
+        return Result.success(seckillActivityService.getSeckillToken( dto));
     }
 }
 

@@ -69,7 +69,11 @@
             <artifactId>service-api-goods</artifactId>
             <version>${service-goods.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <version>${ispring-serurity.version}</version>
+            <artifactId>spring-security</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

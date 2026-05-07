@@ -33,4 +33,10 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
 
+# application.yml
+seckill:
 
+    - path: /seckill/kill/iphone15
+      activityId: 10
+    - path: /seckill/kill/macbook
+      activityId: 11

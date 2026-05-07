@@ -238,11 +238,15 @@ public class RedissonCacheService {
      * @param key Redis key
      * @return 递增后的值
      */
-    public long incrementAndGet(String key) {
+    public long incrementAndGet(String key,long expireTime, TimeUnit timeUnit) {
 
         try {
             RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
             long newValue = atomicLong.incrementAndGet();
+            if (newValue == 1) {
+                //第一次初始化
+                atomicLong.expire(expireTime, timeUnit);
+            }
             log.debug("AtomicLong递增:key={},newValue={}", key, newValue);
             return newValue;
         } catch (Exception e) {
@@ -283,7 +287,12 @@ public class RedissonCacheService {
 
     /**
      * 原子递减（-1）
-     * 
+     *
+     * 当 key 不存在时，Redisson 会：
+     * 自动创建该 key
+     * 初始值设为 0
+     * 执行递减操作：0 - 1 = -1
+     * 返回 -1
      * @param key Redis key
      * @return 递减后的值
      */
@@ -291,6 +300,12 @@ public class RedissonCacheService {
         try {
             RAtomicLong atomicLong = redissonClient.getAtomicLong(key);
             long newValue = atomicLong.decrementAndGet();
+            if (newValue == -1) {
+                /**
+                 * 与redis异常返回值区分开来
+                 */
+                return -2;
+            }
             log.debug("AtomicLong递减:key={},newValue={}", key, newValue);
             return newValue;
         } catch (Exception e) {
@@ -380,6 +395,9 @@ public class RedissonCacheService {
             return false;
         }
     }
+
+
+
 
 
 }

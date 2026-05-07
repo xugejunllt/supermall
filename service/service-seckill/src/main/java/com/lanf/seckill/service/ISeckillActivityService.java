@@ -1,12 +1,12 @@
 package com.lanf.seckill.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.seckill.model.dto.AddSeckillActivityDTO;
-import com.lanf.seckill.model.dto.AddSeckillItemDTO;
-import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
+import com.lanf.seckill.model.dto.*;
 import com.lanf.seckill.model.entity.SeckillActivityDO;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
+import com.lanf.seckill.model.vo.SeckillTokenVO;
+
 import java.util.List;
 
 /**
@@ -53,10 +53,20 @@ public interface ISeckillActivityService extends IService<SeckillActivityDO> {
      * @param seckillItemId 秒杀商品ID
      * @return 商品详情VO
      */
-    SeckillItemDetailVO getSeckillItemDetail( Long seckillItemId);
+    SeckillItemDetailVO getSeckillItemDetail(Long seckillItemId);
 
+    /**
+     * 获取秒杀令牌（动态秒杀链接）
+     * 秒杀开始时生成一次性 token，用于后续下单验证
+     * 
+     * @return 秒杀令牌信息
+     */
+    SeckillTokenVO getSeckillToken( GetSeckillTokenDTO dto);
 
-
-
+    /**
+     * 秒杀下单开始
+     *
+     */
+    void skillPlace(PlaceDTO dto);
 
 }
