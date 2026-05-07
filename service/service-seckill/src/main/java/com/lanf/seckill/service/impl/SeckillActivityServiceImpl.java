@@ -402,6 +402,8 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
      */
     @Override
     public SeckillItemDetailVO getSeckillItemDetail(Long seckillItemId) {
+
+
         if (seckillItemId == null) {
             log.warn("商品ID不能为空");
             return null;
