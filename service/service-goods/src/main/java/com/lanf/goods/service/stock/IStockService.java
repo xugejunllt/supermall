@@ -3,6 +3,7 @@ package com.lanf.goods.service.stock;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.dto.DeductStockDTO;
+import com.lanf.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.vo.DeductStockVO;
@@ -39,6 +40,12 @@ public interface IStockService extends IService<StockDO> {
      *
      */
     StockEnoughVO isStockEnough(StockEnoughDTO dto);
+
+    /**
+     * 添加秒杀商品预占库存
+     *
+     */
+    void seckillStockPreoccupation(SeckillStockPreoccupationDTO dto);
 
 
 }

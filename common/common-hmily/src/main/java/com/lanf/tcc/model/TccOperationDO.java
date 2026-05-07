@@ -35,6 +35,17 @@ private static final long serialVersionUID=1L;
 
     //try阶段参数，用于下一阶段
     private String parameter;
+    /**
+     *
+     * 0：正常  1：中断
+     * 被中断 将不再被执行或重试
+     *
+     */
+    private Integer interruptedFlag;
+    /**
+     * 中断时发生的异常
+     */
+    private String interruptedException;
 
     private Long version;
 

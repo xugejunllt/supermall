@@ -8,7 +8,10 @@ import com.lanf.tcc.model.TccOperationDO;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.core.context.HmilyContextHolder;
 import org.dromara.hmily.core.context.HmilyTransactionContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -23,6 +26,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, TccOperationDO> implements ITccOperationService {
 
+    @Autowired
+    @Qualifier("tccInterruptedFlagExecutor")
+    private ThreadPoolTaskExecutor tccInterruptedFlagExecutor;
     @Override
     public void tryOperation(String bizKey, String parameter) {
 
@@ -67,10 +73,17 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
              */
             return false;
         }
+
+        Integer interruptedFlag = one.getInterruptedFlag();
+        if (interruptedFlag == 1) {
+            log.info("confirm阶段已中断");
+            return false;
+        }
         if (one.getStatus() == 1) {
             log.info("confirm重复执行");
             return false;
         }
+
         boolean update = this.lambdaUpdate().eq(BaseEntity::getId, one.getId()).
                 eq(TccOperationDO::getVersion, one.getVersion()).
                 set(TccOperationDO::getStatus, 1).
@@ -108,7 +121,11 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
             log.error("try阶段未执行");
             throw new BizException("try阶段未执行");
         }
-
+        Integer interruptedFlag = one.getInterruptedFlag();
+        if (interruptedFlag == 1) {
+            log.info("try阶段已中断");
+            return false;
+        }
         if (one.getStatus() == 2) {
             log.info("cancel重复执行");
             return false;
@@ -131,6 +148,51 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
             throw new BizException("更新失败");
         }
         return true;
+    }
+
+    @Override
+    public void addInterruptedFlag(String bizKey, String interruptedException) {
+        tccInterruptedFlagExecutor.execute(() -> {
+            try {
+                doAddInterruptedFlag(bizKey, interruptedException);
+            } catch (Exception e) {
+                log.error("设置中断标志失败[bizKey:{}]", bizKey, e);
+            }
+        });
+    }
+
+    public void doAddInterruptedFlag(String bizKey, String interruptedException) {
+        HmilyTransactionContext hmilyTransactionContext = HmilyContextHolder.get();
+
+        TccOperationDO one = this.lambdaQuery().eq(TccOperationDO::getBizKey, bizKey).one();
+        if (one != null) {
+
+            this.lambdaUpdate()
+                    .eq(BaseEntity::getId, one.getId())
+                    .set(TccOperationDO::getInterruptedFlag, 1)
+                    .set(TccOperationDO::getInterruptedException, interruptedException)
+                    .update();
+            return;
+
+        }
+
+        TccOperationDO tccOperationDO = new TccOperationDO();
+        tccOperationDO.setBizKey(bizKey);
+        tccOperationDO.setStatus(0);
+        tccOperationDO.setVersion(1L);
+        tccOperationDO.setParticipantId(hmilyTransactionContext.getParticipantId());
+        try {
+            this.save(tccOperationDO);
+        } catch (DuplicateKeyException e) {
+            /**
+             * 数据库压力大时  tcc_operation根据bizKey分表
+             * 提高性能
+             */
+
+            log.info("bizKey重复");
+            throw new BizException("bizKey重复");
+        }
+
     }
 
     @Override

@@ -17,6 +17,8 @@ public interface ITccOperationService extends IService<TccOperationDO> {
     void tryOperation(String bizKey,String  parameter);
     boolean confirmOperation(String bizKey);
     boolean cancelOperation(String bizKey);
+    void addInterruptedFlag(String bizKey,String interruptedException);
+
 
     String getParameter(String bizKey);
 }

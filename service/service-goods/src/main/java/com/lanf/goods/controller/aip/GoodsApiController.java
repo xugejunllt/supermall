@@ -1,10 +1,7 @@
 package com.lanf.goods.controller.aip;
 
 import com.lanf.constant.result.Result;
-import com.lanf.goods.model.dto.CalculateOrderTotalAmountDTO;
-import com.lanf.goods.model.dto.ClearCartDTO;
-import com.lanf.goods.model.dto.DeductStockDTO;
-import com.lanf.goods.model.dto.ValidateCartDTO;
+import com.lanf.goods.model.dto.*;
 import com.lanf.goods.model.query.ReconciliationStockFlowQuery;
 import com.lanf.goods.model.vo.*;
 import com.lanf.goods.service.base.IBaseGoodsService;
@@ -108,6 +105,20 @@ public class GoodsApiController {
         return Result.ok(userStockFlowService.reconciliationStockFlowQuery( query));
     }
 
+    /**
+     *
+     * 添加秒杀商品预占库存
+     *
+     */
+    @PostMapping("/seckillStockPreoccupation")
+    public Result<Void> seckillStockPreoccupation(@RequestBody @Validated SeckillStockPreoccupationDTO dto){
+
+
+        log.info("添加秒杀商品预占库存[{}]", dto);
+
+        stockService.seckillStockPreoccupation( dto);
+        return Result.ok();
+    }
 
 
 }
