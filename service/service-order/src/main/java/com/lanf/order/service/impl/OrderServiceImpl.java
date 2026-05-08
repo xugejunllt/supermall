@@ -124,85 +124,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         log.info("cancelCreateOrder");
     }
 
-    @Override
-    public void cancelOrder(CancelOrderBO dto) {
 
 
 
-    }
-
-    @Override
-    public void confirmCancelOrder(CancelOrderBO dto) {
-
-        log.info("confirmCancelOrder[{}]", JsonUtils.toJsonString(dto));
-        OrderDO orderDO = this.getById(dto.getOrderId());
-        if (orderDO == null) {
-            log.error("订单不存在");
-            throw new BizException("订单不存在");
-        }
-
-        String bizKey = buildCancelOrderBizKey(dto.getBizKeySuffix());
-        String parameter = tccOperationService.getParameter(bizKey);
-        CancelOrderOrderStatusBO cancelOrderBO = JsonUtils.toObject(parameter, CancelOrderOrderStatusBO.class);
-        boolean operation = tccOperationService.confirmOperation(bizKey);
-        if (!operation) {
-            log.info("confirm已执行");
-            return;
-        }
-        /**
-         *  解冻
-         */
-        boolean update = this.lambdaUpdate()
-                .eq(BaseEntity::getId, orderDO.getId())
-                .eq(OrderDO::getStatus, OrderStatusEnum.CANCELLED)
-                .eq(OrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
-                .eq(OrderDO::getVersion, orderDO.getVersion())
-                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
-                .set(OrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
-                .update();
-        if (!update) {
-            log.error("订单状态更新异常");
-            throw new BizException("订单状态更新异常");
-        }
-        orderStatusTraceService.addOrderStatusTrace(orderDO.getId(), cancelOrderBO.getCurrentOrderStatus(),
-                OrderStatusEnum.CANCELLED);
-    }
-
-    @Override
-    public void cancelCancelOrder(CancelOrderBO dto) {
-        log.info("cancelCancelOrder{}", dto);
-        String bizKey = buildCancelOrderBizKey(dto.getBizKeySuffix());
-        String parameter = tccOperationService.getParameter(bizKey);
-        CancelOrderOrderStatusBO cancelOrderBO = JsonUtils.toObject(parameter, CancelOrderOrderStatusBO.class);
-        OrderDO orderDO = this.getById(dto.getOrderId());
-        if (orderDO == null) {
-            log.error("订单不存在");
-            throw new BizException("订单不存在");
-        }
-        boolean operation = tccOperationService.cancelOperation(bizKey);
-        if (!operation) {
-            log.info("cancel已执行");
-            return;
-        }
-        /**
-         * 解冻 并回滚到 try执行之前的状态
-         */
-        boolean update = this.lambdaUpdate()
-                .eq(BaseEntity::getId, orderDO.getId())
-                .eq(OrderDO::getStatus, OrderStatusEnum.CANCELLED)
-                .eq(OrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
-                .eq(OrderDO::getVersion, orderDO.getVersion())
-                .set(OrderDO::getStatus, cancelOrderBO.getCurrentOrderStatus())
-                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
-                .set(OrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
-                .update();
-        if (!update) {
-            log.error("订单状态更新异常");
-            throw new BizException("订单状态更新异常");
-        }
 
 
-    }
 
     @Override
     public List<Long> querySkuIdsByOrderId(Long orderId) {
@@ -634,23 +560,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         return orderDetailVO;
     }
 
-    @Override
-    public void cancelOrder(Long orderId) {
 
-        OrderDO orderDO = this.getById(orderId);
-        if (orderDO == null) {
-
-            throw new BizException("订单不存在");
-        }
-        Integer status = orderDO.getStatus();
-        if (!(status.equals(1) || status.equals(0))) {
-            throw new BizException("订单已出库，无法取消");
-        }
-        updateOrderCancel(orderId);
-        CancelOrderBO dto = new CancelOrderBO();
-        dto.setOrderId(orderId);
-        rocketMqClient.sendMessage(TopicName.CANCEL_ORDER_TOPIC, dto);
-    }
 
     private void updateOrderCancel(Long orderId) {
 

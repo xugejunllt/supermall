@@ -12,4 +12,6 @@ public class OrderMqGroupName {
      * 秒杀订单确认成功
      */
     public static final String SEC_KILL_ORDER_CONFIRM_GROUP = "SEC_KILL_ORDER_CONFIRM_GROUP";
+
+    public static final String SEC_KILL_ORDER_TIMEOUT_CANCEL_TOPIC = "SEC_KILL_ORDER_TIMEOUT_CANCEL_TOPIC";
 }

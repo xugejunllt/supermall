@@ -56,8 +56,12 @@ public class SecKillOrderConfirmListener implements RocketMQListener<SecKillOrde
             throw new BizException("订单不存在");
         }
         OrderStatusEnum status = one.getStatus();
-        if ( !OrderStatusEnum.WAIT_CONFIRM.equals( status)){
+        if ( OrderStatusEnum.WAIT_PAY.equals( status)){
             log.warn("订单已确认");
+            return;
+        }
+        if ( !OrderStatusEnum.WAIT_CONFIRM.equals( status)){
+            log.error("订单状态异常");
             return;
         }
         OrderProcessStepEnum orderProcessStep = message.getOrderProcessStep();

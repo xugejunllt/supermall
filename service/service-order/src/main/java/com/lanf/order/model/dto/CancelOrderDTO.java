@@ -11,4 +11,8 @@ public class CancelOrderDTO implements Serializable {
     private Integer cancelSource;
 
     private String remark;
+    /**
+     * 订单取消回调函数 通常是网络操作
+     */
+    private Runnable runnable ;
 }

@@ -12,10 +12,13 @@ import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.enums.OrderTypeEnum;
 import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.constant.OrderMqGroupName;
+import com.lanf.order.mq.constant.OrderMqTopicName;
+import com.lanf.order.mq.message.SecKillOrderCancelMessage;
 import com.lanf.order.mq.message.SecKillPlaneCreateOrderSuccessMessage;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IOrderStatusTraceService;
+import com.lanf.rocketmq.model.enums.DelayLevelEnum;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.welfare.mq.constant.SecKillClientTopicName;
 import com.lanf.welfare.mq.message.SecKillPlaneMessage;
@@ -79,6 +82,11 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
         successMessage.setSkuCode(message.getSkuCode());
         successMessage.setWarehouseId(message.getWarehouseId());
         successMessage.setQuantity(message.getQuantity());
+
+        //
+        SecKillOrderCancelMessage message1 = new SecKillOrderCancelMessage();
+        message1.setOrderId(orderId);
+        message1.setOrderNumber(message.getOrderNumber());
         try {
             orderService.save(orderDO);
         } catch (DuplicateKeyException e) {
@@ -89,7 +97,11 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
         orderStatusTraceService.addOrderStatusTrace(orderDO.getId(), null,OrderStatusEnum.WAIT_CONFIRM);
         rocketMqClient.sendMessage(OrderClientTopicName.SEC_KILL_PLANE_CREATE_ORDER_SUCCESS_EVENT_TOPIC,
                 JsonUtils.toJsonString(successMessage));
-
+        /**
+         * 发送延迟消息 10分钟如果订单没有确认完成 那么进行取消
+         */
+        rocketMqClient.sendDelayMessage(OrderMqTopicName.SEC_KILL_ORDER_CANCEL_TOPIC,
+                JsonUtils.toJsonString(message1), DelayLevelEnum.LEVEL_14);
     }
 
     private static OrderDO getOrderDO(SecKillPlaneMessage message, Long orderId, BigDecimal totalMoney) {

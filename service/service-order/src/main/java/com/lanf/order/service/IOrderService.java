@@ -1,12 +1,11 @@
 package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.order.model.dto.CreateOrderDTO;
-import com.lanf.order.model.vo.OrderVO;
-import com.lanf.order.model.vo.OrderVO2;
 import com.lanf.mybatis.base.PageResult;
-import com.lanf.order.model.bo.CancelOrderBO;
-import com.lanf.order.model.dto.*;
+import com.lanf.order.model.dto.AllowOutboundDTO;
+import com.lanf.order.model.dto.CreateOrderDTO;
+import com.lanf.order.model.dto.DeliveryDTO;
+import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
 import com.lanf.order.model.query.OrderPageQuery;
@@ -34,15 +33,6 @@ public interface IOrderService extends IService<OrderDO> {
 
     void createOrder(CreateOrderDTO dto);
 
-    /**
-     * 取消订单
-     *
-     */
-    void cancelOrder(CancelOrderBO dto);
-
-    void  confirmCancelOrder(CancelOrderBO dto);
-
-    void cancelCancelOrder(CancelOrderBO dto);
     /**
      * 订单支付成功处理
      */
@@ -77,10 +67,7 @@ public interface IOrderService extends IService<OrderDO> {
 
     OrderDetailVO orderDetail(Long id);
 
-    /**
-     * 取消订单
-     */
-    void cancelOrder(Long orderId);
+
     /**
      * 根据订单ID查询订单项的SKU ID列表
      *

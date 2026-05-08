@@ -3,11 +3,9 @@ package com.lanf.order.service.impl;
 
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.client.pay.api.PayApiService;
-import com.lanf.client.pay.model.dto.CancelTradeOrderDTO;
 import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
-import com.lanf.client.pay.model.vo.CancelTradeOrderVO;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.IdUtils;
@@ -28,7 +26,6 @@ import com.lanf.goods.model.vo.ClearCartVO;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.ValidateCartItemVO;
 import com.lanf.order.api.OrderApiService;
-import com.lanf.order.model.bo.CancelOrderBO;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
 import com.lanf.order.model.dto.*;
@@ -601,41 +598,17 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderStatusTraceService.addOrderStatusTrace(orderDO.getId(),
                 orderDO.getStatus(), OrderStatusEnum.CANCELLED, dto.getRemark());
         /**
-         * 发送mq消息
+         * 发送取消订单事件
          */
         rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CANCEL_EVENT_TOPIC, JsonUtils.toJsonString(cancelOrderEventMessage));
-    }
-
-
-    @Override
-    public void doCancelOrder(CancelOrderBO dto) {
-
-        String bizKeySuffix = dto.getBizKeySuffix();
-        /**
-         * 取消交易单
-         */
-        cancelTradeOrder(dto, bizKeySuffix);
-        /**
-         * 取消订单
-         */
-        orderService.cancelOrder(dto);
+        if (dto.getRunnable() != null){
+            dto.getRunnable().run();
+        }
 
     }
 
-    private CancelTradeOrderVO  cancelTradeOrder(CancelOrderBO dto, String  bizKeySuffix){
-        CancelTradeOrderDTO cancelTradeOrderDTO = new CancelTradeOrderDTO();
-        cancelTradeOrderDTO.setBizKeySuffix(bizKeySuffix);
-        cancelTradeOrderDTO.setOrderId(dto.getOrderId());
-        return RpcResultParser.parseResult(payApiService.cancelTradeOrder(cancelTradeOrderDTO));
 
-    }
 
-    public void  confirmCancelOrder(CancelOrderBO dto){
-        orderService.confirmCancelOrder(dto);
-    }
-    public void  cancelCancelOrder(CancelOrderBO dto){
-        orderService.cancelCancelOrder(dto);
-    }
 
 
 
