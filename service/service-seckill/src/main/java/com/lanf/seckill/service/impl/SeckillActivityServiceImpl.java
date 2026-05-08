@@ -507,14 +507,18 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
         SeckillItemDetailVO seckillItemDetail = getSeckillItemDetail(seckillItemId);
         if (seckillItemDetail == null) {
             log.warn("商品不存在");
-            throw new BizException("活动已结束");
+            throw new BizException("系统繁忙,请稍后再试");
         }
 
         Date startTime = seckillItemDetail.getStartTime();
         Date endTime = seckillItemDetail.getEndTime();
-        if (startTime.after(new Date()) || endTime.before(new Date())) {
-            log.warn("秒杀活动未开始或已结束");
-            throw new BizException("秒杀活动未开始或已结束");
+        if (startTime.after(new Date()) ) {
+            log.warn("秒杀活动即将开始");
+            throw new BizException("秒杀活动即将开始");
+        }
+        if ( endTime.before(new Date())) {
+            log.warn("秒杀活动已结束");
+            throw new BizException("秒杀活动已结束");
         }
         Long stockCount = seckillItemDetail.getStockCount();
         if (stockCount <= 0) {
@@ -530,9 +534,8 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
         //暂时写死 默认取第一个
         SeckillUrlConfig.UrlMapping urlMapping = seckillUrlConfig.getUrlMappings().get(0);
         String skillToken = JwtUtils.createUserToken(userId, seckillItemId.toString(), 1);
-
-        String userTokenKey = String.format(SECKILL_TOKEN_KEY_PRX, userId, seckillItemId);
-        redissonCacheService.set(userTokenKey, skillToken, TOKEN_EXPIRE_SECONDS, TimeUnit.SECONDS);
+        String tokenKey = String.format(SECKILL_TOKEN_KEY_PRX, userId, seckillItemId);
+        redissonCacheService.set(tokenKey, skillToken, 1, TimeUnit.MINUTES);
 
         SeckillTokenVO vo = new SeckillTokenVO();
         vo.setToken(skillToken);
@@ -543,34 +546,51 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
     @Override
     public void skillPlace(PlaceDTO dto) {
 
-        Long seckillItemId = dto.getSeckillItemId();
+        Long secKillItemId = dto.getSeckillItemId();
         Long userId = dto.getUserId();
 
-        String stockKey = String.format(SECKILL_ITEM_STOCK_KEY_PRX, seckillItemId);
+        String stockKey = String.format(SECKILL_ITEM_STOCK_KEY_PRX, secKillItemId);
         //1.扣减库存
         long decremented = redissonCacheService.decrementAndGet(stockKey);
-        if ( decremented >= 0 ){
-            //秒杀成功
-            try {
+        if (decremented >= 0) {
+            /**
+             * 秒杀成功
+             */
+            secKillSuccessHandle(userId, secKillItemId);
+        } else if (decremented == -1) {
 
-            } catch (Exception e){
-                //打印erro 人工处理
-                log.error("秒杀成功,同步订单消息失败: userId={}, seckillItemId={}",
-                        userId, seckillItemId, e);
+            throw new BizException("太火爆了，再试一次");
 
-
-            }
-
-        } else if ( decremented == -1){
-            //秒杀失败 redis出现异常 删除次数限制
-            String participatedKey = String.format(USER_PARTICIPATED_KEY_PRX, userId, seckillItemId);
-            redissonCacheService.delete(participatedKey);
-            throw new BizException("系统繁忙,请稍后再试");
         } else {
-           throw new BizException("库存不足,秒杀已结束");
+            throw new BizException("商品已售罄");
         }
 
     }
 
+    private void secKillSuccessHandle(Long userId, Long secKillItemId) {
+        //秒杀成功
+        try {
+
+            // 检查用户是否已经参与过该商品的秒杀（使用 Redis 递增）
+            String participatedKey = String.format(USER_PARTICIPATED_KEY_PRX, userId, secKillItemId);
+            long participateCount = redissonCacheService.incrementAndGet(participatedKey, 1, TimeUnit.DAYS);
+            // 如果计数大于1，说明用户已经参与过
+            if (participateCount > 1) {
+                throw new BizException("您已经参与过该商品秒杀");
+
+            }
+            if (participateCount == -1) {
+                throw new BizException("请求人数太多,清稍微再试");
+            }
+
+
+        } catch (Exception e) {
+            //打印erro 人工处理
+            log.error("秒杀成功,同步订单消息失败: userId={}, seckillItemId={}",
+                    userId, secKillItemId, e);
+
+
+        }
+    }
 
 }

@@ -24,7 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+
+import static com.lanf.seckill.service.impl.SeckillActivityServiceImpl.SECKILL_TOKEN_KEY_PRX;
 
 @Slf4j
 @Component
@@ -85,7 +86,7 @@ public class SeckillFilter implements Filter {
         }
         String jsonBody = sb.toString();
         if (IStringUtils.isEmpty(jsonBody)) {
-            ResponseUtil.out(response, Result.fail("请求参数为空"));
+            ResponseUtil.out(response, Result.fail("系统繁忙，请重试"));
             return;
         }
 
@@ -93,50 +94,52 @@ public class SeckillFilter implements Filter {
         try {
             object = JsonUtils.toObject(jsonBody, PlaceDTO.class);
         } catch (Exception e) {
-            ResponseUtil.out(response, Result.fail("请求参数无效"));
+            ResponseUtil.out(response, Result.fail("系统繁忙，请重试"));
             return;
         }
         String token = object.getToken();
-        String skillItemId = null;
+        Long userId1 = object.getUserId();
+
+        Long skillItemId1 = object.getSeckillItemId();
         Long userId = null;
+        Long skillItemId = null;
         try {
             //校验token是否合法
             userId = JwtUtils.parseUserId(token);
-            skillItemId = JwtUtils.parseDeviceId(token);
-            Long userId1 = object.getUserId();
-            Long seckillItemId = object.getSeckillItemId();
-            if (!userId.equals(userId1) || !skillItemId.equals(seckillItemId)) {
-                ResponseUtil.out(response, Result.fail(100004, "请求人数太多,清稍微再试"));
+            skillItemId = Long.valueOf(JwtUtils.parseDeviceId(token));
+            if (!userId1.equals(userId) || !skillItemId1.equals(skillItemId) ) {
+                ResponseUtil.out(response, Result.fail(100004, "系统繁忙，请重试"));
                 return;
             }
 
         } catch (Exception e) {
-            ResponseUtil.out(response, Result.fail(100004, "请求人数太多,清稍微再试"));
+            ResponseUtil.out(response, Result.fail(100004, "系统繁忙，请重试"));
             return;
         }
-
-        // 检查用户是否已经参与过该商品的秒杀（使用 Redis 递增）
-        String participatedKey = String.format(USER_PARTICIPATED_KEY_PRX, userId, skillItemId);
-        long participateCount = redissonCacheService.incrementAndGet(participatedKey, 1, TimeUnit.DAYS);
-        // 如果计数大于1，说明用户已经参与过
-        if (participateCount > 1) {
-            ResponseUtil.out(response, Result.fail(100005, "你已参与过秒杀了"));
+        String tokenKey = String.format(SECKILL_TOKEN_KEY_PRX, userId, skillItemId);
+        if ( !token.equals(redissonCacheService.get(tokenKey))) {
+            /**
+             * 与缓存token不一致 或者已经失效了
+             */
+            ResponseUtil.out(response, Result.fail(100004, "太火爆了，再试一次"));
             return;
         }
-        if (participateCount == -1) {
+        //每个token只能使用一次
+        redissonCacheService.delete(tokenKey);
 
-            ResponseUtil.out(response, Result.fail(100004, "请求人数太多,清稍微再试"));
-        }
         /**
          * 开始进行秒杀
          */
         try {
+
             seckillActivityService.skillPlace(object);
+            ResponseUtil.out(response, Result.ok());
+
         } catch (BizException e) {
             ResponseUtil.out(response, Result.fail(e.getCode(), e.getMessage()));
 
         } catch (Exception e) {
-            ResponseUtil.out(response, Result.fail(100004, "请求人数太多,清稍微再试"));
+            ResponseUtil.out(response, Result.fail(100004, "太火爆了，再试一次"));
 
         }
     }
