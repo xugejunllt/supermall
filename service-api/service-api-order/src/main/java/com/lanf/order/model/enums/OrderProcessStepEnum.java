@@ -5,6 +5,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 @Getter
 public enum OrderProcessStepEnum {
 
@@ -13,6 +17,15 @@ public enum OrderProcessStepEnum {
     STOCK_DEDUCTED(2, "库存扣减成功"),
     STOCK_DEDUCT_FAILED(3, "库存扣减失败");
 
+
+    private static final Set<Integer> CONFIRM_SUCCESS_SET = new HashSet<>(Arrays.asList(
+            ORDER_CREATED.code,
+            TRADE_CREATED.code,
+            STOCK_DEDUCTED.code
+    ));
+    public static Set<Integer> getConfirmSuccessSet() {
+        return CONFIRM_SUCCESS_SET;
+    }
     @EnumValue
     @JsonValue
     private final Integer code;
