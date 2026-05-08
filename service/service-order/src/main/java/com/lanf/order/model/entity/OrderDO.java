@@ -2,7 +2,6 @@ package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.order.model.enums.OrderProcessStepEnum;
 import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.enums.OrderTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
@@ -65,7 +64,7 @@ public class OrderDO extends BaseEntity {
      * 2：库存扣减成功
      * 3：库存扣减失败
      */
-    private OrderProcessStepEnum orderProcessSteps;
+    private String orderProcessSteps;
 
 
 

@@ -2,9 +2,9 @@ package com.lanf.order.mq.listener;
 
 import com.lanf.aftersales.mq.AftersalesClientTopicName;
 import com.lanf.aftersales.mq.message.CloseOrderMessage;
-import com.lanf.order.constant.OrderMqGroupName;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.enums.OrderStatusEnum;
+import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.service.IOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;

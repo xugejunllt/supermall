@@ -1,4 +1,4 @@
-package com.lanf.goods.mq.listener;
+package com.lanf.goods.mq.listener.event;
 
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;

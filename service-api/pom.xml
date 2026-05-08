@@ -22,6 +22,7 @@
         <module>service-api-search</module>
         <module>service-api-aftersales</module>
         <module>service-api-user</module>
+        <module>service-api-seckill</module>
     </modules>
     <artifactId>service-api</artifactId>
     <version>${service-api-pom.version}</version>

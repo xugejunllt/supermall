@@ -21,6 +21,8 @@ public class UserStockFlowDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
+    private String flowNo;
+
     @ApiModelProperty(value = "库存id")
     private Long userStockId;
 

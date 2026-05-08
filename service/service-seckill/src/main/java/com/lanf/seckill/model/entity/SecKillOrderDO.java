@@ -2,6 +2,7 @@ package com.lanf.seckill.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.seckill.model.enums.SecKillOrderStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -34,6 +35,9 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "秒杀商品数量")
     private Integer itemQuantity;
+
+    private SecKillOrderStatusEnum orderStatus;
+
 
     private Long merchantId;
 

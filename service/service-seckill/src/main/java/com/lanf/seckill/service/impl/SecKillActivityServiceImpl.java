@@ -577,6 +577,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
             /**
              * 秒杀成功
              */
+            log.info("秒杀成功userId={},secKillItemId={}",userId,secKillItemId);
             secKillSuccessHandle(userId, secKillItemId);
         } else if (decremented == -1 || participateCount == -1) {
             /**
@@ -595,7 +596,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         //秒杀成功
         try {
             SecKillSuccessMessage secKillSuccessMessage = new SecKillSuccessMessage();
-            secKillSuccessMessage.setSecKillId(secKillItemId);
+            secKillSuccessMessage.setSecKillItemId(secKillItemId);
             secKillSuccessMessage.setUserId(userId);
             secKillSuccessMessage.setOrderNumber(CodeGenerateUtils.generateOrderNumber());
             rocketMqClient.sendMessage( SecKillMqTopicName.SEC_KILL_SUCCESS_TOPIC,

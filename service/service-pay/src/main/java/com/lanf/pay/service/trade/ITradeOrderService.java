@@ -34,7 +34,11 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
      *
      */
     void createTradeOrder(CreateTradeOrderDTO dto);
-
+    /**
+     * 确认创建下单交易订单
+     *
+     */
+    void confirmCreateTradeOrder(CreateTradeOrderDTO dto);
     /**
      * 创建预支付信息
      *

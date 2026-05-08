@@ -8,4 +8,8 @@ public class PayMqGroupName {
 
     public static final String WALLET_RECHARGE_GROUP = "WALLET_RECHARGE_GROUP";
 
+    public static final String CREATE_TRADE_ORDER_GROUP = "CREATE_TRADE_ORDER_GROUP";
+
+
+
 }

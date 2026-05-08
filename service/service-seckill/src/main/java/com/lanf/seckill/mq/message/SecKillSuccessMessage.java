@@ -9,7 +9,7 @@ public class SecKillSuccessMessage implements Serializable {
 
     private Long userId;
 
-    private Long secKillId;
+    private Long secKillItemId;
 
     private String orderNumber;
 

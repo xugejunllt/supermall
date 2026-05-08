@@ -17,4 +17,13 @@ public class OrderClientTopicName {
      * 取消订单事件
      */
     public static final String ORDER_CANCEL_EVENT_TOPIC = "ORDER_CANCEL_EVENT_TOPIC";
+    /**
+     * 秒杀下单 订单创建成功事件
+     */
+    public static final String SEC_KILL_PLANE_CREATE_ORDER_SUCCESS_EVENT_TOPIC = "SEC_KILL_PLANE_CREATE_ORDER_SUCCESS_EVENT_TOPIC";
+    /**
+     * 秒杀订单确认成功
+     */
+    public static final String SEC_KILL_ORDER_CONFIRM_TOPIC = "SEC_KILL_ORDER_CONFIRM_TOPIC";
+
 }
