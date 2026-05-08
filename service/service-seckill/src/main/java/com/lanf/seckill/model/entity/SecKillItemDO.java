@@ -63,6 +63,20 @@ private static final long serialVersionUID=1L;
     private Integer soldStock;
 
     private Long merchantId;
+    /**
+     *
+     */
+    @ApiModelProperty(value = "商品名称")
+    private String goodsName;
+
+    @ApiModelProperty(value = "skuId")
+    private Long skuId;
+
+    //商品版本
+    private Long goodsVersion;
+    //sku 版本
+    private Long skuVersion;
+
 
 
 

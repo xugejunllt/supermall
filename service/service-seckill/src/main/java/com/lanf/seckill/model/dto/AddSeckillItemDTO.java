@@ -45,6 +45,15 @@ public class AddSeckillItemDTO implements Serializable {
 
     @ApiModelProperty(value = "每人限购数量")
     private Integer limitPerUser;
+    @ApiModelProperty(value = "商品名称")
+    private String goodsName;
 
+    @ApiModelProperty(value = "skuId")
+    private Long skuId;
+
+    //商品版本
+    private Long goodsVersion;
+    //sku 版本
+    private Long skuVersion;
 
 }

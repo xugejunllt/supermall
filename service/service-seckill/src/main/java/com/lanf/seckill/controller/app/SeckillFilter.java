@@ -1,4 +1,4 @@
-package com.lanf.seckill.place;
+package com.lanf.seckill.controller.app;
 
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.IStringUtils;
@@ -27,6 +27,9 @@ import java.util.List;
 
 import static com.lanf.seckill.service.impl.SecKillActivityServiceImpl.SECKILL_TOKEN_KEY_PRX;
 
+/**
+ * 秒杀下单
+ */
 @Slf4j
 @Component
 public class SeckillFilter implements Filter {

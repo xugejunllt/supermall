@@ -2,7 +2,9 @@ package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.order.model.enums.OrderProcessStepEnum;
 import com.lanf.order.model.enums.OrderStatusEnum;
+import com.lanf.order.model.enums.OrderTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -51,6 +53,21 @@ public class OrderDO extends BaseEntity {
     private String takeAddress;
     @ApiModelProperty(value = "0:待付款, 1:待出库 2：已出库 3：已发货，4：已完成，5：已取消 6.已关闭")
     private OrderStatusEnum status;
+
+    /**
+     * 订单类型 0：普通订单 ,1:秒杀单
+     */
+    private OrderTypeEnum orderType;
+    /***
+     * order_process_steps  当秒杀单时有值
+     * 0：订单创建成功
+     * 1：交易单创建成功
+     * 2：库存扣减成功
+     * 3：库存扣减失败
+     */
+    private OrderProcessStepEnum orderProcessSteps;
+
+
 
     /**
      * 0：正常,1: 冻结状态 用于分布式事务try阶段更新，

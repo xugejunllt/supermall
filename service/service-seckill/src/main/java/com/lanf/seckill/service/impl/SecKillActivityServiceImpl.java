@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.lanf.seckill.place.SeckillFilter.USER_PARTICIPATED_KEY_PRX;
+import static com.lanf.seckill.controller.app.SeckillFilter.USER_PARTICIPATED_KEY_PRX;
 
 /**
  * <p>
@@ -183,6 +183,10 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         //默认下架状态
         seckillItemDO.setShelfStatus(0);
         seckillItemDO.setMerchantId(null);
+        seckillItemDO.setGoodsName(dto.getGoodsName());
+        seckillItemDO.setSkuId(dto.getSkuId());
+        seckillItemDO.setGoodsVersion(dto.getGoodsVersion());
+        seckillItemDO.setSkuVersion(dto.getSkuVersion());
         boolean operation = tccOperationService.confirmOperation(buidSeckillItemKey(dto.getOrderNumber()));
         if (!operation) {
             log.info("已执行");

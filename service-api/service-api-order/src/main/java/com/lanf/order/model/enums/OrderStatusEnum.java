@@ -13,6 +13,13 @@ import java.util.Set;
 @Getter
 public enum OrderStatusEnum {
 
+    /**
+     * 用于秒杀场景
+     * 当订定创建成功 交易单、库存还在扣减时
+     * 当所有单完成后 -1 --> 0
+     * 该状态 不允许用户查询出来
+     */
+    WAIT_CONFIRM(-1, "待确认"),
     WAIT_PAY(0, "待付款"),
     PAID(1, "已付款"),
     /**
