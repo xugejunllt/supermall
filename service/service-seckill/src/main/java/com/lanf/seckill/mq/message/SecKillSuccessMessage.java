@@ -13,4 +13,6 @@ public class SecKillSuccessMessage implements Serializable {
 
     private String orderNumber;
 
+    private Integer itemQuantity;
+
 }
