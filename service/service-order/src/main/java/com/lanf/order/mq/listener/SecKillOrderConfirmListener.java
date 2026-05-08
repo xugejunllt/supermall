@@ -1,16 +1,21 @@
 package com.lanf.order.mq.listener;
 
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.order.model.dto.CancelOrderDTO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.enums.OrderProcessStepEnum;
 import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.mq.message.SecKillOrderConfirmMessage;
+import com.lanf.order.mq.message.SecKillOrderCreatedMessage;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IOrderStatusTraceService;
+import com.lanf.order.service.OrderManagerService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
+import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -32,6 +37,11 @@ public class SecKillOrderConfirmListener implements RocketMQListener<SecKillOrde
     private IOrderService orderService;
     @Autowired
     private IOrderStatusTraceService orderStatusTraceService;
+    @Autowired
+    private OrderManagerService orderManagerService;
+    @Autowired
+    private RocketMqClient rocketMqClient;
+
 
     @Transactional
     @Override
@@ -53,7 +63,10 @@ public class SecKillOrderConfirmListener implements RocketMQListener<SecKillOrde
         OrderProcessStepEnum orderProcessStep = message.getOrderProcessStep();
         if (OrderProcessStepEnum.STOCK_DEDUCT_FAILED.equals(orderProcessStep)) { 
             log.info("库存扣减失败,取消订单");
-            z
+            CancelOrderDTO dto = new CancelOrderDTO();
+            dto.setOrderId(one.getId());
+            dto.setRemark("秒杀订单扣减库存失败");
+            orderManagerService.cancelOrder(dto);
             return;
         }
         
@@ -70,6 +83,10 @@ public class SecKillOrderConfirmListener implements RocketMQListener<SecKillOrde
         if (stepSet.containsAll(OrderProcessStepEnum.getConfirmSuccessSet())) {
             log.info("订单确认成功，所有步骤已完成: orderNumber={}", orderNumber);
 
+            SecKillOrderCreatedMessage message1 = new SecKillOrderCreatedMessage();
+            message1.setOrderNumber(orderNumber);
+            message1.setResult(true);
+
             boolean update = orderService.lambdaUpdate()
                     .eq(BaseEntity::getId, one.getId())
                     .eq(OrderDO::getVersion, one.getVersion())
@@ -85,9 +102,10 @@ public class SecKillOrderConfirmListener implements RocketMQListener<SecKillOrde
                     OrderStatusEnum.WAIT_CONFIRM, OrderStatusEnum.WAIT_PAY,"秒杀单确认成功");
 
             /**
-             * 发送消息通知
+             * 发送消息通知 秒杀服务
              */
-
+            rocketMqClient.sendMessage(OrderClientTopicName.SEC_KILL_ORDER_CREATED_TOPIC,
+                    JsonUtils.toJsonString(message1));
         } else {
 
             log.info("订单确认中，等待其他步骤完成: orderNumber={}", orderNumber);

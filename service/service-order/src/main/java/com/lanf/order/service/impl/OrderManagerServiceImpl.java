@@ -583,7 +583,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         //查询订单 关联的skuId
         List<Long> skuIdList = orderService.querySkuIdsByOrderId(dto.getOrderId());
 
-         z
+        CancelOrderEventMessage cancelOrderEventMessage = new CancelOrderEventMessage();
+        cancelOrderEventMessage.setOrderId(dto.getOrderId());
+        cancelOrderEventMessage.setSkuIdList(skuIdList);
+
         boolean update = orderService.lambdaUpdate()
                 .eq(OrderDO::getId, orderDO.getId())
                 .eq(OrderDO::getStatus, orderDO.getStatus())
@@ -600,10 +603,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         /**
          * 发送mq消息
          */
-
-        CancelOrderEventMessage cancelOrderEventMessage = new CancelOrderEventMessage();
-        cancelOrderEventMessage.setOrderId(dto.getOrderId());
-        cancelOrderEventMessage.setSkuIdList(skuIdList);
         rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CANCEL_EVENT_TOPIC, JsonUtils.toJsonString(cancelOrderEventMessage));
     }
 

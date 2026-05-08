@@ -25,5 +25,8 @@ public class OrderClientTopicName {
      * 秒杀订单确认成功
      */
     public static final String SEC_KILL_ORDER_CONFIRM_TOPIC = "SEC_KILL_ORDER_CONFIRM_TOPIC";
-
+    /**
+     * 秒杀订单创建成功通知 秒杀服务
+     */
+    public static final String SEC_KILL_ORDER_CREATED_TOPIC = "SEC_KILL_ORDER_CREATED_TOPIC";
 }
