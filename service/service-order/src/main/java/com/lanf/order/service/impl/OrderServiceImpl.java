@@ -132,9 +132,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         if (orderDO == null) {
             throw new BizException("订单不存在");
         }
-        if (FrozenStatusEnum.FROZEN.getCode().equals(orderDO.getFrozen())) {
-            throw new BizException("订单已冻结");
-        }
+
         if (!OrderStatusEnum.isCancelable(orderDO.getStatus().getCode())) {
             log.error("订单状态异常status:[{}]", orderDO.getStatus());
             throw new BizException("订单状态异常");

@@ -9,6 +9,7 @@ import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.mq.message.SecKillOrderConfirmMessage;
 import com.lanf.order.service.IOrderService;
+import com.lanf.order.service.IOrderStatusTraceService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -29,6 +30,8 @@ public class SecKillOrderConfirmListener implements RocketMQListener<SecKillOrde
 
     @Autowired
     private IOrderService orderService;
+    @Autowired
+    private IOrderStatusTraceService orderStatusTraceService;
 
     @Transactional
     @Override
@@ -60,17 +63,35 @@ public class SecKillOrderConfirmListener implements RocketMQListener<SecKillOrde
                 .map(Integer::parseInt)
                 .collect(Collectors.toSet());
         stepSet.add(orderProcessStep.getCode());
-
+        String updatedSteps = stepSet.stream()
+                .map(String::valueOf)  // 将 Integer 转换为 String
+                .sorted()               // 排序（保证顺序一致，如 "0,1,2"）
+                .collect(Collectors.joining(",")); // 用逗号连接
         if (stepSet.containsAll(OrderProcessStepEnum.getConfirmSuccessSet())) {
             log.info("订单确认成功，所有步骤已完成: orderNumber={}", orderNumber);
-            z
+
+            boolean update = orderService.lambdaUpdate()
+                    .eq(BaseEntity::getId, one.getId())
+                    .eq(OrderDO::getVersion, one.getVersion())
+                    .set(OrderDO::getOrderProcessSteps, updatedSteps)
+                    .set(OrderDO::getStatus, OrderStatusEnum.WAIT_PAY)
+                    .set(OrderDO::getVersion, one.getVersion() + 1)
+                    .update();
+            if (!update) {
+                log.warn("订单状态更新异常");
+                throw new MessageRetryConsumeException("订单状态更新异常");
+            }
+            orderStatusTraceService.addOrderStatusTrace(one.getId(),
+                    OrderStatusEnum.WAIT_CONFIRM, OrderStatusEnum.WAIT_PAY,"秒杀单确认成功");
+
+            /**
+             * 发送消息通知
+             */
+
         } else {
 
             log.info("订单确认中，等待其他步骤完成: orderNumber={}", orderNumber);
-            String updatedSteps = stepSet.stream()
-                    .map(String::valueOf)  // 将 Integer 转换为 String
-                    .sorted()               // 排序（保证顺序一致，如 "0,1,2"）
-                    .collect(Collectors.joining(",")); // 用逗号连接
+
             boolean update = orderService.lambdaUpdate()
                     .eq(BaseEntity::getId, one.getId())
                     .eq(OrderDO::getVersion, one.getVersion())

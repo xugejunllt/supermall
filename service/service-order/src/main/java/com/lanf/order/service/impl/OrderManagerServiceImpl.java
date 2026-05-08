@@ -569,7 +569,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         OrderManagerService bean = BeanUtil.getBean(OrderManagerService.class);
         bean.doCancelOrder( cancelOrderBO);
     }
-    @HmilyTCC(confirmMethod = "confirmCancelOrder", cancelMethod = "cancelCancelOrder")
+
+
     @Override
     public void doCancelOrder(CancelOrderBO dto) {
 

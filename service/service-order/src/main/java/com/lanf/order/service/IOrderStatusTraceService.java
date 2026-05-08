@@ -16,4 +16,6 @@ public interface IOrderStatusTraceService extends IService<OrderStatusTraceDO> {
 
 
     void addOrderStatusTrace(Long orderId, OrderStatusEnum fromStatus, OrderStatusEnum toStatus);
+
+    void addOrderStatusTrace(Long orderId, OrderStatusEnum fromStatus, OrderStatusEnum toStatus,String remark);
 }

@@ -38,4 +38,16 @@ public class OrderStatusTraceServiceImpl extends ServiceImpl<OrderStatusTraceMap
 
 
     }
+
+    @Override
+    public void addOrderStatusTrace(Long orderId, OrderStatusEnum fromStatus, OrderStatusEnum toStatus, String remark) {
+        Date date = new Date();
+        OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
+        orderStatusTraceDO.setOrderId(orderId);
+        orderStatusTraceDO.setFromStatus(fromStatus);
+        orderStatusTraceDO.setToStatus(toStatus);
+        orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+        orderStatusTraceDO.setRemark(remark);
+        this.save(orderStatusTraceDO);
+    }
 }

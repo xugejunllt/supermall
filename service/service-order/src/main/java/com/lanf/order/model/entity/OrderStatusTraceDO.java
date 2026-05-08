@@ -37,7 +37,6 @@ private static final long serialVersionUID=1L;
      */
     private String operator;
 
-    @ApiModelProperty(value = "备注信息，例如“7天未评价自动完成”")
     private String remark;
 
 
