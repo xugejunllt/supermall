@@ -8,7 +8,10 @@ import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.client.pay.model.vo.CancelTradeOrderVO;
-import com.lanf.common.utils.*;
+import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.common.utils.IStringUtils;
+import com.lanf.common.utils.IdUtils;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.result.RpcResultParser;
@@ -29,6 +32,8 @@ import com.lanf.order.model.bo.CancelOrderBO;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
 import com.lanf.order.model.dto.*;
+import com.lanf.order.model.entity.OrderDO;
+import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
@@ -36,8 +41,10 @@ import com.lanf.order.model.vo.ValidateCartVO;
 import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.order.service.IOrderService;
+import com.lanf.order.service.IOrderStatusTraceService;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.utils.OrderServiceUtils;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -51,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -76,6 +84,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private RocketMqClient rocketMqClient;
     @Autowired
     private IOrderService orderService;
+    @Autowired
+    private IOrderStatusTraceService orderStatusTraceService;
+
 
     @Override
     public CalculateOrderAmountVO calculateOrderAmount(CalculateOrderAmountDTO dto) {
@@ -555,19 +566,45 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
 
     @DistributedLock(key = "#dto.orderId")
+    @Transactional
     @Override
     public void cancelOrder(CancelOrderDTO dto) {
 
-        String  bizKeySuffix = dto.getOrderId().toString();
-        CancelOrderBO cancelOrderBO = new CancelOrderBO();
-        cancelOrderBO.setOrderId(dto.getOrderId());
-        cancelOrderBO.setBizKeySuffix(bizKeySuffix);
-        cancelOrderBO.setCancelSource(dto.getCancelSource());
+        log.info("cancelOrder[{}]", dto);
+        OrderDO orderDO = orderService.getById(dto.getOrderId());
+        if (orderDO == null) {
+            log.error("订单不存在orderId:[{}]", dto.getOrderId());
+            throw new BizException("订单不存在");
+        }
+        if (!OrderStatusEnum.isCancelable(orderDO.getStatus().getCode())) {
+            log.warn("订单状态异常status:[{}]", orderDO.getStatus());
+            throw new BizException("订单状态异常");
+        }
+        //查询订单 关联的skuId
+        List<Long> skuIdList = orderService.querySkuIdsByOrderId(dto.getOrderId());
+
+         z
+        boolean update = orderService.lambdaUpdate()
+                .eq(OrderDO::getId, orderDO.getId())
+                .eq(OrderDO::getStatus, orderDO.getStatus())
+                .eq(OrderDO::getVersion, orderDO.getVersion())
+                .set(OrderDO::getStatus, OrderStatusEnum.CANCELLED)
+                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.warn("订单状态更新异常");
+            throw new MessageRetryConsumeException("订单状态更新异常");
+        }
+        orderStatusTraceService.addOrderStatusTrace(orderDO.getId(),
+                orderDO.getStatus(), OrderStatusEnum.CANCELLED, dto.getRemark());
         /**
-         * 通过被代理后的对象去执行
+         * 发送mq消息
          */
-        OrderManagerService bean = BeanUtil.getBean(OrderManagerService.class);
-        bean.doCancelOrder( cancelOrderBO);
+
+        CancelOrderEventMessage cancelOrderEventMessage = new CancelOrderEventMessage();
+        cancelOrderEventMessage.setOrderId(dto.getOrderId());
+        cancelOrderEventMessage.setSkuIdList(skuIdList);
+        rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CANCEL_EVENT_TOPIC, JsonUtils.toJsonString(cancelOrderEventMessage));
     }
 
 
@@ -583,15 +620,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          * 取消订单
          */
         orderService.cancelOrder(dto);
-        /**
-         * 发送mq消息
-         */
-        //查询订单 关联的skuId
-        List<Long> skuIdList = orderService.querySkuIdsByOrderId(dto.getOrderId());
-        CancelOrderEventMessage cancelOrderEventMessage = new CancelOrderEventMessage();
-        cancelOrderEventMessage.setOrderId(dto.getOrderId());
-        cancelOrderEventMessage.setSkuIdList(skuIdList);
-        rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CANCEL_EVENT_TOPIC, JsonUtils.toJsonString(cancelOrderEventMessage));
+
     }
 
     private CancelTradeOrderVO  cancelTradeOrder(CancelOrderBO dto, String  bizKeySuffix){

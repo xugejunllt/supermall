@@ -52,7 +52,8 @@ public enum OrderStatusEnum {
 
     private static final Set<Integer> CANCELABLE_STATUS_SET = new HashSet<>(Arrays.asList(
             WAIT_PAY.code,
-            PAID.code
+            PAID.code,
+            WAIT_CONFIRM.code
     ));
 
 

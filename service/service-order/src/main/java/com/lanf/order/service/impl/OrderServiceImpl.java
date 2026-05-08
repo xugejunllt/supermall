@@ -127,37 +127,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Override
     public void cancelOrder(CancelOrderBO dto) {
 
-        log.info("cancelOrder[{}]", dto);
-        OrderDO orderDO = this.getById(dto.getOrderId());
-        if (orderDO == null) {
-            throw new BizException("订单不存在");
-        }
 
-        if (!OrderStatusEnum.isCancelable(orderDO.getStatus().getCode())) {
-            log.error("订单状态异常status:[{}]", orderDO.getStatus());
-            throw new BizException("订单状态异常");
-        }
-        /**
-         * DB操作
-         *
-         */
-        String bizKey = buildCancelOrderBizKey(dto.getBizKeySuffix());
-        CancelOrderOrderStatusBO cancelOrderBO = new CancelOrderOrderStatusBO();
-        cancelOrderBO.setCurrentOrderStatus(orderDO.getStatus());
-        tccOperationService.tryOperation(bizKey, JsonUtils.toJsonString(cancelOrderBO));
-        boolean update = this.lambdaUpdate()
-                .eq(OrderDO::getId, orderDO.getId())
-                .eq(OrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
-                .eq(OrderDO::getStatus, orderDO.getStatus())
-                .eq(OrderDO::getVersion, orderDO.getVersion())
-                .set(OrderDO::getStatus, OrderStatusEnum.CANCELLED)
-                .set(OrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
-                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
-                .update();
-        if (!update) {
-            log.error("订单状态更新异常");
-            throw new BizException("订单状态更新异常");
-        }
 
     }
 

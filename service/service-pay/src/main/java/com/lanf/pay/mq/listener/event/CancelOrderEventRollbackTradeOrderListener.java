@@ -2,12 +2,13 @@ package com.lanf.pay.mq.listener.event;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.order.mq.constant.OrderClientTopicName;
+import com.lanf.pay.model.bo.CancelPayOrderContext;
 import com.lanf.pay.model.entity.TradeOrderDO;
-import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.service.pay.IPaymentCancelRecordService;
 import com.lanf.pay.service.pay.IPrepayPayTypeService;
 import com.lanf.pay.service.trade.ITradeOrderService;
-import com.lanf.rocketmq.exception.MessageRetryConsumeException;
+import com.lanf.pay.service.trade.PayMethodHandler;
+import com.lanf.pay.service.trade.PayMethodHandlerFactory;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -20,12 +21,13 @@ import org.springframework.stereotype.Component;
 
 /**
  * 分发多渠道支付方式
+ *
  */
 
 @Slf4j
 @Component
 @RocketMQMessageListener(topic = OrderClientTopicName.ORDER_CANCEL_EVENT_TOPIC, consumerGroup = TopicName.CANCEL_ORDER_EVENT_PAY_GROUP)
-public class CancelOrderEventRollbackPayOrderListener implements RocketMQListener<CancelOrderEventMessage> {
+public class CancelOrderEventRollbackTradeOrderListener implements RocketMQListener<CancelOrderEventMessage> {
 
     @Autowired
     private IPaymentCancelRecordService paymentCancelRecordService;
@@ -37,7 +39,7 @@ public class CancelOrderEventRollbackPayOrderListener implements RocketMQListene
     private RocketMqClient rocketMqClient;
 
     @Override
-    public void onMessage(CancelOrderEventMessage message) {
+    public void onMessage(CancelOrderEventMessage message)  {
         log.info("取消订单事件回滚三方支付订单开始:[{{}}]", JsonUtils.toJsonString(message));
 
         Long orderId = message.getOrderId();
@@ -47,19 +49,15 @@ public class CancelOrderEventRollbackPayOrderListener implements RocketMQListene
             log.error("交易单不存在");
             return;
         }
-        boolean update = tradeOrderService.lambdaUpdate()
-                .eq(TradeOrderDO::getId, tradeOrderDO.getId())
-                .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
-                .set(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.CANCELLED.getCode())
-                .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
-                .update();
-        if (!update) {
-            log.warn("更新交易单失败");
-            throw new MessageRetryConsumeException("更新交易单失败");
-        }
+
+
 
 
     }
+
+
+
+
 
 
 }

@@ -8,6 +8,7 @@ import com.lanf.goods.model.entity.UserStockFlowDO;
 import com.lanf.goods.model.enums.StockFlowEventTypeEnum;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockFlowService;
+import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,8 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@RocketMQMessageListener(topic = TopicName.CANCEL_ORDER_EVENT_TOPIC, consumerGroup = TopicName.CANCEL_ORDER_EVENT_GOODS_GROUP)
+@RocketMQMessageListener(topic = OrderClientTopicName.ORDER_CANCEL_EVENT_TOPIC,
+        consumerGroup = TopicName.CANCEL_ORDER_EVENT_GOODS_GROUP)
 public class CancelOrderEventRollbackStockListener implements RocketMQListener<CancelOrderEventMessage> {
 
     @Autowired

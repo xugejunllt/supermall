@@ -2,6 +2,7 @@ package com.lanf.welfare.mq;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.welfare.model.entity.CouponDO;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@RocketMQMessageListener(topic = TopicName.CANCEL_ORDER_EVENT_TOPIC, consumerGroup = TopicName.CANCEL_ORDER_EVENT_WELFARE_GROUP)
+@RocketMQMessageListener(topic = OrderClientTopicName.ORDER_CANCEL_EVENT_TOPIC, consumerGroup = TopicName.CANCEL_ORDER_EVENT_WELFARE_GROUP)
 public class CancelOrderEventRollbackCouponListener implements RocketMQListener<CancelOrderEventMessage> {
 
     @Autowired
