@@ -14,8 +14,8 @@ import lombok.Data;
  * @since 2026-05-07
  */
 @Data
-@TableName("seckill_order")
-public class SeckillOrderDO extends BaseEntity {
+@TableName("sec_kill_order")
+public class SecKillOrderDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 

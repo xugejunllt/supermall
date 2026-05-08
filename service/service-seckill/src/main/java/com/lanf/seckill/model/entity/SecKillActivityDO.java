@@ -17,8 +17,8 @@ import java.util.Date;
  * @since 2026-05-07
  */
 @Data
-@TableName("seckill_activity")
-public class SeckillActivityDO extends BaseEntity {
+@TableName("sec_kill_activity")
+public class SecKillActivityDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 

@@ -7,7 +7,7 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.seckill.config.SeckillUrlConfig;
 import com.lanf.seckill.model.dto.PlaceDTO;
-import com.lanf.seckill.service.ISeckillActivityService;
+import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.security.utils.JwtUtils;
 import com.lanf.web.utils.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
-import static com.lanf.seckill.service.impl.SeckillActivityServiceImpl.SECKILL_TOKEN_KEY_PRX;
+import static com.lanf.seckill.service.impl.SecKillActivityServiceImpl.SECKILL_TOKEN_KEY_PRX;
 
 @Slf4j
 @Component
@@ -37,7 +37,7 @@ public class SeckillFilter implements Filter {
     @Autowired
     private RedissonCacheService redissonCacheService;
     @Autowired
-    private ISeckillActivityService seckillActivityService;
+    private ISecKillActivityService seckillActivityService;
 
     @Qualifier("seckillQueryExecutor")
     @Autowired

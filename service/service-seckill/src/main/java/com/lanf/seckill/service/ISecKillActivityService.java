@@ -2,7 +2,7 @@ package com.lanf.seckill.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.seckill.model.dto.*;
-import com.lanf.seckill.model.entity.SeckillActivityDO;
+import com.lanf.seckill.model.entity.SecKillActivityDO;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
@@ -17,7 +17,7 @@ import java.util.List;
  * @author jarven
  * @since 2026-05-07
  */
-public interface ISeckillActivityService extends IService<SeckillActivityDO> {
+public interface ISecKillActivityService extends IService<SecKillActivityDO> {
 
     /**
      * 添加秒杀活动

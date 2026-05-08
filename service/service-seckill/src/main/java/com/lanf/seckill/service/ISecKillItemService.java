@@ -1,7 +1,7 @@
 package com.lanf.seckill.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.seckill.model.entity.SeckillItemDO;
+import com.lanf.seckill.model.entity.SecKillItemDO;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.lanf.seckill.model.entity.SeckillItemDO;
  * @author jarven
  * @since 2026-05-07
  */
-public interface ISeckillItemService extends IService<SeckillItemDO> {
+public interface ISecKillItemService extends IService<SecKillItemDO> {
 
 }

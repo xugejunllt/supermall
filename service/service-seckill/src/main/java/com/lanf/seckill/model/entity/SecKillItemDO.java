@@ -16,8 +16,8 @@ import java.math.BigDecimal;
  * @since 2026-05-07
  */
 @Data
-@TableName("seckill_item")
-public class SeckillItemDO extends BaseEntity {
+@TableName("sec_kill_item")
+public class SecKillItemDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 

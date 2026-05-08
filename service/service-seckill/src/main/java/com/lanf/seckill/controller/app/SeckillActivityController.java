@@ -6,7 +6,7 @@ import com.lanf.seckill.model.dto.GetSeckillTokenDTO;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
-import com.lanf.seckill.service.ISeckillActivityService;
+import com.lanf.seckill.service.ISecKillActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +27,7 @@ public class SeckillActivityController {
 
 
     @Autowired
-    private ISeckillActivityService seckillActivityService;
+    private ISecKillActivityService seckillActivityService;
 
     /**
      *

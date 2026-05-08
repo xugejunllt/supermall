@@ -9,18 +9,18 @@ import com.lanf.constant.result.RpcResultParser;
 import com.lanf.goods.api.GoodsApiService;
 import com.lanf.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.seckill.config.SeckillUrlConfig;
-import com.lanf.seckill.mapper.SeckillActivityMapper;
+import com.lanf.seckill.mapper.SecKillActivityMapper;
 import com.lanf.seckill.model.bo.SeckillItemDetail;
 import com.lanf.seckill.model.bo.SeckillItemList;
 import com.lanf.seckill.model.dto.*;
-import com.lanf.seckill.model.entity.SeckillActivityDO;
-import com.lanf.seckill.model.entity.SeckillItemDO;
+import com.lanf.seckill.model.entity.SecKillActivityDO;
+import com.lanf.seckill.model.entity.SecKillItemDO;
 import com.lanf.seckill.model.enums.SeckillActivityStatusEnum;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
-import com.lanf.seckill.service.ISeckillActivityService;
-import com.lanf.seckill.service.ISeckillItemService;
+import com.lanf.seckill.service.ISecKillActivityService;
+import com.lanf.seckill.service.ISecKillItemService;
 import com.lanf.security.utils.JwtUtils;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.tcc.service.ITccOperationService;
@@ -52,14 +52,14 @@ import static com.lanf.seckill.place.SeckillFilter.USER_PARTICIPATED_KEY_PRX;
  */
 @Slf4j
 @Service
-public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMapper, SeckillActivityDO> implements ISeckillActivityService {
+public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMapper, SecKillActivityDO> implements ISecKillActivityService {
 
     @Autowired
     private GoodsApiService goodsApiService;
     @Autowired
     private ITccOperationService tccOperationService;
     @Autowired
-    private ISeckillItemService seckillItemService;
+    private ISecKillItemService seckillItemService;
     @Autowired
     private RedissonClient redissonClient;
     @Autowired
@@ -111,7 +111,7 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
             throw new BizException("活动结束时间不能早于当前时间");
         }
 
-        SeckillActivityDO seckillActivityDO = new SeckillActivityDO();
+        SecKillActivityDO seckillActivityDO = new SecKillActivityDO();
         seckillActivityDO.setName(dto.getName());
         seckillActivityDO.setStartTime(dto.getStartTime());
         seckillActivityDO.setEndTime(dto.getEndTime());
@@ -127,8 +127,8 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
     public void addAddSeckillItem(AddSeckillItemDTO dto) {
 
         Long activityId = dto.getActivityId();
-        SeckillActivityDO one = this.lambdaQuery()
-                .eq(SeckillActivityDO::getId, activityId)
+        SecKillActivityDO one = this.lambdaQuery()
+                .eq(SecKillActivityDO::getId, activityId)
                 .one();
         if (one == null) {
             tccOperationService.addInterruptedFlag(buidSeckillItemKey(dto.getOrderNumber()),
@@ -163,7 +163,7 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
     @Transactional
     public void confirmAddSeckillItem(AddSeckillItemDTO dto) {
 
-        SeckillItemDO seckillItemDO = new SeckillItemDO();
+        SecKillItemDO seckillItemDO = new SecKillItemDO();
         seckillItemDO.setActivityId(dto.getActivityId());
         seckillItemDO.setItemId(dto.getItemId());
         seckillItemDO.setItemTitle(dto.getItemTitle());
@@ -201,20 +201,20 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
     public void launcherSeckillItem(LauncherSeckillItemDTO itemDTO) {
 
         Long seckillItemId = itemDTO.getSeckillItemId();
-        SeckillItemDO one = seckillItemService.lambdaQuery()
-                .eq(SeckillItemDO::getId, seckillItemId)
+        SecKillItemDO one = seckillItemService.lambdaQuery()
+                .eq(SecKillItemDO::getId, seckillItemId)
                 .one();
         if (one == null) {
             log.error("秒杀商品不存在");
             throw new BizException("商品不存在");
         }
         Long activityId = one.getActivityId();
-        SeckillActivityDO activityDO = this.lambdaQuery().eq(SeckillActivityDO::getId, activityId)
+        SecKillActivityDO activityDO = this.lambdaQuery().eq(SecKillActivityDO::getId, activityId)
                 .one();
 
         boolean update = seckillItemService.lambdaUpdate()
-                .eq(SeckillItemDO::getId, seckillItemId)
-                .set(SeckillItemDO::getShelfStatus, 1)
+                .eq(SecKillItemDO::getId, seckillItemId)
+                .set(SecKillItemDO::getShelfStatus, 1)
                 .update();
         if (!update) {
             log.error("更新失败");
@@ -234,7 +234,7 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
     /**
      * 缓存秒杀商品列表
      */
-    private void cacheSeckillItemList(SeckillItemDO item, SeckillActivityDO activity,
+    private void cacheSeckillItemList(SecKillItemDO item, SecKillActivityDO activity,
                                       Long activityId, long cacheExpireSeconds) {
         SeckillItemList seckillItemList = getSeckillItemList(item, activity);
         String data = JsonUtils.toJsonString(seckillItemList);
@@ -251,7 +251,7 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
     /**
      * 缓存秒杀商品详情
      */
-    private void cacheSeckillItemDetail(SeckillItemDO item, SeckillActivityDO activity,
+    private void cacheSeckillItemDetail(SecKillItemDO item, SecKillActivityDO activity,
                                         Long activityId, long cacheExpireSeconds) {
         SeckillItemDetail detail = getSeckillItemDetail(item, activity);
         String data = JsonUtils.toJsonString(detail);
@@ -268,7 +268,7 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
     /**
      * 缓存秒杀商品库存（只存储在一个节点）
      */
-    private void cacheSeckillItemStock(SeckillItemDO item, Long activityId, long cacheExpireSeconds) {
+    private void cacheSeckillItemStock(SecKillItemDO item, Long activityId, long cacheExpireSeconds) {
 
 
         String stockKey = String.format(SECKILL_ITEM_STOCK_KEY_PRX, item.getId());
@@ -286,7 +286,7 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
                 activityId, item.getId(), totalStock);
     }
 
-    private static SeckillItemList getSeckillItemList(SeckillItemDO one, SeckillActivityDO activityDO) {
+    private static SeckillItemList getSeckillItemList(SecKillItemDO one, SecKillActivityDO activityDO) {
         SeckillItemList seckillItemList = new SeckillItemList();
         seckillItemList.setActivityId(one.getActivityId());
         seckillItemList.setSeckillItemId(one.getId());
@@ -299,7 +299,7 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
         return seckillItemList;
     }
 
-    private static SeckillItemDetail getSeckillItemDetail(SeckillItemDO one, SeckillActivityDO activityDO) {
+    private static SeckillItemDetail getSeckillItemDetail(SecKillItemDO one, SecKillActivityDO activityDO) {
         SeckillItemDetail detail = new SeckillItemDetail();
         detail.setActivityId(one.getActivityId());
         detail.setSeckillItemId(one.getId());

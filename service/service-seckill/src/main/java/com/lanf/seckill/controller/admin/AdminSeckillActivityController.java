@@ -5,7 +5,7 @@ import com.alibaba.nacos.api.model.v2.Result;
 import com.lanf.seckill.model.dto.AddSeckillActivityDTO;
 import com.lanf.seckill.model.dto.AddSeckillItemDTO;
 import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
-import com.lanf.seckill.service.ISeckillActivityService;
+import com.lanf.seckill.service.ISecKillActivityService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/admin/seckillActivity")
 public class AdminSeckillActivityController {
     @Autowired
-    private ISeckillActivityService seckillActivityService;
+    private ISecKillActivityService seckillActivityService;
 
 
     /**

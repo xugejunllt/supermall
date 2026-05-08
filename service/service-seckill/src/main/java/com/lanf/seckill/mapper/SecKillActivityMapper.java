@@ -1,7 +1,7 @@
 package com.lanf.seckill.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lanf.seckill.model.entity.SeckillActivityDO;
+import com.lanf.seckill.model.entity.SecKillActivityDO;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.lanf.seckill.model.entity.SeckillActivityDO;
  * @author jarven
  * @since 2026-05-07
  */
-public interface SeckillActivityMapper extends BaseMapper<SeckillActivityDO> {
+public interface SecKillActivityMapper extends BaseMapper<SecKillActivityDO> {
 
 }
