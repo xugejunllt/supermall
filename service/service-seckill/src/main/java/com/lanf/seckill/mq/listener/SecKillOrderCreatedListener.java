@@ -1,13 +1,16 @@
 package com.lanf.seckill.mq.listener;
 
+import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.message.SecKillOrderCreatedMessage;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.seckill.model.entity.SecKillItemDO;
 import com.lanf.seckill.model.entity.SecKillOrderDO;
 import com.lanf.seckill.model.enums.SecKillOrderStatusEnum;
 import com.lanf.seckill.mq.constant.SecKillMqGroupName;
+import com.lanf.seckill.service.ISecKillItemService;
 import com.lanf.seckill.service.ISecKillOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -29,7 +32,8 @@ public class SecKillOrderCreatedListener implements RocketMQListener<SecKillOrde
     private RocketMqClient rocketMqClient;
     @Autowired
     private ISecKillOrderService secKillOrderService;
-
+    @Autowired
+    private ISecKillItemService secKillItemService;
 
     @Transactional
     @Override
@@ -44,12 +48,32 @@ public class SecKillOrderCreatedListener implements RocketMQListener<SecKillOrde
             return;
         }
         SecKillOrderStatusEnum orderStatus = null;
-        if (message.getResult()) {
+        Boolean result = message.getResult();
+        if (result) {
             orderStatus = SecKillOrderStatusEnum.CREATED;
         } else {
             orderStatus = SecKillOrderStatusEnum.CREATE_FAILED;
         }
 
+        if (result){
+            SecKillItemDO killItemDO = secKillItemService.lambdaQuery()
+                    .eq(SecKillItemDO::getId, oned.getItemId())
+                    .one();
+            if (killItemDO == null) {
+                log.error("秒杀商品不存在");
+                throw new BizException("秒杀商品不存在");
+            }
+            /**
+             * 更新已售库存
+             */
+            secKillItemService.lambdaUpdate()
+                    .eq(SecKillItemDO::getId, killItemDO.getId())
+                    .eq(SecKillItemDO::getVersion, killItemDO.getVersion())
+                    .set(SecKillItemDO::getSoldStock,
+                            killItemDO.getSoldStock() + oned.getItemQuantity())
+                    .set(SecKillItemDO::getVersion, killItemDO.getVersion() + 1)
+                    .update();
+        }
         boolean update = secKillOrderService.lambdaUpdate()
                 .eq(BaseEntity::getId, oned.getId())
                 .eq(SecKillOrderDO::getVersion, oned.getVersion())
@@ -60,6 +84,9 @@ public class SecKillOrderCreatedListener implements RocketMQListener<SecKillOrde
             log.warn("更新秒杀单失败");
             throw new MessageRetryConsumeException("更新秒杀单失败");
         }
+
+
+
 
     }
 

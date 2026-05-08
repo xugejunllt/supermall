@@ -77,7 +77,7 @@ private static final long serialVersionUID=1L;
     //sku 版本
     private Long skuVersion;
 
-
+    private Long version;
 
 
 
