@@ -1,5 +1,6 @@
 package com.lanf.seckill.mq.listener;
 
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.seckill.model.entity.SecKillItemDO;
 import com.lanf.seckill.model.enums.SecKillResultEnum;
 import com.lanf.seckill.model.enums.SeckillModeEnum;
@@ -48,6 +49,10 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
                     SecKillResultEnum.SOLD_OUT);
             return;
         }
+        //秒杀成功
+        AbstractSecKillStrategy strategy = (AbstractSecKillStrategy) secKillStrategyFactory.
+                getStrategy(SeckillModeEnum.MQ_QUEUE.getCode());
+
         boolean updated = secKillItemService.lambdaUpdate()
                 .eq(SecKillItemDO::getId, message.getSecKillItemId())
                 .eq(SecKillItemDO::getVersion, killItemDO.getVersion())
@@ -58,10 +63,12 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
             log.warn("更新秒杀商品失败,秒杀失败");
             secKillResultCache.addResult(message.getUserId(), message.getSecKillItemId(),
                     SecKillResultEnum.SOLD_OUT);
-            return;
+            /**
+             * 进行重试 3次
+             */
+            throw new MessageRetryConsumeException("更新秒杀商品失败,秒杀失败");
         }
-        //秒杀成功
-        AbstractSecKillStrategy strategy = (AbstractSecKillStrategy) secKillStrategyFactory.getStrategy(SeckillModeEnum.MQ_QUEUE.getCode());
+
         strategy.secKillSuccessHandle(message.getUserId(), message.getSecKillItemId());
     }
 }
