@@ -60,6 +60,11 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "总库存（对应Redis预加载数量）")
     private Integer totalStock;
+    /**
+     *剩余库存 当秒杀模式为 MQ排队秒杀，进行扣减；
+     * 初始化时 与totalStock数量一致
+     */
+    private Integer remainingStock;
 
     @ApiModelProperty(value = "每人限购数量")
     private Integer limitPerUser;

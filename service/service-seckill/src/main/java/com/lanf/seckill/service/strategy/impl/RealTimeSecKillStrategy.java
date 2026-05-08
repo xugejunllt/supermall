@@ -1,15 +1,11 @@
 package com.lanf.seckill.service.strategy.impl;
 
 import com.lanf.cache.service.RedissonCacheService;
-import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.model.dto.PlaceDTO;
 import com.lanf.seckill.model.enums.SeckillModeEnum;
-import com.lanf.seckill.mq.constant.SecKillMqTopicName;
-import com.lanf.seckill.mq.message.SecKillSuccessMessage;
-import com.lanf.seckill.service.strategy.SecKillStrategy;
+import com.lanf.seckill.service.strategy.AbstractSecKillStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,7 +16,7 @@ import static com.lanf.seckill.service.impl.SecKillActivityServiceImpl.SECKILL_I
 
 @Slf4j
 @Component
- class RealTimeSecKillStrategy implements SecKillStrategy {
+ class RealTimeSecKillStrategy extends AbstractSecKillStrategy {
 
     @Autowired
     private RedissonCacheService redissonCacheService;
@@ -61,25 +57,11 @@ import static com.lanf.seckill.service.impl.SecKillActivityServiceImpl.SECKILL_I
             throw new BizException("太火爆了，再试一次");
 
         } else {
+
             throw new BizException("商品已售罄");
         }
     }
-    private void secKillSuccessHandle(Long userId, Long secKillItemId) {
-        //秒杀成功
-        try {
-            SecKillSuccessMessage secKillSuccessMessage = new SecKillSuccessMessage();
-            secKillSuccessMessage.setSecKillItemId(secKillItemId);
-            secKillSuccessMessage.setUserId(userId);
-            secKillSuccessMessage.setOrderNumber(CodeGenerateUtils.generateOrderNumber());
-            rocketMqClient.sendMessage( SecKillMqTopicName.SEC_KILL_SUCCESS_TOPIC,
-                    JsonUtils.toJsonString(secKillSuccessMessage));
-        } catch (Exception e) {
-            //打印erro 人工处理
-            log.error("秒杀成功,同步订单消息失败: userId={}, seckillItemId={}",
-                    userId, secKillItemId, e);
 
-        }
-    }
     @Override
     public Integer getSupportedMode() {
         return SeckillModeEnum.REAL_TIME.getCode();

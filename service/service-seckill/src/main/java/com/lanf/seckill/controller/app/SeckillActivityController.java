@@ -3,10 +3,15 @@ package com.lanf.seckill.controller.app;
 
 import com.alibaba.nacos.api.model.v2.Result;
 import com.lanf.seckill.model.dto.GetSeckillTokenDTO;
+import com.lanf.seckill.model.enums.SecKillResultEnum;
+import com.lanf.seckill.model.query.SecKillResultQuery;
+import com.lanf.seckill.model.vo.SecKillResultVO;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
 import com.lanf.seckill.service.ISecKillActivityService;
+import com.lanf.seckill.service.strategy.SecKillResultCache;
+import com.lanf.security.utils.UserIdContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +33,8 @@ public class SeckillActivityController {
 
     @Autowired
     private ISecKillActivityService seckillActivityService;
+    @Autowired
+    private SecKillResultCache secKillResultCache;
 
     /**
      *
@@ -61,5 +68,41 @@ public class SeckillActivityController {
 
         return Result.success(seckillActivityService.getSeckillToken( dto));
     }
+
+    /**
+     * 前端轮训秒杀结果
+     *
+     *
+     */
+    @GetMapping("/querySecKillResult")
+    public Result<SecKillResultVO> querySecKillResult(SecKillResultQuery query) {
+
+        Long userId = UserIdContext.getUserId() ;
+        SecKillResultEnum result = secKillResultCache.getResult(userId, query.getSecKillItemId());
+        /**
+         * 返回友好提示
+         */
+        String message = null;
+        switch ( result){
+
+            case SUCCESS_ORDER_CREATED:
+                 message = "秒杀成功，订单生成完成,请前往订单列表页查询并支付";
+               break;
+            case SUCCESS_ORDER_CREATING:
+                message = "订单生成中,请稍后再试";
+                break;
+            case FAILED:
+                message = "系统繁忙,请联系客服处理";
+                break;
+            case SOLD_OUT:
+                message = "秒杀失败,商品已售空";
+                break;
+
+        }
+        SecKillResultVO vo = new SecKillResultVO();
+        vo.setMessage(message);
+        return Result.success(vo);
+    }
+
 }
 

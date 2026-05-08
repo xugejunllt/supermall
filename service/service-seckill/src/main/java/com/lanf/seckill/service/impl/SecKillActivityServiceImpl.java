@@ -194,6 +194,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         seckillItemDO.setGoodsVersion(dto.getGoodsVersion());
         seckillItemDO.setSkuVersion(dto.getSkuVersion());
         seckillItemDO.setSecKillMode(dto.getSecKillMode());
+        seckillItemDO.setRemainingStock(dto.getTotalStock());
         boolean operation = tccOperationService.confirmOperation(buidSeckillItemKey(dto.getOrderNumber()));
         if (!operation) {
             log.info("已执行");

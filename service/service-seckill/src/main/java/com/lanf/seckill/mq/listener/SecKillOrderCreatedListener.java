@@ -9,9 +9,11 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.model.entity.SecKillItemDO;
 import com.lanf.seckill.model.entity.SecKillOrderDO;
 import com.lanf.seckill.model.enums.SecKillOrderStatusEnum;
+import com.lanf.seckill.model.enums.SecKillResultEnum;
 import com.lanf.seckill.mq.constant.SecKillMqGroupName;
 import com.lanf.seckill.service.ISecKillItemService;
 import com.lanf.seckill.service.ISecKillOrderService;
+import com.lanf.seckill.service.strategy.SecKillResultCache;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -34,7 +36,8 @@ public class SecKillOrderCreatedListener implements RocketMQListener<SecKillOrde
     private ISecKillOrderService secKillOrderService;
     @Autowired
     private ISecKillItemService secKillItemService;
-
+    @Autowired
+    private SecKillResultCache secKillResultCache;
     @Transactional
     @Override
     public void onMessage(SecKillOrderCreatedMessage message) {
@@ -88,7 +91,13 @@ public class SecKillOrderCreatedListener implements RocketMQListener<SecKillOrde
             log.warn("更新秒杀单失败");
             throw new MessageRetryConsumeException("更新秒杀单失败");
         }
-
+        if (result){
+            secKillResultCache.addResult(oned.getUserId(), oned.getItemId(),
+                    SecKillResultEnum.SUCCESS_ORDER_CREATED);
+        } else {
+            secKillResultCache.addResult(oned.getUserId(), oned.getItemId(),
+                    SecKillResultEnum.FAILED);
+        }
 
 
 

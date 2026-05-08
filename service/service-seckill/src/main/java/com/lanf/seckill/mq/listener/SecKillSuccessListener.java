@@ -5,11 +5,13 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.model.entity.SecKillItemDO;
 import com.lanf.seckill.model.entity.SecKillOrderDO;
 import com.lanf.seckill.model.enums.SecKillOrderStatusEnum;
+import com.lanf.seckill.model.enums.SecKillResultEnum;
 import com.lanf.seckill.mq.constant.SecKillMqGroupName;
 import com.lanf.seckill.mq.constant.SecKillMqTopicName;
 import com.lanf.seckill.mq.message.SecKillSuccessMessage;
 import com.lanf.seckill.service.ISecKillItemService;
 import com.lanf.seckill.service.ISecKillOrderService;
+import com.lanf.seckill.service.strategy.SecKillResultCache;
 import com.lanf.welfare.mq.constant.SecKillClientTopicName;
 import com.lanf.welfare.mq.message.SecKillPlaneMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +36,8 @@ public class SecKillSuccessListener implements RocketMQListener<SecKillSuccessMe
     private ISecKillOrderService secKillOrderService;
     @Autowired
     private RocketMqClient rocketMqClient;
-
+    @Autowired
+    private SecKillResultCache secKillResultCache;;
     @Transactional
     @Override
     public void onMessage(SecKillSuccessMessage message) {
