@@ -2,6 +2,7 @@ package com.lanf.seckill.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.seckill.model.enums.SeckillModeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -26,6 +27,10 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "原始商品ID（关联基础商品库）")
     private Long itemId;
+    /**
+     * 秒杀模式 0：实时秒杀，1：MQ排队秒杀
+     */
+    private SeckillModeEnum secKillMode;
 
     @ApiModelProperty(value = "商品标题（可冗余）")
     private String itemTitle;

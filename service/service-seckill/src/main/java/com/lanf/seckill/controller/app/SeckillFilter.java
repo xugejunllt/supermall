@@ -7,13 +7,13 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.seckill.config.SeckillUrlConfig;
 import com.lanf.seckill.model.dto.PlaceDTO;
-import com.lanf.seckill.service.ISecKillActivityService;
+import com.lanf.seckill.service.strategy.SecKillStrategy;
+import com.lanf.seckill.service.strategy.SecKillStrategyFactory;
 import com.lanf.security.utils.JwtUtils;
 import com.lanf.web.utils.ResponseUtil;
+import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
@@ -39,17 +39,9 @@ public class SeckillFilter implements Filter {
 
     @Autowired
     private RedissonCacheService redissonCacheService;
-    @Autowired
-    private ISecKillActivityService seckillActivityService;
 
-    @Qualifier("seckillQueryExecutor")
     @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
-    /**
-     * 用户参与秒杀的缓存 key 前缀
-     * 格式: seckill:user:participated:{userId}:{seckillItemId}
-     */
-    public static final String USER_PARTICIPATED_KEY_PRX = "seckill:user:participated:%s:%s";
+    private SecKillStrategyFactory secKillStrategyFactory;
 
     private final PathMatcher pathMatcher = new AntPathMatcher();
 
@@ -101,16 +93,25 @@ public class SeckillFilter implements Filter {
             return;
         }
         String token = object.getToken();
-        Long userId1 = object.getUserId();
+        Long userId = object.getUserId();
+        Long skillItemId = object.getSeckillItemId();
 
-        Long skillItemId1 = object.getSeckillItemId();
-        Long userId = null;
-        Long skillItemId = null;
+        if (userId == null || skillItemId == null || IStringUtils.isEmpty(token)){
+            ResponseUtil.out(response, Result.fail("系统繁忙，请重试"));
+            return;
+        }
+        Integer secKillModel = null;
         try {
             //校验token是否合法
-            userId = JwtUtils.parseUserId(token);
-            skillItemId = Long.valueOf(JwtUtils.parseDeviceId(token));
-            if (!userId1.equals(userId) || !skillItemId1.equals(skillItemId) ) {
+
+            Claims claims = JwtUtils.getClaims(token);
+            Long jwtUserId =  claims.get(JwtUtils.CLAIM_USER_ID,Long.class);
+            Long jwtSkillItemId =  claims.get(JwtUtils.CLAIM_SEC_KILL_ITEM_ID,Long.class);
+            secKillModel = claims.get(JwtUtils.CLAIM_SEC_KILL_MODE,Integer.class);
+
+            if ( !userId.equals(jwtUserId) ||
+                    !skillItemId.equals(jwtSkillItemId)
+                 || secKillModel == null) {
                 ResponseUtil.out(response, Result.fail(100004, "系统繁忙，请重试"));
                 return;
             }
@@ -134,8 +135,8 @@ public class SeckillFilter implements Filter {
          * 开始进行秒杀
          */
         try {
-
-            seckillActivityService.skillPlace(object);
+            SecKillStrategy strategy = secKillStrategyFactory.getStrategy(secKillModel);
+            strategy.executeSecKill(object);
             ResponseUtil.out(response, Result.ok());
 
         } catch (BizException e) {

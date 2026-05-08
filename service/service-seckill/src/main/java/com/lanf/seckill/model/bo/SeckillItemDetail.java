@@ -1,6 +1,7 @@
 package com.lanf.seckill.model.bo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.lanf.seckill.model.enums.SeckillModeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -13,6 +14,8 @@ import java.util.Date;
  */
 @Data
 public class SeckillItemDetail implements Serializable {
+
+    private SeckillModeEnum secKillMode;
 
     @ApiModelProperty(value = "所属活动ID")
     private Long activityId;

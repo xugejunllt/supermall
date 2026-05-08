@@ -2,7 +2,6 @@ package com.lanf.seckill.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.cache.service.RedissonCacheService;
-import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
@@ -14,15 +13,16 @@ import com.lanf.seckill.config.SeckillUrlConfig;
 import com.lanf.seckill.mapper.SecKillActivityMapper;
 import com.lanf.seckill.model.bo.SeckillItemDetail;
 import com.lanf.seckill.model.bo.SeckillItemList;
-import com.lanf.seckill.model.dto.*;
+import com.lanf.seckill.model.dto.AddSeckillActivityDTO;
+import com.lanf.seckill.model.dto.AddSeckillItemDTO;
+import com.lanf.seckill.model.dto.GetSeckillTokenDTO;
+import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
 import com.lanf.seckill.model.entity.SecKillActivityDO;
 import com.lanf.seckill.model.entity.SecKillItemDO;
 import com.lanf.seckill.model.enums.SeckillActivityStatusEnum;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
-import com.lanf.seckill.mq.constant.SecKillMqTopicName;
-import com.lanf.seckill.mq.message.SecKillSuccessMessage;
 import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.seckill.service.ISecKillItemService;
 import com.lanf.security.utils.JwtUtils;
@@ -43,8 +43,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-
-import static com.lanf.seckill.controller.app.SeckillFilter.USER_PARTICIPATED_KEY_PRX;
 
 /**
  * <p>
@@ -93,7 +91,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
     /**
      * 缓存商品库存
      */
-    private static final String SECKILL_ITEM_STOCK_KEY_PRX = "seckill:item:stock:%s";
+    public static final String SECKILL_ITEM_STOCK_KEY_PRX = "seckill:item:stock:%s";
     /**
      * Redis 查询超时时间（毫秒）
      */
@@ -195,6 +193,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         seckillItemDO.setSkuId(dto.getSkuId());
         seckillItemDO.setGoodsVersion(dto.getGoodsVersion());
         seckillItemDO.setSkuVersion(dto.getSkuVersion());
+        seckillItemDO.setSecKillMode(dto.getSecKillMode());
         boolean operation = tccOperationService.confirmOperation(buidSeckillItemKey(dto.getOrderNumber()));
         if (!operation) {
             log.info("已执行");
@@ -322,6 +321,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         detail.setAttributes(one.getAttributes());
         detail.setOriginalPrice(one.getOriginalPrice());
         detail.setSeckillPrice(one.getSeckillPrice());
+        detail.setSecKillMode(one.getSecKillMode());
         return detail;
     }
 
@@ -497,6 +497,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         vo.setAttributes(detail.getAttributes());
         vo.setOriginalPrice(detail.getOriginalPrice());
         vo.setSeckillPrice(detail.getSeckillPrice());
+        vo.setSecKillMode(detail.getSecKillMode());
 
 
         return vo;
@@ -545,7 +546,9 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
          */
         //暂时写死 默认取第一个
         SeckillUrlConfig.UrlMapping urlMapping = seckillUrlConfig.getUrlMappings().get(0);
-        String skillToken = JwtUtils.createUserToken(userId, seckillItemId.toString(), 1);
+
+        String skillToken = JwtUtils.createSecKillToken(userId, seckillItemId,
+                seckillItemDetail.getSecKillMode().getCode(), 1);
         String tokenKey = String.format(SECKILL_TOKEN_KEY_PRX, userId, seckillItemId);
         redissonCacheService.set(tokenKey, skillToken, 1, TimeUnit.MINUTES);
 
@@ -555,58 +558,6 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         return vo;
     }
 
-    @Override
-    public void skillPlace(PlaceDTO dto) {
 
-        Long secKillItemId = dto.getSeckillItemId();
-        Long userId = dto.getUserId();
-
-        String stockKey = String.format(SECKILL_ITEM_STOCK_KEY_PRX, secKillItemId);
-
-        // 检查用户是否已经参与过该商品的秒杀（使用 Redis 递增）
-        String participatedKey = String.format(USER_PARTICIPATED_KEY_PRX, userId, secKillItemId);
-        long participateCount = redissonCacheService.incrementAndGet(participatedKey, 1, TimeUnit.DAYS);
-        // 如果计数大于1，说明用户已经参与过
-        if (participateCount > 1) {
-            throw new BizException("您已经参与过该商品秒杀");
-
-        }
-        //1.扣减库存
-        long decremented = redissonCacheService.decrementAndGet(stockKey);
-        if (decremented >= 0) {
-            /**
-             * 秒杀成功
-             */
-            log.info("秒杀成功userId={},secKillItemId={}",userId,secKillItemId);
-            secKillSuccessHandle(userId, secKillItemId);
-        } else if (decremented == -1 || participateCount == -1) {
-            /**
-             * redis 异常 允许用户重试
-             */
-            redissonCacheService.delete(stockKey);
-            throw new BizException("太火爆了，再试一次");
-
-        } else {
-            throw new BizException("商品已售罄");
-        }
-
-    }
-
-    private void secKillSuccessHandle(Long userId, Long secKillItemId) {
-        //秒杀成功
-        try {
-            SecKillSuccessMessage secKillSuccessMessage = new SecKillSuccessMessage();
-            secKillSuccessMessage.setSecKillItemId(secKillItemId);
-            secKillSuccessMessage.setUserId(userId);
-            secKillSuccessMessage.setOrderNumber(CodeGenerateUtils.generateOrderNumber());
-            rocketMqClient.sendMessage( SecKillMqTopicName.SEC_KILL_SUCCESS_TOPIC,
-                    JsonUtils.toJsonString(secKillSuccessMessage));
-        } catch (Exception e) {
-            //打印erro 人工处理
-            log.error("秒杀成功,同步订单消息失败: userId={}, seckillItemId={}",
-                    userId, secKillItemId, e);
-
-        }
-    }
 
 }

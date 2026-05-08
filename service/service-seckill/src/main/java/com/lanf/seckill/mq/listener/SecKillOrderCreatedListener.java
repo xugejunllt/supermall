@@ -66,13 +66,17 @@ public class SecKillOrderCreatedListener implements RocketMQListener<SecKillOrde
             /**
              * 更新已售库存
              */
-            secKillItemService.lambdaUpdate()
+            boolean update = secKillItemService.lambdaUpdate()
                     .eq(SecKillItemDO::getId, killItemDO.getId())
                     .eq(SecKillItemDO::getVersion, killItemDO.getVersion())
                     .set(SecKillItemDO::getSoldStock,
                             killItemDO.getSoldStock() + oned.getItemQuantity())
                     .set(SecKillItemDO::getVersion, killItemDO.getVersion() + 1)
                     .update();
+            if (!update) {
+                log.warn("更新秒杀商品失败");
+                throw new MessageRetryConsumeException("更新秒杀商品失败");
+            }
         }
         boolean update = secKillOrderService.lambdaUpdate()
                 .eq(BaseEntity::getId, oned.getId())

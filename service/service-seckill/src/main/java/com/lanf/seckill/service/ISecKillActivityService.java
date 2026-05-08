@@ -63,10 +63,6 @@ public interface ISecKillActivityService extends IService<SecKillActivityDO> {
      */
     SeckillTokenVO getSeckillToken( GetSeckillTokenDTO dto);
 
-    /**
-     * 秒杀下单开始
-     *
-     */
-    void skillPlace(PlaceDTO dto);
+
 
 }

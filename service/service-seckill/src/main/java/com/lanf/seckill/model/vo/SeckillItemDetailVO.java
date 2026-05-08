@@ -2,6 +2,7 @@ package com.lanf.seckill.model.vo;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.lanf.seckill.model.enums.SeckillModeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -44,5 +45,5 @@ public class SeckillItemDetailVO implements Serializable {
      * 库存数量
      */
     private Long stockCount;
-
+    private SeckillModeEnum secKillMode;
 }

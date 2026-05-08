@@ -1,5 +1,6 @@
 package com.lanf.seckill.model.dto;
 
+import com.lanf.seckill.model.enums.SeckillModeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -9,6 +10,10 @@ import java.math.BigDecimal;
 @Data
 public class AddSeckillItemDTO implements Serializable {
 
+    /**
+     * 秒杀模式 0：实时秒杀，1：MQ排队秒杀
+     */
+    private SeckillModeEnum secKillMode;
 
     private String orderNumber;
 
