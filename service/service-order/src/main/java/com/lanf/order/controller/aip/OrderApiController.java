@@ -3,10 +3,9 @@ package com.lanf.order.controller.aip;
 import com.lanf.constant.result.Result;
 import com.lanf.order.model.dto.BathCreateOrderDTO;
 import com.lanf.order.model.dto.CreateOrderDTO;
-import com.lanf.order.model.query.ContrastBillOrderQuery;
+import com.lanf.order.model.query.OrderDocumentQuery;
 import com.lanf.order.model.query.ReconciliationOrderItemQuery;
-import com.lanf.order.model.vo.OrderVO;
-import com.lanf.order.model.vo.OrderVO2;
+import com.lanf.order.model.vo.OrderDocumentVO;
 import com.lanf.order.model.vo.ReconciliationOrderItemVO;
 import com.lanf.order.service.IMainOrderService;
 import com.lanf.order.service.IOrderItemService;
@@ -14,9 +13,10 @@ import com.lanf.order.service.IOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
@@ -55,36 +55,14 @@ public class OrderApiController {
         return Result.ok( orderItemService.reconciliationOrderItemQuery(query));
     }
 
-    @Deprecated
-    @PostMapping("/queryByOrderId")
-    public Result<List<OrderVO>> queryByOrderId(@RequestBody List<Long> orderIdList) {
+    @PostMapping("/orderDocumentQuery")
+    public Result<OrderDocumentVO> orderDocumentQuery(@Validated @RequestBody OrderDocumentQuery query) {
 
-        log.info("根据订单ID查询订单信息:orderIdList{}", orderIdList);
+        log.info("查询订单索引信息{}", query);
 
-        return Result.ok(orderService.queryByOrderId(orderIdList));
+        return Result.ok( orderService.orderDocumentQuery(query));
     }
-    @Deprecated
-    @PostMapping("/contrastBillOrderCountQuery")
-    public Result<Integer> contrastBillOrderCountQuery(@RequestBody ContrastBillOrderQuery query) {
 
-        log.info("统计对账订单数量:query{}", query);
 
-        return Result.ok(orderService.contrastBillOrderCountQuery(query));
-    }
-    @Deprecated
-    @PostMapping("/contrastBillOrderIdQuery")
-    public Result<List<Long>> contrastBillOrderIdQuery(@RequestBody ContrastBillOrderQuery query) {
 
-        log.info("统计对账订单id查询:query{}", query);
-
-        return Result.ok(orderService.contrastBillOrderIdQuery(query));
-    }
-    @Deprecated
-    @GetMapping("/queryById2")
-    public Result<OrderVO2> queryById2(@RequestParam("id") Long id) {
-
-        log.info("查询订单信息:id{}", id);
-
-        return Result.ok(orderService.queryById(id));
-    }
 }

@@ -42,7 +42,6 @@ import com.lanf.order.service.IOrderStatusTraceService;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
-import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.utils.UserIdContext;
@@ -166,7 +165,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         /**
          * 发送MQ 订单创建成功消息
          */
-        sendOrderCreateSuccessMessage(orderInitParamsBO.getOrderId());
+        sendOrderCreateSuccessMessage(orderInitParamsBO.getOrderId(),
+                orderInitParamsBO.getUserId());
         
         /**
          * 构建返回结果
@@ -321,10 +321,11 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         }
     }
 
-    private void sendOrderCreateSuccessMessage(Long orderId) {
+    private void sendOrderCreateSuccessMessage(Long orderId,Long userId) {
         OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
         message.setOrderId(orderId);
-        rocketMqClient.sendMessage(TopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
+        message.setUserId(userId);
+        rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
     }
 
 
@@ -414,7 +415,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         for (CreateOrderDTO createOrderDTO : createOrderDTOList) {
             OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
             message.setOrderId(createOrderDTO.getOrderId());
-            rocketMqClient.sendMessage(TopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
+            rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
         }
 
         /**

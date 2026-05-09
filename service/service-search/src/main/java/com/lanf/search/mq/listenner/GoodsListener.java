@@ -1,4 +1,4 @@
-package com.lanf.search.mq;
+package com.lanf.search.mq.listenner;
 
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SyncGoodsInfoToEsMsg;

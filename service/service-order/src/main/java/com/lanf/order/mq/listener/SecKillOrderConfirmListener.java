@@ -9,6 +9,7 @@ import com.lanf.order.model.enums.OrderProcessStepEnum;
 import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.constant.OrderMqGroupName;
+import com.lanf.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.order.mq.message.SecKillOrderConfirmMessage;
 import com.lanf.order.mq.message.SecKillOrderCreatedMessage;
 import com.lanf.order.service.IOrderService;
@@ -91,6 +92,11 @@ public class SecKillOrderConfirmListener implements RocketMQListener<SecKillOrde
             message1.setOrderNumber(orderNumber);
             message1.setResult(true);
 
+            OrderCreateSuccessMessage message2 = new OrderCreateSuccessMessage();
+            message2.setOrderId(one.getId());
+            message2.setUserId(one.getUserId());
+
+
             boolean update = orderService.lambdaUpdate()
                     .eq(BaseEntity::getId, one.getId())
                     .eq(OrderDO::getVersion, one.getVersion())
@@ -110,6 +116,11 @@ public class SecKillOrderConfirmListener implements RocketMQListener<SecKillOrde
              */
             rocketMqClient.sendMessage(OrderClientTopicName.SEC_KILL_ORDER_CREATED_TOPIC,
                     JsonUtils.toJsonString(message1));
+            /**
+             * 发送订单创建成功事件
+             */
+            rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
+
         } else {
 
             log.info("订单确认中，等待其他步骤完成: orderNumber={}", orderNumber);

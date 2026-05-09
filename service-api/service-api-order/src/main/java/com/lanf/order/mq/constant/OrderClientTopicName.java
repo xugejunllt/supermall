@@ -1,6 +1,12 @@
 package com.lanf.order.mq.constant;
 
 public class OrderClientTopicName {
+
+    /**
+     * 订单创建成功
+     */
+    public static final String ORDER_CREATE_SUCCESS_EVENT_TOPIC = "ORDER_CREATE_SUCCESS_EVENT_TOPIC";
+
     /**
      * 订单签收事件
      */

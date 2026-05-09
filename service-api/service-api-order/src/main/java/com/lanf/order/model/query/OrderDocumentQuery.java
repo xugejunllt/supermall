@@ -1,11 +1,11 @@
-package com.lanf.order.mq.message;
+package com.lanf.order.model.query;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class OrderCreateSuccessMessage implements Serializable {
+public class OrderDocumentQuery implements Serializable {
 
     private Long orderId;
 

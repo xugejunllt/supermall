@@ -8,6 +8,7 @@ import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
+import com.lanf.order.model.query.OrderDocumentQuery;
 import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.query.OrderPageQuery2;
 import com.lanf.order.model.vo.*;
@@ -60,6 +61,13 @@ public interface IOrderService extends IService<OrderDO> {
      * 签收
      */
     void signFor(SignForDTO dto);
+
+    /**
+     * 查询订单索引需要的字段
+     *
+     */
+    OrderDocumentVO orderDocumentQuery(OrderDocumentQuery query);
+
 
 
     PageResult<OrderPageVO> orderPage(OrderPageQuery query);

@@ -26,7 +26,7 @@
         <module>common-lock</module>
         <module>common-seata</module>
         <module>common-elasticsearch</module>
-        <module>common-shardingsphere</module>
+        <module>common-sharding-sphere</module>
         <module>common-biz-control</module>
         <module>common-hmily</module>
     </modules>

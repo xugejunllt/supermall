@@ -2,7 +2,9 @@ package com.lanf.order.api;
 
 import com.lanf.order.model.dto.CancelOrderApiDTO;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
+import com.lanf.order.model.query.OrderDocumentQuery;
 import com.lanf.order.model.query.ReconciliationOrderItemQuery;
+import com.lanf.order.model.vo.OrderDocumentVO;
 import com.lanf.order.model.vo.OrderVO;
 import com.lanf.order.model.vo.OrderVO2;
 import com.lanf.constant.result.Result;
@@ -44,6 +46,10 @@ public interface OrderApiService {
      */
     @PostMapping("/order/orderApi/reconciliationOrderItemQuery")
     Result<ReconciliationOrderItemVO> reconciliationOrderItemQuery(@RequestBody ReconciliationOrderItemQuery query);
+
+
+    @PostMapping("/order/orderApi/orderDocumentQuery")
+    public Result<OrderDocumentVO> orderDocumentQuery( @RequestBody OrderDocumentQuery query);
 
 
     @PostMapping("/order/orderApi/contrastBillOrderCountQuery")

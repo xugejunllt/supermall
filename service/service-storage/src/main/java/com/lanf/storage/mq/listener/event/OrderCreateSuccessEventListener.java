@@ -3,8 +3,8 @@ package com.lanf.storage.mq.listener.event;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.goods.model.enums.UserStockFlowEventTypeEnum;
 import com.lanf.order.model.enums.OrderStatusEnum;
+import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.message.OrderCreateSuccessMessage;
-import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.DelayLevelEnum;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.mq.constant.StorageClientTopicName;
@@ -17,13 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * 监听订单创建成功事件添加订单对账单
+ * 监听订单创建成功事件添加订单对账单  用于库存对账
  *
  */
 
 @Slf4j
 @Component
-@RocketMQMessageListener(topic = TopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC,
+@RocketMQMessageListener(topic = OrderClientTopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC,
         consumerGroup = StorageMqGroupName.ORDER_CREATE_SUCCESS_EVENT_ADD_RECONCILIATION_ORDER_GROUP)
 public class OrderCreateSuccessEventListener implements RocketMQListener<OrderCreateSuccessMessage> {
 

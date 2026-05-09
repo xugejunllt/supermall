@@ -28,6 +28,7 @@ import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.query.ContrastBillOrderQuery;
+import com.lanf.order.model.query.OrderDocumentQuery;
 import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.query.OrderPageQuery2;
 import com.lanf.order.model.vo.*;
@@ -43,6 +44,7 @@ import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.security.utils.UserIdContext;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
@@ -382,6 +384,35 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         rocketMqClient.sendMessage(OrderClientTopicName.SIGN_ORDER_EVENT_TOPIC,
                 JsonUtils.toJsonString(signOrderMessage));
 
+    }
+
+    @Override
+    public OrderDocumentVO orderDocumentQuery(OrderDocumentQuery query) {
+
+        OrderDO one = this.lambdaQuery()
+                .eq(OrderDO::getId, query.getOrderId())
+                .eq(OrderDO::getUserId, query.getUserId())
+                .one();
+        if (one == null){
+            return null;
+        }
+        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery()
+                .eq(OrderItemDO::getOrderId, query.getOrderId())
+                .eq(OrderItemDO::getUserId, query.getUserId()).list();
+        List<String> goodsNames = orderItemDOList.stream().map(OrderItemDO::getGoodsName)
+                .collect(Collectors.toList());
+
+        OrderDocumentVO vo = new OrderDocumentVO();
+        vo.setOrderId(one.getId());
+        vo.setUserId(one.getUserId());
+        vo.setOrderNumber(one.getOrderNumber());
+        vo.setTenantId(one.getMerchantId());
+        vo.setOrderStatus(one.getStatus());
+        vo.setCreateTime(one.getCreateTime());
+        vo.setGoodsNames(goodsNames);
+
+
+        return vo;
     }
 
     @Override

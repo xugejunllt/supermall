@@ -89,10 +89,7 @@ public class TopicName {
      */
     public static  final String SAVE_GOODS_ES_TOPIC = "SAVE_GOODS_ES_TOPIC";
 
-    /**
-     * 订单创建成功
-     */
-    public static final String ORDER_CREATE_SUCCESS_EVENT_TOPIC = "ORDER_CREATE_SUCCESS_EVENT_TOPIC";
+
     /**
      * 补投支付订单
      */
