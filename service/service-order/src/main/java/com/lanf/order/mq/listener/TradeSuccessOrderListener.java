@@ -1,14 +1,18 @@
 package com.lanf.order.mq.listener;
 
+import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.model.entity.MainOrderDO;
 import com.lanf.order.model.entity.OrderDO;
+import com.lanf.order.model.entity.OrderStatusTraceDO;
 import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.enums.PayStatusEnum;
 import com.lanf.order.service.IMainOrderService;
 import com.lanf.order.service.IOrderService;
+import com.lanf.order.service.IOrderStatusTraceService;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.OrderPayInfo;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
@@ -19,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -38,6 +44,9 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
     private IOrderService orderService;
     @Autowired
     private IMainOrderService mainOrderService;
+    @Autowired
+    private IOrderStatusTraceService orderStatusTraceService;
+
 
     @Transactional
     @Override
@@ -68,6 +77,23 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                 log.error("订单不存在");
                 return;
             }
+            for (OrderDO orderDO2 : orderDOList) {
+                updateOrderStatusCheck(orderDO2);
+            }
+            List<OrderStatusTraceDO> statusTraceDOList = new ArrayList<>();
+            Date date = new Date();
+
+            for (OrderDO orderDO2 : orderDOList) {
+                OrderStatusTraceDO statusTraceDO = new OrderStatusTraceDO();
+                statusTraceDO.setOrderId(orderDO2.getId());
+                statusTraceDO.setFromStatus(OrderStatusEnum.WAIT_PAY);
+                statusTraceDO.setToStatus(OrderStatusEnum.PAID);
+                statusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+                statusTraceDO.setRemark("订单支付成功");
+                statusTraceDOList.add(statusTraceDO);
+            }
+
+
             boolean update = mainOrderService.lambdaUpdate()
                     .eq(BaseEntity::getId, mainOrderId)
                     .eq(MainOrderDO::getVersion, orderDO.getVersion())
@@ -79,44 +105,65 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                 log.warn("订单更新失败");
                 throw new BizException("订单状态异常");
             }
+
             for (OrderDO orderDO2 : orderDOList) {
-                updateOrderStatus(orderDO2);
+                boolean update2 = orderService.lambdaUpdate().eq(BaseEntity::getId, orderDO2.getId())
+                        .eq(OrderDO::getVersion, orderDO2.getVersion())
+                        .set(OrderDO::getStatus, OrderStatusEnum.PAID.getCode())
+                        .set(OrderDO::getVersion, orderDO2.getVersion() + 1)
+                        .update();
+                if (!update2) {
+                    log.warn("订单更新失败");
+                    throw new MessageRetryConsumeException("订单状态异常");
+                }
             }
+            orderStatusTraceService.saveBatch(statusTraceDOList);
 
         } else {
+
             log.info("单笔支付成功");
+
+            Date date = new Date();
             OrderPayInfo orderPayInfo = message.getOrderPayInfoList().get(0);
             OrderDO orderDO = orderService.getById(orderPayInfo.getOrderId());
-            updateOrderStatus(orderDO);
 
+            OrderStatusTraceDO statusTraceDO = new OrderStatusTraceDO();
+            statusTraceDO.setOrderId(orderDO.getId());
+            statusTraceDO.setFromStatus(OrderStatusEnum.WAIT_PAY);
+            statusTraceDO.setToStatus(OrderStatusEnum.PAID);
+            statusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+            statusTraceDO.setRemark("订单支付成功");
+
+            boolean update = orderService.lambdaUpdate().eq(BaseEntity::getId, orderDO.getId())
+                    .eq(OrderDO::getVersion, orderDO.getVersion())
+                    .set(OrderDO::getStatus, OrderStatusEnum.PAID.getCode())
+                    .set(OrderDO::getVersion, orderDO.getVersion() + 1)
+                    .update();
+            if (!update) {
+                log.warn("订单更新失败");
+                throw new MessageRetryConsumeException("订单状态异常");
+            }
+            orderStatusTraceService.save(statusTraceDO);
         }
+
        log.info("更新完成");
 
     }
 
-    private void updateOrderStatus( OrderDO orderDO) {
+    private void updateOrderStatusCheck( OrderDO orderDO) {
 
         if (orderDO == null) {
             log.warn("订单不存在");
             throw new BizException("订单不存在");
         }
-        if (OrderStatusEnum.WAIT_OUTBOUND.getCode().equals(orderDO.getStatus())) {
+        if (OrderStatusEnum.PAID.equals(orderDO.getStatus())) {
             log.warn("订单已更新");
             return;
         }
-        if (!OrderStatusEnum.WAIT_PAY.getCode().equals(orderDO.getStatus())) {
+        if (!OrderStatusEnum.WAIT_PAY.equals(orderDO.getStatus())) {
             log.warn("订单状态异常");
             throw new BizException("订单状态异常");
         }
-        boolean update = orderService.lambdaUpdate().eq(BaseEntity::getId, orderDO.getId())
-                .eq(OrderDO::getStatus, OrderStatusEnum.WAIT_PAY.getCode())
-                .eq(OrderDO::getVersion, orderDO.getVersion())
-                .set(OrderDO::getStatus, OrderStatusEnum.WAIT_OUTBOUND.getCode())
-                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
-                .update();
-        if (!update) {
-            log.warn("订单更新失败");
-            throw new BizException("订单状态异常");
-        }
+
     }
 }
