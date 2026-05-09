@@ -7,10 +7,7 @@ import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.OrderDO;
-import com.lanf.order.model.query.ContrastBillOrderQuery;
-import com.lanf.order.model.query.OrderDocumentQuery;
-import com.lanf.order.model.query.OrderPageQuery;
-import com.lanf.order.model.query.OrderPageQuery2;
+import com.lanf.order.model.query.*;
 import com.lanf.order.model.vo.*;
 
 import java.util.List;
@@ -49,6 +46,17 @@ public interface IOrderService extends IService<OrderDO> {
      * 发货
      */
     void delivery(DeliveryDTO dto);
+
+    /**
+     * C端 搜索订单列表
+     *
+     */
+    PageResult<OrderListVO>  orderSearchQuery(AppOrderSearchQuery query);
+    /**
+     * admin 搜索订单列表
+     *
+     */
+    PageResult<AdminOrderListVO>  orderSearchQuery(AdminOrderSearchQuery query);
 
     List<OrderVO> queryByOrderId(List<Long> orderIdList);
 

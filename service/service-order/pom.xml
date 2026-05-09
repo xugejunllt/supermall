@@ -120,6 +120,11 @@
             <artifactId>common-sharding-sphere</artifactId>
             <version>1.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>service-api-search</artifactId>
+            <version>${service-search.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -10,9 +10,10 @@ import com.lanf.client.pay.model.vo.OrderTradeVO;
 import com.lanf.client.pay.model.vo.TradeOrderBathVO;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.enums.FrozenStatusEnum;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.result.RpcResultParser;
 import com.lanf.logistics.api.LogisticsApiService;
 import com.lanf.logistics.model.vo.LogisticsTrackStatusVO;
 import com.lanf.logistics.model.vo.LogisticsTrackVO;
@@ -21,16 +22,12 @@ import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.order.mapper.OrderMapper;
-import com.lanf.order.model.bo.CancelOrderBO;
-import com.lanf.order.model.bo.CancelOrderOrderStatusBO;
+import com.lanf.order.model.bo.OrderIdAndUserId;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.enums.OrderStatusEnum;
-import com.lanf.order.model.query.ContrastBillOrderQuery;
-import com.lanf.order.model.query.OrderDocumentQuery;
-import com.lanf.order.model.query.OrderPageQuery;
-import com.lanf.order.model.query.OrderPageQuery2;
+import com.lanf.order.model.query.*;
 import com.lanf.order.model.vo.*;
 import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.message.AddSalesOutStockOrderMessage;
@@ -42,8 +39,10 @@ import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IOrderStatusTraceService;
 import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
-import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.search.api.SearchApiService;
+import com.lanf.search.model.query.OrderSearchQuery;
+import com.lanf.search.model.vo.OrderSearchVO;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
@@ -52,12 +51,18 @@ import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -91,6 +96,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     private ITccOperationService tccOperationService;
     @Autowired
     private IOrderStatusTraceService orderStatusTraceService;
+    @Autowired
+    private SearchApiService searchApiService;
+    @Qualifier("searchTaskExecutor")
+    @Autowired
+    private ThreadPoolTaskExecutor searchTaskExecutor;
 
 
     @Override
@@ -256,6 +266,124 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         orderDOUpdate.setId(orderId);
         orderDOUpdate.setStatus(null);
         this.updateById(orderDOUpdate);
+
+    }
+
+    /**
+     *
+     * 订单列表搜索
+     *
+     */
+    @Override
+    public PageResult<OrderListVO> orderSearchQuery(AppOrderSearchQuery query) {
+
+        OrderSearchQuery searchQuery = new OrderSearchQuery();
+        searchQuery.setSearchWord(query.getSearchWord());
+        searchQuery.setUserId(UserIdContext.getUserId());
+        searchQuery.setPage(query.getPage());
+        searchQuery.setPageSize(query.getPageSize());
+        //1.从es获取订单id
+        PageResult<OrderSearchVO> pageResult = RpcResultParser.
+                parseResult(searchApiService.searchOrders(searchQuery));
+        List<OrderSearchVO> records = pageResult.getRecords();
+        if (IStringUtils.isEmpty(records)){
+
+          return PageResult.emptyResult();
+
+        }
+        //2.根据订单id查询订单
+        List<Long> orderIdList = records.stream().map(OrderSearchVO::getOrderId).collect(Collectors.toList());
+
+        List<OrderDO> orderDOList = this.lambdaQuery()
+                .eq(OrderDO::getUserId, UserIdContext.getUserId())
+                .in(BaseEntity::getId, orderIdList)
+                .list();
+        //TODO: 2021/7/27 订单列表VO
+        //完善返回结果
+
+        return null;
+
+
+    }
+
+    @Override
+    public PageResult<AdminOrderListVO> orderSearchQuery(AdminOrderSearchQuery query) {
+
+        OrderSearchQuery searchQuery = new OrderSearchQuery();
+        searchQuery.setSearchWord(query.getSearchWord());
+        searchQuery.setPage(query.getPage());
+        searchQuery.setPageSize(query.getPageSize());
+        searchQuery.setOrderNumber(query.getOrderNumber());
+        searchQuery.setTenantId(null);
+        searchQuery.setOrderStatus(query.getOrderStatus());
+        //1.从es获取订单id
+        PageResult<OrderSearchVO> pageResult = RpcResultParser.
+                parseResult(searchApiService.searchOrders(searchQuery));
+        List<OrderSearchVO> records = pageResult.getRecords();
+        if (IStringUtils.isEmpty(records)){
+
+            return PageResult.emptyResult();
+
+        }
+        List<OrderIdAndUserId> orderIdAndUserIdList = new ArrayList<>();
+        int sort = 0;
+        for (OrderSearchVO record : records) {
+            sort +=1;
+            OrderIdAndUserId orderIdAndUserId = new OrderIdAndUserId();
+            orderIdAndUserId.setOrderId(record.getOrderId());
+            orderIdAndUserId.setUserId(record.getUserId());
+            orderIdAndUserId.setSort( sort);
+            orderIdAndUserIdList.add(orderIdAndUserId);
+        }
+        // 2. 为每一条记录创建一个并行查询任务
+        List<CompletableFuture<AdminOrderListVO>> futures = orderIdAndUserIdList.stream().map(record -> {
+            return CompletableFuture.supplyAsync(() -> {
+                /**
+                 * 查订单详细
+                 * 查订单
+                 */
+                AdminOrderListVO adminOrderListVO = new AdminOrderListVO();
+                //TODO: 2021/7/27 订单列表VO
+                return adminOrderListVO;
+
+            }, searchTaskExecutor); // 使用专用的搜索线程池
+        }).collect(Collectors.toList());
+
+        // 3. 等待所有任务完成，设置总超时时间为 2 秒
+        try {
+            // allOf 返回一个 CompletableFuture，当所有传入的 future 都完成时它才完成
+            CompletableFuture<Void> allFutures = CompletableFuture.allOf(
+                    futures.toArray(new CompletableFuture[0])
+            );
+
+            // 阻塞等待，最多等 2 秒
+            allFutures.get(2, TimeUnit.MILLISECONDS);
+
+            // 3. 收集结果
+            List<AdminOrderListVO> resultVos = futures.stream()
+                    .map(CompletableFuture::join) // 此时任务已全部完成，join 不会阻塞
+                    .collect(Collectors.toList());
+
+            // 4. 封装分页结果返回
+            PageResult<AdminOrderListVO> pageResult2 = new PageResult<>();
+            pageResult2.setTotal(pageResult.getTotal());
+            pageResult2.setRecords(resultVos);
+            pageResult2.setSize(resultVos.size());
+
+            return pageResult2;
+
+        } catch (TimeoutException e) {
+
+            log.warn("批量查询订单详情超时, 订单数量: {}", records.size(), e);
+            // 取消所有未完成的任务，释放资源
+            futures.forEach(f -> f.cancel(true));
+            throw new BizException("查询超时，请稍后重试");
+
+        } catch (Exception e) {
+            log.warn("批量查询订单详情异常, 订单数量: {}", records.size(), e);
+            throw new BizException("批量查询订单详情异常");
+        }
+
 
     }
 
@@ -592,7 +720,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     }
 
 
-
     private void updateOrderCancel(Long orderId) {
 
 
@@ -806,6 +933,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
         return BeanCopyUtils.copyBean(orderDO, OrderVO2.class);
     }
+
 
 
 }

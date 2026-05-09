@@ -1,15 +1,17 @@
 package com.lanf.order.controller.admin;
 
 
+import com.lanf.constant.result.Result;
 import com.lanf.mybatis.base.PageResult;
 import com.lanf.order.model.dto.AllowOutboundDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
+import com.lanf.order.model.query.AdminOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery2;
+import com.lanf.order.model.vo.AdminOrderListVO;
 import com.lanf.order.model.vo.OrderDetailVO2;
 import com.lanf.order.model.vo.OrderPageVO2;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.layout.InterfaceLayoutService;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -32,6 +34,7 @@ public class OrderAdminController {
     private IOrderService orderService;
     @Autowired
     private InterfaceLayoutService interfaceLayoutService;
+
     @PostMapping("/allowOutbound")
     public Result<Void> allowOutbound(@Validated @RequestBody AllowOutboundDTO dto) {
 
@@ -48,6 +51,14 @@ public class OrderAdminController {
         return Result.ok();
     }
 
+    @PostMapping("/orderSearchQuery")
+    public Result<PageResult<AdminOrderListVO>> orderSearchQuery(@Validated @RequestBody AdminOrderSearchQuery query) {
+
+        log.info("分页查询订单列表:{}", query);
+
+        return Result.ok(orderService.orderSearchQuery(query));
+    }
+
     @GetMapping("/orderPageVO2")
     public Result<PageResult<OrderPageVO2>> orderPageVO2(@Validated OrderPageQuery2 query2) {
 
@@ -55,6 +66,7 @@ public class OrderAdminController {
 
         return Result.ok(orderService.orderPageVO2(query2));
     }
+
     @GetMapping("/orderDetailVO2")
     public Result<OrderDetailVO2> orderDetailVO2(@Validated Long orderId) {
 

@@ -1,8 +1,11 @@
 package com.lanf.search.api;
 
 
-import com.lanf.search.model.dto.GoodsUpdateDTO;
 import com.lanf.constant.result.Result;
+import com.lanf.mybatis.base.PageResult;
+import com.lanf.search.model.dto.GoodsUpdateDTO;
+import com.lanf.search.model.query.OrderSearchQuery;
+import com.lanf.search.model.vo.OrderSearchVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,5 +18,9 @@ public interface SearchApiService {
 
     @PostMapping("/search/api/goods/update")
     public Result updateGoods(@RequestBody GoodsUpdateDTO dto);
+
+
+    @PostMapping("/searchOrders")
+    public Result<PageResult<OrderSearchVO>> searchOrders(@RequestBody  OrderSearchQuery query);
 
 }

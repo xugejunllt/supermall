@@ -9,11 +9,9 @@ import com.lanf.order.model.dto.CalculateOrderAmountDTO;
 import com.lanf.order.model.dto.CancelOrderDTO;
 import com.lanf.order.model.dto.PlaceOrderDTO;
 import com.lanf.order.model.dto.SignForDTO;
+import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
-import com.lanf.order.model.vo.CalculateOrderAmountVO;
-import com.lanf.order.model.vo.OrderDetailVO;
-import com.lanf.order.model.vo.OrderPageVO;
-import com.lanf.order.model.vo.PlaceOrderVO;
+import com.lanf.order.model.vo.*;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.service.layout.InterfaceLayoutService;
@@ -47,8 +45,6 @@ public class OrderController {
 
     /**
      * 下单前计算订单金额
-     *
-     *
      */
     @PostMapping("/calculateOrderAmount")
     public Result<CalculateOrderAmountVO> calculateOrderAmount(@RequestBody @Validated CalculateOrderAmountDTO dto) {
@@ -75,6 +71,7 @@ public class OrderController {
         return Result.ok(orderManagerService.placeOrder(orderDTO));
 
     }
+
     @PostMapping("/cancelOrder")
     public Result<PlaceOrderVO> cancelOrder(@RequestBody @Validated CancelOrderDTO dto) {
 
@@ -95,6 +92,13 @@ public class OrderController {
         return Result.ok();
     }
 
+    @PostMapping("/orderSearchQuery")
+    public Result<PageResult<OrderListVO>> orderSearchQuery(@Validated @RequestBody AppOrderSearchQuery query) {
+
+        log.info("搜索订单列表:{}dto", query);
+
+        return Result.ok(orderService.orderSearchQuery(query));
+    }
 
     @GetMapping("/orderPage")
     public Result<PageResult<OrderPageVO>> orderPage(@Validated OrderPageQuery query) {
@@ -111,8 +115,6 @@ public class OrderController {
 
         return Result.ok(orderService.orderDetail(id));
     }
-
-
 
 
 }
