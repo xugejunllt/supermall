@@ -90,7 +90,7 @@ public class GoodsDocument {
     private Double price;
     //商品属性 用于搜索 集合中只能嵌套对象
     private List<Attribute> attributes;
-    // 搜索提示词标签
+    // 搜索提示词标签 扩展词/联想词
     private List<String> promptWordLabel;
     //扩展标签 用于展示
     private List<String> extendedTags;

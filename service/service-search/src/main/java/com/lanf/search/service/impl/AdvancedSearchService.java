@@ -9,6 +9,7 @@ import com.lanf.search.model.vo.HomePageVO;
 import com.lanf.security.utils.UserIdContext;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -99,12 +100,6 @@ public class AdvancedSearchService {
         Long predictedCategoryId = predictCategory(query.getKeyword());
         if (predictedCategoryId != null) {
             allIds.addAll(searchByCategory(predictedCategoryId));
-        }
-
-        // 路数 3: 联想词/扩展词召回
-        List<String> expandWords = getExpandWords(query.getKeyword());
-        for (String word : expandWords) {
-            allIds.addAll(searchByKeyword(word));
         }
 
         // 限制召回总数，防止后续压力过大
@@ -236,16 +231,22 @@ public class AdvancedSearchService {
      * 路数 1: 通过关键词查询倒排表，召回商品 ID
      */
     private List<Long> searchByKeyword(String keyword) {
-        if (IStringUtils.isEmpty(keyword)) {
+        if ( IStringUtils.isEmpty(keyword)) {
             return Collections.emptyList();
         }
 
-        // 1. 构建 Match Query (会自动使用 GoodsDocument 中配置的 ik_max_word 分词器)
+        // 1. 构建 MultiMatch Query：同时匹配 商品名称 和 提示词标签
+        // 通过在字段名后添加 ^权重 来设置 boosting
+        MultiMatchQueryBuilder multiMatchQuery = QueryBuilders.multiMatchQuery(keyword,
+                        GoodsDocument.GOODS_NAME + "^1.5",      // 商品名称权重 1.5
+                        GoodsDocument.PROMPT_WORD_LABEL + "^1.0") // 提示词标签权重 1.0
+                .type(MultiMatchQueryBuilder.Type.BEST_FIELDS) // 取匹配度最高的那个字段的分数
+                .minimumShouldMatch("80%");
+
         NativeSearchQuery query = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.matchQuery(GoodsDocument.GOODS_NAME, keyword)
-                        .minimumShouldMatch("80%")) // 提高匹配精准度
-                .withFields("_id") // 【关键优化】：只返回 ID，不返回源文档，极大提升 ES 响应速度
-                .withPageable(PageRequest.of(0, 500)) // 限制单次召回数量，防止内存溢出
+                .withQuery(multiMatchQuery)
+                .withFields("_id") // 【关键优化】：只返回 ID，不返回源文档
+                .withPageable(PageRequest.of(0, 500)) // 限制单次召回数量
                 .build();
 
         // 2. 执行搜索
@@ -291,6 +292,7 @@ public class AdvancedSearchService {
      */
     private List<String> getExpandWords(String keyword) {
         // 简单实现：手动定义一些同义词
+        //通常管理系统里 给每个商品定义一些同义词
         if ("手机".equals(keyword)) {
             return Arrays.asList("智能手机", "移动电话");
         }
