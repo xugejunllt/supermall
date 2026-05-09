@@ -119,7 +119,9 @@ public class SecKillOrderConfirmListener implements RocketMQListener<SecKillOrde
             /**
              * 发送订单创建成功事件
              */
-            rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
+            rocketMqClient.sendOrderlyMessageWithTags(OrderClientTopicName.ORDER_EVENT_TOPIC,
+                    OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message),
+                    one.getId().toString());
 
         } else {
 

@@ -90,6 +90,36 @@ public class RocketMqClient {
 
     }
     /**
+     * 发送带Tag的顺序消息（同步）
+     *
+     * <p>通过 hashKey 确保同一业务实体（如同一订单）的消息进入同一个队列，
+     * 从而保证消费者按发送顺序处理消息。
+     *
+     * @param topic 主题
+     * @param tag 标签（用于消息过滤）
+     * @param message 消息内容（JSON字符串）
+     * @param hashKey 哈希键（如 orderId），用于路由到特定队列
+     */
+    public void sendOrderlyMessageWithTags(String topic, String tag, String message, String hashKey) {
+        String destination = topic + ":" + tag;
+        log.info("发送带Tag的顺序mq消息开始:destination:{},tag:{},hashKey:{},message:{}", destination, tag, hashKey, message);
+
+        try {
+            // 使用 syncSendOrderly 方法，传入 hashKey
+            SendResult sendResult = rocketMQTemplate.syncSendOrderly(destination, message, hashKey);
+
+            if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
+                String sendResultJson = JsonUtils.toJsonString(sendResult);
+                log.error("发送带Tag的顺序MQ消息失败,异常状态[{}], hashKey:{}", sendResultJson, hashKey);
+            } else {
+                log.info("发送带Tag的顺序mq消息成功,tag:{}, hashKey:{}, queueId:{}", tag, hashKey, sendResult.getMessageQueue().getQueueId());
+            }
+
+        } catch (Exception e) {
+            log.error("发送带Tag的顺序MQ消息失败,destination:{},tag:{},hashKey:{}", destination, tag, hashKey, e);
+        }
+    }
+    /**
      * 发送延迟消息
      *
      */

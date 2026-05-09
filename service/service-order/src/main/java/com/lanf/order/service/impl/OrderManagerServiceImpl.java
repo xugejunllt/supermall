@@ -325,8 +325,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
         message.setOrderId(orderId);
         message.setUserId(userId);
-        rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
-    }
+        rocketMqClient.sendOrderlyMessageWithTags(OrderClientTopicName.ORDER_EVENT_TOPIC,
+                OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message),
+                orderId.toString());    }
 
 
 
@@ -415,8 +416,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         for (CreateOrderDTO createOrderDTO : createOrderDTOList) {
             OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
             message.setOrderId(createOrderDTO.getOrderId());
-            rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
-        }
+            message.setUserId(UserIdContext.getUserId());
+            rocketMqClient.sendOrderlyMessageWithTags(OrderClientTopicName.ORDER_EVENT_TOPIC,
+                    OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message),
+                    createOrderDTO.getOrderId().toString());        }
 
         /**
          * 构建返回值

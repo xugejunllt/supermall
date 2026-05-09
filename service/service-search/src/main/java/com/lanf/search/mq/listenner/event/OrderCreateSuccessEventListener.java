@@ -10,9 +10,9 @@ import com.lanf.search.model.document.OrderDocument;
 import com.lanf.search.mq.constant.SearchMqGroupName;
 import com.lanf.search.repository.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,8 +23,11 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RocketMQMessageListener(topic = OrderClientTopicName.ORDER_CREATE_SUCCESS_EVENT_TOPIC,
-        consumerGroup = SearchMqGroupName.ORDER_CREATE_SUCCESS_EVENT_ADD_ORDER_INDEX_GROUP)
+@RocketMQMessageListener(
+        consumerGroup = SearchMqGroupName.ORDER_CREATE_SUCCESS_EVENT_ADD_ORDER_INDEX_GROUP,
+        topic = OrderClientTopicName.ORDER_EVENT_TOPIC,
+        consumeMode = ConsumeMode.ORDERLY,
+        selectorExpression = OrderClientTopicName.TAG_WAIT_PAY)
 public class OrderCreateSuccessEventListener implements RocketMQListener<OrderCreateSuccessMessage> {
 
      @Autowired

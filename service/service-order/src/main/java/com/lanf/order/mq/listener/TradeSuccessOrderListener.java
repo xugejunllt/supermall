@@ -9,6 +9,8 @@ import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
 import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.enums.PayStatusEnum;
+import com.lanf.order.mq.constant.OrderClientTopicName;
+import com.lanf.order.mq.message.OrderPaySuccessMessage;
 import com.lanf.order.service.IMainOrderService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IOrderStatusTraceService;
@@ -16,6 +18,7 @@ import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.OrderPayInfo;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
+import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -46,7 +49,8 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
     private IMainOrderService mainOrderService;
     @Autowired
     private IOrderStatusTraceService orderStatusTraceService;
-
+    @Autowired
+    private RocketMqClient rocketMqClient;
 
     @Transactional
     @Override
@@ -81,6 +85,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                 updateOrderStatusCheck(orderDO2);
             }
             List<OrderStatusTraceDO> statusTraceDOList = new ArrayList<>();
+            List<OrderPaySuccessMessage> orderPaySuccessMessageList = new ArrayList<>();
             Date date = new Date();
 
             for (OrderDO orderDO2 : orderDOList) {
@@ -91,6 +96,11 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                 statusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
                 statusTraceDO.setRemark("订单支付成功");
                 statusTraceDOList.add(statusTraceDO);
+                //
+                OrderPaySuccessMessage orderPaySuccessMessage = new OrderPaySuccessMessage();
+                orderPaySuccessMessage.setOrderId(orderDO.getId());
+                orderPaySuccessMessage.setUserId(orderDO.getUserId());
+                orderPaySuccessMessageList.add(orderPaySuccessMessage);
             }
 
 
@@ -119,6 +129,14 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             }
             orderStatusTraceService.saveBatch(statusTraceDOList);
 
+            orderPaySuccessMessageList.forEach(a -> {
+
+                rocketMqClient.sendOrderlyMessageWithTags(OrderClientTopicName.ORDER_EVENT_TOPIC,
+                        OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(message),
+                        a.getOrderId().toString());
+            });
+
+
         } else {
 
             log.info("单笔支付成功");
@@ -134,6 +152,11 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             statusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
             statusTraceDO.setRemark("订单支付成功");
 
+            OrderPaySuccessMessage orderPaySuccessMessage = new OrderPaySuccessMessage();
+            orderPaySuccessMessage.setOrderId(orderDO.getId());
+            orderPaySuccessMessage.setUserId(orderDO.getUserId());
+
+
             boolean update = orderService.lambdaUpdate().eq(BaseEntity::getId, orderDO.getId())
                     .eq(OrderDO::getVersion, orderDO.getVersion())
                     .set(OrderDO::getStatus, OrderStatusEnum.PAID.getCode())
@@ -144,6 +167,11 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                 throw new MessageRetryConsumeException("订单状态异常");
             }
             orderStatusTraceService.save(statusTraceDO);
+            rocketMqClient.sendOrderlyMessageWithTags(OrderClientTopicName.ORDER_EVENT_TOPIC,
+                    OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(message),
+                    orderDO.getId().toString());
+
+
         }
 
        log.info("更新完成");
