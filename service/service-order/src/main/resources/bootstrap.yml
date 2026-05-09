@@ -7,13 +7,10 @@ spring:
         server-addr: localhost:8848
         enabled: true
         meta-data:
-          #大版本 小版本 bug修改版本/小功能
           appVersion: 9.7.3
       config:
         server-addr: localhost:8848
-        #命名空间做环境隔离
         namespace: 286634bf-14d1-486f-b53a-a8aaa2af5221
-        #配置文件后缀，properties文件不需要
         file-extension: yaml
         extension-configs:
           - group: order
@@ -29,33 +26,59 @@ spring:
           - group: common
             data-id: rocketmq.yaml
 
-
-
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 server:
   port: 9007
   servlet:
     context-path: /order
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
 
 org:
   dromara:
     hmily :
-      #序列化
       serializer: kryo
-      #rpc超时时间，单位秒
       recoverDelayTime: 30
-      #重试次数
       retryMax: 5
       scheduledDelay: 30
       scheduledThreadMax:  10
       repositorySupport: db
-      #是否是发起方
       started: true
       hmilyDbConfig:
         driverClassName: com.mysql.jdbc.Driver
         url: jdbc:mysql://localhost:3306/hmily?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
         username: root
         password: 123456
+
+sharding:
+  sphere:
+    sql-show: true
+    datasource:
+      ds0:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://localhost:3306/order_db_0?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+        username: root
+        password: 123456
+        maximum-pool-size: 10
+      ds1:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://localhost:3306/order_db_1?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+        username: root
+        password: 123456
+        maximum-pool-size: 10
+    sharding:
+      tables:
+        t_order:
+          actual-data-nodes: ds${0..1}.t_order_${0..7}
+          database-sharding-column: user_id
+          table-sharding-column: user_id
+          database-algorithm-name: database-sharding-algorithm
+          table-algorithm-name: table-sharding-algorithm
+      algorithms:
+        database-sharding-algorithm:
+          type: CLASS_BASED
+          algorithm-class-name: com.lanf.order.config.DatabaseShardingAlgorithm
+        table-sharding-algorithm:
+          type: CLASS_BASED
+          algorithm-class-name: com.lanf.order.config.TableShardingAlgorithm

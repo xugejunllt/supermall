@@ -21,7 +21,8 @@ public class OrderStatusTraceDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
-
+    @ApiModelProperty(value = "用户id")
+    private Long userId;
     @ApiModelProperty(value = "订单ID")
     private Long orderId;
 

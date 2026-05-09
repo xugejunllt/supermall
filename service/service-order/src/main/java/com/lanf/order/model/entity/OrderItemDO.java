@@ -24,7 +24,8 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "订单id")
     private Long orderId;
-
+    @ApiModelProperty(value = "用户id")
+    private Long userId;
     @ApiModelProperty(value = "商品id")
     private Long goodsId;
 
