@@ -22,5 +22,6 @@ public class HomePageVO implements Serializable {
 
     //扩展标签 用于展示
     private List<String> extendedTags;
-
+    //商品销量
+    private Long sales;
 }
