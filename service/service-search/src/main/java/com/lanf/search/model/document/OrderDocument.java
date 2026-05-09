@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.annotation.Version;
 
 import java.util.List;
 
@@ -47,4 +48,17 @@ public class OrderDocument {
      * 一笔订单 对应多个商品
      */
     private List<String> goodsName;
+    /**
+     * Elasticsearch 每个文档都有内部版本号组合：
+     * _seq_no（自增序列号）和 _primary_term（主分片任期）。
+     * 当使用 @Version 注解时，Spring Data Elasticsearch
+     * 在更新请求中自动附加条件：if_seq_no = 当前version值
+     * 和 if_primary_term = 当前version的高位值（具体封装由框架处理）。
+     *
+     * 如果更新时文档已被其他线程修改，ES 会返回版本冲突错误，
+     * 框架将其转换为 OptimisticLockingFailureException。
+     */
+    @Version
+    private Long version;
+
 }

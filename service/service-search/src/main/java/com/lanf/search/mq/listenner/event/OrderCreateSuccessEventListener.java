@@ -61,6 +61,7 @@ public class OrderCreateSuccessEventListener implements RocketMQListener<OrderCr
           orderDocument.setOrderStatus(orderDocumentVO.getOrderStatus().getCode());
           orderDocument.setCreateTime(orderDocumentVO.getCreateTime().getTime());
           orderDocument.setGoodsName(orderDocumentVO.getGoodsNames());
+          orderDocument.setVersion(1L);
           return orderDocument;
      }
 
