@@ -5,10 +5,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.user.model.dto.LoginUserDTO;
 import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
-import com.lanf.user.model.vo.LoginUserVO;
-import com.lanf.user.model.vo.RefreshTokenVO;
-import com.lanf.user.model.vo.UserDetailVO;
-import com.lanf.user.model.vo.UserVO;
+import com.lanf.user.model.vo.*;
 import com.lanf.user.service.IUserService;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
@@ -17,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 
 
@@ -52,13 +50,11 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public Result<LoginUserVO> login(@Validated @RequestBody LoginUserDTO dt) {
+    public Result<UserTokenInfoVO> login(@Validated @RequestBody LoginUserDTO dt, HttpServletRequest request) {
 
-        log.info("[{}]开始,入参:[{}]", "登入", JsonUtils.toJsonString(dt));
+        log.info("登入开始,入参:[{}]" , dt);
 
-        LoginUserVO userVO = userService.login(dt);
-
-        log.info("[{}]结束", "登入");
+        UserTokenInfoVO userVO = userService.login(dt,request);
 
         return Result.ok(userVO);
     }
@@ -81,11 +77,11 @@ public class UserController {
      * @return
      */
     @PostMapping("/refreshToken")
-    public Result<RefreshTokenVO> refreshToken(@Validated @RequestBody RefreshTokenDTO dto) {
+    public Result<UserTokenInfoVO> refreshToken(@Validated @RequestBody RefreshTokenDTO dto,HttpServletRequest request) {
 
         log.info("[{}]开始,入参:[{}]", "刷新token", dto);
 
-        RefreshTokenVO refreshTokenVO = userService.refreshToken(dto);
+        UserTokenInfoVO refreshTokenVO = userService.refreshToken(dto,request);
 
         log.info("[{}]结束", "刷新token");
 

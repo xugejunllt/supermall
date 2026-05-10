@@ -32,6 +32,8 @@ public enum CommonResultCodeEnum {
 
     AUTH_FAILED(402, "认证失败");
 
+
+
 //    LOGIN_AUTH(208, "请先登录"),
 //    PERMISSION(209, "没有权限"),
 //    CACHEEXPIRED(210, "缓存过期"),

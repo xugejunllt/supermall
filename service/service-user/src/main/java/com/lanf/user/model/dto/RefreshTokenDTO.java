@@ -7,12 +7,7 @@ import java.io.Serializable;
 @Data
 public class RefreshTokenDTO implements Serializable {
 
-    private Long userId;
-
-    private Integer channel;
-
-
     private String refreshToken;
 
-     private String deviceId;
+
 }

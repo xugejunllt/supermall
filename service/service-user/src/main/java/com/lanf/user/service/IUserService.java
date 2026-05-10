@@ -5,10 +5,9 @@ import com.lanf.user.model.dto.LoginUserDTO;
 import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.entity.UserDO;
-import com.lanf.user.model.vo.LoginUserVO;
-import com.lanf.user.model.vo.RefreshTokenVO;
-import com.lanf.user.model.vo.UserDetailVO;
-import com.lanf.user.model.vo.UserVO;
+import com.lanf.user.model.vo.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * <p>
@@ -27,9 +26,9 @@ public interface IUserService extends IService<UserDO> {
 
     void  loginSendCode(String phoneNumber);
 
-    LoginUserVO login(LoginUserDTO dt);
+    UserTokenInfoVO login(LoginUserDTO dt, HttpServletRequest request);
 
-    RefreshTokenVO refreshToken(RefreshTokenDTO dto);
+    UserTokenInfoVO refreshToken(RefreshTokenDTO dto,HttpServletRequest request);
 
     UserVO getUserById();
 
