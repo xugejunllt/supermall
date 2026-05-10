@@ -16,6 +16,10 @@ public class RequestAuthExtractor {
     public static final String HEADER_TENANT_ID = "tenantId";
     public static final String HEADER_VERSION = "version";
 
+    public static final String FEIGN_HEADER_USER_ID = "feign-userId";
+    public static final String FEIGN_HEADER_DEVICE_ID = "feign-deviceId";
+    public static final String FEIGN_HEADER_TENANT_ID = "feign-tenantId";
+
     public static final String CHANNEL_ANDROID = "android";
     public static final String CHANNEL_IOS = "ios";
     public static final String CHANNEL_APP = "app";

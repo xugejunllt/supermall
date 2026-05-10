@@ -1,32 +1,41 @@
 package com.lanf.web.interceptor;
 
-
+import com.lanf.web.service.RequestAuthExtractor;
+import com.lanf.web.utils.UserContext;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * @author tanlingfei
- * @version 1.0
- * @description TODO
- * @date 2023/5/1 10:46
- */
+@Slf4j
 @Configuration
-public class FeignConfig implements RequestInterceptor {
+public class FeignConfig {
 
+    @Bean
+    public RequestInterceptor userContextInterceptor() {
+        return new RequestInterceptor() {
+            @Override
+            public void apply(RequestTemplate requestTemplate) {
+                Long userId = UserContext.getUserId();
+                String deviceId = UserContext.getDeviceId();
+                Long tenantId = UserContext.getTenantId();
 
-    @Override
-    public void apply(RequestTemplate requestTemplate) {
+                if (userId != null) {
+                    requestTemplate.header(RequestAuthExtractor.FEIGN_HEADER_USER_ID, userId.toString());
+                }
 
+                if (deviceId != null) {
+                    requestTemplate.header(RequestAuthExtractor.FEIGN_HEADER_DEVICE_ID, deviceId);
+                }
 
-//        HttpServletRequest request = WebUtil.getRequest();
-//        if (request != null) {
-//            //添加admin token
-//            String token = request.getHeader(Constants.USER_TOKEN);
-//            if (!StringUtils.isEmpty(token)) {
-//                requestTemplate.header(Constants.USER_TOKEN, token);
-//            }
-//        }
+                if (tenantId != null) {
+                    requestTemplate.header(RequestAuthExtractor.FEIGN_HEADER_TENANT_ID, tenantId.toString());
+                }
 
+                log.debug("Feign请求透传用户上下文: userId={}, deviceId={}, tenantId={}", 
+                        userId, deviceId, tenantId);
+            }
+        };
     }
 }
