@@ -265,7 +265,11 @@
                 <artifactId>hmily-annotation</artifactId>
                 <version>${org.dromara.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
 
+            </dependency>
 
         </dependencies>
     </dependencyManagement>

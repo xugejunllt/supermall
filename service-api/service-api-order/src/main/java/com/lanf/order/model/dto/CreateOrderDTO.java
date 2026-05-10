@@ -1,6 +1,6 @@
 package com.lanf.order.model.dto;
 
-import com.lanf.welfare.model.bo.DiscountInfoBO;
+import com.lanf.constant.model.bo.DiscountInfoBO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

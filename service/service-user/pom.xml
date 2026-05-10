@@ -44,7 +44,13 @@
             <version>${common.version}</version>
 
         </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
 
+            <artifactId>spring-web</artifactId>
+            <version>${common.version}</version>
+
+        </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-util</artifactId>
@@ -86,6 +92,13 @@
             <artifactId>service-api-user</artifactId>
             <version>${service.version}</version>
         </dependency>
+
+
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

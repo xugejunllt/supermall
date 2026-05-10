@@ -1,7 +1,7 @@
 package com.lanf.user.service.benefit;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.constant.web.PageResult;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.user.model.dto.CreateBenefitDTO;
 import com.lanf.user.model.entity.BenefitDO;
 import com.lanf.user.model.query.BenefitPageQuery;

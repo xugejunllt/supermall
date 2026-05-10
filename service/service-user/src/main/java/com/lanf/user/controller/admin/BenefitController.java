@@ -2,14 +2,14 @@ package com.lanf.user.controller.admin;
 
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.web.PageResult;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
 import com.lanf.user.model.dto.CalculationGrowthValueDTO;
 import com.lanf.user.model.dto.CreateBenefitDTO;
 import com.lanf.user.model.entity.BenefitDO;
 import com.lanf.user.model.query.BenefitPageQuery;
 import com.lanf.user.service.benefit.IBenefitService;
 import com.lanf.user.service.benefit.IUserLevelService;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -17,10 +17,11 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 
+
 /**
  * <p>
  * 权益表
- 前端控制器
+ * 前端控制器
  * </p>
  *
  * @author jarven
@@ -52,7 +53,7 @@ public class BenefitController {
 
 
     @PostMapping("/useBenefit")
-    public Result<Void> useBenefit(@NotNull(message = "id不能为空")  Long id) {
+    public Result<Void> useBenefit(@NotNull(message = "id不能为空") Long id) {
 
         log.info("[{}]开始,入参:[{}]", "使用权益", id);
 
@@ -64,7 +65,7 @@ public class BenefitController {
     }
 
     @PostMapping("/disableBenefit")
-    public Result<Void> disableBenefit(@NotNull(message = "id不能为空")  Long id) {
+    public Result<Void> disableBenefit(@NotNull(message = "id不能为空") Long id) {
 
         log.info("[{}]开始,入参:[{}]", "禁用权益", id);
 
@@ -84,9 +85,8 @@ public class BenefitController {
     }
 
 
-
     @PostMapping("/calculationGrowthValue")
-    public Result<Void>  calculationGrowthValue(@Validated @RequestBody CalculationGrowthValueDTO dto) {
+    public Result<Void> calculationGrowthValue(@Validated @RequestBody CalculationGrowthValueDTO dto) {
 
         log.info("[{}]开始,入参:[{}]", "计算成长值", dto);
 

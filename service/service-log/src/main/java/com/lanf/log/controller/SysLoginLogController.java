@@ -6,7 +6,6 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.log.model.dto.SysLoginLogDTO;
 import com.lanf.log.model.entity.SysLoginLogDO;
 import com.lanf.log.model.vo.SysLoginLogQueryVo;
-import com.lanf.log.result.Result;
 import com.lanf.log.service.SysLoginLogService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

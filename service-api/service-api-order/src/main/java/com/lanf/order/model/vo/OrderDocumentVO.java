@@ -1,6 +1,6 @@
 package com.lanf.order.model.vo;
 
-import com.lanf.constant.enums.order.OrderStatusEnum;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;

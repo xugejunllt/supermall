@@ -1,6 +1,6 @@
 package com.lanf.goods.model.query;
 
-import com.lanf.constant.enums.goods.UserStockFlowEventTypeEnum;
+import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;

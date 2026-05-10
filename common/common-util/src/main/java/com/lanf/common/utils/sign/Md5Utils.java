@@ -23,8 +23,7 @@ public class Md5Utils
             algorithm = MessageDigest.getInstance("MD5");
             algorithm.reset();
             algorithm.update(s.getBytes("UTF-8"));
-            byte[] messageDigest = algorithm.digest();
-            return messageDigest;
+            return algorithm.digest();
         }
         catch (Exception e)
         {

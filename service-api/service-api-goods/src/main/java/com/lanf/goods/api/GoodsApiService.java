@@ -38,7 +38,7 @@ public interface GoodsApiService {
     public Result<ReconciliationStockFlowVO> reconciliationStockFlowQuery(@RequestBody  ReconciliationStockFlowQuery query);
     @Hmily
     @PostMapping("/goods/api/seckillStockPreoccupation")
-    public Result<Void> seckillStockPreoccupation(@RequestBody @Validated SeckillStockPreoccupationDTO dto)
+    public Result<Void> seckillStockPreoccupation(@RequestBody @Validated SeckillStockPreoccupationDTO dto);
 
     @Deprecated
     @PostMapping("/goods/goodsApi/emptyCart")

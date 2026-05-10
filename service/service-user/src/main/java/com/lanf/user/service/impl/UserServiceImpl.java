@@ -1,24 +1,20 @@
 package com.lanf.user.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.aftersales.mq.UserClientTopicName;
-import com.lanf.aftersales.mq.message.UserRegisterMessage;
-import com.lanf.bizcache.service.SmsRateLimitService;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.cache.constant.RedisCacheConstants;
 import com.lanf.cache.service.DistributedLocker;
 import com.lanf.cache.service.RedisCache;
 import com.lanf.common.utils.*;
-import com.lanf.constant.enums.SmsCodeEnum;
+
 import com.lanf.constant.exception.BizException;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
+import com.lanf.constant.model.enums.SmsCodeEnum;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.model.CacheSessionBO;
 import com.lanf.security.utils.JwtUtils;
 import com.lanf.security.utils.UserIdContext;
-import com.lanf.security.utils.UserSessionCache;
 import com.lanf.user.mapper.UserMapper;
 import com.lanf.user.model.bo.UserLevelBO;
 import com.lanf.user.model.bo.ValidateRefreshTokenBO;
@@ -31,9 +27,12 @@ import com.lanf.user.model.vo.LoginUserVO;
 import com.lanf.user.model.vo.RefreshTokenVO;
 import com.lanf.user.model.vo.UserDetailVO;
 import com.lanf.user.model.vo.UserVO;
+import com.lanf.user.mq.UserClientTopicName;
+import com.lanf.user.mq.message.UserRegisterMessage;
 import com.lanf.user.service.IUserLoginLogService;
 import com.lanf.user.service.IUserService;
 import com.lanf.user.service.benefit.IUserLevelService;
+import com.lanf.web.utils.IpUtil;
 import com.lanf.web.utils.WebUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -60,21 +59,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private DistributedLocker distributedLocker;
     @Autowired
     private RocketMqClient rocketMqClient;
-    @Autowired
-    private SmsRateLimitService smsRateLimitService;
+
     @Autowired
     private RedisCache redisCache;
     @Autowired
     private IUserLoginLogService userLoginLogService;
-    @Autowired
-    private UserSessionCache userSessionCache;
+
 
     @Autowired
     private LoginSecurityService loginSecurityService;
     @Autowired
     private IUserLevelService userLevelService;
-    @Autowired
-    private ISendMqMessageService sendMqMessageService;
+
     @Autowired
     private TransactionTemplate transactionTemplate;
 
@@ -201,13 +197,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             throw new BizException(validationResult.getMessage());
 
         }
-        //校验发送频率
-        boolean canSend = smsRateLimitService.canSend(phoneNumber);
-        if (!canSend) {
-            log.info("该手机号超过最大发送次数");
-            throw new BizException("该手机号超过最大发送次数");
 
-        }
     }
 
     @Override
@@ -227,8 +217,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         UserDO userDO = this.lambdaQuery().eq(UserDO::getPhoneNumber, dt.getPhoneNumber()).one();
 
-        //加入缓存中
-        CacheSessionBO sessionBO = userSessionCache.cacheSession(dt.getLoginChannel(), userDO.getId(), dt.getDeviceId());
+
 
         //踢人
         kick(dt.getLoginChannel(), userDO.getId());
@@ -240,27 +229,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         //登入成功 构建返回信息
         LoginUserVO loginUserVO = new LoginUserVO();
         loginUserVO.setUserId(userDO.getId());
-        loginUserVO.setRefreshToken(sessionBO.getRefreshToken());
-        loginUserVO.setToken(sessionBO.getToken());
+//        loginUserVO.setRefreshToken(sessionBO.getRefreshToken());
+//        loginUserVO.setToken(sessionBO.getToken());
         return loginUserVO;
     }
 
     private void kick(Integer loginChannel, Long userId) {
 
-        if (loginChannel.equals(1)) {
-            //当前android登入 踢掉 ios端
-            log.info("当前登入渠道android,踢掉ios");
-            userSessionCache.cleanSession(2, userId);
 
-        } else if (loginChannel.equals(2)) {
-            //ios端 踢掉 当前android
-            log.info("当前登入渠道ios,踢掉android");
-            userSessionCache.cleanSession(1, userId);
-        } else {
-
-            log.info("当前登入渠道web,不需要踢掉");
-
-        }
 
     }
 
