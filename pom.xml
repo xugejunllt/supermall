@@ -101,6 +101,13 @@
         <service-pom.version>1.0.0</service-pom.version>
         <service-api-pom.version>1.0.0</service-api-pom.version>
         <common-hmily.version>1.0.0</common-hmily.version>
+        <netflix-hystrix.version>2.2.5.RELEASE</netflix-hystrix.version>
+        <hmily.version>2.1.3-SNAPSHOT</hmily.version>
+        <guava.version>30.1.1-jre</guava.version>
+        <shardingsphere-jdbc.version>5.4.1</shardingsphere-jdbc.version>
+        <shardingsphere-sharding.version>5.4.1</shardingsphere-sharding.version>
+        <kaptcha.version>2.3.3</kaptcha.version>
+
     </properties>
 
     <!--配置dependencyManagement锁定依赖的版本-->
@@ -235,7 +242,38 @@
             </dependency>
 
 
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>hmily-spring-boot-starter-springcloud</artifactId>
+                <version>${hmily.version}</version>
 
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+                <version>${netflix-hystrix.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>shardingsphere-jdbc-core</artifactId>
+                <version>${shardingsphere-jdbc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>shardingsphere-sharding-api</artifactId>
+                <version>${shardingsphere-sharding.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>pro.fessional</groupId>
+                <artifactId>kaptcha</artifactId>
+                <version>${kaptcha.version}</version>
+
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
