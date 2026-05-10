@@ -1,6 +1,8 @@
 package com.lanf.web.service;
 
+import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.web.config.AuthPathConfig;
@@ -28,7 +30,8 @@ public class AuthService {
     
     @Autowired
     private AuthPathConfig authPathConfig;
-    
+    @Autowired
+    private RedissonCacheService redissonCacheService;
 
 
     
@@ -105,6 +108,27 @@ public class AuthService {
                     return;
                 }
             }
+            /**
+             * 校验缓存中
+             *
+             */
+            String key = String.format(RedisKeyConstants.USER_ACCESS_TOKEN, jwtTokenInfo.getUserId(),
+                    authRequestInfo.getChannel());
+            String accessTokenCache = redissonCacheService.get(key);
+            if (accessTokenCache == null ) {
+                log.warn("Token已过期: {}", "Token已过期");
+                ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.TOKEN_EXPIRED.getCode(), CommonResultCodeEnum.TOKEN_EXPIRED.getMessage()));
+                return;
+            }
+            if ( !accessTokenCache.equals(accessToken)) {
+                /**
+                 * 已被踢出了
+                 */
+                log.warn("与缓存token不一致: accessTokenCache {},accessToken{}", accessTokenCache, accessToken);
+                ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.AUTH_FAILED.getCode(), CommonResultCodeEnum.TOKEN_EXPIRED.getMessage()));
+                return;
+            }
+
             UserContext.setUserId(jwtTokenInfo.getUserId());
             UserContext.setDeviceId(jwtTokenInfo.getDeviceId());
             UserContext.setTenantId(jwtTokenInfo.getTenantId());
