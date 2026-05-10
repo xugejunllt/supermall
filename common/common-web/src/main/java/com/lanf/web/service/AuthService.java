@@ -116,7 +116,7 @@ public class AuthService {
                     authRequestInfo.getChannel());
             String accessTokenCache = redissonCacheService.get(key);
             if (accessTokenCache == null ) {
-                log.warn("Token已过期: {}", "Token已过期");
+                log.warn("Token已过期");
                 ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.TOKEN_EXPIRED.getCode(), CommonResultCodeEnum.TOKEN_EXPIRED.getMessage()));
                 return;
             }
@@ -124,8 +124,8 @@ public class AuthService {
                 /**
                  * 已被踢出了
                  */
-                log.warn("与缓存token不一致: accessTokenCache {},accessToken{}", accessTokenCache, accessToken);
-                ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.AUTH_FAILED.getCode(), CommonResultCodeEnum.TOKEN_EXPIRED.getMessage()));
+                log.warn("与缓存token不一致");
+                ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.KICKED_OUT.getCode(), CommonResultCodeEnum.KICKED_OUT.getMessage()));
                 return;
             }
 

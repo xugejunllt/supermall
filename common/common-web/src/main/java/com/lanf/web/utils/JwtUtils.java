@@ -116,11 +116,11 @@ public class JwtUtils {
 
             return tokenInfo;
         } catch (ExpiredJwtException e) {
-            log.warn("Token已过期 token=[{}]", token);
+            log.warn("Token已过期 ");
             throw new IExpiredJwtException();
         } catch (Exception e) {
 
-            log.warn("Token解析失败 token=[{}]", token, e);
+            log.warn("Token解析失败", e);
             throw new TokenParseException();
         }
     }

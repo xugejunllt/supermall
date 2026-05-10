@@ -14,7 +14,7 @@ import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.model.CacheSessionBO;
 import com.lanf.security.utils.UserIdContext;
-import com.lanf.user.constant.RedisKeyConstants;
+import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.user.mapper.UserMapper;
 import com.lanf.user.model.bo.UserLevelBO;
 import com.lanf.user.model.bo.ValidateRefreshTokenBO;
@@ -321,15 +321,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             String refreshToken = dto.getRefreshToken();
             if (IStringUtils.isEmpty(refreshToken)) {
                 log.warn("刷新令牌为空");
-                throw new BizException(CommonResultCodeEnum.AUTH_FAILED.getCode(),
-                        CommonResultCodeEnum.AUTH_FAILED.getMessage());
+                throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
+                        CommonResultCodeEnum.KICKED_OUT.getMessage());
             }
             JwtTokenInfo jwtTokenInfo;
             try {
                 jwtTokenInfo = JwtUtils.parseUserToken(refreshToken);
             } catch (Exception e) {
-                throw new BizException(CommonResultCodeEnum.AUTH_FAILED.getCode(),
-                        CommonResultCodeEnum.AUTH_FAILED.getMessage());
+                throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
+                        CommonResultCodeEnum.KICKED_OUT.getMessage());
             }
             
             String requestDeviceId = authRequestInfo.getDeviceId();
@@ -337,8 +337,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
             if (!requestDeviceId.equals(tokenDeviceId)) {
                 log.warn("设备ID不一致，请求头: {}, Token中: {}", requestDeviceId, tokenDeviceId);
-                throw new BizException(CommonResultCodeEnum.AUTH_FAILED.getCode(),
-                        CommonResultCodeEnum.AUTH_FAILED.getMessage());
+                throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
+                        CommonResultCodeEnum.KICKED_OUT.getMessage());
             }
             Long userId = jwtTokenInfo.getUserId();
             String channel = authRequestInfo.getChannel();
@@ -347,13 +347,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             
             if (IStringUtils.isEmpty(cachedRefreshToken)) {
                 log.warn("刷新令牌已失效，可能已被使用或过期: userId={}", userId);
-                throw new BizException(CommonResultCodeEnum.AUTH_FAILED.getCode(),
-                        CommonResultCodeEnum.AUTH_FAILED.getMessage());
+                throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
+                        CommonResultCodeEnum.KICKED_OUT.getMessage());
             }
             if (!refreshToken.equals(cachedRefreshToken)) {
                 log.warn("刷新令牌与缓存不一致，可能存在安全风险: userId={}", userId);
-                throw new BizException(CommonResultCodeEnum.AUTH_FAILED.getCode(),
-                        CommonResultCodeEnum.AUTH_FAILED.getMessage());
+                throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
+                        CommonResultCodeEnum.KICKED_OUT.getMessage());
             }
             
             UserTokenInfoVO tokenInfo = generateAndCacheTokens(userId, authRequestInfo);
@@ -363,8 +363,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             return tokenInfo;
             
         } catch (Exception e) {
-            throw new BizException(CommonResultCodeEnum.AUTH_FAILED.getCode(),
-                    CommonResultCodeEnum.AUTH_FAILED.getMessage());
+            log.error("刷新令牌异常",e);
+            throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
+                    CommonResultCodeEnum.KICKED_OUT.getMessage());
         }
     }
 
