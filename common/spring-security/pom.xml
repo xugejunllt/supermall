@@ -5,13 +5,11 @@
     <parent>
         <artifactId>common</artifactId>
         <groupId>com.lanf</groupId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <version>${ispring-serurity.version}</version>
     <artifactId>spring-security</artifactId>
-    <packaging>jar</packaging>
 
     <dependencies>
 
