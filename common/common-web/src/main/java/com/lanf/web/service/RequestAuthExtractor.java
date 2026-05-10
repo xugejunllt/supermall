@@ -2,6 +2,7 @@ package com.lanf.web.service;
 
 import com.lanf.constant.exception.BizException;
 import com.lanf.web.model.bo.AuthRequestInfo;
+import com.lanf.web.model.bo.FeignRequestInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
@@ -26,13 +27,6 @@ public class RequestAuthExtractor {
     public static final String CHANNEL_WEB = "web";
     public static final String CHANNEL_PC = "pc";
 
-    /**
-     * 从HTTP请求中提取认证信息
-     *
-     * @param request HTTP请求对象
-     * @return 认证请求信息
-     * @throws Exception 当必填参数缺失时抛出异常
-     */
     public static AuthRequestInfo extractAuthInfo(HttpServletRequest request, boolean isAdmin) throws Exception {
         if (request == null) {
             log.error("HTTP请求对象为空");
@@ -86,13 +80,90 @@ public class RequestAuthExtractor {
         return authRequestInfo;
     }
 
-    /**
-     * 标准化渠道参数
-     * android和ios转换为app，其他保持不变
-     *
-     * @param channel 原始渠道参数
-     * @return 标准化后的渠道参数
-     */
+    public static AuthRequestInfo extractBasicInfo(HttpServletRequest request) throws Exception {
+        if (request == null) {
+            log.error("HTTP请求对象为空");
+            throw new Exception("HTTP请求对象为空");
+        }
+
+        String deviceId = request.getHeader(HEADER_DEVICE_ID);
+        String channel = request.getHeader(HEADER_CHANNEL);
+        String version = request.getHeader(HEADER_VERSION);
+
+        if (!StringUtils.hasText(deviceId)) {
+            log.warn("请求头中缺少deviceId参数");
+            throw new BizException("请求头中缺少deviceId参数");
+        }
+        if (!StringUtils.hasText(version)) {
+            log.warn("请求头中缺少version参数");
+            throw new BizException("请求头中缺少version参数");
+        }
+        if (!StringUtils.hasText(channel)) {
+            log.warn("请求头中缺少channel参数");
+            throw new BizException("请求头中缺少channel参数");
+        }
+
+        channel = normalizeChannel(channel);
+        
+        AuthRequestInfo authRequestInfo = new AuthRequestInfo();
+        authRequestInfo.setDeviceId(deviceId);
+        authRequestInfo.setAccessToken(null);
+        authRequestInfo.setChannel(channel);
+        authRequestInfo.setTenantId(null);
+        authRequestInfo.setVersion(version);
+
+        return authRequestInfo;
+    }
+
+    public static FeignRequestInfo extractFeignAuthInfo(HttpServletRequest request) throws Exception {
+        if (request == null) {
+            log.error("HTTP请求对象为空");
+            throw new Exception("HTTP请求对象为空");
+        }
+
+        String userIdStr = request.getHeader(FEIGN_HEADER_USER_ID);
+        String deviceId = request.getHeader(FEIGN_HEADER_DEVICE_ID);
+        String tenantIdStr = request.getHeader(FEIGN_HEADER_TENANT_ID);
+
+        if (!StringUtils.hasText(userIdStr)) {
+            log.warn("Feign请求头中缺少userId参数");
+            throw new BizException("Feign请求头中缺少userId参数");
+        }
+        if (!StringUtils.hasText(deviceId)) {
+            log.warn("Feign请求头中缺少deviceId参数");
+            throw new BizException("Feign请求头中缺少deviceId参数");
+        }
+        if (!StringUtils.hasText(tenantIdStr)) {
+            log.warn("Feign请求头中缺少tenantId参数");
+            throw new BizException("Feign请求头中缺少tenantId参数");
+        }
+
+        Long userId;
+        Long tenantId;
+        try {
+            userId = Long.parseLong(userIdStr);
+        } catch (NumberFormatException e) {
+            log.warn("userId格式错误: {}", userIdStr);
+            throw new BizException("userId格式错误");
+        }
+
+        try {
+            tenantId = Long.parseLong(tenantIdStr);
+        } catch (NumberFormatException e) {
+            log.warn("tenantId格式错误: {}", tenantIdStr);
+            throw new BizException("tenantId格式错误");
+        }
+
+        FeignRequestInfo feignRequestInfo = new FeignRequestInfo();
+        feignRequestInfo.setUserId(userId);
+        feignRequestInfo.setDeviceId(deviceId);
+        feignRequestInfo.setTenantId(tenantId);
+
+        log.debug("解析Feign请求信息: userId={}, deviceId={}, tenantId={}", userId, deviceId, tenantId);
+        
+        return feignRequestInfo;
+    }
+
     public static String normalizeChannel(String channel) {
         if (!StringUtils.hasText(channel)) {
             return channel;

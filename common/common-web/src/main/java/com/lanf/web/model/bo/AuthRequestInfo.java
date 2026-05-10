@@ -30,4 +30,6 @@ public class AuthRequestInfo {
      * 租户ID（可选）
      */
     private Long tenantId;
+
+
 }
