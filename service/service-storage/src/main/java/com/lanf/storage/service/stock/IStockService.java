@@ -1,7 +1,7 @@
 package com.lanf.storage.service.stock;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.storage.model.entity.StockDO;
 import com.lanf.storage.model.query.StockPageQuery;
 import com.lanf.storage.model.vo.StockPageQueryVO;

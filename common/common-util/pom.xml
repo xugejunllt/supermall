@@ -11,14 +11,15 @@
 
     <artifactId>common-util</artifactId>
 
+    <version>${common.version}</version>
 
     <dependencies>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <scope>provided</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-web</artifactId>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
@@ -56,6 +57,8 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-constant</artifactId>
+            <version>${common.version}</version>
+
         </dependency>
     </dependencies>
 

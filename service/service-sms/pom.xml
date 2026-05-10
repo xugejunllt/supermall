@@ -11,6 +11,7 @@
 
 
     <artifactId>service-sms</artifactId>
+    <version>${service.version}</version>
     <dependencies>
 
 
@@ -43,17 +44,19 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-constant</artifactId>
-
+            <version>${common.version}</version>
         </dependency>
 
 
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-mybatis</artifactId>
+            <version>${common.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-rocketmq</artifactId>
+            <version>${common.version}</version>
         </dependency>
         <dependency>
             <groupId>com.aliyun</groupId>
@@ -66,10 +69,12 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-fs</artifactId>
+            <version>${common.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-log</artifactId>
+            <version>${common.version}</version>
         </dependency>
         <dependency>
             <groupId>com.aliyun.oss</groupId>

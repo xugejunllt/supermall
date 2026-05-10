@@ -3,7 +3,7 @@ package com.lanf.order.service.layout.impl;
 import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtil;
-import com.lanf.common.utils.IdUtils;
+import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.constant.enums.LogisticsTrackStatusEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;

@@ -9,8 +9,8 @@ import com.lanf.logistics.model.dto.ExpressAddDTO;
 import com.lanf.logistics.model.entity.ExpressDO;
 import com.lanf.logistics.service.IExpressService;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.mybatis.base.PageQuery;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageQuery;
+import com.lanf.constant.web.PageResult;
 import com.lanf.security.utils.UserUtils;
 import org.springframework.stereotype.Service;
 

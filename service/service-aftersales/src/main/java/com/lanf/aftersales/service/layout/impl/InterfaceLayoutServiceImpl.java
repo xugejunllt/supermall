@@ -17,6 +17,7 @@ import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
 import com.lanf.goods.api.GoodsApiService;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
+import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.order.api.OrderApiService;
 import com.lanf.order.model.vo.OrderItemVO;
 import com.lanf.order.model.vo.OrderVO;

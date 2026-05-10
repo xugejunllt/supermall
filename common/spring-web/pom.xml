@@ -9,6 +9,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>spring-web</artifactId>
+    <version>${common.version}</version>
 
     <dependencies>
         <dependency>
@@ -18,6 +19,8 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-constant</artifactId>
+            <version>${common.version}</version>
+
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -28,19 +31,8 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-constant</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-util</artifactId>
 
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
+
     </dependencies>
 
 </project>

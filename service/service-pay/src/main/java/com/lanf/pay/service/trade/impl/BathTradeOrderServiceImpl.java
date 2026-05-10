@@ -7,7 +7,7 @@ import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
-import com.lanf.common.utils.IdUtils;
+import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.constant.enums.FlowNoPrefixEnum;
 import com.lanf.pay.config.PayConfig;
 import com.lanf.pay.mapper.BathTradeOrderMapper;

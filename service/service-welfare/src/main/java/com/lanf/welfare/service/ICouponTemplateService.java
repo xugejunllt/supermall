@@ -1,7 +1,7 @@
 package com.lanf.welfare.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.rocketmq.model.message.DeductCouponTemplateCountMsg;
 import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
 import com.lanf.welfare.model.dto.CouponTemplateRevokeDTO;

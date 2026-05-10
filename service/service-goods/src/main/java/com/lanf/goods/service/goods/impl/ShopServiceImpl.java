@@ -7,11 +7,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.goods.mapper.ShopMapper;
 import com.lanf.goods.model.dto.ShopDTO;
-import com.lanf.goods.model.entity.GoodsBrandDO;
 import com.lanf.goods.model.entity.ShopDO;
 import com.lanf.goods.service.goods.IShopService;
-import com.lanf.mybatis.base.PageQuery;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageQuery;
+import com.lanf.constant.web.PageResult;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

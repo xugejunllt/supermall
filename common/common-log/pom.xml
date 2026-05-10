@@ -10,28 +10,27 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>common-log</artifactId>
+    <version>${common.version}</version>
 
-    <dependencies>
+<!--    <dependencies>-->
 
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-util</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>service-api-log</artifactId>
-            <version>${service-log.version}</version>
-        </dependency>
-    </dependencies>
+<!--        <dependency>-->
+<!--            <groupId>com.lanf</groupId>-->
+<!--            <artifactId>common-util</artifactId>-->
+<!--            <version>${common.version}</version>-->
+
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-web</artifactId>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-aop</artifactId>-->
+<!--        </dependency>-->
+
+<!--    </dependencies>-->
 
 
 </project>

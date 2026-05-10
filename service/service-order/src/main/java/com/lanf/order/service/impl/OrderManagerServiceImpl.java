@@ -8,7 +8,7 @@ import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IStringUtils;
-import com.lanf.common.utils.IdUtils;
+import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;

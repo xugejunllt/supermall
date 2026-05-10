@@ -9,9 +9,8 @@ import com.lanf.goods.model.dto.GoodsCategoryAddDTO;
 import com.lanf.goods.model.entity.GoodsCategoryDO;
 import com.lanf.goods.model.vo.GoodsCategoryPageVO;
 import com.lanf.goods.service.goods.IGoodsCategoryService;
-import com.lanf.mybatis.base.PageQuery;
-import com.lanf.mybatis.base.PageResult;
-import com.lanf.security.utils.UserUtils;
+import com.lanf.constant.web.PageQuery;
+import com.lanf.constant.web.PageResult;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

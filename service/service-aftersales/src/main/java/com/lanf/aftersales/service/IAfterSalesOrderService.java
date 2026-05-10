@@ -7,7 +7,7 @@ import com.lanf.aftersales.model.dto.UserDeliveryDTO;
 import com.lanf.aftersales.model.entity.AfterSalesOrderDO;
 import com.lanf.aftersales.model.query.AfterSalesOrderPageQuery;
 import com.lanf.aftersales.model.vo.AfterSalesOrderPageVO;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 
 /**
  * <p>

@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.storage.mapper.SupplierMapper;
 import com.lanf.storage.model.dto.SupplierAddDTO;
 import com.lanf.storage.model.entity.SupplierDO;

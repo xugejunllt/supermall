@@ -7,8 +7,8 @@ import com.lanf.goods.model.vo.CartAddVO;
 import com.lanf.goods.model.vo.CartListVO;
 import com.lanf.goods.model.vo.ClearCartVO;
 import com.lanf.goods.model.vo.ValidateCartItemVO;
-import com.lanf.mybatis.base.PageQuery;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageQuery;
+import com.lanf.constant.web.PageResult;
 
 /**
  * <p>

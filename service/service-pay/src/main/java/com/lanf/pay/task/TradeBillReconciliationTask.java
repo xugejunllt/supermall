@@ -2,7 +2,7 @@ package com.lanf.pay.task;
 
 import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.DateUtils;
-import com.lanf.common.utils.IdUtils;
+import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 import com.lanf.pay.model.entity.ReconciliationJobLogDO;

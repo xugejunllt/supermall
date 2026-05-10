@@ -2,7 +2,7 @@ package com.lanf.user.controller.admin;
 
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.user.model.dto.CalculationGrowthValueDTO;
 import com.lanf.user.model.dto.CreateBenefitDTO;
 import com.lanf.user.model.entity.BenefitDO;

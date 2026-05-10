@@ -1,6 +1,6 @@
 package com.lanf.storage.model.query;
 
-import com.lanf.mybatis.base.PageQuery;
+import com.lanf.constant.web.PageQuery;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

@@ -1,6 +1,6 @@
 package com.lanf.system.model.vo;
 
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import lombok.Data;
 
 @Data

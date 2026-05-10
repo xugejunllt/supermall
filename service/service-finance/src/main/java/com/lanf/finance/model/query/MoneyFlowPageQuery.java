@@ -2,10 +2,8 @@ package com.lanf.finance.model.query;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lanf.common.utils.DateUtils;
-import com.lanf.mybatis.base.PageQuery;
+import com.lanf.constant.web.PageQuery;
 import lombok.Data;
-
-import java.util.Date;
 
 @Data
 public class MoneyFlowPageQuery extends PageQuery {

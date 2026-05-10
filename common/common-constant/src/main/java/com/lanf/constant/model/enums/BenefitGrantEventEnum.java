@@ -1,4 +1,4 @@
-package com.lanf.constant.enums;
+package com.lanf.constant.model.enums;
 
 /**
  * 权益发放事件

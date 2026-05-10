@@ -2,7 +2,7 @@ package com.lanf.order.mq.listener;
 
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.common.utils.IdUtils;
+import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.enums.FlowNoPrefixEnum;
 import com.lanf.order.model.entity.OrderDO;

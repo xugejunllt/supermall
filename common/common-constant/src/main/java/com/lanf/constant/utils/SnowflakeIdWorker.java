@@ -1,4 +1,4 @@
-package com.lanf.common.utils;
+package com.lanf.constant.utils;
 
 /**
 0 - 0000000000 0000000000 0000000000 0000000000 0 - 00000 - 00000 - 000000000000

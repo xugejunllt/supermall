@@ -7,6 +7,8 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>common-hmily</artifactId>
+    <version>${common.version}</version>
+
     <dependencies>
 
         <dependency>
@@ -57,6 +59,7 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-mybatis</artifactId>
+            <version>${common.version}</version>
         </dependency>
     </dependencies>
 </project>

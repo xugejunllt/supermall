@@ -8,7 +8,7 @@ import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.goods.api.GoodsApiService;
 import com.lanf.goods.model.vo.BaseGoodsBySkuCodeQueryVO;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.storage.mapper.StockMapper;
 import com.lanf.storage.model.entity.StockDO;
 import com.lanf.storage.model.query.StockPageQuery;
@@ -21,9 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * <p>

@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>service-log</artifactId>
-
+    <version>${service.version}</version>
     <dependencies>
 
 
@@ -35,6 +35,7 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>spring-security</artifactId>
+            <version>${common.version}</version>
         </dependency>
 
 
@@ -57,18 +58,23 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>service-api-log</artifactId>
+            <version>${service.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-fs</artifactId>
+            <version>${common.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>spring-web</artifactId>
+            <version>${common.version}</version>
+
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-mybatis</artifactId>
+            <version>${common.version}</version>
         </dependency>
     </dependencies>
 

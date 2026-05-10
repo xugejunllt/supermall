@@ -1,6 +1,6 @@
 package com.lanf.goods.model.query;
 
-import com.lanf.mybatis.base.PageQuery;
+import com.lanf.constant.web.PageQuery;
 import lombok.Data;
 
 

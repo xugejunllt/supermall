@@ -10,11 +10,13 @@
     </parent>
 
     <artifactId>service-finance</artifactId>
+    <version>${service.version}</version>
     <dependencies>
 
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>spring-security</artifactId>
+            <version>${common.version}</version>
         </dependency>
 
         <dependency>
@@ -37,20 +39,23 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-cache</artifactId>
+            <version>${common.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-util</artifactId>
+            <version>${common.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-constant</artifactId>
-
+            <version>${common.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-log</artifactId>
+            <version>${common.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -59,50 +64,44 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-mybatis</artifactId>
+            <version>${common.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-fs</artifactId>
+            <version>${common.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-rocketmq</artifactId>
+            <version>${common.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.lanf</groupId>
-            <artifactId>service-api-pay</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-rocketmq</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-biz-cache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
             <artifactId>service-api-finance</artifactId>
+            <version>${service.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>service-api-pay</artifactId>
+            <version>${service.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-biz-cache</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>service-api-order</artifactId>
+            <version>${service.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>service-api-aftersales</artifactId>
+            <version>${service.version}</version>
+        </dependency>
 
-        </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>service-api-pay</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

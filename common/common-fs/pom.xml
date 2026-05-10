@@ -9,10 +9,13 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>common-fs</artifactId>
+    <version>${common.version}</version>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+
         </dependency>
 
     </dependencies>

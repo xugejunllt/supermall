@@ -7,7 +7,7 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.user.mapper.BenefitMapper;
 import com.lanf.user.model.dto.CreateBenefitDTO;
 import com.lanf.user.model.entity.BenefitDO;

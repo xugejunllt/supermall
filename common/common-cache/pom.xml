@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>common-cache</artifactId>
+    <version>${common.version}</version>
 
     <dependencies>
 
@@ -25,11 +26,15 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-util</artifactId>
+            <version>${common.version}</version>
+
         </dependency>
 
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-constant</artifactId>
+            <version>${common.version}</version>
+
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -43,7 +48,10 @@
             <groupId>org.redisson</groupId>
             <artifactId>redisson</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

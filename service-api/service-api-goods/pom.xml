@@ -10,16 +10,17 @@
     </parent>
 
     <artifactId>service-api-goods</artifactId>
+    <version>${service.version}</version>
+
     <dependencies>
 
         <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-hmily</artifactId>
+            <groupId>org.dromara</groupId>
+            <artifactId>hmily-annotation</artifactId>
+            <version>${hmily.version}</version>
+
         </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>service-api-storage</artifactId>
-        </dependency>
+
     </dependencies>
 
 

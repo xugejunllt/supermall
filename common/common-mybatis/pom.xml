@@ -10,7 +10,9 @@
     </parent>
 
     <artifactId>common-mybatis</artifactId>
-  <dependencies>
+    <version>${common.version}</version>
+
+    <dependencies>
 
       <dependency>
           <groupId>com.baomidou</groupId>
@@ -21,11 +23,11 @@
           <groupId>mysql</groupId>
           <artifactId>mysql-connector-java</artifactId>
       </dependency>
-
-      <dependency>
-          <groupId>com.lanf</groupId>
-          <artifactId>common-util</artifactId>
-      </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-constant</artifactId>
+            <version>${common.version}</version>
+        </dependency>
 
 
   </dependencies>

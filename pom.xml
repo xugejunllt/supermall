@@ -63,11 +63,11 @@
         <easyexcel.version>3.3.2</easyexcel.version>
         <apm-toolkit-logback.version>7.0.0</apm-toolkit-logback.version>
         <apm-toolkit-trace.version>7.0.0</apm-toolkit-trace.version>
-
+        <mybatis-plus.version>3.4.1</mybatis-plus.version>
         <!--内部工程版本 -->
-        <service.version>1.0.0-SNAPSHOT</service.version>
         <api-gateway.version>1.0.0-SNAPSHOT</api-gateway.version>
         <common.version>1.0.0-SNAPSHOT</common.version>
+        <service.version>1.0.0-SNAPSHOT</service.version>
 
     </properties>
 
@@ -239,7 +239,11 @@
                 <version>${kaptcha.version}</version>
 
             </dependency>
-
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>easyexcel</artifactId>
@@ -261,214 +265,7 @@
                 <artifactId>hmily-annotation</artifactId>
                 <version>${org.dromara.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-util</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>spring-security</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-log</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-mybatis</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-constant</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-cache</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-fs</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-start</artifactId>
-                <version>${common.version}</version>
-            </dependency>
 
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-rocketmq</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-elasticsearch</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-sharding-sphere</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-hmily</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-system</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-log</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-logistics</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-file</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-storage</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-goods</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-user</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-order</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-pay</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-sms</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-welfare</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-aftersales</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-finance</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-search</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-seckill</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-system</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-log</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-goods</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-pay</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-storage</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-order</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-finance</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-logistics</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-welfare</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-search</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-aftersales</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-user</artifactId>
-                <version>${service.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>service-api-seckill</artifactId>
-                <version>${service.version}</version>
-            </dependency>
 
         </dependencies>
     </dependencyManagement>
@@ -510,22 +307,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <configuration>
-                            <tasks>
-                                <property name="base-mf-version" value="${base-mf-version}"/>
-                                <property name="common-pom.version" value="${common-pom.version}"/>
-                                <property name="service-api-pom.version" value="${service-api-pom.version}"/>
-                                <property name="service-pom.versionn" value="${service-pom.version}"/>
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
+
             </plugin>
 
         </plugins>

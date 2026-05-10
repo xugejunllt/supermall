@@ -8,8 +8,8 @@ import com.lanf.goods.mapper.GoodsBrandMapper;
 import com.lanf.goods.model.dto.GoodsBrandAddDTO;
 import com.lanf.goods.model.entity.GoodsBrandDO;
 import com.lanf.goods.service.goods.IGoodsBrandService;
-import com.lanf.mybatis.base.PageQuery;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageQuery;
+import com.lanf.constant.web.PageResult;
 import com.lanf.constant.exception.BizException;
 import org.springframework.stereotype.Service;
 

@@ -7,7 +7,7 @@ import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.vo.GoodsDetailVO;
 import com.lanf.goods.model.vo.GoodsPageVO;
 import com.lanf.goods.service.goods.IGoodsService;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.constant.result.Result;
 import com.lanf.common.utils.MerchantIdContext;
 import lombok.extern.slf4j.Slf4j;

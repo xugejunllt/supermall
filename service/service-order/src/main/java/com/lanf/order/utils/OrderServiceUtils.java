@@ -3,7 +3,7 @@ package com.lanf.order.utils;
 
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.IStringUtils;
-import com.lanf.common.utils.IdUtils;
+import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.TakeAddressDTO;

@@ -1,7 +1,7 @@
 package com.lanf.search.service.impl;
 
 import com.lanf.common.utils.IStringUtils;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.search.model.bo.ScoredProduct;
 import com.lanf.search.model.document.GoodsDocument;
 import com.lanf.search.model.query.GoodsSearchQuery;

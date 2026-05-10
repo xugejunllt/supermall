@@ -1,7 +1,7 @@
 package com.lanf.storage.controller.admin;
 
 
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.storage.model.entity.StockFlowDO;
 import com.lanf.storage.model.query.StockFlowPageQuery;
 import com.lanf.storage.service.stock.IStockFlowService;

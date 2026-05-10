@@ -1,7 +1,7 @@
 package com.lanf.storage.service.warehous;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.storage.model.dto.WarehouseAddDTO;
 import com.lanf.storage.model.entity.WarehouseDO;
 import com.lanf.storage.model.query.WarehousePageQuery;

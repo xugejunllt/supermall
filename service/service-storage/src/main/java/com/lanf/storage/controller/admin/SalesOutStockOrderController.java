@@ -1,7 +1,7 @@
 package com.lanf.storage.controller.admin;
 
 
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.storage.model.dto.OutStockDTO;
 import com.lanf.storage.model.query.SalesOutStockOrderPageQuery;
 import com.lanf.storage.model.vo.SalesOutStockOrderDetailVO;

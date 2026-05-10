@@ -6,7 +6,7 @@ import com.lanf.finance.model.entity.MoneyFlowDO;
 import com.lanf.finance.model.query.MoneyFlowPageQuery;
 import com.lanf.finance.service.IMoneyFlowService;
 import com.lanf.finance.task.SettlementTask;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

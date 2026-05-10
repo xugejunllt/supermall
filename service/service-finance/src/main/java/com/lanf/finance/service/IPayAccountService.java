@@ -6,7 +6,7 @@ import com.lanf.finance.model.dto.PayAccountDTO;
 import com.lanf.finance.model.entity.PayAccountDO;
 import com.lanf.finance.model.query.PayAccountPageQuery;
 import com.lanf.finance.model.vo.PayAccountApiVO;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 
 /**
  * <p>

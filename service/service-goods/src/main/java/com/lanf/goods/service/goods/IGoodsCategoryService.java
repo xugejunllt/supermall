@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.goods.model.dto.GoodsCategoryAddDTO;
 import com.lanf.goods.model.entity.GoodsCategoryDO;
 import com.lanf.goods.model.vo.GoodsCategoryPageVO;
-import com.lanf.mybatis.base.PageQuery;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageQuery;
+import com.lanf.constant.web.PageResult;
 
 /**
  * <p>

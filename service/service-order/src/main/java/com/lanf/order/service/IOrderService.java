@@ -1,7 +1,7 @@
 package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.order.model.dto.AllowOutboundDTO;
 import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.DeliveryDTO;

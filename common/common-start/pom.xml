@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>common-start</artifactId>
+    <version>${common.version}</version>
 
 
 </project>

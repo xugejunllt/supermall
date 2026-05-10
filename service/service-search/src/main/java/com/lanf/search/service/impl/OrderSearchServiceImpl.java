@@ -1,6 +1,6 @@
 package com.lanf.search.service.impl;
 
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.search.model.document.OrderDocument;
 import com.lanf.search.model.query.OrderSearchQuery;
 import com.lanf.search.model.vo.OrderSearchVO;

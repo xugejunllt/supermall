@@ -1,6 +1,6 @@
 package com.lanf.storage.mq.message;
 
-import com.lanf.goods.model.enums.UserStockFlowEventTypeEnum;
+import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;

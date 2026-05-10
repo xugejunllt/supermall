@@ -9,6 +9,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>service-api-log</artifactId>
+    <version>${service.version}</version>
 
 
 </project>

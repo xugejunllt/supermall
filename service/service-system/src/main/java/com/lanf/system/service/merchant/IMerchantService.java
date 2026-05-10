@@ -1,7 +1,7 @@
 package com.lanf.system.service.merchant;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.system.model.dto.MerchantRegisterDTO;
 import com.lanf.system.model.entiry.MerchantDO;
 import com.lanf.system.model.query.CompanyPageQuery;

@@ -2,7 +2,7 @@ package com.lanf.search.api;
 
 
 import com.lanf.constant.result.Result;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.search.model.dto.GoodsUpdateDTO;
 import com.lanf.search.model.query.OrderSearchQuery;
 import com.lanf.search.model.vo.OrderSearchVO;

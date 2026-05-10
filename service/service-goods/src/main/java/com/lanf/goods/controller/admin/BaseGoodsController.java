@@ -8,7 +8,7 @@ import com.lanf.goods.model.vo.BaseGoodsByCodeQueryVO;
 import com.lanf.goods.model.vo.BaseGoodsBySkuCodeQueryVO;
 import com.lanf.goods.model.vo.BaseGoodsPageVO;
 import com.lanf.goods.service.base.IBaseGoodsService;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

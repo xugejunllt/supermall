@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>service-api-aftersales</artifactId>
-
+    <version>${service.version}</version>
 
 
 </project>

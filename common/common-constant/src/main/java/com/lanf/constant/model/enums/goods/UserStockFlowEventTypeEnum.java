@@ -1,4 +1,4 @@
-package com.lanf.goods.model.enums;
+package com.lanf.constant.model.enums.goods;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;

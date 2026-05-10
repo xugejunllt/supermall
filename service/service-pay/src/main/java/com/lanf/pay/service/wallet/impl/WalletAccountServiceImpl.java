@@ -10,7 +10,7 @@ import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.client.pay.mq.message.TransferMessage;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.common.utils.IdUtils;
+import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.enums.FlowNoPrefixEnum;
 import com.lanf.constant.exception.BizException;

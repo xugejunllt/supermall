@@ -18,7 +18,7 @@ import com.lanf.goods.service.base.IBaseGoodsService;
 import com.lanf.goods.service.base.IBaseGoodsSkuService;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.common.utils.MerchantIdContext;
 
 import com.lanf.constant.exception.BizException;

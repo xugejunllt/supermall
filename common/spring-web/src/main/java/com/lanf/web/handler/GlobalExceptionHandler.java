@@ -1,15 +1,13 @@
 package com.lanf.web.handler;
 
-import com.lanf.common.utils.StackTraceUtil;
+import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.exception.BizException;
 import com.lanf.constant.exception.IRedisException;
 import com.lanf.constant.exception.MQException;
 import com.lanf.constant.exception.UtilException;
-import com.lanf.constant.code.CommonResultCodeEnum;
-import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -31,17 +29,11 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public Result error(Exception e) {
 
-        log.error("请求异常[{}]", StackTraceUtil.getStackTrace(e));
+        log.error("请求异常[{}]", e);
 
         return Result.fail();
     }
-    @ExceptionHandler(AccessDeniedException.class)
-    @ResponseBody
-    public Result error(AccessDeniedException e) {
-        //权限异常  没有访问权限 -spring security
-        return Result.fail(CommonResultCodeEnum.SERVICE_ERROR.getCode(), e.getMessage());
 
-    }
     @ExceptionHandler(BizException.class)
     @ResponseBody
     public Result error(BizException e) {
@@ -70,7 +62,6 @@ public class GlobalExceptionHandler {
 
         return Result.fail(CommonResultCodeEnum.SERVICE_ERROR.getCode(), CommonResultCodeEnum.SERVICE_ERROR.getMessage());
     }
-
 
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

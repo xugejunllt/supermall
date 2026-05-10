@@ -10,14 +10,11 @@
     </parent>
 
     <artifactId>service-api-system</artifactId>
-    <version>${service-system.version}</version>
-    <dependencies>
+    <version>${service.version}</version>
+    <properties>
+        <service.version>1.0.0-SNAPSHOT</service.version>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
+    </properties>
 
-    </dependencies>
 
 </project>

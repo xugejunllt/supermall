@@ -1,6 +1,6 @@
 package com.lanf.search.service;
 
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.search.model.query.GoodsSearchQuery;
 import com.lanf.search.model.query.HomePageQuery;
 import com.lanf.search.model.vo.HomePageVO;

@@ -2,7 +2,7 @@ package com.lanf.storage.service.storage;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.storage.model.dto.OutStockDTO;
 import com.lanf.storage.model.entity.SalesOutStockOrderDO;
 import com.lanf.storage.model.query.SalesOutStockOrderPageQuery;

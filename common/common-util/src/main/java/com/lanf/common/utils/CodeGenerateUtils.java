@@ -1,6 +1,7 @@
 package com.lanf.common.utils;
 
-import com.lanf.constant.enums.FlowNoPrefixEnum;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.utils.IdUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

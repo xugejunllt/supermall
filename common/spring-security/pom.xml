@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>spring-security</artifactId>
+    <version>${common.version}</version>
 
     <dependencies>
 
@@ -19,20 +20,23 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-
         <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>spring-web</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.lanf</groupId>-->
-<!--            <artifactId>service-api-system</artifactId>-->
-<!--        </dependency>-->
+
+
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-cache</artifactId>
-        </dependency>
+            <version>${common.version}</version>
 
+        </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>${common.version}</version>
+        </dependency>
     </dependencies>
 
 

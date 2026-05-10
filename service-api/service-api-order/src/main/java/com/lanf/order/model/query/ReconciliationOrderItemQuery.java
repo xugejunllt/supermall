@@ -1,6 +1,6 @@
 package com.lanf.order.model.query;
 
-import com.lanf.order.model.enums.OrderStatusEnum;
+import com.lanf.constant.enums.order.OrderStatusEnum;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;

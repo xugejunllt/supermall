@@ -11,6 +11,8 @@
 
 
     <artifactId>service-api-logistics</artifactId>
+    <version>${service.version}</version>
+
     <dependencies>
 
     </dependencies>

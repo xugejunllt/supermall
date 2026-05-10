@@ -1,4 +1,4 @@
-package com.lanf.mybatis.base;
+package com.lanf.constant.model.query;
 
 import lombok.Data;
 

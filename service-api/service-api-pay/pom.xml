@@ -10,24 +10,22 @@
     </parent>
 
     <artifactId>service-api-pay</artifactId>
+    <version>${service.version}</version>
+
     <dependencies>
 
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>hmily-annotation</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-cache</artifactId>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-annotation</artifactId>
+            <version>${mybatis-plus.version}</version>
+
         </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-mybatis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>service-finance</artifactId>
-        </dependency>
+
 
     </dependencies>
 

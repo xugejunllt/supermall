@@ -1,7 +1,7 @@
 package com.lanf.mybatis.handler;
 
 import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
-import com.lanf.common.utils.IdUtils;
+import com.lanf.constant.utils.IdUtils;
 import org.springframework.context.annotation.Configuration;
 
 /**

@@ -1,7 +1,7 @@
 package com.lanf.storage.service.purchase;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.storage.model.dto.CalculatePurchaseOrderMoneyDTO;
 import com.lanf.storage.model.dto.PurchaseOrderAddDTO;
 import com.lanf.storage.model.entity.PurchaseOrderDO;

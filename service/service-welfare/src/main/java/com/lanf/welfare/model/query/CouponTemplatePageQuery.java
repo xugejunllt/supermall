@@ -1,6 +1,6 @@
 package com.lanf.welfare.model.query;
 
-import com.lanf.mybatis.base.PageQuery;
+import com.lanf.constant.web.PageQuery;
 import lombok.Data;
 
 @Data

@@ -1,7 +1,7 @@
 package com.lanf.search.controller.api;
 
 import com.alibaba.nacos.api.model.v2.Result;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.search.model.query.HomePageQuery;
 import com.lanf.search.model.query.OrderSearchQuery;
 import com.lanf.search.model.vo.HomePageVO;

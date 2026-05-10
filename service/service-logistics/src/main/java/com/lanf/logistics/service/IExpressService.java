@@ -3,8 +3,8 @@ package com.lanf.logistics.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.logistics.model.dto.ExpressAddDTO;
 import com.lanf.logistics.model.entity.ExpressDO;
-import com.lanf.mybatis.base.PageQuery;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageQuery;
+import com.lanf.constant.web.PageResult;
 
 /**
  * <p>

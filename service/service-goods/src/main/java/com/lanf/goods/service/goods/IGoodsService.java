@@ -6,9 +6,8 @@ import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
 import com.lanf.goods.model.dto.UpDownStatusDTO;
 import com.lanf.goods.model.entity.GoodsDO;
 import com.lanf.goods.model.query.GoodsPageQuery;
-import com.lanf.goods.model.query.UserGoodsPageQuery;
 import com.lanf.goods.model.vo.*;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 
 import java.util.List;
 

@@ -2,7 +2,7 @@ package com.lanf.system.controller.admin;
 
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 import com.lanf.system.model.entiry.MerchantDO;
 import com.lanf.system.model.query.CompanyPageQuery;
 import com.lanf.system.service.merchant.IMerchantService;

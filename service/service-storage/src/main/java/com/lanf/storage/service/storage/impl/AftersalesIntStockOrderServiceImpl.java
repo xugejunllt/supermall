@@ -1,7 +1,7 @@
 package com.lanf.storage.service.storage.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.IdUtils;
+import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;

@@ -7,7 +7,7 @@ import com.lanf.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.goods.model.vo.BaseGoodsByCodeQueryVO;
 import com.lanf.goods.model.vo.BaseGoodsBySkuCodeQueryVO;
 import com.lanf.goods.model.vo.BaseGoodsPageVO;
-import com.lanf.mybatis.base.PageResult;
+import com.lanf.constant.web.PageResult;
 
 import java.util.List;
 
