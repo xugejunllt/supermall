@@ -5,12 +5,11 @@
     <parent>
         <groupId>com.lanf</groupId>
         <artifactId>service</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>service-log</artifactId>
-    <version>${service-log.version}</version>
 
     <dependencies>
 
@@ -36,7 +35,6 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>spring-security</artifactId>
-            <version>${ispring-serurity.version}</version>
         </dependency>
 
 
@@ -59,22 +57,18 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>service-api-log</artifactId>
-            <version>${service-log.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-fs</artifactId>
-            <version>${common-fs.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
-            <version>${spring-web.version}</version>
             <artifactId>spring-web</artifactId>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-mybatis</artifactId>
-            <version>${common-mybatis.version}</version>
         </dependency>
     </dependencies>
 

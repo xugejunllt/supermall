@@ -6,16 +6,14 @@
     <parent>
         <groupId>com.lanf</groupId>
         <artifactId>service-api</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>service-api-search</artifactId>
-    <version>${service-search.version}</version>
     <dependencies>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-mybatis</artifactId>
-            <version>${common-mybatis.version}</version>
         </dependency>
     </dependencies>
 

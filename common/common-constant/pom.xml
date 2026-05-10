@@ -7,9 +7,9 @@
         <artifactId>common</artifactId>
         <groupId>com.lanf</groupId>
         <version>1.0.0-SNAPSHOT</version>
+
     </parent>
 
     <artifactId>common-constant</artifactId>
-
 
 </project>

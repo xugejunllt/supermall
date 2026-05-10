@@ -39,7 +39,6 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
         </dependency>
-        <!--指定版本号 不然引入默认的-->
         <dependency>
             <groupId>org.redisson</groupId>
             <artifactId>redisson</artifactId>

@@ -6,33 +6,24 @@
     <parent>
         <groupId>com.lanf</groupId>
         <artifactId>service-api</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>service-api-storage</artifactId>
-    <version>${service-storage.version}</version>
     <dependencies>
-        <dependency>
-            <groupId>io.swagger</groupId>
-            <artifactId>swagger-annotations</artifactId>
-            <version>1.6.2</version>
-            <scope>compile</scope>
-        </dependency>
+
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-mybatis</artifactId>
-            <version>${common-mybatis.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>service-api-goods</artifactId>
-            <version>${service-goods.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>service-api-order</artifactId>
-            <version>${service-order.version}</version>
         </dependency>
     </dependencies>
 

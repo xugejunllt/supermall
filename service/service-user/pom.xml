@@ -6,17 +6,15 @@
     <parent>
         <groupId>com.lanf</groupId>
         <artifactId>service</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>service-user</artifactId>
-    <version>${service-user.versioin}</version>
     <dependencies>
 
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>spring-security</artifactId>
-            <version>${ispring-serurity.version}</version>
         </dependency>
 
         <dependency>
@@ -39,63 +37,38 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-cache</artifactId>
-            <version>${common-redos.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-util</artifactId>
-            <version>${common-util.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-constant</artifactId>
-            <version>${common-core.version}</version>
 
         </dependency>
 
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-mybatis</artifactId>
-            <version>${common-mybatis.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-fs</artifactId>
-            <version>${common-fs.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-lock</artifactId>
-            <version>${common-lock.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-rocketmq</artifactId>
-            <version>${common-pom.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.lanf</groupId>
-
-            <artifactId>common-biz-cache</artifactId>
-            <version>${common-biz-cache.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>message-manager-client</artifactId>
-            <version>1.0.0</version>
-        </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>service-api-user</artifactId>
-            <version>1.0.0</version>
         </dependency>
     </dependencies>
 

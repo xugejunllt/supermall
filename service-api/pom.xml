@@ -6,9 +6,14 @@
     <parent>
         <groupId>com.lanf</groupId>
         <artifactId>base-mf</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <packaging>pom</packaging>
+    <artifactId>service-api</artifactId>
+    <version>${service.version}</version>
+    <properties>
+        <service-api-pom.version>1.0.0-SNAPSHOT</service-api-pom.version>
+    </properties>
     <modules>
         <module>service-api-system</module>
         <module>service-api-log</module>
@@ -24,13 +29,76 @@
         <module>service-api-user</module>
         <module>service-api-seckill</module>
     </modules>
-    <artifactId>service-api</artifactId>
-    <version>${service-api-pom.version}</version>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-system</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-log</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-goods</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-pay</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-storage</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-order</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-finance</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-logistics</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-welfare</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-search</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-aftersales</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-user</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-api-seckill</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
-
-
-
-
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>spring-web</artifactId>
@@ -40,7 +108,5 @@
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
-
     </dependencies>
-
 </project>
