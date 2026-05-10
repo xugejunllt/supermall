@@ -9,7 +9,7 @@ import com.lanf.seckill.config.SeckillUrlConfig;
 import com.lanf.seckill.model.dto.PlaceDTO;
 import com.lanf.seckill.service.strategy.SecKillStrategy;
 import com.lanf.seckill.service.strategy.SecKillStrategyFactory;
-import com.lanf.security.utils.JwtUtils;
+import com.lanf.web.utils.JwtUtils;
 import com.lanf.web.utils.ResponseUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;

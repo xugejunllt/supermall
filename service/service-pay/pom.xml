@@ -16,7 +16,7 @@
 
         <dependency>
             <groupId>com.lanf</groupId>
-            <artifactId>spring-security</artifactId>
+            <artifactId>admin-auth</artifactId>
             <version>${common.version}</version>
         </dependency>
 

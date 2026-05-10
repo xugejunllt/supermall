@@ -13,7 +13,7 @@ import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.security.model.CacheSessionBO;
-import com.lanf.security.utils.JwtUtils;
+import com.lanf.web.utils.JwtUtils;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.user.mapper.UserMapper;
 import com.lanf.user.model.bo.UserLevelBO;
@@ -38,6 +38,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Arrays;
@@ -59,15 +60,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private DistributedLocker distributedLocker;
     @Autowired
     private RocketMqClient rocketMqClient;
-
     @Autowired
     private RedisCache redisCache;
     @Autowired
     private IUserLoginLogService userLoginLogService;
 
-
-    @Autowired
-    private LoginSecurityService loginSecurityService;
     @Autowired
     private IUserLevelService userLevelService;
 
@@ -76,6 +73,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     @Override
     @DistributedLock(key = "#dto.phoneNumber")
+    @Transactional
     public void registerUser(RegisterUserDTO dto) {
 
         //校验
@@ -204,41 +202,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     @DistributedLock(key = "#dt.phoneNumber")
     public LoginUserVO login(LoginUserDTO dt) {
 
-        if (loginSecurityService.isLocked(dt.getPhoneNumber())){
 
-            throw new BizException("登入失败超过最大登入次数");
-        }
-        try {
-            validateLogin(dt);
-        } catch (BizException e) {
-            loginSecurityService.handleFailedLogin(dt.getPhoneNumber());
-            throw e;
-        }
+
+        validateLogin(dt);
 
         UserDO userDO = this.lambdaQuery().eq(UserDO::getPhoneNumber, dt.getPhoneNumber()).one();
-
-
-
-        //踢人
-        kick(dt.getLoginChannel(), userDO.getId());
 
         //保存登入日志
         UserLoginLog userLoginLog = buildUserLoginLog(dt, userDO);
         userLoginLogService.save(userLoginLog);
-
         //登入成功 构建返回信息
         LoginUserVO loginUserVO = new LoginUserVO();
         loginUserVO.setUserId(userDO.getId());
-//        loginUserVO.setRefreshToken(sessionBO.getRefreshToken());
-//        loginUserVO.setToken(sessionBO.getToken());
+
         return loginUserVO;
     }
 
-    private void kick(Integer loginChannel, Long userId) {
 
-
-
-    }
 
     private void validateLogin(LoginUserDTO dto) {
 
@@ -249,27 +229,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         //校验手机格式
         PhoneValidator.ValidationResult validationResult = PhoneValidator.validatePhone(phoneNumber);
         if (!validationResult.isValid()) {
-            log.info(validationResult.getMessage());
+            log.warn(validationResult.getMessage());
             throw new BizException(validationResult.getMessage());
 
         }
 
-        //
         UserDO userDO = this.lambdaQuery().eq(UserDO::getPhoneNumber, phoneNumber).one();
         if (userDO == null) {
-            log.info("用户不存在");
+            log.warn("用户不存在");
             throw new BizException("用户不存在");
         }
 
         if (userDO.getStatus() == 2) {
-            log.info("账号被禁用");
+            log.warn("账号被禁用");
             throw new BizException("账号被禁用");
         }
 
         String codeKey = String.format(RedisCacheConstants.LOGIN_CODE_KEY, phoneNumber);
         String code = redisCache.getCacheObject(codeKey);
         if (!dto.getCode().equals(code)) {
-            log.info("验证码错误");
+            log.warn("验证码错误");
             throw new BizException("验证码错误");
         }
         log.info("校验通过");

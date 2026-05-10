@@ -25,7 +25,7 @@ import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
 import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.seckill.service.ISecKillItemService;
-import com.lanf.security.utils.JwtUtils;
+import com.lanf.web.utils.JwtUtils;
 import com.lanf.security.utils.UserIdContext;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;

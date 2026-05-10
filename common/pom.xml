@@ -17,10 +17,10 @@
     </properties>
     <modules>
         <module>common-util</module>
-        <module>spring-security</module>
+        <module>admin-auth</module>
         <module>common-log</module>
         <module>common-mybatis</module>
-        <module>spring-web</module>
+        <module>common-web</module>
         <module>common-constant</module>
         <module>common-cache</module>
         <module>common-fs</module>

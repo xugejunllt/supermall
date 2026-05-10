@@ -1,5 +1,6 @@
 package com.lanf.web.service;
 
+import com.lanf.constant.exception.BizException;
 import com.lanf.web.model.bo.AuthRequestInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
@@ -13,6 +14,7 @@ public class RequestAuthExtractor {
     public static final String HEADER_ACCESS_TOKEN = "accessToken";
     public static final String HEADER_CHANNEL = "channel";
     public static final String HEADER_TENANT_ID = "tenantId";
+    public static final String HEADER_VERSION = "version";
 
     public static final String CHANNEL_ANDROID = "android";
     public static final String CHANNEL_IOS = "ios";
@@ -27,7 +29,7 @@ public class RequestAuthExtractor {
      * @return 认证请求信息
      * @throws Exception 当必填参数缺失时抛出异常
      */
-    public static AuthRequestInfo extractAuthInfo(HttpServletRequest request) throws Exception {
+    public static AuthRequestInfo extractAuthInfo(HttpServletRequest request, boolean isAdmin) throws Exception {
         if (request == null) {
             log.error("HTTP请求对象为空");
             throw new Exception("HTTP请求对象为空");
@@ -37,38 +39,45 @@ public class RequestAuthExtractor {
         String accessToken = request.getHeader(HEADER_ACCESS_TOKEN);
         String channel = request.getHeader(HEADER_CHANNEL);
         String tenantIdStr = request.getHeader(HEADER_TENANT_ID);
+        String version = request.getHeader(HEADER_ACCESS_TOKEN);
 
         if (!StringUtils.hasText(deviceId)) {
             log.warn("请求头中缺少deviceId参数");
-            throw new Exception("请求头中缺少deviceId参数");
+            throw new BizException("请求头中缺少deviceId参数");
         }
-
+        if (!StringUtils.hasText(version)) {
+            log.warn("请求头中缺少version参数");
+            throw new BizException("请求头中缺少version参数");
+        }
         if (!StringUtils.hasText(accessToken)) {
             log.warn("请求头中缺少accessToken参数");
-            throw new Exception("请求头中缺少accessToken参数");
+            throw new BizException("请求头中缺少accessToken参数");
         }
 
         if (!StringUtils.hasText(channel)) {
             log.warn("请求头中缺少channel参数");
-            throw new Exception("请求头中缺少channel参数");
+            throw new BizException("请求头中缺少channel参数");
         }
-
-        channel = normalizeChannel(channel);
-
         Long tenantId = null;
-        if (StringUtils.hasText(tenantIdStr)) {
+        if (isAdmin) {
+            if (!StringUtils.hasText(tenantIdStr)) {
+                log.warn("请求头中缺少tenantId参数");
+                throw new BizException("请求头中缺少tenantId参数");
+            }
             try {
                 tenantId = Long.parseLong(tenantIdStr);
             } catch (NumberFormatException e) {
                 log.warn("tenantId格式错误: {}", tenantIdStr);
+                throw new BizException("tenantId格式错误");
             }
         }
-
+        channel = normalizeChannel(channel);
         AuthRequestInfo authRequestInfo = new AuthRequestInfo();
         authRequestInfo.setDeviceId(deviceId);
         authRequestInfo.setAccessToken(accessToken);
         authRequestInfo.setChannel(channel);
         authRequestInfo.setTenantId(tenantId);
+        authRequestInfo.setVersion( version);
 
         return authRequestInfo;
     }

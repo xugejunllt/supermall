@@ -26,9 +26,12 @@ public enum CommonResultCodeEnum {
      */
     SESSION_EXPIRED(300, "token过期"),
 
-    OUT_LOGIN(301, "退出登入");
+    OUT_LOGIN(301, "退出登入"),
 
-    //MethodArgumentNotValid
+    TOKEN_EXPIRED(401, "Token已过期"),
+
+    AUTH_FAILED(402, "认证失败");
+
 //    LOGIN_AUTH(208, "请先登录"),
 //    PERMISSION(209, "没有权限"),
 //    CACHEEXPIRED(210, "缓存过期"),

@@ -1,11 +1,11 @@
 package com.lanf.user.model.entity;
 
-import java.time.LocalDateTime;
-
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.util.Date;
 
 /**
  * <p>
@@ -59,7 +59,7 @@ private static final long serialVersionUID=1L;
     private String appVersion;
 
     @ApiModelProperty(value = "注册时间")
-    private LocalDateTime registerTime;
+    private Date registerTime;
 
 
 

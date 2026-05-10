@@ -2,9 +2,9 @@ package com.lanf.security.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.lanf.common.utils.BeanUtil;
-import com.lanf.common.utils.JwtUtils;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.model.bo.SysUserBO;
+import com.lanf.web.utils.JwtUtils;
 import com.lanf.web.utils.WebUtil;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;

@@ -24,7 +24,8 @@ public class AuthRequestInfo {
      * 渠道：app、web、pc等
      */
     private String channel;
-    
+
+    private String version;
     /**
      * 租户ID（可选）
      */
