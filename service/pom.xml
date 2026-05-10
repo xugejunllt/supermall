@@ -6,11 +6,14 @@
     <parent>
         <groupId>com.lanf</groupId>
         <artifactId>base-mf</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <packaging>pom</packaging>
     <artifactId>service</artifactId>
-    <version>1.0.0</version>
+    <version>${service.version}</version>
+    <properties>
+        <service.version>1.0.0-SNAPSHOT</service.version>
+    </properties>
     <modules>
         <module>service-system</module>
         <module>service-log</module>
@@ -28,11 +31,89 @@
         <module>service-search</module>
         <module>service-seckill</module>
     </modules>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-system</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-log</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-logistics</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-file</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-storage</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-goods</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-user</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-order</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-pay</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-sms</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-welfare</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-aftersales</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-finance</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-search</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lanf</groupId>
+                <artifactId>service-seckill</artifactId>
+                <version>${service.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-start</artifactId>
-            <version>${common-start.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

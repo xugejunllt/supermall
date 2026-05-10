@@ -11,25 +11,7 @@
     <artifactId>common</artifactId>
     <packaging>pom</packaging>
     <version>${common.version}</version>
-    <properties>
-        <common.version>1.0.0-SNAPSHOT</common.version>
-        <common-util.version>1.0.0-SNAPSHOT</common-util.version>
-        <spring-security.version>1.0.0-SNAPSHOT</spring-security.version>
-        <common-log.version>1.0.0-SNAPSHOT</common-log.version>
-        <common-mybatis.version>1.0.0-SNAPSHOT</common-mybatis.version>
-        <spring-web.version>1.0.0-SNAPSHOT</spring-web.version>
-        <common-constant.version>1.0.0-SNAPSHOT</common-constant.version>
-        <common-cache.version>1.0.0-SNAPSHOT</common-cache.version>
-        <common-fs.version>1.0.0-SNAPSHOT</common-fs.version>
-        <common-start.version>1.0.0-SNAPSHOT</common-start.version>
-        <common-biz-cache.version>1.0.0-SNAPSHOT</common-biz-cache.version>
-        <common-rocketmq.version>1.0.0-SNAPSHOT</common-rocketmq.version>
-        <common-seata.version>1.0.0-SNAPSHOT</common-seata.version>
-        <common-elasticsearch.version>1.0.0-SNAPSHOT</common-elasticsearch.version>
-        <common-sharding-sphere.version>1.0.0-SNAPSHOT</common-sharding-sphere.version>
-        <common-biz-control.version>1.0.0-SNAPSHOT</common-biz-control.version>
-        <common-hmily.version>1.0.0-SNAPSHOT</common-hmily.version>
-    </properties>
+
     <modules>
         <module>common-util</module>
         <module>spring-security</module>
@@ -45,76 +27,5 @@
         <module>common-sharding-sphere</module>
         <module>common-hmily</module>
     </modules>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-util</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>spring-security</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-log</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-mybatis</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-constant</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-cache</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-fs</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-start</artifactId>
-                <version>${common.version}</version>
-            </dependency>
 
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-rocketmq</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-elasticsearch</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-sharding-sphere</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.lanf</groupId>
-                <artifactId>common-hmily</artifactId>
-                <version>${common.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 </project>

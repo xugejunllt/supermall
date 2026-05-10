@@ -5,7 +5,7 @@
     <parent>
         <artifactId>base-mf</artifactId>
         <groupId>com.lanf</groupId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,8 +13,6 @@
     <version>${api-gateway.version}</version>
 
     <dependencies>
-
-
         <!-- Nacos Config -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
@@ -44,18 +42,8 @@
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>common-start</artifactId>
-            <version>${common-start.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.lanf</groupId>-->
-<!--            <artifactId>gateway-filter</artifactId>-->
-<!--            <version>1.0.0</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.lanf</groupId>-->
-<!--            <artifactId>loadbalancer</artifactId>-->
-<!--            <version>1.0.0</version>-->
-<!--        </dependency>-->
+
     </dependencies>
 
     <build>
