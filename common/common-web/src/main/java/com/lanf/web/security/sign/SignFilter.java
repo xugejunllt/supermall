@@ -171,16 +171,12 @@ public class SignFilter implements Filter {
                 return;
             }
 
-            //17.标记nonce为已使用（存入Redis，5分钟过期）
-            markNonceAsUsed(signRandomKey, nonce);
-            log.info("nonce已标记为已使用, signRandomKey={}, nonce={}", signRandomKey, nonce);
-
-            //18.签名验证成功，记录日志并放行请求
+            //17.签名验证成功，记录日志并放行请求（nonce已在步骤10中通过incrementAndGet标记）
             log.info("签名验证成功, uri={}, signRandomKey={}, nonce={}", uri, signRandomKey, nonce);
             filterChain.doFilter(wrappedRequest, response);
 
         } catch (Exception e) {
-            //19.捕获签名验证过程中的异常，返回错误响应
+            //18.捕获签名验证过程中的异常，返回错误响应
             log.error("签名验证异常, uri={}", uri, e);
             writeErrorResponse(response, "签名验证异常");
         }
@@ -210,7 +206,8 @@ public class SignFilter implements Filter {
     }
 
     /**
-     * 检查nonce是否已被使用
+     * 校验nonce是否已被使用（防重放）
+     * 使用Redis原子递增，如果返回值大于1表示已使用过
      * 
      * @param signRandomKey 签名随机key
      * @param nonce 随机数
@@ -218,18 +215,31 @@ public class SignFilter implements Filter {
      */
     private boolean isNonceUsed(String signRandomKey, String nonce) {
         String cacheKey = String.format(NONCE_CACHE_PREFIX, buildNonceCacheKey(signRandomKey, nonce));
-        return redissonCacheService.exists(cacheKey);
+        
+        // 原子递增，返回递增后的值
+        long count = redissonCacheService.incrementAndGet(cacheKey, NONCE_EXPIRE_TIME, TimeUnit.MINUTES);
+        
+        // 如果大于1，说明之前已经请求过
+        boolean used = count > 1;
+        
+        if (used) {
+            log.warn("nonce已被使用: cacheKey={}, count={}", cacheKey, count);
+        } else {
+            log.debug("nonce首次使用: cacheKey={}, count={}", cacheKey, count);
+        }
+        
+        return used;
     }
 
     /**
-     * 标记nonce为已使用
+     * 标记nonce为已使用（已合并到isNonceUsed中，此方法保留但不再单独调用）
      * 
      * @param signRandomKey 签名随机key
      * @param nonce 随机数
      */
     private void markNonceAsUsed(String signRandomKey, String nonce) {
-        String cacheKey = String.format(NONCE_CACHE_PREFIX, buildNonceCacheKey(signRandomKey, nonce));
-        redissonCacheService.set(cacheKey, "1", NONCE_EXPIRE_TIME, TimeUnit.MINUTES);
+        // 该方法已在isNonceUsed中通过incrementAndGet实现，无需单独调用
+        log.debug("markNonceAsUsed已废弃，使用isNonceUsed中的incrementAndGet代替");
     }
 
     /**
