@@ -2,9 +2,7 @@ package com.lanf.web.security.encrypt;
 
 
 import com.lanf.constant.exception.BizException;
-import com.lanf.web.security.keygen.PublicKeyManager;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -26,8 +24,7 @@ public class RsaEncryptUtils {
     private static final String ALGORITHM = "RSA";
     private static final String TRANSFORMATION = "RSA/ECB/PKCS1Padding";
 
-    @Autowired
-    private PublicKeyManager publicKeyManager;
+
 
     /**
      * 使用公钥加密数据
@@ -92,35 +89,9 @@ public class RsaEncryptUtils {
         }
     }
 
-    /**
-     * 根据随机key获取私钥并解密数据
-     * 
-     * @param randomKey 随机key
-     * @param encryptedText 密文（Base64编码）
-     * @return 明文数据
-     */
-    public String decryptByRandomKey(String randomKey, String encryptedText) {
-        if (randomKey == null || randomKey.isEmpty()) {
-            throw new BizException("随机key不能为空");
-        }
-        
-        byte[] privateKeyBytes = getPrivateKeyBytes(randomKey);
-        return decryptByPrivateKey(privateKeyBytes, encryptedText);
-    }
 
-    /**
-     * 根据随机key获取私钥字节数组
-     * 
-     * @param randomKey 随机key
-     * @return 私钥字节数组
-     */
-    private byte[] getPrivateKeyBytes(String randomKey) {
-        if (randomKey == null || randomKey.isEmpty()) {
-            throw new BizException("随机key不能为空");
-        }
-        
-        return publicKeyManager.getPrivateKeyBytes(randomKey);
-    }
+
+
 
     /**
      * 生成公钥字节数组（用于前端加密）

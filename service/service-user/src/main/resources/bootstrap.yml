@@ -40,6 +40,11 @@ mybatis-plus:
 sign:
   enabled: true
   paths:
-    - /app/user/login
-    - /app/user/register
-    - /app/order/create
+    - /user/app/user/registerSendCode
+
+# 鉴权路径配置
+auth:
+  # 排除鉴权的路径列表（支持完全匹配）
+  exclude-auth-paths:
+    - /user/app/user/registerSendCode
+    - /user/app/user/getSignKey

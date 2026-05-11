@@ -41,21 +41,20 @@ public class AuthService {
 
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-        StringBuffer requestURL = request.getRequestURL();
         String requestURI = request.getRequestURI();
         List<String> excludeAuthPaths = authPathConfig.getExcludeAuthPaths();
         List<String> internalServicePaths = authPathConfig.getInternalServicePaths();
         try {
             if (excludeAuthPaths.contains(requestURI)) {
                 AuthRequestInfo authRequestInfo = RequestAuthExtractor.extractBasicInfo(request);
-                log.info("接收到请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURL, authRequestInfo);
+                log.info("接收到不需要鉴权请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURI, authRequestInfo);
                 UserContext.setDeviceId(authRequestInfo.getDeviceId());
                 filterChain.doFilter(servletRequest, servletResponse);
                 return;
             }
             if (internalServicePaths.contains(requestURI)) {
                 FeignRequestInfo authRequestInfo = RequestAuthExtractor.extractFeignAuthInfo(request);
-                log.info("接收到请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURL, authRequestInfo);
+                log.info("接收到内部请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURI, authRequestInfo);
 
                 UserContext.setDeviceId(authRequestInfo.getDeviceId());
                 UserContext.setTenantId(authRequestInfo.getTenantId());
@@ -66,7 +65,7 @@ public class AuthService {
             }
 
             AuthRequestInfo authRequestInfo = RequestAuthExtractor.extractAuthInfo(request, isAdmin);
-            log.info("接收到请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURL, authRequestInfo);
+            log.info("接收到鉴权请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURI, authRequestInfo);
 
             String accessToken = authRequestInfo.getAccessToken();
             String deviceId = authRequestInfo.getDeviceId();

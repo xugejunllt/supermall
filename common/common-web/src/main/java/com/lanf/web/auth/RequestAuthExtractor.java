@@ -16,6 +16,7 @@ public class RequestAuthExtractor {
     public static final String HEADER_CHANNEL = "channel";
     public static final String HEADER_TENANT_ID = "tenantId";
     public static final String HEADER_VERSION = "version";
+    public static final String HEADER_SIGN_RANDOM_KEY = "signRandomKey";
     public static final String HEADER_SIGN = "sign";
 
     public static final String FEIGN_HEADER_USER_ID = "feign-userId";

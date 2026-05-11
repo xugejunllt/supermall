@@ -2,9 +2,10 @@ package com.lanf.web.security.keygen;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 
 /**
  * @author: Jarven
@@ -19,8 +20,7 @@ public class KeyTask {
     @Autowired
     private KeyConfig keyConfig;
 
-    @Qualifier("securityKeyManagerServiceImpl")
-    @Autowired
+    @Resource(name = "encryptKeyManagerServiceImpl")
     private AbstractKeyManagerService keyManagerService;
 
     /**

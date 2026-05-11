@@ -1,19 +1,17 @@
 package com.lanf.user.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.cache.aop.DistributedLock;
+import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.security.utils.UserIdContext;
 import com.lanf.user.mapper.AddressMapper;
 import com.lanf.user.model.dto.CreateAddressDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
 import com.lanf.user.model.entity.AddressDO;
 import com.lanf.user.model.vo.AddressVO;
 import com.lanf.user.service.IAddressService;
-import com.lanf.user.service.manager.AddersCache;
+import com.lanf.web.utils.UserContext;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,8 +30,6 @@ import java.util.List;
 @Service
 public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> implements IAddressService {
 
-    @Autowired
-    private AddersCache addersCache;
 
     @Override
     @Transactional //添加事务注解 如果redis操作失败 进行回滚
@@ -41,7 +37,7 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
     public void createAddress(CreateAddressDTO dto) {
         AddressDO addressDO = new AddressDO();
         BeanCopyUtils.copy(dto, addressDO);
-        Long userId = UserIdContext.getUserId();
+        Long userId = UserContext.getUserId();
         addressDO.setUserId(userId);
         List<AddressDO> list = this.lambdaQuery().eq(AddressDO::getUserId, userId).list();
         if (list.isEmpty()) {
@@ -51,13 +47,13 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
             addressDO.setDefaultAddress(1);
         }
         this.save(addressDO);
-        addersCache.removeCache(userId);
+
     }
 
     @Override
     public AddressDO getDefaultAddress() {
 
-        Long userId = UserIdContext.getUserId();
+        Long userId = UserContext.getUserId();
 
         return this.lambdaQuery().eq(AddressDO::getUserId, userId).eq(AddressDO::getDefaultAddress, 0).one();
     }
@@ -65,13 +61,9 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
     @Override
     public List<AddressVO> listAddress() {
 
-        Long userId = UserIdContext.getUserId();
+        Long userId = UserContext.getUserId();
 
-        List<AddressVO> addressVOList = addersCache.getCache(userId);
-        if (addressVOList != null){
 
-            return addressVOList;
-        }
 
         List<AddressDO> list = this.lambdaQuery().eq(AddressDO::getUserId, userId).
                 orderByDesc(BaseEntity::getUpdateTime).list();
@@ -79,14 +71,9 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
 
             return new ArrayList<>();
         }
-        List<AddressVO> addressVOS = BeanCopyUtils.copyBeanList(list, AddressVO.class);
-        try {
-            addersCache.addCache(userId,addressVOS);
-        } catch (Exception e) {
-            //添加缓存失败 进行降级 不影响读接口
-            log.warn("地址信息添加缓存失败");
-        }
-        return  addressVOS;
+
+        return BeanCopyUtils.copyBeanList(list, AddressVO.class);
+
     }
 
 
@@ -110,6 +97,5 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
         addressDOList.add(updateAddressDO);
         addressDOList.add(updateAddressDO2);
         this.updateBatchById(addressDOList);
-        addersCache.removeCache(UserIdContext.getUserId());
     }
 }

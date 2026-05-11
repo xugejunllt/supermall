@@ -1,6 +1,5 @@
 package com.lanf.user.mq;
 
-import com.lanf.messagemanager.client.annotation.ConsumeMessage;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SendSmsMsg;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,7 @@ public class SendSmsListener implements RocketMQListener<SendSmsMsg> {
 
 
     @Override
-    @ConsumeMessage
+
     public void onMessage(SendSmsMsg message) {
 
         log.info("消费消息成功:message{}:",message);

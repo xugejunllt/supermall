@@ -7,23 +7,19 @@ import com.lanf.cache.service.DistributedLocker;
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.*;
 import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.SmsCodeEnum;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.model.CacheSessionBO;
-import com.lanf.security.utils.UserIdContext;
-import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.user.mapper.UserMapper;
 import com.lanf.user.model.bo.UserLevelBO;
-import com.lanf.user.model.bo.ValidateRefreshTokenBO;
 import com.lanf.user.model.dto.LoginUserDTO;
 import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.entity.UserDO;
 import com.lanf.user.model.entity.UserLoginLog;
-import com.lanf.user.model.vo.RefreshTokenVO;
 import com.lanf.user.model.vo.UserDetailVO;
 import com.lanf.user.model.vo.UserTokenInfoVO;
 import com.lanf.user.model.vo.UserVO;
@@ -32,11 +28,12 @@ import com.lanf.user.mq.message.UserRegisterMessage;
 import com.lanf.user.service.IUserLoginLogService;
 import com.lanf.user.service.IUserService;
 import com.lanf.user.service.benefit.IUserLevelService;
+import com.lanf.web.auth.RequestAuthExtractor;
 import com.lanf.web.model.bo.AuthRequestInfo;
 import com.lanf.web.model.bo.JwtTokenInfo;
-import com.lanf.web.auth.RequestAuthExtractor;
 import com.lanf.web.utils.IpUtil;
 import com.lanf.web.utils.JwtUtils;
+import com.lanf.web.utils.UserContext;
 import com.lanf.web.utils.WebUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -113,15 +110,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             throw new BizException(validationResult.getMessage());
         }
 
-        //校验短信验证码
+        //1.校验短信验证码
         String codeKey = String.format(RedisCacheConstants.REGISTER_CODE_KEY, phoneNumber);
-        String code = redisCache.getCacheObject(codeKey);
+        String code = redissonCacheService.get(codeKey);
         if (!dto.getCode().equals(code)) {
             log.info("验证码错误");
             throw new BizException("验证码错误");
         }
 
-        //校验是否已经注册过了
+        //2.校验是否已经注册过了
         List<UserDO> list = this.lambdaQuery().eq(UserDO::getPhoneNumber, phoneNumber).list();
         if (!list.isEmpty()) {
             log.info("该手机号已被注册");
@@ -168,7 +165,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         String codeKey = String.format(RedisCacheConstants.LOGIN_CODE_KEY, phoneNumber);
 
-        redisCache.setCacheObject(codeKey, code, 1000000000);
+        redissonCacheService.set(codeKey, code, 10, TimeUnit.MINUTES);
 
     }
 
@@ -176,7 +173,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         String codeKey = String.format(RedisCacheConstants.REGISTER_CODE_KEY, phoneNumber);
 
-        redisCache.setCacheObject(codeKey, code, 1000000000);
+        redissonCacheService.set(codeKey, code, 10, TimeUnit.MINUTES);
 
     }
 
@@ -263,10 +260,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private void validateLogin(LoginUserDTO dto) {
 
 
-        //校验短信验证码 抛出自定义异常 上面捕获 然后redis统计
+        //1.校验短信验证码 抛出自定义异常 上面捕获 然后redis统计
         log.info("开始校验");
         String phoneNumber = dto.getPhoneNumber();
-        //校验手机格式
+        //2.校验手机格式
         PhoneValidator.ValidationResult validationResult = PhoneValidator.validatePhone(phoneNumber);
         if (!validationResult.isValid()) {
             log.warn(validationResult.getMessage());
@@ -285,8 +282,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             throw new BizException("账号被禁用");
         }
 
+        //3.从Redis获取验证码并校验
         String codeKey = String.format(RedisCacheConstants.LOGIN_CODE_KEY, phoneNumber);
-        String code = redisCache.getCacheObject(codeKey);
+        String code = redissonCacheService.get(codeKey);
         if (!dto.getCode().equals(code)) {
             log.warn("验证码错误");
             throw new BizException("验证码错误");
@@ -405,88 +403,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         return deviceId;
     }
 
-    private RefreshTokenVO againRefreshToken(RefreshTokenDTO dto) {
-
-        log.info("重新颁发令牌开始");
-        CacheSessionBO cacheSessionBO = userSessionCache.cacheSession(dto.getChannel(), dto.getUserId(), dto.getDeviceId());
-        RefreshTokenVO vo = new RefreshTokenVO();
-        vo.setRefreshToken(cacheSessionBO.getRefreshToken());
-        vo.setToken(cacheSessionBO.getToken());
-
-        log.info("重新颁发令牌完成");
-        return vo;
-    }
 
 
-    private ValidateRefreshTokenBO validateRefreshToken(RefreshTokenDTO dto) {
-
-        String refreshToken = dto.getRefreshToken();
-        Integer channel = dto.getChannel();
-        Long userId = dto.getUserId();
-
-        Boolean refreshTokenExpired = false;
-        String deviceId = null;
-
-        try {
-            deviceId = JwtUtils.parseDeviceId(dto.getRefreshToken());
-
-        } catch (Exception e) {
-
-            if (e instanceof ExpiredJwtException) {
-
-                log.info(" JWT token已过期");
-                refreshTokenExpired = true;
-            } else {
-                log.info("JWT解析 deviceId失败[{}]", StackTraceUtil.getStackTrace(e));
-                throw new BizException("JWT解析 deviceId失败");
-
-            }
-
-        }
-        if (deviceId != null) {
-            log.info("JWT refreshToken没有过期");
-            if (!deviceId.equals(dto.getDeviceId())) {
-                log.info("设备id不一致");
-                throw new BizException("设备id不一致");
 
 
-            }
-        }
-        /**
-         * 避免一个token 被多次使用
-         */
-        String cacheRefreshToken = userSessionCache.getRefreshToken(channel, userId);
-        if (IStringUtils.isEmpty(cacheRefreshToken)) {
-            //过期处理
-            log.info(" 缓存 刷新token已过期");
-            refreshTokenExpired = true;
-        } else {
-
-            if (!cacheRefreshToken.equals(refreshToken)) {
-                throw new BizException("请求refreshToken与缓存refreshToken不一致");
-
-            }
-        }
-        //
-        String token = userSessionCache.getToken(channel, userId);
-        if (!IStringUtils.isEmpty(token)) {
-            throw new BizException("token未过期,不允许刷新");
-
-        }
-        /**
-         * JWT过期 或者缓存过期 都认为已过期
-         */
-        ValidateRefreshTokenBO bo = new ValidateRefreshTokenBO();
-        bo.setRefreshTokenExpired(refreshTokenExpired);
-
-        return bo;
-    }
 
     @Override
     public UserVO getUserById() {
 
 
-        Long userId = UserIdContext.getUserId();
+        Long userId = UserContext.getUserId();
         UserDO userDO = this.getById(userId);
         if (userDO == null) {
             log.info("用户不存在");
@@ -503,7 +429,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
      */
     @Override
     public UserDetailVO getUserDetail() {
-        Long userId = UserIdContext.getUserId();
+        Long userId = UserContext.getUserId();
 
         //获取用户基本信息 这里可以使用redis进行缓存
         UserVO userVO = getUserById();

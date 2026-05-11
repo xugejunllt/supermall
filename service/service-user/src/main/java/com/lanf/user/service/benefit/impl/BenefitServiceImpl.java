@@ -3,11 +3,11 @@ package com.lanf.user.service.benefit.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.cache.aop.DistributedLock;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
 import com.lanf.user.mapper.BenefitMapper;
 import com.lanf.user.model.dto.CreateBenefitDTO;
 import com.lanf.user.model.entity.BenefitDO;
@@ -165,8 +165,11 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
         IPage<BenefitDO> pageResult = this.lambdaQuery().
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
-
-        return PageResult.toPageResult(pageResult);
+        PageResult<BenefitDO> result = new PageResult<>();
+        result.setTotal(pageResult.getTotal());
+        result.setSize(pageResult.getSize());
+        result.setRecords(pageResult.getRecords());
+        return result;
     }
 
 }

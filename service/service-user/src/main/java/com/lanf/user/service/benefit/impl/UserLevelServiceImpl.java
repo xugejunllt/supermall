@@ -4,7 +4,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.enums.BenefitGrantEventEnum;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.BenefitGrantEventEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.user.mapper.UserLevelMapper;
 import com.lanf.user.model.bo.CalculationGrowthValueBO;
@@ -20,14 +21,15 @@ import com.lanf.user.service.benefit.IUserLevelDetailService;
 import com.lanf.user.service.benefit.IUserLevelService;
 import com.lanf.user.service.benefit.manager.BenefitGrantService;
 import com.lanf.user.service.benefit.manager.BenefitGrantServiceFactory;
-import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 

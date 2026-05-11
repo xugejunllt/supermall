@@ -2,14 +2,19 @@ package com.lanf.user.controller.app;
 
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.user.model.dto.LoginUserDTO;
-import com.lanf.user.model.dto.RefreshTokenDTO;
-import com.lanf.user.model.dto.RegisterUserDTO;
-import com.lanf.user.model.vo.*;
-import com.lanf.user.service.IUserService;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
-import com.lanf.web.security.keygen.PublicKeyManager;
+import com.lanf.user.model.dto.LoginUserDTO;
+import com.lanf.user.model.dto.RefreshTokenDTO;
+import com.lanf.user.model.dto.RegisterSendCodeDTO;
+import com.lanf.user.model.dto.RegisterUserDTO;
+import com.lanf.user.model.vo.PublicKeyVO;
+import com.lanf.user.model.vo.UserDetailVO;
+import com.lanf.user.model.vo.UserTokenInfoVO;
+import com.lanf.user.model.vo.UserVO;
+import com.lanf.user.service.IUserService;
+import com.lanf.web.security.keygen.RsaEncryptKeyManager;
+import com.lanf.web.security.keygen.SignKeyManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -28,9 +33,11 @@ public class UserController {
     private IUserService userService;
 
     @Autowired
-    private PublicKeyManager publicKeyManager;
+    private RsaEncryptKeyManager publicKeyManager;
 
 
+    @Autowired
+    private SignKeyManager signKeyManager;
     @PostMapping("/register")
     public Result<Void> register(@Validated @RequestBody RegisterUserDTO dto) {
 
@@ -42,11 +49,11 @@ public class UserController {
     }
 
     @PostMapping("/registerSendCode")
-    public Result<Void> registerSendCode(@NotNull(message = "手机号不能为空") String phoneNumber) {
+    public Result<Void> registerSendCode(RegisterSendCodeDTO dto) {
 
-        log.info("[{}]开始,入参:[{}]", "注册发送短信验证码", phoneNumber);
+        log.info("[{}]开始,入参:[{}]", "注册发送短信验证码", dto.getPhoneNumber());
 
-        userService.registerSendCode(phoneNumber);
+        userService.registerSendCode(dto.getPhoneNumber());
 
         log.info("[{}]结束", "注册发送短信验证码");
 
@@ -92,7 +99,7 @@ public class UserController {
         return Result.ok(refreshTokenVO);
     }
 
-    @GetMapping("/test")
+    @GetMapping("/src/main/test")
     public Result<Void> test() {
 
         log.info("[{}]开始,入参");
@@ -119,7 +126,7 @@ public class UserController {
     }
 
     /**
-     * 获取公钥
+     * 获取公钥（RSA密钥对）
      * @return 公钥信息
      */
     @GetMapping("/getPublicKey")
@@ -127,13 +134,32 @@ public class UserController {
 
         log.info("[{}]开始", "获取公钥");
 
-        PublicKeyManager.PublicKeyInfo publicKeyInfo = publicKeyManager.generatePublicKey();
+        RsaEncryptKeyManager.PublicKeyInfo publicKeyInfo = publicKeyManager.generatePublicKey();
         
         PublicKeyVO publicKeyVO = new PublicKeyVO();
         publicKeyVO.setRandomKey(publicKeyInfo.getRandomKey());
         publicKeyVO.setPublicKey(publicKeyInfo.getPublicKey());
 
         log.info("[{}]结束,randomKey:[{}]", "获取公钥", publicKeyInfo.getRandomKey());
+
+        return Result.ok(publicKeyVO);
+    }
+
+    /**
+     * 获取签名密钥（AES密钥）
+     * @return 签名密钥信息
+     */
+    @PostMapping("/getSignKey")
+    public Result<PublicKeyVO> getSignKey() {
+
+        log.info("[{}]开始", "获取签名密钥");
+
+        SignKeyManager.SignKeyInfo signKeyInfo = signKeyManager.generateSignKey();
+        
+        PublicKeyVO publicKeyVO = new PublicKeyVO();
+        publicKeyVO.setRandomKey(signKeyInfo.getSignRandomKey());
+        publicKeyVO.setPublicKey(signKeyInfo.getAesKeyBase64());
+
 
         return Result.ok(publicKeyVO);
     }
