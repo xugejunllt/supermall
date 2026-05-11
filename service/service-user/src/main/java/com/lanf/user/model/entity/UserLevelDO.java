@@ -1,18 +1,9 @@
 package com.lanf.user.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.Version;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -32,19 +23,29 @@ private static final long serialVersionUID=1L;
      * userId 作唯一索引 避免重复插入
      */
 
-    @ApiModelProperty(value = "用户ID")
+    /**
+     * 用户ID
+     */
     private Long userId;
 
-    @ApiModelProperty(value = "当前等级ID")
+    /**
+     * 当前等级ID
+     */
     private Long levelId;
 
-    //等级
+    /**
+     * 等级
+     */
     private Integer level;
 
-    @ApiModelProperty(value = "当前总成长值")
+    /**
+     * 当前总成长值
+     */
     private Integer growthValue;
 
-    @ApiModelProperty(value = "乐观锁版本号")
+    /**
+     * 乐观锁版本号
+     */
     @Version
     private Long version;
 

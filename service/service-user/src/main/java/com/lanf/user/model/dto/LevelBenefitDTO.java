@@ -1,6 +1,5 @@
 package com.lanf.user.model.dto;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -12,7 +11,9 @@ import java.io.Serializable;
 @Data
 public class LevelBenefitDTO implements Serializable {
 
-    @ApiModelProperty(value = "权益code")
+    /**
+     * 权益code
+     */
     @NotBlank( message = "权益code不能为空")
     private String code;
 

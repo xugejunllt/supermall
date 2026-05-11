@@ -2,7 +2,6 @@ package com.lanf.user.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -21,21 +20,34 @@ private static final long serialVersionUID=1L;
 
 
 
-    @ApiModelProperty(value = "用户id")
+    /**
+     * 用户id
+     */
     private Long userId;
 
-    @ApiModelProperty(value = "联系人")
+    /**
+     * 联系人
+     */
     private String consignee;
 
-    @ApiModelProperty(value = "手机号")
+    /**
+     * 手机号
+     */
     private String phone;
 
-    @ApiModelProperty(value = "地区")
+    /**
+     * 地区
+     */
     private String area;
-    //详细地址
+    
+    /**
+     * 详细地址
+     */
     private String address;
 
-    @ApiModelProperty(value = "是否默认 0默认 1.不是")
+    /**
+     * 是否默认 0默认 1.不是
+     */
     private Integer defaultAddress;
 
 
