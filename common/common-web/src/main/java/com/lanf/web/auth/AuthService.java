@@ -66,9 +66,10 @@ public class AuthService {
             }
 
             AuthRequestInfo authRequestInfo = RequestAuthExtractor.extractAuthInfo(request, isAdmin);
+            String accessToken = authRequestInfo.getAccessToken();
+            authRequestInfo.setAccessToken(null);
             log.info("接收到鉴权请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURI, authRequestInfo);
 
-            String accessToken = authRequestInfo.getAccessToken();
             String deviceId = authRequestInfo.getDeviceId();
             Long tenantId = authRequestInfo.getTenantId();
             JwtTokenInfo jwtTokenInfo;

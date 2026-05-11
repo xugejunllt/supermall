@@ -41,7 +41,7 @@ public class RequestAuthExtractor {
         String accessToken = request.getHeader(HEADER_ACCESS_TOKEN);
         String channel = request.getHeader(HEADER_CHANNEL);
         String tenantIdStr = request.getHeader(HEADER_TENANT_ID);
-        String version = request.getHeader(HEADER_ACCESS_TOKEN);
+        String version = request.getHeader(HEADER_VERSION);
 
         if (!StringUtils.hasText(deviceId)) {
             log.warn("请求头中缺少deviceId参数");
