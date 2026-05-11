@@ -17,7 +17,7 @@ public class RequestAuthExtractor {
     public static final String HEADER_TENANT_ID = "tenantId";
     public static final String HEADER_VERSION = "version";
     public static final String HEADER_SIGN_RANDOM_KEY = "signRandomKey";
-    public static final String HEADER_SIGN = "sign";
+    public static final String HEADER_SIGN = "X-Signature";
     public static final String HEADER_NONCE = "nonce";
     public static final String HEADER_TIMESTAMP = "timestamp";
 

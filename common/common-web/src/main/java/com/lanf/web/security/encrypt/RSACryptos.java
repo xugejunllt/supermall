@@ -1,4 +1,4 @@
-package com.lanf.web.security.keygen.util;
+package com.lanf.web.security.encrypt;
 
 
 import com.lanf.constant.exception.BizException;

@@ -48,3 +48,6 @@ auth:
   exclude-auth-paths:
     - /user/app/user/registerSendCode
     - /user/app/user/getSignKey
+  internalServicePaths:
+    #内部接口
+    - /user/app/user/registerSendCode2

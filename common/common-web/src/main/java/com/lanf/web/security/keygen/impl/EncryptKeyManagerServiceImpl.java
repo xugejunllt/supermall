@@ -2,7 +2,7 @@ package com.lanf.web.security.keygen.impl;
 
 import com.lanf.web.security.keygen.AbstractKeyManagerService;
 import com.lanf.web.security.keygen.model.IKeyPairInfo;
-import com.lanf.web.security.keygen.util.RSACryptos;
+import com.lanf.web.security.encrypt.RSACryptos;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Base64Utils;
 
