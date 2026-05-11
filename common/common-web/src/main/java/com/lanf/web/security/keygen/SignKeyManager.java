@@ -32,7 +32,7 @@ public class SignKeyManager {
     /**
      * 缓存过期时间单位
      */
-    private static final TimeUnit CACHE_EXPIRE_UNIT = TimeUnit.MINUTES;
+    private static final TimeUnit CACHE_EXPIRE_UNIT = TimeUnit.DAYS;
 
     @Autowired
     private RedissonCacheService redissonCacheService;

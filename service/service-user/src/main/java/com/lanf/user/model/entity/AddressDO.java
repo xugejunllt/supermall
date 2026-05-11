@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * <p>
  * 
@@ -49,6 +51,13 @@ private static final long serialVersionUID=1L;
      * 是否默认 0默认 1.不是
      */
     private Integer defaultAddress;
-
+    /**
+     * 纬度
+     */
+    private BigDecimal latitude;
+    /**
+     * 经度
+     */
+    private BigDecimal longitude;
 
 }

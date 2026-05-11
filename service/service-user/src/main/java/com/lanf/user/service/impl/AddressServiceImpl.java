@@ -32,7 +32,6 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
 
 
     @Override
-    @Transactional
     @DistributedLock(key = "#dto.userId")
     public void addAddress(AddAddressDTO dto) {
         AddressDO addressDO = new AddressDO();

@@ -258,7 +258,7 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
     @Override
     public UserLevelBO getUserLevel(Long userId) {
 
-        //这里可以将UserLevel缓存在redis中
+
         UserLevelDO userLevelDO = getByUserId(userId);
         List<UserLevelConfigDO> configDOS = userLevelConfigService.listUserLevelConfig();
         UserLevelConfigDO userLevelConfigDO = null;

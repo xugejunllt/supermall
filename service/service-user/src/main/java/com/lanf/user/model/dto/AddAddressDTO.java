@@ -3,7 +3,9 @@ package com.lanf.user.model.dto;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 public class AddAddressDTO implements Serializable {
@@ -34,5 +36,14 @@ public class AddAddressDTO implements Serializable {
      */
     @NotBlank(message = "地址不能为空")
     private String address;
-
+    /**
+     * 纬度
+     */
+    @NotNull(message = "纬度不能为空")
+    private BigDecimal latitude;
+    /**
+     * 经度
+     */
+    @NotNull(message = "经度不能为空")
+    private BigDecimal longitude;
 }

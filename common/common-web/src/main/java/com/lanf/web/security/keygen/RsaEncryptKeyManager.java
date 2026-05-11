@@ -24,9 +24,9 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class RsaEncryptKeyManager {
 
-    private static final long CACHE_EXPIRE_TIME = 10;
+    private static final long CACHE_EXPIRE_TIME = 1000;
 
-    private static final TimeUnit CACHE_EXPIRE_UNIT = TimeUnit.MINUTES;
+    private static final TimeUnit CACHE_EXPIRE_UNIT = TimeUnit.DAYS;
 
     @Autowired
     @Qualifier("encryptKeyManagerServiceImpl")
