@@ -51,12 +51,29 @@ public class SignKeyManager {
         String signRandomKey = UUID.randomUUID().toString().replace("-", "");
         
         //3.将AES密钥缓存到Redis
-        String cacheKey = String.format(SIGN_KEY_CACHE_PREFIX, signRandomKey);
-        redissonCacheService.set(cacheKey, aesKeyBase64, CACHE_EXPIRE_TIME, CACHE_EXPIRE_UNIT);
+        cacheSignKey(signRandomKey, aesKeyBase64);
         
         log.info("生成签名密钥成功,signRandomKey:[{}],过期时间:[{}]分钟", signRandomKey, CACHE_EXPIRE_TIME);
         
         return new SignKeyInfo(signRandomKey, aesKeyBase64);
+    }
+
+
+
+    /**
+     * 仅生成AES密钥（Base64编码），不生成随机key，不缓存到Redis
+     * 适用于测试或临时使用场景
+     * 
+     * @return AES密钥（Base64编码字符串）
+     */
+    public String generateAesKeyBase64Only() {
+        //1.生成AES密钥（16字节=128位）
+        byte[] aesKeyBytes = AesEncryptUtils.generateAesKey();
+        String aesKeyBase64 = java.util.Base64.getEncoder().encodeToString(aesKeyBytes);
+        
+        log.debug("生成AES密钥成功，Base64长度: {} 字符", aesKeyBase64.length());
+        
+        return aesKeyBase64;
     }
 
     /**
@@ -106,6 +123,20 @@ public class SignKeyManager {
             log.error("签名密钥Base64解码失败,signRandomKey:[{}]", signRandomKey, e);
             throw new BizException("签名密钥解码失败");
         }
+    }
+
+    /**
+     * 将AES密钥缓存到Redis
+     * 
+     * @param signRandomKey 签名随机key
+     * @param aesKeyBase64 AES密钥（Base64编码）
+     */
+    private void cacheSignKey(String signRandomKey, String aesKeyBase64) {
+        //1.构建缓存key
+        String cacheKey = String.format(SIGN_KEY_CACHE_PREFIX, signRandomKey);
+        
+        //2.将AES密钥缓存到Redis
+        redissonCacheService.set(cacheKey, aesKeyBase64, CACHE_EXPIRE_TIME, CACHE_EXPIRE_UNIT);
     }
 
     /**

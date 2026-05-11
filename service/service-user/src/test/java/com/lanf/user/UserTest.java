@@ -1,13 +1,17 @@
-package com.lanf.user.test;
+package com.lanf.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lanf.constant.result.Result;
 import com.lanf.user.controller.app.UserController;
 import com.lanf.user.model.vo.PublicKeyVO;
+import com.lanf.web.exception.IExpiredJwtException;
+import com.lanf.web.exception.TokenParseException;
+import com.lanf.web.model.bo.JwtTokenInfo;
 import com.lanf.web.security.encrypt.AesEncryptUtils;
 import com.lanf.web.security.keygen.SignKeyManager;
 import com.lanf.web.security.sign.SignUtils;
+import com.lanf.web.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +40,23 @@ public class UserTest {
 
 
 
+
+    /**
+     * 测试Token中signingKey的存在性
+     */
+    @Test
+    public void testTokenContainsSigningKey() throws TokenParseException, IExpiredJwtException {
+
+            log.info("========== 开始执行Token包含signingKey测试 ==========");
+
+            //1.生成Token
+            log.info("步骤1：生成Token");
+            String token = JwtUtils.createTokenForUserWithDays(999L, "test-device", 1);
+            log.info("Token长度: {}", token.length());
+            JwtTokenInfo jwtTokenInfo = JwtUtils.parseUserToken(token);
+             log.info("signingKey: {}", jwtTokenInfo.getSigningKey());
+
+    }
 
         /**
          * 完整的签名生成与验证测试（模拟 SignFilter 流程）

@@ -22,6 +22,6 @@ public class JwtTokenInfo {
      */
     private Long tenantId;
     
-
+    private String signingKey;
 
 }
