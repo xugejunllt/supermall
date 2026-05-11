@@ -240,7 +240,7 @@ public class SignTest {
 
             //2.生成JWT Token
             log.info("步骤2：生成JWT Token");
-            String token = "eyJhbGciOiJIUzUxMiIsInppcCI6IkdaSVAifQ.H4sIAAAAAAAAAKtWKi5NUrJScgwN8dANDXYNUtJRSq0oULIyNDe3NDQ0MTQz0lEqLU4t8kwBiukopaSWZSangjhKhkZGicUpQPXFmel5mXnp3qmVQNGw1GzLKkszIw8XM8sgX_8QXyft0sx0W1ulWgCpaJv2awAAAA.RL-clZThZ6PGk8IHF-kxc6RMCNo0fq1k_t-ECNV_LOJw7lXxKnHDtzhlApjFf2FDz7QVXyrMQ_zJvQpv2_q-7w";
+            String token = "eyJhbGciOiJIUzUxMiIsInppcCI6IkdaSVAifQ.H4sIAAAAAAAAAKtWKi5NUrJScgwN8dANDXYNUtJRSq0oULIytDAzsTQyMjU101EqLU4t8kwBipkaGJuam5oYGhtbmpmYm1oamOgopaSWZSangqSVDI2MEotTgCYUZ6bnZeale6dWAkXDg3zMTfPzi83SwzJ9XZyDnByLTLXLbW2VagGHbp2sfQAAAA.rvE4CAV-_yLFsRnGgNQztrhDxneAPg_ZZu2yQYaMWd1FrXTFQlIViuMVNIIOQOIohxBpM0jWW7j13APc30Tngw";
             log.info("Token生成成功，长度: {}", token.length());
 
             //3.解析Token获取signingKey
