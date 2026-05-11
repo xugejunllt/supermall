@@ -2,7 +2,9 @@ package com.lanf.user.service.benefit;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.user.model.dto.CreateBenefitDTO;
+import com.lanf.user.model.dto.AddBenefitDTO;
+import com.lanf.user.model.dto.DisableBenefitDTO;
+import com.lanf.user.model.dto.UseBenefitDTO;
 import com.lanf.user.model.entity.BenefitDO;
 import com.lanf.user.model.query.BenefitPageQuery;
 
@@ -19,19 +21,19 @@ import java.util.List;
  */
 public interface IBenefitService extends IService<BenefitDO> {
 
-    void createBenefit(CreateBenefitDTO dto);
+    void addBenefit(AddBenefitDTO dto);
 
     /**
      * 使用权益
      *
      */
-    void  useBenefit(Long id);
+    void  useBenefit(UseBenefitDTO dto);
 
     /**
      * 禁用权益
      *
      */
-    void disableBenefit(Long id);
+    void disableBenefit(DisableBenefitDTO dto);
 
     /**
      * 获取可以使用权益列表code
@@ -40,7 +42,7 @@ public interface IBenefitService extends IService<BenefitDO> {
     List<String> listUseBenefitCode();
 
 
-    PageResult<BenefitDO> pageBenefit(BenefitPageQuery query);
+    PageResult<BenefitDO> benefitPageQuery(BenefitPageQuery query);
 
 
 }

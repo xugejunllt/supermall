@@ -9,7 +9,9 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.user.mapper.BenefitMapper;
-import com.lanf.user.model.dto.CreateBenefitDTO;
+import com.lanf.user.model.dto.AddBenefitDTO;
+import com.lanf.user.model.dto.DisableBenefitDTO;
+import com.lanf.user.model.dto.UseBenefitDTO;
 import com.lanf.user.model.entity.BenefitDO;
 import com.lanf.user.model.enums.BenefitCodeEnum;
 import com.lanf.user.model.query.BenefitPageQuery;
@@ -41,7 +43,7 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
 
     @Override
     @DistributedLock(key = "#dto.code")
-    public void createBenefit(CreateBenefitDTO dto) {
+    public void addBenefit(AddBenefitDTO dto) {
 
         validateCreateBenefit(dto);
 
@@ -52,7 +54,7 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
     }
 
 
-    private void validateCreateBenefit(CreateBenefitDTO dto) {
+    private void validateCreateBenefit(AddBenefitDTO dto) {
 
         String code = dto.getCode();
         boolean includeCode = BenefitCodeEnum.includeCode(code);
@@ -70,10 +72,11 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
     }
 
     @Override
-    @Transactional//使用事务 DB与添加service同时成功或失败
-    @DistributedLock(key = "#id")
-    public void useBenefit(Long id) {
+    @Transactional
+    @DistributedLock(key = "#dto.id")
+    public void useBenefit(UseBenefitDTO dto) {
 
+        Long id = dto.getId();
         validateUseBenefit(id);
         //更新
 
@@ -108,10 +111,11 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
     }
 
     @Override
-    @Transactional//使用事务 DB与添加service同时成功或失败
-    @DistributedLock(key = "#id")
-    public void disableBenefit(Long id) {
+    @Transactional
+    @DistributedLock(key = "#dto.idid")
+    public void disableBenefit(DisableBenefitDTO dto) {
 
+        Long id = dto.getId();
         validateDisableBenefit(id);
         //更新
         boolean update = update = this.lambdaUpdate()
@@ -159,7 +163,7 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, BenefitDO> im
     }
 
     @Override
-    public PageResult<BenefitDO> pageBenefit(BenefitPageQuery query) {
+    public PageResult<BenefitDO> benefitPageQuery(BenefitPageQuery query) {
 
         IPage<BenefitDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<BenefitDO> pageResult = this.lambdaQuery().

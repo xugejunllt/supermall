@@ -6,7 +6,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class AddressVO implements Serializable {
+public class AddressListVO implements Serializable {
 
     private Long id;
 

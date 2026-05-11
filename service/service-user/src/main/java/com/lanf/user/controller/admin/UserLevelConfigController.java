@@ -1,9 +1,8 @@
 package com.lanf.user.controller.admin;
 
 
-import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.result.Result;
-import com.lanf.user.model.dto.CreateUserLevelConfigDTO;
+import com.lanf.user.model.dto.AddUserLevelConfigDTO;
 import com.lanf.user.service.benefit.IUserLevelConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,15 +28,11 @@ public class UserLevelConfigController {
     @Autowired
     private IUserLevelConfigService userLevelConfigService;
 
-    @PostMapping("/createUserLevelConfig")
-    public Result<Void> createUserLevelConfig(@Validated @RequestBody CreateUserLevelConfigDTO dto) {
+    @PostMapping("/addUserLevelConfig")
+    public Result<Void> addUserLevelConfig(@Validated @RequestBody AddUserLevelConfigDTO dto) {
 
-        log.info("[{}]开始,入参:[{}]", "添加用户等级配置", JsonUtils.toJsonString(dto));
-
-        userLevelConfigService.createUserLevelConfig(dto);
-
-        log.info("[{}]结束", "添加用户等级配置");
-
+        log.info("添加用户等级配置,参数:{}", dto);
+        userLevelConfigService.addUserLevelConfig(dto);
         return Result.ok();
     }
 }

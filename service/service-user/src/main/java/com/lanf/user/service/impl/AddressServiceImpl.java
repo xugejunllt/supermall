@@ -5,10 +5,10 @@ import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.user.mapper.AddressMapper;
-import com.lanf.user.model.dto.CreateAddressDTO;
+import com.lanf.user.model.dto.AddAddressDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
 import com.lanf.user.model.entity.AddressDO;
-import com.lanf.user.model.vo.AddressVO;
+import com.lanf.user.model.vo.AddressListVO;
 import com.lanf.user.service.IAddressService;
 import com.lanf.web.utils.UserContext;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +32,9 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
 
 
     @Override
-    @Transactional //添加事务注解 如果redis操作失败 进行回滚
+    @Transactional
     @DistributedLock(key = "#dto.userId")
-    public void createAddress(CreateAddressDTO dto) {
+    public void addAddress(AddAddressDTO dto) {
         AddressDO addressDO = new AddressDO();
         BeanCopyUtils.copy(dto, addressDO);
         Long userId = UserContext.getUserId();
@@ -59,7 +59,7 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
     }
 
     @Override
-    public List<AddressVO> listAddress() {
+    public List<AddressListVO> addressListQuery() {
 
         Long userId = UserContext.getUserId();
 
@@ -72,7 +72,7 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
             return new ArrayList<>();
         }
 
-        return BeanCopyUtils.copyBeanList(list, AddressVO.class);
+        return BeanCopyUtils.copyBeanList(list, AddressListVO.class);
 
     }
 

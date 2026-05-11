@@ -1,7 +1,7 @@
 package com.lanf.user.service.benefit;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.user.model.dto.CreateUserLevelConfigDTO;
+import com.lanf.user.model.dto.AddUserLevelConfigDTO;
 import com.lanf.user.model.entity.UserLevelConfigDO;
 
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.List;
 public interface IUserLevelConfigService extends IService<UserLevelConfigDO> {
 
 
-    void createUserLevelConfig(CreateUserLevelConfigDTO dto);
+    void addUserLevelConfig(AddUserLevelConfigDTO dto);
 
     /**
      * 查询所有配置

@@ -5,7 +5,7 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.user.mapper.UserLevelConfigMapper;
-import com.lanf.user.model.dto.CreateUserLevelConfigDTO;
+import com.lanf.user.model.dto.AddUserLevelConfigDTO;
 import com.lanf.user.model.dto.LevelBenefitDTO;
 import com.lanf.user.model.entity.UserLevelConfigDO;
 import com.lanf.user.model.enums.BenefitCodeEnum;
@@ -30,7 +30,7 @@ public class UserLevelConfigServiceImpl extends ServiceImpl<UserLevelConfigMappe
 
     @Override
     @DistributedLock(key = "#dto.level")
-    public void createUserLevelConfig(CreateUserLevelConfigDTO dto) {
+    public void addUserLevelConfig(AddUserLevelConfigDTO dto) {
 
         validateCreateUserLevel( dto);
 
@@ -44,7 +44,7 @@ public class UserLevelConfigServiceImpl extends ServiceImpl<UserLevelConfigMappe
     }
 
 
-    private void validateCreateUserLevel(CreateUserLevelConfigDTO dto){
+    private void validateCreateUserLevel(AddUserLevelConfigDTO dto){
         UserLevelConfigDO configDO = this.lambdaQuery().eq(UserLevelConfigDO::getLevel, dto.getLevel()).one();
         if (configDO != null){
 

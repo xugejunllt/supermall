@@ -4,11 +4,10 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import javax.validation.constraints.NotBlank;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 @Data
-public class CreateBenefitDTO implements Serializable {
+public class AddBenefitDTO implements Serializable {
 
 
     @ApiModelProperty(value = "权益code")

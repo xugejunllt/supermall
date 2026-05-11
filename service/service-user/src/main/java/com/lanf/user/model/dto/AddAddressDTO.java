@@ -7,7 +7,7 @@ import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 @Data
-public class CreateAddressDTO implements Serializable {
+public class AddAddressDTO implements Serializable {
 
 
     private Long userId;

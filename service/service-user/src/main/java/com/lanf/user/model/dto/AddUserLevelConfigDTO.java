@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class CreateUserLevelConfigDTO implements Serializable {
+public class AddUserLevelConfigDTO implements Serializable {
 
     @ApiModelProperty(value = "等级- 从1开始递增")
     @NotNull( message = "等级不能为空 ")

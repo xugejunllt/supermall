@@ -1,10 +1,10 @@
 package com.lanf.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.user.model.dto.CreateAddressDTO;
+import com.lanf.user.model.dto.AddAddressDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
 import com.lanf.user.model.entity.AddressDO;
-import com.lanf.user.model.vo.AddressVO;
+import com.lanf.user.model.vo.AddressListVO;
 
 import java.util.List;
 
@@ -18,12 +18,12 @@ import java.util.List;
  */
 public interface IAddressService extends IService<AddressDO> {
 
-    void  createAddress(CreateAddressDTO dto);
+    void  addAddress(AddAddressDTO dto);
 
     AddressDO getDefaultAddress();
 
 
-    List<AddressVO> listAddress();
+    List<AddressListVO> addressListQuery();
 
     void  setDefaultAddress(SetDefaultAddressDTO dto );
 
