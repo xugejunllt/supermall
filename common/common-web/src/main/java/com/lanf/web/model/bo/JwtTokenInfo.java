@@ -24,4 +24,5 @@ public class JwtTokenInfo {
     
     private String signingKey;
 
+    private Long expTime;
 }

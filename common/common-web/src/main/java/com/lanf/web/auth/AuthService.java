@@ -115,7 +115,7 @@ public class AuthService {
                     authRequestInfo.getChannel());
             String accessTokenCache = redissonCacheService.get(key);
             if (accessTokenCache == null ) {
-                log.warn("Token已过期");
+                log.warn("redis中 Token已过期");
                 ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.TOKEN_EXPIRED.getCode(), CommonResultCodeEnum.TOKEN_EXPIRED.getMessage()));
                 return;
             }

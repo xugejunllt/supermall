@@ -1,5 +1,6 @@
 package com.lanf.web.utils;
 
+import com.lanf.common.utils.DateUtils;
 import com.lanf.web.exception.IExpiredJwtException;
 import com.lanf.web.exception.TokenParseException;
 import com.lanf.web.model.bo.JwtTokenInfo;
@@ -77,12 +78,12 @@ public class JwtUtils {
         String signingKey = STATIC_SIGN_KEY_MANAGER.generateAesKeyBase64Only();
 
         //2.计算过期时间
-        long time = expDays * 24 * 60 * 60 * 1000;
+        long time = DateUtils.getExpireTimestampFromDays(expDays);
         
         //3.构建JWT Token
         return JWT_BUILDER
                 .setSubject(SUBJECT_AUTH_USER)
-                .setExpiration(new Date(System.currentTimeMillis() + time))
+                .setExpiration(new Date(time))
                 .claim(CLAIM_USER_ID, userId)
                 .claim(CLAIM_DEVICE_ID, deviceId)
                 .claim(CLAIM_SIGNING_KEY, signingKey)
@@ -92,21 +93,6 @@ public class JwtUtils {
 
     }
 
-    /**
-     * 创建管理员Token（使用固定密钥签名）
-     */
-    public static String createTokenForAdmin(Long userId, String deviceId, Long tenantId, long expTime) {
-        long time = expTime * 60 * 1000;
-        return JWT_BUILDER
-                .setSubject(SUBJECT_AUTH_ADMIN)
-                .setExpiration(new Date(System.currentTimeMillis() + time))
-                .claim(CLAIM_USER_ID, userId )
-                .claim(CLAIM_DEVICE_ID, deviceId)
-                .claim(CLAIM_TENANT_ID, tenantId)
-                .signWith(SignatureAlgorithm.HS512, TOKEN_SIGN_KEY)
-                .compressWith(CompressionCodecs.GZIP)
-                .compact();
-    }
 
     /**
      * 创建秒杀Token（使用固定密钥签名）
@@ -132,11 +118,10 @@ public class JwtUtils {
     public static JwtTokenInfo parseUserToken(String token) throws IExpiredJwtException, TokenParseException {
         try {
             //1.先不验证签名，解析出signingKey
-            Claims claims = JWT_PARSER
+            Claims claims = Jwts.parser()
                     .setSigningKey(TOKEN_SIGN_KEY)
                     .parseClaimsJws(token)
                     .getBody();
-
             String subject = claims.getSubject();
             if (!SUBJECT_AUTH_USER.equals(subject)) {
                 log.warn("Token类型不匹配，期望: {}, 实际: {}", SUBJECT_AUTH_USER, subject);
@@ -151,9 +136,11 @@ public class JwtUtils {
             tokenInfo.setUserId(userId);
             tokenInfo.setDeviceId(claims.get(CLAIM_DEVICE_ID, String.class));
             tokenInfo.setSigningKey(claims.get(CLAIM_SIGNING_KEY, String.class));
+            tokenInfo.setExpTime(claims.getExpiration().getTime());
             return tokenInfo;
         } catch (ExpiredJwtException e) {
-            log.warn("Token已过期 ");
+
+            log.warn("Token已过期 ",e);
             throw new IExpiredJwtException();
         } catch (Exception e) {
 
@@ -194,24 +181,7 @@ public class JwtUtils {
         }
     }
 
-    /**
-     * 解析设备ID
-     */
-    public static String parseDeviceId(String token) throws ExpiredJwtException {
-        try {
-            Claims claims = JWT_PARSER
-                    .setSigningKey(TOKEN_SIGN_KEY)
-                    .parseClaimsJws(token)
-                    .getBody();
-            
-            return claims.get(CLAIM_DEVICE_ID, String.class);
-        } catch (ExpiredJwtException e) {
-            throw e;
-        } catch (Exception e) {
-            log.warn("解析deviceId失败 token=[{}]", token, e);
-            throw new RuntimeException("解析deviceId失败");
-        }
-    }
+
 
     public static Long getAccessTokenExpDays() {
         return DEFAULT_ACCESS_TOKEN_EXP_DAYS != null ? DEFAULT_ACCESS_TOKEN_EXP_DAYS : 7L;

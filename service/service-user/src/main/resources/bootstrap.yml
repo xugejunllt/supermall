@@ -46,8 +46,12 @@ sign:
 auth:
   # 排除鉴权的路径列表（支持完全匹配）
   exclude-auth-paths:
+    - /user/app/user/register
     - /user/app/user/registerSendCode
     - /user/app/user/getSignKey
+    - /user/app/user/loginSendCode
+    - /user/app/user/login
+    - /user/app/user/refreshToken
   internalServicePaths:
     #内部接口
     - /user/app/user/registerSendCode2

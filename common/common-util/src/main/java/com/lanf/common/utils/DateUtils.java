@@ -206,4 +206,83 @@ public class DateUtils {
         return targetDate.format(formatter);
     }
 
+    /**
+     * 将天数转换为毫秒数
+     * 
+     * @param days 天数
+     * @return 毫秒数
+     */
+    public static long daysToMillis(long days) {
+        return days * 24L * 60 * 60 * 1000;
+    }
+
+    /**
+     * 计算从当前时间开始，指定天数后的过期时间戳
+     * 
+     * @param days 天数
+     * @return 过期时间戳（毫秒）
+     */
+    public static long getExpireTimestampFromDays(long days) {
+        return System.currentTimeMillis() + daysToMillis(days);
+    }
+
+    /**
+     * 将小时数转换为毫秒数
+     * 
+     * @param hours 小时数
+     * @return 毫秒数
+     */
+    public static long hoursToMillis(long hours) {
+        return hours * 60L * 60 * 1000;
+    }
+
+    /**
+     * 计算从当前时间开始，指定小时后的过期时间戳
+     * 
+     * @param hours 小时数
+     * @return 过期时间戳（毫秒）
+     */
+    public static long getExpireTimestampFromHours(long hours) {
+        return System.currentTimeMillis() + hoursToMillis(hours);
+    }
+
+    /**
+     * 将分钟数转换为毫秒数
+     * 
+     * @param minutes 分钟数
+     * @return 毫秒数
+     */
+    public static long minutesToMillis(long minutes) {
+        return minutes * 60L * 1000;
+    }
+
+    /**
+     * 计算从当前时间开始，指定分钟后的过期时间戳
+     * 
+     * @param minutes 分钟数
+     * @return 过期时间戳（毫秒）
+     */
+    public static long getExpireTimestampFromMinutes(long minutes) {
+        return System.currentTimeMillis() + minutesToMillis(minutes);
+    }
+
+    /**
+     * 将秒数转换为毫秒数
+     * 
+     * @param seconds 秒数
+     * @return 毫秒数
+     */
+    public static long secondsToMillis(long seconds) {
+        return seconds * 1000L;
+    }
+
+    /**
+     * 计算从当前时间开始，指定秒后的过期时间戳
+     * 
+     * @param seconds 秒数
+     * @return 过期时间戳（毫秒）
+     */
+    public static long getExpireTimestampFromSeconds(long seconds) {
+        return System.currentTimeMillis() + secondsToMillis(seconds);
+    }
 }

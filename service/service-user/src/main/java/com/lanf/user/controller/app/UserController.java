@@ -4,10 +4,7 @@ package com.lanf.user.controller.app;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
-import com.lanf.user.model.dto.LoginUserDTO;
-import com.lanf.user.model.dto.RefreshTokenDTO;
-import com.lanf.user.model.dto.RegisterSendCodeDTO;
-import com.lanf.user.model.dto.RegisterUserDTO;
+import com.lanf.user.model.dto.*;
 import com.lanf.user.model.vo.PublicKeyVO;
 import com.lanf.user.model.vo.UserDetailVO;
 import com.lanf.user.model.vo.UserTokenInfoVO;
@@ -21,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.NotNull;
 
 
 @Slf4j
@@ -71,11 +67,11 @@ public class UserController {
     }
 
     @PostMapping("/loginSendCode")
-    public Result<Void> loginSendCode(@NotNull(message = "手机号不能为空") String phoneNumber) {
+    public Result<Void> loginSendCode(@Validated @RequestBody LoginSendCodeDTO dto) {
 
-        log.info("[{}]开始,入参:[{}]", "登入发送短信验证码", phoneNumber);
+        log.info("[{}]开始,入参:[{}]", "登入发送短信验证码", dto);
 
-        userService.loginSendCode(phoneNumber);
+        userService.loginSendCode(dto.getPhoneNumber());
 
         log.info("[{}]结束", "登入发送短信验证码");
 

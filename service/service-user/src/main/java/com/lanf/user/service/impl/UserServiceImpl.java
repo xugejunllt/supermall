@@ -35,7 +35,6 @@ import com.lanf.web.utils.IpUtil;
 import com.lanf.web.utils.JwtUtils;
 import com.lanf.web.utils.UserContext;
 import com.lanf.web.utils.WebUtil;
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -247,11 +246,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         UserTokenInfoVO tokenInfo = new UserTokenInfoVO();
         tokenInfo.setAccessToken(accessToken);
         tokenInfo.setRefreshToken(refreshToken);
-        /**
-         * 转成毫秒
-         */
-        tokenInfo.setAccessTokenExp(accessTokenExpDays * 24 * 60 * 60 * 1000);
-        tokenInfo.setRefreshTokenExp(refreshTokenExpDays * 24 * 60 * 60 * 1000);
+        
+        // 计算过期时间戳（当前时间 + 有效期）
+        tokenInfo.setAccessTokenExp(DateUtils.getExpireTimestampFromDays(accessTokenExpDays));
+        tokenInfo.setRefreshTokenExp(DateUtils.getExpireTimestampFromDays(refreshTokenExpDays));
 
         return tokenInfo;
     }
@@ -367,41 +365,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
     }
 
-    /**
-     * 刷新token 已经过期 满足重新刷新token而不需要退出登入的条件
-     *
-     * @param dto
-     * @return
-     */
-    private boolean hasRefreshToken(RefreshTokenDTO dto) {
 
 
-        String refreshToken = dto.getRefreshToken();
-        String deviceId = parseDeviceId(refreshToken);
-
-
-        //从风控系统获取用户特征 判断是否能够重新刷新令牌
-
-        return true;
-    }
-
-    private String parseDeviceId(String refreshToken) {
-
-        String deviceId = null;
-        try {
-            deviceId = JwtUtils.parseDeviceId(refreshToken);
-
-        } catch (ExpiredJwtException e) {
-            log.info("token已过期");
-            return null;
-
-        } catch (Exception e) {
-            log.info("JWT 解析异常 [{}]", StackTraceUtil.getStackTrace(e));
-            throw new BizException("jwt解析异常");
-        }
-
-        return deviceId;
-    }
 
 
 

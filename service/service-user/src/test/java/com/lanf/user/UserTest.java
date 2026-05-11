@@ -51,10 +51,10 @@ public class UserTest {
 
             //1.生成Token
             log.info("步骤1：生成Token");
-            String token = JwtUtils.createTokenForUserWithDays(999L, "test-device", 1);
+            String token = JwtUtils.createTokenForUserWithDays(999L, "test-device", 3);
             log.info("Token长度: {}", token.length());
             JwtTokenInfo jwtTokenInfo = JwtUtils.parseUserToken(token);
-             log.info("signingKey: {}", jwtTokenInfo.getSigningKey());
+             log.info("signingKey: {}", jwtTokenInfo.getExpTime());
 
     }
 
