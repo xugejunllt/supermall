@@ -15,6 +15,7 @@ import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.user.mapper.UserMapper;
 import com.lanf.user.model.bo.UserLevelBO;
+import com.lanf.user.model.dto.LoginSendCodeDTO;
 import com.lanf.user.model.dto.LoginUserDTO;
 import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
@@ -31,6 +32,7 @@ import com.lanf.user.service.benefit.IUserLevelService;
 import com.lanf.web.auth.RequestAuthExtractor;
 import com.lanf.web.model.bo.AuthRequestInfo;
 import com.lanf.web.model.bo.JwtTokenInfo;
+import com.lanf.web.security.keygen.RsaEncryptKeyManager;
 import com.lanf.web.utils.IpUtil;
 import com.lanf.web.utils.JwtUtils;
 import com.lanf.web.utils.UserContext;
@@ -73,7 +75,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private TransactionTemplate transactionTemplate;
     @Autowired
     private RedissonCacheService redissonCacheService;
-
+    @Autowired
+    private RsaEncryptKeyManager rsaEncryptKeyManager;
     @Override
     @DistributedLock(key = "#dto.phoneNumber")
     @Transactional
@@ -145,8 +148,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     }
 
     @Override
-    @DistributedLock(key = "#phoneNumber")
-    public void loginSendCode(String phoneNumber) {
+    @DistributedLock(key = "#dto.phoneNumber")
+    public void loginSendCode(LoginSendCodeDTO dto) {
+
+        String phoneNumber = dto.getPhoneNumber();
+        String randomKey = dto.getRandomKey();
+        String phoneNumberEncryptedData = rsaEncryptKeyManager.decryptAndVerify(randomKey, phoneNumber);
+
+        log.info("解密后的数据是[{}]", phoneNumberEncryptedData);
+
         validateRegisterSendCode(phoneNumber);
         //移除空格、横杠等特殊字符
         phoneNumber = PhoneValidator.cleanPhoneNumber(phoneNumber);

@@ -62,10 +62,7 @@ public class SigningKeyContext {
             log.debug("signingKey已从ThreadLocal清除");
         }
         SIGNING_KEY_HOLDER.remove();
-
-        // 清除签名密钥来源标记（恢复默认值）
-        SIGN_KEY_SOURCE_HOLDER.set(SignKeySourceEnum.RANDOM_KEY);
-
+        SIGN_KEY_SOURCE_HOLDER.remove();
 
         log.debug("所有ThreadLocal变量已清除");
     }

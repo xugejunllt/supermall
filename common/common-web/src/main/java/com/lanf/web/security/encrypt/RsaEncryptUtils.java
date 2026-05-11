@@ -93,22 +93,5 @@ public class RsaEncryptUtils {
 
 
 
-    /**
-     * 生成公钥字节数组（用于前端加密）
-     * 
-     * @param publicKeyBase64 Base64编码的公钥字符串
-     * @return 公钥字节数组
-     */
-    public static byte[] getPublicKeyBytes(String publicKeyBase64) {
-        if (publicKeyBase64 == null || publicKeyBase64.isEmpty()) {
-            throw new BizException("公钥字符串不能为空");
-        }
-        
-        try {
-            return Base64.getDecoder().decode(publicKeyBase64);
-        } catch (Exception e) {
-            log.error("公钥Base64解码失败", e);
-            throw new BizException("公钥格式错误");
-        }
-    }
+
 }

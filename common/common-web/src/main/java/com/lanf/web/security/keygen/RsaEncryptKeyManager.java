@@ -4,6 +4,7 @@ package com.lanf.web.security.keygen;
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.web.security.encrypt.RsaEncryptUtils;
 import com.lanf.web.security.keygen.model.IKeyPairInfo;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,9 @@ public class RsaEncryptKeyManager {
     @Autowired
     private RedissonCacheService redissonCacheService;
 
+    @Autowired
+    private RsaEncryptUtils rsaEncryptUtils;
+
     /**
      * 生成RSA密钥对并缓存
      * 
@@ -56,34 +60,91 @@ public class RsaEncryptKeyManager {
     }
 
     /**
-     * 根据随机key获取RSA公钥字节数组
+     * 通过randomKey获取私钥，对传入的加密数据进行解密
      * 
      * @param randomKey 随机key
-     * @return RSA公钥字节数组
+     * @param encryptedData Base64编码的加密数据
+     * @return 解密后的明文数据
+     * @throws BizException 解密失败或数据不一致时抛出异常
      */
-    public byte[] getPublicKeyBytes(String randomKey) {
+    public String decryptAndVerify(String randomKey, String encryptedData) {
+        //1.参数校验
         if (randomKey == null || randomKey.isEmpty()) {
-            throw new BizException("随机key不能为空");
+            throw new BizException("randomKey不能为空");
+        }
+        if (encryptedData == null || encryptedData.isEmpty()) {
+            throw new BizException("加密数据不能为空");
         }
 
+
+        //2.从Redis获取密钥对JSON
         String cacheKey = String.format(PUBLIC_KEY_CACHE_PREFIX, randomKey);
         String keyPairJson = redissonCacheService.get(cacheKey);
         
         if (keyPairJson == null || keyPairJson.isEmpty()) {
-            log.warn("密钥对不存在或已过期,randomKey:[{}]", randomKey);
-            throw new BizException("密钥对不存在或已过期");
+            log.warn("Redis中未找到密钥对, randomKey: {}", randomKey);
+            throw new BizException("密钥已过期或不存在");
         }
-        
-        try {
-            IKeyPairInfo keyPairInfo = JsonUtils.toObject(keyPairJson, IKeyPairInfo.class);
-            byte[] publicKeyBytes = java.util.Base64.getDecoder().decode(keyPairInfo.getPublicKey());
-            log.info("获取RSA公钥成功,randomKey:[{}]", randomKey);
-            return publicKeyBytes;
-        } catch (Exception e) {
-            log.error("公钥Base64解码失败,randomKey:[{}]", randomKey, e);
-            throw new BizException("公钥解码失败");
+
+        //3.解析密钥对JSON
+        IKeyPairInfo keyPairInfo = JsonUtils.toObject(keyPairJson, IKeyPairInfo.class);
+        if (keyPairInfo == null || keyPairInfo.getPrivateKey() == null) {
+            log.error("密钥对解析失败, randomKey: {}", randomKey);
+            throw new BizException("密钥对解析失败");
         }
+        //4.Base64解码私钥
+        byte[] privateKeyBytes = java.util.Base64.getDecoder().decode(keyPairInfo.getPrivateKey());
+        //5.使用私钥解密数据
+        String decryptedData = rsaEncryptUtils.decryptByPrivateKey(privateKeyBytes, encryptedData);
+        log.debug("解密成功, randomKey: {}", randomKey);
+        log.info("解密并验证成功, randomKey: {}", randomKey);
+        return decryptedData;
     }
+
+    /**
+     * 通过randomKey获取公钥，对传入的数据进行加密
+     * 
+     * @param randomKey 随机key
+     * @param plainText 明文数据
+     * @return Base64编码的加密数据
+     * @throws BizException 加密失败时抛出异常
+     */
+    public String encryptByRandomKey(String randomKey, String plainText) {
+        //1.参数校验
+        if (randomKey == null || randomKey.isEmpty()) {
+            throw new BizException("randomKey不能为空");
+        }
+        if (plainText == null || plainText.isEmpty()) {
+            throw new BizException("明文数据不能为空");
+        }
+
+        //2.从Redis获取密钥对JSON
+        String cacheKey = String.format(PUBLIC_KEY_CACHE_PREFIX, randomKey);
+        String keyPairJson = redissonCacheService.get(cacheKey);
+        
+        if (keyPairJson == null || keyPairJson.isEmpty()) {
+            log.warn("Redis中未找到密钥对, randomKey: {}", randomKey);
+            throw new BizException("密钥已过期或不存在");
+        }
+
+        //3.解析密钥对JSON
+        IKeyPairInfo keyPairInfo = JsonUtils.toObject(keyPairJson, IKeyPairInfo.class);
+        if (keyPairInfo == null || keyPairInfo.getPublicKey() == null) {
+            log.error("密钥对解析失败, randomKey: {}", randomKey);
+            throw new BizException("密钥对解析失败");
+        }
+
+        //4.Base64解码公钥
+        byte[] publicKeyBytes = java.util.Base64.getDecoder().decode(keyPairInfo.getPublicKey());
+
+        //5.使用公钥加密数据
+        String encryptedData = rsaEncryptUtils.encryptByPublicKey(publicKeyBytes, plainText);
+        log.debug("加密成功, randomKey: {}", randomKey);
+
+        return encryptedData;
+    }
+
+
 
     /**
      * 公钥信息

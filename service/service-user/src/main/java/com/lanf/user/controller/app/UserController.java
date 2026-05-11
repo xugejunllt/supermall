@@ -71,7 +71,7 @@ public class UserController {
 
         log.info("[{}]开始,入参:[{}]", "登入发送短信验证码", dto);
 
-        userService.loginSendCode(dto.getPhoneNumber());
+        userService.loginSendCode(dto);
 
         log.info("[{}]结束", "登入发送短信验证码");
 
@@ -125,7 +125,7 @@ public class UserController {
      * 获取公钥（RSA密钥对）
      * @return 公钥信息
      */
-    @GetMapping("/getPublicKey")
+    @PostMapping("/getPublicKey")
     public Result<PublicKeyVO> getPublicKey() {
 
         log.info("[{}]开始", "获取公钥");

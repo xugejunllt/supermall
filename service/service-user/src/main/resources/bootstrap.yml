@@ -55,6 +55,7 @@ auth:
     - /user/app/user/login
     - /user/app/user/refreshToken
     - /user/app/user/signTest1
+    - /user/app/user/getPublicKey
   internalServicePaths:
     #内部接口
     - /user/app/user/registerSendCode2

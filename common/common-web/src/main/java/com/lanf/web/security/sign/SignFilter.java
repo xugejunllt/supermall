@@ -82,7 +82,6 @@ public class SignFilter implements Filter {
             return;
         }
         log.info("开始进行签名验证, uri={}", uri);
-        
         //3.校验请求方法是否为POST，不是则返回错误
         if (!"POST".equalsIgnoreCase(request.getMethod())) {
             log.warn("签名验证失败：只支持POST请求, uri={}", uri);

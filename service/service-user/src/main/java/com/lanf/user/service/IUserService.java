@@ -1,6 +1,7 @@
 package com.lanf.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.user.model.dto.LoginSendCodeDTO;
 import com.lanf.user.model.dto.LoginUserDTO;
 import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
@@ -24,7 +25,7 @@ public interface IUserService extends IService<UserDO> {
 
     void registerSendCode(String phoneNumber);
 
-    void  loginSendCode(String phoneNumber);
+    void  loginSendCode(LoginSendCodeDTO dto);
 
     UserTokenInfoVO login(LoginUserDTO dt, HttpServletRequest request);
 

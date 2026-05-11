@@ -2,6 +2,7 @@ package com.lanf.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.constant.result.Result;
 import com.lanf.user.controller.app.UserController;
 import com.lanf.user.model.vo.PublicKeyVO;
@@ -9,6 +10,7 @@ import com.lanf.web.exception.IExpiredJwtException;
 import com.lanf.web.exception.TokenParseException;
 import com.lanf.web.model.bo.JwtTokenInfo;
 import com.lanf.web.security.encrypt.AesEncryptUtils;
+import com.lanf.web.security.keygen.RsaEncryptKeyManager;
 import com.lanf.web.security.keygen.SignKeyManager;
 import com.lanf.web.security.sign.SignUtils;
 import com.lanf.web.utils.JwtUtils;
@@ -38,8 +40,11 @@ public class UserTest {
     @Autowired
     private UserController userController;
 
+    @Autowired
+    private RsaEncryptKeyManager rsaEncryptKeyManager;
 
-
+    @Autowired
+    private RedissonCacheService redissonCacheService;
 
     /**
      * 测试Token中signingKey的存在性
@@ -305,6 +310,57 @@ public class UserTest {
             log.info("✅ 签名验证通过");
 
             log.info("========== 基于Token signingKey的签名测试完成 ==========");
+
+        } catch (Exception e) {
+            log.error("测试执行失败", e);
+            throw new RuntimeException("测试执行失败", e);
+        }
+    }
+
+    /**
+     * 测试RSA密钥对生成、加密和解密完整流程
+     */
+    @Test
+    public void testRsaEncryptDecrypt() {
+        try {
+            log.info("========== 开始执行RSA加密解密测试 ==========");
+
+
+            String randomKey = "3b4cd6f6a6d5478186fb602f573f7b6c";
+
+            log.info("randomKey: {}", randomKey);
+
+            //2.准备测试数据
+            log.info("步骤2：准备测试数据");
+            String originalData = "18320911824";
+            log.info("原始数据: {}", originalData);
+
+            //3.使用公钥加密数据
+            log.info("步骤3：使用公钥加密数据");
+            String encryptedData = rsaEncryptKeyManager.encryptByRandomKey(randomKey, originalData);
+            log.info("加密成功");
+            log.info("加密后的数据: [{}]",encryptedData);
+
+            //4.使用私钥解密数据并验证
+            log.info("步骤4：使用私钥解密数据并验证");
+            String decryptedData = rsaEncryptKeyManager.decryptAndVerify(randomKey, encryptedData);
+            log.info("解密成功");
+            log.info("解密数据: {}", decryptedData);
+
+            //5.验证解密后的数据与原始数据是否一致
+            log.info("步骤5：验证数据一致性");
+            if (!originalData.equals(decryptedData)) {
+                log.error("❌ 数据不一致！");
+                log.error("原始数据: {}", originalData);
+                log.error("解密数据: {}", decryptedData);
+                throw new RuntimeException("数据一致性验证失败");
+            }
+            
+            log.info("✅ 数据一致性验证通过");
+            log.info("✅ 原始数据: {}", originalData);
+            log.info("✅ 解密数据: {}", decryptedData);
+
+            log.info("========== RSA加密解密测试完成 ==========");
 
         } catch (Exception e) {
             log.error("测试执行失败", e);
