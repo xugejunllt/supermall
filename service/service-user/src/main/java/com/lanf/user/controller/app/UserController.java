@@ -85,12 +85,12 @@ public class UserController {
         return Result.ok(refreshTokenVO);
     }
 
-    @PostMapping("/getUserDetail")
-    public Result<UserDetailVO> getUserDetail() {
+    @PostMapping("/userDetailQuery")
+    public Result<UserDetailVO> userDetailQuery() {
 
         log.info("获取用户详细开始");
 
-        return Result.ok(userService.getUserDetail());
+        return Result.ok(userService.userDetailQuery());
     }
 
     /**

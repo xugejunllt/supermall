@@ -6,9 +6,6 @@ spring:
       discovery:
         server-addr: localhost:8848
         enabled: true
-        meta-data:
-          #大版本 小版本 bug修改版本/小功能
-          appVersion: 9.7.3
       config:
         server-addr: localhost:8848
         #命名空间做环境隔离
@@ -27,8 +24,7 @@ spring:
           - group: common
             data-id: filterPath.yaml
             refresh: true
-          - group: common
-            data-id: rocketmq.yaml
+
 server:
   port: 9006
   servlet:
@@ -59,3 +55,5 @@ auth:
   internalServicePaths:
     #内部接口
     - /user/app/user/registerSendCode2
+aes:
+  key: "dGVzdC1rZXktMTIzNDU2Nzg="  # 替换为实际密钥

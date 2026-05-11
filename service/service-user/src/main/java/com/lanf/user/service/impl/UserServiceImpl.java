@@ -377,15 +377,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     }
 
 
-
-
-
-
-
-
-
-    @Override
-    public UserVO getUserById() {
+    private UserVO getUserById() {
 
 
         Long userId = UserContext.getUserId();
@@ -400,11 +392,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     }
 
     /**
-     * 用户详细信息由 基本信息+会员等级信息 这两个分别缓存在redis中
-     * 因为它们修改的时机都不一样
+     * 用户详细信息由 基本信息+会员等级信息
+     *
      */
     @Override
-    public UserDetailVO getUserDetail() {
+    public UserDetailVO userDetailQuery() {
         Long userId = UserContext.getUserId();
 
         UserVO userVO = getUserById();

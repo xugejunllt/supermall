@@ -1,7 +1,6 @@
 package com.lanf.user.controller.app;
 
 
-import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.result.Result;
 import com.lanf.user.model.dto.CreateAddressDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
@@ -35,11 +34,9 @@ public class AddressAppController {
     public Result<Void>  createAddress(@Validated @RequestBody CreateAddressDTO dto){
 
         Long userId = UserContext.getUserId();
-        log.info("用户[{}][{}]开始,入参:[{}]",userId, "添加收货地址", JsonUtils.toJsonString(dto));
+        log.info("添加收货地址开始,用户ID:{},参数:{}", userId, dto);
         dto.setUserId(userId);
         addressService.createAddress(dto);
-
-        log.info("[{}]结束", "添加收货地址");
 
         return Result.ok();
     }
@@ -48,7 +45,8 @@ public class AddressAppController {
     @GetMapping("/listAddress")
     public Result<List<AddressVO>> listAddress() {
 
-        log.info("用户[{}][{}]开始", UserContext.getUserId(),"获取地址列表");
+        Long userId = UserContext.getUserId();
+        log.info("获取地址列表开始,用户ID:{}", userId);
 
         return Result.ok(addressService.listAddress());
     }
@@ -57,9 +55,8 @@ public class AddressAppController {
     public Result setDefaultAddress(@Validated @RequestBody SetDefaultAddressDTO dto) {
 
         Long userId = UserContext.getUserId();
-        log.info("用户[{}][{}]开始,入参:[{}]",userId, "设置地址为默认地址", JsonUtils.toJsonString(dto));
+        log.info("设置默认地址开始,用户ID:{},参数:{}", userId, dto);
         dto.setUserId(userId);
-        log.info("[{}]结束", "设置地址为默认地址");
         addressService.setDefaultAddress(dto);
         return Result.ok();
     }

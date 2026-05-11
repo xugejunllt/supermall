@@ -31,7 +31,7 @@ public interface IUserService extends IService<UserDO> {
 
     UserTokenInfoVO refreshToken(RefreshTokenDTO dto,HttpServletRequest request);
 
-    UserVO getUserById();
 
-    UserDetailVO getUserDetail();
+
+    UserDetailVO userDetailQuery();
 }
