@@ -63,11 +63,10 @@ public class RsaEncryptKeyManager {
      * 
      * @param randomKey 随机key
      * @param encryptedData Base64编码的加密数据
-     * @param originalData 原始明文数据（用于比对验证）
      * @return 解密后的明文数据
      * @throws BizException 解密失败或数据不一致时抛出异常
      */
-    public String decryptAndVerify(String randomKey, String encryptedData, String originalData) {
+    public String decryptAndVerify(String randomKey, String encryptedData) {
         //1.参数校验
         if (randomKey == null || randomKey.isEmpty()) {
             throw new BizException("randomKey不能为空");
@@ -75,9 +74,7 @@ public class RsaEncryptKeyManager {
         if (encryptedData == null || encryptedData.isEmpty()) {
             throw new BizException("加密数据不能为空");
         }
-        if (originalData == null || originalData.isEmpty()) {
-            throw new BizException("原始数据不能为空");
-        }
+
 
         //2.从Redis获取密钥对JSON
         String cacheKey = String.format(WebRedisKeyConstants.RSA_KEY_PAIR_CACHE, randomKey);
@@ -101,13 +98,6 @@ public class RsaEncryptKeyManager {
         //5.使用私钥解密数据
         String decryptedData = rsaEncryptUtils.decryptByPrivateKey(privateKeyBytes, encryptedData);
         log.debug("解密成功, randomKey: {}", randomKey);
-
-        //6.比较解密后的数据与原始数据是否一致
-        if (!decryptedData.equals(originalData)) {
-            log.warn("数据一致性验证失败, randomKey: {}, 期望: {}, 实际: {}", 
-                    randomKey, originalData, decryptedData);
-            throw new BizException("数据一致性验证失败");
-        }
 
         log.info("解密并验证成功, randomKey: {}", randomKey);
         return decryptedData;
