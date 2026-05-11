@@ -8,6 +8,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.result.Result;
 import com.lanf.web.auth.RequestAuthExtractor;
 import com.lanf.web.config.SignPathConfig;
+import com.lanf.web.constant.WebRedisKeyConstants;
 import com.lanf.web.security.keygen.SignKeyManager;
 import com.lanf.web.utils.CachedBodyHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -50,11 +51,6 @@ public class SignFilter implements Filter {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
-
-    /**
-     * nonce缓存前缀
-     */
-    private static final String NONCE_CACHE_PREFIX = "sign:nonce:%s";
 
     /**
      * nonce过期时间（5分钟）
@@ -229,7 +225,7 @@ public class SignFilter implements Filter {
      * @return true-已使用，false-未使用
      */
     private boolean isNonceUsed( String nonce) {
-        String cacheKey = String.format(NONCE_CACHE_PREFIX, nonce);
+        String cacheKey = String.format(WebRedisKeyConstants.SIGN_NONCE_CACHE, nonce);
         
         // 原子递增，返回递增后的值
         long count = redissonCacheService.incrementAndGet(cacheKey, NONCE_EXPIRE_TIME, TimeUnit.MINUTES);

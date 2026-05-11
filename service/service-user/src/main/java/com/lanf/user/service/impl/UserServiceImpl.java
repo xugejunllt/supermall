@@ -2,7 +2,6 @@ package com.lanf.user.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.cache.aop.DistributedLock;
-import com.lanf.cache.constant.RedisCacheConstants;
 import com.lanf.cache.service.DistributedLocker;
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.*;
@@ -13,6 +12,7 @@ import com.lanf.constant.model.enums.SmsCodeEnum;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.user.constant.UserRedisKeyConstants;
 import com.lanf.user.mapper.UserMapper;
 import com.lanf.user.model.bo.UserLevelBO;
 import com.lanf.user.model.dto.LoginSendCodeDTO;
@@ -114,7 +114,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
 
         //1.校验短信验证码
-        String codeKey = String.format(RedisCacheConstants.REGISTER_CODE_KEY, phoneNumber);
+        String codeKey = String.format(UserRedisKeyConstants.REGISTER_CODE_KEY, phoneNumber);
         String code = redissonCacheService.get(codeKey);
         if (!dto.getCode().equals(code)) {
             log.info("验证码错误");
@@ -173,7 +173,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     private void cacheLoginCode(String phoneNumber, String code) {
 
-        String codeKey = String.format(RedisCacheConstants.LOGIN_CODE_KEY, phoneNumber);
+        String codeKey = String.format(UserRedisKeyConstants.LOGIN_CODE_KEY, phoneNumber);
 
         redissonCacheService.set(codeKey, code, 10, TimeUnit.MINUTES);
 
@@ -181,7 +181,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     private void cacheRegisterCode(String phoneNumber, String code) {
 
-        String codeKey = String.format(RedisCacheConstants.REGISTER_CODE_KEY, phoneNumber);
+        String codeKey = String.format(UserRedisKeyConstants.REGISTER_CODE_KEY, phoneNumber);
 
         redissonCacheService.set(codeKey, code, 10, TimeUnit.MINUTES);
 
@@ -292,7 +292,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
 
         //3.从Redis获取验证码并校验
-        String codeKey = String.format(RedisCacheConstants.LOGIN_CODE_KEY, phoneNumber);
+        String codeKey = String.format(UserRedisKeyConstants.LOGIN_CODE_KEY, phoneNumber);
         String code = redissonCacheService.get(codeKey);
         if (!dto.getCode().equals(code)) {
             log.warn("验证码错误");

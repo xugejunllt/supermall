@@ -4,6 +4,7 @@ package com.lanf.web.security.keygen;
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.web.constant.WebRedisKeyConstants;
 import com.lanf.web.security.encrypt.RsaEncryptUtils;
 import com.lanf.web.security.keygen.model.IKeyPairInfo;
 import lombok.Data;
@@ -22,8 +23,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 public class RsaEncryptKeyManager {
-
-    private static final String PUBLIC_KEY_CACHE_PREFIX = "public:key:%s";
 
     private static final long CACHE_EXPIRE_TIME = 10;
 
@@ -49,7 +48,7 @@ public class RsaEncryptKeyManager {
         
         String randomKey = UUID.randomUUID().toString().replace("-", "");
         
-        String cacheKey = String.format(PUBLIC_KEY_CACHE_PREFIX, randomKey);
+        String cacheKey = String.format(WebRedisKeyConstants.RSA_KEY_PAIR_CACHE, randomKey);
         String keyPairJson = JsonUtils.toJsonString(keyPairInfo);
         
         redissonCacheService.set(cacheKey, keyPairJson, CACHE_EXPIRE_TIME, CACHE_EXPIRE_UNIT);
@@ -60,14 +59,15 @@ public class RsaEncryptKeyManager {
     }
 
     /**
-     * 通过randomKey获取私钥，对传入的加密数据进行解密
+     * 通过randomKey获取私钥，对传入的加密数据进行解密，并验证数据一致性
      * 
      * @param randomKey 随机key
      * @param encryptedData Base64编码的加密数据
+     * @param originalData 原始明文数据（用于比对验证）
      * @return 解密后的明文数据
      * @throws BizException 解密失败或数据不一致时抛出异常
      */
-    public String decryptAndVerify(String randomKey, String encryptedData) {
+    public String decryptAndVerify(String randomKey, String encryptedData, String originalData) {
         //1.参数校验
         if (randomKey == null || randomKey.isEmpty()) {
             throw new BizException("randomKey不能为空");
@@ -75,10 +75,12 @@ public class RsaEncryptKeyManager {
         if (encryptedData == null || encryptedData.isEmpty()) {
             throw new BizException("加密数据不能为空");
         }
-
+        if (originalData == null || originalData.isEmpty()) {
+            throw new BizException("原始数据不能为空");
+        }
 
         //2.从Redis获取密钥对JSON
-        String cacheKey = String.format(PUBLIC_KEY_CACHE_PREFIX, randomKey);
+        String cacheKey = String.format(WebRedisKeyConstants.RSA_KEY_PAIR_CACHE, randomKey);
         String keyPairJson = redissonCacheService.get(cacheKey);
         
         if (keyPairJson == null || keyPairJson.isEmpty()) {
@@ -92,11 +94,21 @@ public class RsaEncryptKeyManager {
             log.error("密钥对解析失败, randomKey: {}", randomKey);
             throw new BizException("密钥对解析失败");
         }
+
         //4.Base64解码私钥
         byte[] privateKeyBytes = java.util.Base64.getDecoder().decode(keyPairInfo.getPrivateKey());
+
         //5.使用私钥解密数据
         String decryptedData = rsaEncryptUtils.decryptByPrivateKey(privateKeyBytes, encryptedData);
         log.debug("解密成功, randomKey: {}", randomKey);
+
+        //6.比较解密后的数据与原始数据是否一致
+        if (!decryptedData.equals(originalData)) {
+            log.warn("数据一致性验证失败, randomKey: {}, 期望: {}, 实际: {}", 
+                    randomKey, originalData, decryptedData);
+            throw new BizException("数据一致性验证失败");
+        }
+
         log.info("解密并验证成功, randomKey: {}", randomKey);
         return decryptedData;
     }
@@ -119,7 +131,7 @@ public class RsaEncryptKeyManager {
         }
 
         //2.从Redis获取密钥对JSON
-        String cacheKey = String.format(PUBLIC_KEY_CACHE_PREFIX, randomKey);
+        String cacheKey = String.format(WebRedisKeyConstants.RSA_KEY_PAIR_CACHE, randomKey);
         String keyPairJson = redissonCacheService.get(cacheKey);
         
         if (keyPairJson == null || keyPairJson.isEmpty()) {
