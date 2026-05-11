@@ -65,7 +65,7 @@ public class SignKeyManager {
      * @param signRandomKey 签名随机key
      * @return AES密钥（Base64编码）
      */
-    public String getSignKey(String signRandomKey) {
+    private String getSignKey(String signRandomKey) {
         //1.校验参数是否为空
         if (signRandomKey == null || signRandomKey.isEmpty()) {
             throw new BizException("签名随机key不能为空");

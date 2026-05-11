@@ -450,4 +450,25 @@ public class RedissonCacheService {
         }
     }
 
+    /**
+     * 判断key是否存在
+     * 
+     * @param key Redis key
+     * @return true-存在，false-不存在
+     */
+    public boolean exists(String key) {
+        try {
+            boolean isExists = redissonClient.getBucket(key).isExists();
+            if (isExists) {
+                log.debug("Key存在:{}", key);
+            } else {
+                log.debug("Key不存在:{}", key);
+            }
+            return isExists;
+        } catch (Exception e) {
+            log.error("判断Key存在性异常:key={}", key, e);
+            return false;
+        }
+    }
+
 }
