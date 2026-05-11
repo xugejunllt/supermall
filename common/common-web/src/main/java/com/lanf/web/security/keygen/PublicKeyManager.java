@@ -89,6 +89,41 @@ public class PublicKeyManager {
     }
 
     /**
+     * 根据随机key获取公钥（Base64解码后的字节数组）
+     * 
+     * @param randomKey 随机key
+     * @return 公钥字节数组
+     */
+    public byte[] getPublicKeyBytes(String randomKey) {
+        if (randomKey == null || randomKey.isEmpty()) {
+            throw new BizException("随机key不能为空");
+        }
+
+        String cacheKey = String.format(PUBLIC_KEY_CACHE_PREFIX, randomKey);
+        String keyPairJson = redissonCacheService.get(cacheKey);
+        
+        if (keyPairJson == null || keyPairJson.isEmpty()) {
+            log.warn("密钥对不存在或已过期,randomKey:[{}]", randomKey);
+            throw new BizException("密钥对不存在或已过期");
+        }
+        
+        IKeyPairInfo keyPairInfo = JsonUtils.toObject(keyPairJson, IKeyPairInfo.class);
+        if (keyPairInfo == null || keyPairInfo.getPublicKey() == null) {
+            log.error("密钥对解析失败,randomKey:[{}]", randomKey);
+            throw new BizException("密钥对解析失败");
+        }
+        
+        try {
+            byte[] publicKeyBytes = Base64Utils.decodeToBytes(keyPairInfo.getPublicKey());
+            log.info("获取公钥成功,randomKey:[{}]", randomKey);
+            return publicKeyBytes;
+        } catch (Exception e) {
+            log.error("公钥Base64解码失败,randomKey:[{}]", randomKey, e);
+            throw new BizException("公钥解码失败");
+        }
+    }
+
+    /**
      * 删除缓存的密钥对
      * 
      * @param randomKey 随机key

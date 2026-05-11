@@ -37,3 +37,9 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
 
+sign:
+  enabled: true
+  paths:
+    - /app/user/login
+    - /app/user/register
+    - /app/order/create
