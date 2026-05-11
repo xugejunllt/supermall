@@ -1,14 +1,11 @@
 package com.lanf.user.controller.app;
 
 
-import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.user.model.dto.*;
 import com.lanf.user.model.vo.PublicKeyVO;
 import com.lanf.user.model.vo.UserDetailVO;
 import com.lanf.user.model.vo.UserTokenInfoVO;
-import com.lanf.user.model.vo.UserVO;
 import com.lanf.user.service.IUserService;
 import com.lanf.web.security.keygen.RsaEncryptKeyManager;
 import com.lanf.web.security.keygen.SignKeyManager;
@@ -36,10 +33,9 @@ public class UserController {
     private SignKeyManager signKeyManager;
     @PostMapping("/register")
     public Result<Void> register(@Validated @RequestBody RegisterUserDTO dto) {
-
-        log.info("[{}]开始,入参:[{}]", "注册", JsonUtils.toJsonString(dto));
+          
+        log.info("注册开始,参数:{}", dto);
         userService.registerUser(dto);
-        log.info("[{}]结束", "注册");
 
         return Result.ok();
     }
@@ -47,11 +43,9 @@ public class UserController {
     @PostMapping("/registerSendCode")
     public Result<Void> registerSendCode(RegisterSendCodeDTO dto) {
 
-        log.info("[{}]开始,入参:[{}]", "注册发送短信验证码", dto.getPhoneNumber());
+        log.info("注册发送短信验证码开始,参数:{}", dto.getPhoneNumber());
 
         userService.registerSendCode(dto.getPhoneNumber());
-
-        log.info("[{}]结束", "注册发送短信验证码");
 
         return Result.ok();
     }
@@ -59,7 +53,7 @@ public class UserController {
     @PostMapping("/login")
     public Result<UserTokenInfoVO> login(@Validated @RequestBody LoginUserDTO dt, HttpServletRequest request) {
 
-        log.info("登入开始,入参:[{}]" , dt);
+        log.info("登入开始,参数:{}", dt);
 
         UserTokenInfoVO userVO = userService.login(dt,request);
 
@@ -69,11 +63,9 @@ public class UserController {
     @PostMapping("/loginSendCode")
     public Result<Void> loginSendCode(@Validated @RequestBody LoginSendCodeDTO dto) {
 
-        log.info("[{}]开始,入参:[{}]", "登入发送短信验证码", dto);
+        log.info("登入发送短信验证码开始,参数:{}", dto);
 
         userService.loginSendCode(dto);
-
-        log.info("[{}]结束", "登入发送短信验证码");
 
         return Result.ok();
     }
@@ -86,37 +78,17 @@ public class UserController {
     @PostMapping("/refreshToken")
     public Result<UserTokenInfoVO> refreshToken(@Validated @RequestBody RefreshTokenDTO dto,HttpServletRequest request) {
 
-        log.info("[{}]开始,入参:[{}]", "刷新token", dto);
+        log.info("刷新token开始,参数:{}", dto);
 
         UserTokenInfoVO refreshTokenVO = userService.refreshToken(dto,request);
-
-        log.info("[{}]结束", "刷新token");
 
         return Result.ok(refreshTokenVO);
     }
 
-    @GetMapping("/src/main/test")
-    public Result<Void> test() {
-
-        log.info("[{}]开始,入参");
-
-        log.info("[{}]结束", "刷新token");
-        throw new BizException("1");
-
-    }
-
-    @GetMapping("/getUserById")
-    public Result<UserVO> getUserById() {
-
-        log.info("[{}]开始","根据id查询用户信息");
-
-        return Result.ok(userService.getUserById());
-    }
-
-    @GetMapping("/getUserDetail")
+    @PostMapping("/getUserDetail")
     public Result<UserDetailVO> getUserDetail() {
 
-        log.info("[{}]开始", "获取用户详细");
+        log.info("获取用户详细开始");
 
         return Result.ok(userService.getUserDetail());
     }
@@ -128,15 +100,13 @@ public class UserController {
     @PostMapping("/getPublicKey")
     public Result<PublicKeyVO> getPublicKey() {
 
-        log.info("[{}]开始", "获取公钥");
+        log.info("获取公钥开始");
 
         RsaEncryptKeyManager.PublicKeyInfo publicKeyInfo = publicKeyManager.generatePublicKey();
         
         PublicKeyVO publicKeyVO = new PublicKeyVO();
         publicKeyVO.setRandomKey(publicKeyInfo.getRandomKey());
         publicKeyVO.setPublicKey(publicKeyInfo.getPublicKey());
-
-        log.info("[{}]结束,randomKey:[{}]", "获取公钥", publicKeyInfo.getRandomKey());
 
         return Result.ok(publicKeyVO);
     }
@@ -148,7 +118,7 @@ public class UserController {
     @PostMapping("/getSignKey")
     public Result<PublicKeyVO> getSignKey() {
 
-        log.info("[{}]开始", "获取签名密钥");
+        log.info("获取签名密钥开始");
 
         SignKeyManager.SignKeyInfo signKeyInfo = signKeyManager.generateSignKey();
         

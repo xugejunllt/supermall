@@ -91,6 +91,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         message.setUserId(userDO.getId());
         rocketMqClient.sendMessage(UserClientTopicName.USER_REGISTER_EVENT_TOPIC,
                 JsonUtils.toJsonString(message));
+        log.info("用户注册成功");
     }
 
     private void fillUser(UserDO userDO) {
@@ -406,7 +407,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     public UserDetailVO getUserDetail() {
         Long userId = UserContext.getUserId();
 
-        //获取用户基本信息 这里可以使用redis进行缓存
         UserVO userVO = getUserById();
         UserLevelBO userLevel = userLevelService.getUserLevel(userId);
 

@@ -28,7 +28,7 @@ import java.util.Map;
  */
 @Slf4j
 @SpringBootTest
-public class UserTest {
+public class SignTest {
 
     @Autowired
     private SignKeyManager signKeyManager;
