@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.lanf.constant.code.CommonResultCodeEnum.SIGN_VERIFY_FAILED;
+
 /**
  * 签名验证过滤器
  */
@@ -269,9 +271,9 @@ public class SignFilter implements Filter {
     private void writeErrorResponse(HttpServletResponse response, String message) throws IOException {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        response.setStatus(HttpServletResponse.SC_OK);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         
-        Result<Void> result = Result.fail(40001, message);
+        Result<Void> result = Result.fail(SIGN_VERIFY_FAILED.getCode(), message);
         response.getWriter().write(JsonUtils.toJsonString(result));
     }
 }

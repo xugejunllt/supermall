@@ -22,9 +22,9 @@ public enum CommonResultCodeEnum {
 
     AUTH_FAILED(1002, "认证失败"),
 
-    KICKED_OUT(1004, "请重新登录");
-
-
+    KICKED_OUT(1004, "请重新登录"),
+    SIGN_VERIFY_FAILED(40001, "签名验证失败"),
+        ;
     private Integer code;
 
     private String message;
