@@ -1,4 +1,4 @@
-package com.lanf.web.service;
+package com.lanf.web.auth;
 
 import com.lanf.constant.exception.BizException;
 import com.lanf.web.model.bo.AuthRequestInfo;

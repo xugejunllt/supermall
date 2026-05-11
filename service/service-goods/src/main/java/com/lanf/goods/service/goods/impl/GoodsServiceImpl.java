@@ -22,7 +22,6 @@ import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.constant.web.PageResult;
 import com.lanf.cache.constant.RedisCacheConstants;
-import com.lanf.cache.service.RedisCache;
 import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.EventCodeEnum;

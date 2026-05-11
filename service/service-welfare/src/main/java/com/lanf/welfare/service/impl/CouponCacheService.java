@@ -2,7 +2,6 @@ package com.lanf.welfare.service.impl;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.cache.constant.RedisCacheConstants;
-import com.lanf.cache.service.RedisCache;
 import com.lanf.welfare.model.bo.CacheCouponTemplateListBO;
 import com.lanf.welfare.model.bo.DeductShopCouponRemainCountCacheBO;
 import com.lanf.welfare.model.bo.ShopCouponRemainCountCacheBO;

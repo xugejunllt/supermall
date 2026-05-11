@@ -34,7 +34,7 @@ import com.lanf.user.service.IUserService;
 import com.lanf.user.service.benefit.IUserLevelService;
 import com.lanf.web.model.bo.AuthRequestInfo;
 import com.lanf.web.model.bo.JwtTokenInfo;
-import com.lanf.web.service.RequestAuthExtractor;
+import com.lanf.web.auth.RequestAuthExtractor;
 import com.lanf.web.utils.IpUtil;
 import com.lanf.web.utils.JwtUtils;
 import com.lanf.web.utils.WebUtil;

@@ -9,6 +9,7 @@ import com.lanf.user.model.vo.*;
 import com.lanf.user.service.IUserService;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
+import com.lanf.web.security.keygen.PublicKeyManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -25,6 +26,9 @@ public class UserController {
 
     @Autowired
     private IUserService userService;
+
+    @Autowired
+    private PublicKeyManager publicKeyManager;
 
 
     @PostMapping("/register")
@@ -112,6 +116,26 @@ public class UserController {
         log.info("[{}]开始", "获取用户详细");
 
         return Result.ok(userService.getUserDetail());
+    }
+
+    /**
+     * 获取公钥
+     * @return 公钥信息
+     */
+    @GetMapping("/getPublicKey")
+    public Result<PublicKeyVO> getPublicKey() {
+
+        log.info("[{}]开始", "获取公钥");
+
+        PublicKeyManager.PublicKeyInfo publicKeyInfo = publicKeyManager.generatePublicKey();
+        
+        PublicKeyVO publicKeyVO = new PublicKeyVO();
+        publicKeyVO.setRandomKey(publicKeyInfo.getRandomKey());
+        publicKeyVO.setPublicKey(publicKeyInfo.getPublicKey());
+
+        log.info("[{}]结束,randomKey:[{}]", "获取公钥", publicKeyInfo.getRandomKey());
+
+        return Result.ok(publicKeyVO);
     }
 }
 

@@ -9,7 +9,6 @@ import com.lanf.cache.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.constant.web.PageResult;
 import com.lanf.cache.constant.RedisCacheConstants;
-import com.lanf.cache.service.RedisCache;
 import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.rocketmq.model.message.DeductCouponTemplateCountMsg;
 import com.lanf.security.utils.AdminSessionCache;

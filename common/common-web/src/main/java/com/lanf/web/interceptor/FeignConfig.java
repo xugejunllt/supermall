@@ -1,6 +1,6 @@
 package com.lanf.web.interceptor;
 
-import com.lanf.web.service.RequestAuthExtractor;
+import com.lanf.web.auth.RequestAuthExtractor;
 import com.lanf.web.utils.UserContext;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;

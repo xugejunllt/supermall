@@ -2,7 +2,6 @@ package com.lanf.user.service.manager;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.cache.constant.RedisCacheConstants;
-import com.lanf.cache.service.RedisCache;
 import com.lanf.user.model.vo.AddressVO;
 import com.sun.xml.internal.ws.util.UtilException;
 import lombok.extern.slf4j.Slf4j;

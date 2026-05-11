@@ -396,8 +396,58 @@ public class RedissonCacheService {
         }
     }
 
+    /**
+     * 获取队列大小
+     * 
+     * @param key Redis key
+     * @return 队列大小
+     */
+    public int getQueueSize(String key) {
+        try {
+            RQueue<String> queue = redissonClient.getQueue(key);
+            return queue.size();
+        } catch (Exception e) {
+            log.error("获取队列大小异常:key={}", key, e);
+            return 0;
+        }
+    }
 
+    /**
+     * 向双端队列添加所有元素
+     * 
+     * @param key Redis key
+     * @param elements 元素集合
+     */
+    public void addToDequeAll(String key, java.util.Collection<String> elements) {
+        try {
+            if (elements == null || elements.isEmpty()) {
+                log.debug("批量添加到Deque：集合为空,key={}", key);
+                return;
+            }
+            RDeque<String> deque = redissonClient.getDeque(key);
+            deque.addAll(elements);
+            log.debug("批量添加到Deque成功:key={},count={}", key, elements.size());
+        } catch (Exception e) {
+            log.error("批量添加到Deque异常:key={},count={}", key, elements.size(), e);
+        }
+    }
 
-
+    /**
+     * 从双端队列头部轮询删除指定数量的元素
+     * 
+     * @param key Redis key
+     * @param count 删除数量
+     */
+    public void pollFirstFromDeque(String key, int count) {
+        try {
+            RDeque<String> deque = redissonClient.getDeque(key);
+            for (int i = 0; i < count; i++) {
+                deque.pollFirst();
+            }
+            log.debug("从Deque头部删除元素:key={},count={}", key, count);
+        } catch (Exception e) {
+            log.error("从Deque头部删除元素异常:key={},count={}", key, count, e);
+        }
+    }
 
 }

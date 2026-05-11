@@ -1,4 +1,4 @@
-package com.lanf.web.service;
+package com.lanf.web.auth;
 
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.constant.code.CommonResultCodeEnum;
