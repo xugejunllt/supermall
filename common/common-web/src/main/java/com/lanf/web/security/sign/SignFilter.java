@@ -67,7 +67,7 @@ public class SignFilter implements Filter {
         log.info("开始进行签名验证");
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-
+        boolean tokenSign = false;
         //1.判断签名验证是否启用，未启用则直接放行
         if (!signConfig.isEnabled()) {
             log.debug("签名验证未启用，直接放行");
@@ -99,13 +99,7 @@ public class SignFilter implements Filter {
         }
 
         try {
-            //5.从请求头中提取signRandomKey并校验是否为空
-            String signRandomKey = request.getHeader(RequestAuthExtractor.HEADER_SIGN_RANDOM_KEY);
-            if (signRandomKey == null || signRandomKey.isEmpty()) {
-                log.warn("签名验证失败：请求头中signRandomKey为空, uri={}", uri);
-                writeErrorResponse(response, "请求头中signRandomKey不能为空");
-                return;
-            }
+
 
             //6.从请求头中提取sign并校验是否为空
             String sign = request.getHeader(RequestAuthExtractor.HEADER_SIGN);
@@ -139,7 +133,7 @@ public class SignFilter implements Filter {
             }
 
             //10.校验nonce是否已使用（防重放）
-            if (isNonceUsed(signRandomKey, nonce)) {
+            if (isNonceUsed( nonce)) {
                 log.warn("签名验证失败：nonce已被使用, uri={}, nonce={}", uri, nonce);
                 writeErrorResponse(response, "请求已被处理，请勿重复提交");
                 return;
@@ -158,11 +152,32 @@ public class SignFilter implements Filter {
 
             //13.将JSON请求体解析为Map对象
             Map<String, Object> params = OBJECT_MAPPER.readValue(body, new TypeReference<Map<String, Object>>() {});
-            
+
+
+            SignKeySourceEnum signKeySourceEnum = SigningKeyContext.getSignKeySourceEnum();
+
+
             //14.获取AES密钥字节数组
-            byte[] signKeyBytes = signKeyManager.getSignKeyBytes(signRandomKey);
-            
-            //15.将sign添加到参数Map中用于验签
+            byte[] signKeyBytes = new byte[0];
+            String signRandomKey = null;
+                    switch (signKeySourceEnum) {
+               case RANDOM_KEY:
+                   log.info("通过随机数获取签名秘钥");
+                    signRandomKey = request.getHeader(RequestAuthExtractor.HEADER_SIGN_RANDOM_KEY);
+                   if (signRandomKey == null || signRandomKey.isEmpty()) {
+                       log.warn("签名验证失败：请求头中signRandomKey为空, uri={}", uri);
+                       writeErrorResponse(response, "请求头中signRandomKey不能为空");
+                       return;
+                   }
+                   signKeyBytes = signKeyManager.getSignKeyBytes(signRandomKey);
+                   break;
+                case TOKEN:
+                    log.info("从Token中获取签名秘钥");
+                   signKeyBytes = SigningKeyContext.get();
+                   break;
+           }
+
+           //15.将sign添加到参数Map中用于验签
             params.put("sign", sign);
             
             //16.调用签名工具验证签名是否正确
@@ -211,12 +226,11 @@ public class SignFilter implements Filter {
      * 校验nonce是否已被使用（防重放）
      * 使用Redis原子递增，如果返回值大于1表示已使用过
      * 
-     * @param signRandomKey 签名随机key
      * @param nonce 随机数
      * @return true-已使用，false-未使用
      */
-    private boolean isNonceUsed(String signRandomKey, String nonce) {
-        String cacheKey = String.format(NONCE_CACHE_PREFIX, buildNonceCacheKey(signRandomKey, nonce));
+    private boolean isNonceUsed( String nonce) {
+        String cacheKey = String.format(NONCE_CACHE_PREFIX, nonce);
         
         // 原子递增，返回递增后的值
         long count = redissonCacheService.incrementAndGet(cacheKey, NONCE_EXPIRE_TIME, TimeUnit.MINUTES);
@@ -244,16 +258,7 @@ public class SignFilter implements Filter {
         log.debug("markNonceAsUsed已废弃，使用isNonceUsed中的incrementAndGet代替");
     }
 
-    /**
-     * 构建nonce缓存key
-     * 
-     * @param signRandomKey 签名随机key
-     * @param nonce 随机数
-     * @return 缓存key
-     */
-    private String buildNonceCacheKey(String signRandomKey, String nonce) {
-        return signRandomKey + ":" + nonce;
-    }
+
 
     /**
      * 判断请求路径是否需要签名验证

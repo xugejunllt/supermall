@@ -9,6 +9,7 @@ import com.lanf.web.config.AuthPathConfig;
 import com.lanf.web.model.bo.AuthRequestInfo;
 import com.lanf.web.model.bo.FeignRequestInfo;
 import com.lanf.web.model.bo.JwtTokenInfo;
+import com.lanf.web.security.sign.SigningKeyContext;
 import com.lanf.web.utils.JwtUtils;
 import com.lanf.web.utils.ResponseUtil;
 import com.lanf.web.utils.UserContext;
@@ -107,6 +108,9 @@ public class AuthService {
                     return;
                 }
             }
+            
+
+            
             /**
              * 校验缓存中
              *
@@ -131,6 +135,8 @@ public class AuthService {
             UserContext.setUserId(jwtTokenInfo.getUserId());
             UserContext.setDeviceId(jwtTokenInfo.getDeviceId());
             UserContext.setTenantId(jwtTokenInfo.getTenantId());
+            // 提取并缓存signingKey到ThreadLocal
+            SigningKeyContext.setFromBase64(jwtTokenInfo.getSigningKey());
 
             filterChain.doFilter(servletRequest, servletResponse);
 
@@ -139,6 +145,7 @@ public class AuthService {
             ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.AUTH_FAILED.getCode(), CommonResultCodeEnum.AUTH_FAILED.getMessage()));
         } finally {
             UserContext.clear();
+            SigningKeyContext.clear();
         }
 
 
@@ -146,9 +153,11 @@ public class AuthService {
 
 
 
+
     
 
     
+
 
     
 
