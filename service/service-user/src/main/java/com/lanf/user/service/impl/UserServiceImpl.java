@@ -21,6 +21,7 @@ import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.entity.UserDO;
 import com.lanf.user.model.entity.UserLoginLog;
+import com.lanf.user.model.enums.UserStatusEnum;
 import com.lanf.user.model.vo.UserDetailVO;
 import com.lanf.user.model.vo.UserTokenInfoVO;
 import com.lanf.user.model.vo.UserVO;
@@ -96,7 +97,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     private void fillUser(UserDO userDO) {
 
-        userDO.setStatus(1);
+        userDO.setStatus(UserStatusEnum.NORMAL);
         userDO.setNickName("asd");
         userDO.setHeadImageUrl("");
         userDO.setAccount(userDO.getPhoneNumber());
@@ -128,7 +129,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             throw new BizException("该手机号已被注册");
 
         }
-
+        //3.删除验证码
+        redissonCacheService.delete(codeKey);
 
     }
 
@@ -153,10 +155,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     public void loginSendCode(LoginSendCodeDTO dto) {
 
         String phoneNumber = dto.getPhoneNumber();
-        String randomKey = dto.getRandomKey();
-        String phoneNumberEncryptedData = rsaEncryptKeyManager.decryptAndVerify(randomKey, phoneNumber);
 
-        log.info("解密后的数据是[{}]", phoneNumberEncryptedData);
+  //       私钥解密
+       //String randomKey = dto.getRandomKey();
+
+//        String phoneNumberEncryptedData = rsaEncryptKeyManager.decryptAndVerify(randomKey, phoneNumber);
+//
+//        log.info("解密后的数据是[{}]", phoneNumberEncryptedData);
 
         validateRegisterSendCode(phoneNumber);
         //移除空格、横杠等特殊字符
@@ -175,7 +180,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         String codeKey = String.format(UserRedisKeyConstants.LOGIN_CODE_KEY, phoneNumber);
 
-        redissonCacheService.set(codeKey, code, 10, TimeUnit.MINUTES);
+        redissonCacheService.set(codeKey, code, 1000, TimeUnit.DAYS);
 
     }
 
@@ -183,7 +188,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         String codeKey = String.format(UserRedisKeyConstants.REGISTER_CODE_KEY, phoneNumber);
 
-        redissonCacheService.set(codeKey, code, 10, TimeUnit.MINUTES);
+        redissonCacheService.set(codeKey, code, 1000, TimeUnit.DAYS);
 
     }
 
@@ -282,11 +287,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         UserDO userDO = this.lambdaQuery().eq(UserDO::getPhoneNumber, phoneNumber).one();
         if (userDO == null) {
-            log.warn("用户不存在");
+            log.error("用户不存在");
             throw new BizException("用户不存在");
         }
 
-        if (userDO.getStatus() == 2) {
+        if (UserStatusEnum.DISABLED.equals(userDO.getStatus())) {
             log.warn("账号被禁用");
             throw new BizException("账号被禁用");
         }
@@ -298,6 +303,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             log.warn("验证码错误");
             throw new BizException("验证码错误");
         }
+
+        redissonCacheService.delete(codeKey);
         log.info("校验通过");
 
 

@@ -31,6 +31,16 @@ public class UserController {
 
     @Autowired
     private SignKeyManager signKeyManager;
+
+    @PostMapping("/registerSendCode")
+    public Result<Void> registerSendCode(@Validated @RequestBody RegisterSendCodeDTO dto) {
+
+        log.info("注册发送短信验证码开始,参数:{}", dto.getPhoneNumber());
+
+        userService.registerSendCode(dto.getPhoneNumber());
+
+        return Result.ok();
+    }
     @PostMapping("/register")
     public Result<Void> register(@Validated @RequestBody RegisterUserDTO dto) {
           
@@ -40,12 +50,12 @@ public class UserController {
         return Result.ok();
     }
 
-    @PostMapping("/registerSendCode")
-    public Result<Void> registerSendCode(RegisterSendCodeDTO dto) {
+    @PostMapping("/loginSendCode")
+    public Result<Void> loginSendCode(@Validated @RequestBody LoginSendCodeDTO dto) {
 
-        log.info("注册发送短信验证码开始,参数:{}", dto.getPhoneNumber());
+        log.info("登入发送短信验证码开始,参数:{}", dto);
 
-        userService.registerSendCode(dto.getPhoneNumber());
+        userService.loginSendCode(dto);
 
         return Result.ok();
     }
@@ -60,15 +70,7 @@ public class UserController {
         return Result.ok(userVO);
     }
 
-    @PostMapping("/loginSendCode")
-    public Result<Void> loginSendCode(@Validated @RequestBody LoginSendCodeDTO dto) {
 
-        log.info("登入发送短信验证码开始,参数:{}", dto);
-
-        userService.loginSendCode(dto);
-
-        return Result.ok();
-    }
 
     /**
      * 如果出现异常 统一退出登入

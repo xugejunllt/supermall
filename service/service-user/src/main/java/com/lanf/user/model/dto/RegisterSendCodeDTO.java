@@ -2,14 +2,16 @@ package com.lanf.user.model.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 @Data
 public class RegisterSendCodeDTO implements Serializable {
     /**
-     * 获取秘钥的随机key
+     * 获取加密秘钥的随机key
      */
     private String randomKey;
+    @NotBlank(message = "手机号不能为空")
     private String  phoneNumber;
 
 }

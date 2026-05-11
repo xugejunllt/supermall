@@ -46,7 +46,7 @@ private static final long serialVersionUID=1L;
     /**
      * 乐观锁版本号
      */
-    @Version
+
     private Long version;
 
 

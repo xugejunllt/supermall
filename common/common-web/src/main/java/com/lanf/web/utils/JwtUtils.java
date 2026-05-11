@@ -18,15 +18,15 @@ import java.util.Date;
 @Component
 public class JwtUtils {
 
-    private static final String TOKEN_SIGN_KEY = "asass121";
+    private static final String TOKEN_SIGN_KEY = "dGVzdC1rZXktMTIzNDU2Nz";
 
     @Value("${jwt.tokenSignKey:asass121}")
     private String tokenSignKey;
     
-    @Value("${jwt.accessTokenExpDays:7}")
+    @Value("${jwt.accessTokenExpDays:1000}")
     private Long accessTokenExpDays;
     
-    @Value("${jwt.refreshTokenExpDays:30}")
+    @Value("${jwt.refreshTokenExpDays:10000}")
     private Long refreshTokenExpDays;
     
     @Autowired

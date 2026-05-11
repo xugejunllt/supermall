@@ -2,6 +2,7 @@ package com.lanf.user.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.user.model.enums.UserStatusEnum;
 import lombok.Data;
 
 import java.util.Date;
@@ -49,7 +50,7 @@ private static final long serialVersionUID=1L;
     /**
      * 状态：0.待审核 1.正常 2.禁用
      */
-    private Integer status;
+    private UserStatusEnum status;
 
     /**
      * 头像

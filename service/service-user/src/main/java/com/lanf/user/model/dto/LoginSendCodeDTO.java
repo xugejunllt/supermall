@@ -12,7 +12,7 @@ public class LoginSendCodeDTO implements Serializable {
     @NotBlank(message = "手机号不能为空")
     private String phoneNumber;
 
-    @NotBlank(message = "随机数不能为空")
+    //@NotBlank(message = "随机数不能为空")
     private String randomKey;
 
 }
