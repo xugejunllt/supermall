@@ -1,7 +1,7 @@
 package com.lanf.system.service.merchant;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.constant.web.PageResult;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.system.model.dto.MerchantRegisterDTO;
 import com.lanf.system.model.entiry.MerchantDO;
 import com.lanf.system.model.query.CompanyPageQuery;
@@ -28,6 +28,6 @@ public interface IMerchantService extends IService<MerchantDO> {
      */
     void auditApprove(Long id);
 
-    PageResult<MerchantDO>  merchantPage(CompanyPageQuery query);
+    PageResult<MerchantDO> merchantPage(CompanyPageQuery query);
 
 }

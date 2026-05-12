@@ -1,6 +1,5 @@
 package com.lanf.system.model.entiry;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
@@ -34,5 +33,5 @@ private static final long serialVersionUID = 1L;
         @TableField(exist = false)
         private String typeName;
 
-
+        private Long tenantId;
 }

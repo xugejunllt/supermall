@@ -47,15 +47,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String tenantCode = (String) request.getAttribute(Constants.TENANT_CODE);
         String chanel = request.getHeader(Constants.CHANEL);
         String deviceId = request.getHeader(Constants.DEVICE_ID);
+            z
+        MerchantDO merchantDO = merchantService.lambdaQuery()
+                .eq(MerchantDO::getTenantCode, tenantCode).one();
 
-        MerchantDO merchantDO = merchantService.lambdaQuery().eq(MerchantDO::getTenantCode, tenantCode).one();
         if (merchantDO == null) {
             throw new UsernameNotFoundException("租户不存在！");
         }
         SysUserDO sysUser = sysUserService.lambdaQuery()
                 .eq(SysUserDO::getUsername, username)
-                .eq(SysUserDO::getTenantId, merchantDO.getId()).one();
-
+                .one();
         if (sysUser == null) {
             throw new UsernameNotFoundException("租户不存在！");
         }

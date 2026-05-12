@@ -3,12 +3,12 @@ package com.lanf.system.service.merchant.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.mybatis.utils.IdUtils;
-import com.lanf.constant.exception.BizException;
 import com.lanf.cache.aop.DistributedLock;
+import com.lanf.common.utils.CodeGenerateUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
 import com.lanf.security.custom.IBCryptPasswordEncoder;
 import com.lanf.system.mapper.MerchantMapper;
 import com.lanf.system.model.dto.MerchantRegisterDTO;
@@ -60,12 +60,14 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, MerchantDO>
         String tenantCode = CodeGenerateUtils.generaCode();
         MerchantDO companySave = new MerchantDO();
         Long companyId = IdUtils.generateId();
+        Long tenantId = IdUtils.generateId();
         companySave.setId(companyId);
         companySave.setCompany(companyRegister.getCompany());
         companySave.setUserName(companyRegister.getUserName());
         companySave.setPhoneNumber(companyRegister.getPhoneNumber());
         companySave.setStatus(CompanyStatusEnum.IN.getCode());
         companySave.setTenantCode(tenantCode);
+        companySave.setTenantId(tenantId);
         return  companySave;
     }
     private void  validateRegisterMerchant(MerchantRegisterDTO companyRegister){
@@ -115,7 +117,7 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, MerchantDO>
         sysUser.setMobile(company.getPhoneNumber());
         sysUser.setHeadUrl("http://yaxincheng.oss-cn-shenzhen.aliyuncs.com/images/1722712091070.png?Expires=2040664091&OSSAccessKeyId=LTAI5tDUawmj1r1teFxZBWYo&Signature=0fsf0Nu1FVqEn22WnQRSIt9%2Biwk%3D");
         sysUser.setStatus(1);
-        sysUser.setTenantId(company.getId());
+        sysUser.setTenantId(company.getTenantId());
         //这里与spring security同一个加密器加密 因为它登入时比较的是加密的密码
         sysUser.setPassword(customMd5PasswordEncoder.encode(password));
 
@@ -155,9 +157,12 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, MerchantDO>
         IPage<MerchantDO> companyPage = this.lambdaQuery().
                 like(!StringUtils.isEmpty(query.getCompanyName()), MerchantDO::getCompany, query.getCompanyName()).
                 like(!StringUtils.isEmpty(query.getPhoneNumber()), MerchantDO::getPhoneNumber, query.getPhoneNumber()).page(page);
+        PageResult<MerchantDO> pageResult = new PageResult<>();
+        pageResult.setTotal(companyPage.getTotal());
+        pageResult.setSize(companyPage.getSize());
+        pageResult.setRecords(companyPage.getRecords());
 
-
-        return PageResult.toPageResult(companyPage);
+        return pageResult;
     }
 
 }

@@ -1,7 +1,5 @@
 package com.lanf.system.model.entiry;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
@@ -38,9 +36,9 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "审核状态  0:审核中,1: 已审核,2: 审核失败")
     private Integer status;
 
-
-    @TableField( fill = FieldFill.INSERT)
     private String  tenantCode;
+
+    private Long tenantId;
 
 
 }

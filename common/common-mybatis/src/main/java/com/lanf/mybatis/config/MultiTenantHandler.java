@@ -1,7 +1,7 @@
 package com.lanf.mybatis.config;
 
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
-import com.lanf.constant.context.MerchantIdContext;
+import com.lanf.constant.utils.UserContext;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 
@@ -30,7 +30,7 @@ public class MultiTenantHandler implements TenantLineHandler {
     public Expression getTenantId() {
 
 
-        return new LongValue(MerchantIdContext.getMerchantId());
+        return new LongValue(UserContext.getTenantId());
 
     }
 
@@ -54,10 +54,6 @@ public class MultiTenantHandler implements TenantLineHandler {
      */
     @Override
     public boolean ignoreTable(String tableName) {
-
-        /**
-         * 优先处理标记的忽略多租户条件
-         */
 
 
         List<String> filterTables = properties.getFilterTables();
