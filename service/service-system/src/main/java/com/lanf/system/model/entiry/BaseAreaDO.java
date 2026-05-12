@@ -28,7 +28,6 @@ private static final long serialVersionUID=1L;
 
     private Integer type;
 
-    private Long tenantId;
 
 
 

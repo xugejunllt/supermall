@@ -1,10 +1,12 @@
 package com.lanf.system.controller;
 
+import com.lanf.constant.result.Result;
 import com.lanf.system.model.entiry.SysDeptDO;
 import com.lanf.system.model.vo.SysDeptQueryVO;
-import com.lanf.constant.result.Result;
 import com.lanf.system.service.SysDeptService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin/system/sysDept")
 public class SysDeptController {
+    @Lazy
     @Autowired
     private SysDeptService sysDeptService;
 
@@ -75,9 +78,8 @@ public class SysDeptController {
         return Result.ok();
     }
 
-   // @Log(title = "部门管理", businessType = BusinessType.DELETE)
     @PreAuthorize("hasAuthority('bnt.sysDept.remove')")
-    @ApiOperation(value = "删除部门")
+
     @DeleteMapping("batchRemove")
     public Result batchRemove(@RequestBody List<String> idList) {
         boolean b = sysDeptService.removeByIds(idList);

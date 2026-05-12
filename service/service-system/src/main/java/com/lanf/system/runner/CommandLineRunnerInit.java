@@ -1,17 +1,10 @@
 package com.lanf.system.runner;
 
-import com.lanf.bizcache.model.bo.PlatformRateConfigBO;
-import com.lanf.bizcache.service.BizCacheService;
-import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.system.model.entiry.MerchantDO;
-import com.lanf.system.model.entiry.PlatformRateConfigDO;
 import com.lanf.system.service.IPlatformRateConfigService;
 import com.lanf.system.service.merchant.IMerchantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class CommandLineRunnerInit implements CommandLineRunner {

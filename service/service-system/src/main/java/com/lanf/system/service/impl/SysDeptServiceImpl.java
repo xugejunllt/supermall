@@ -11,6 +11,7 @@ import com.lanf.system.service.SysDeptService;
 import com.lanf.system.service.SysUserService;
 import com.lanf.system.utils.DeptHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -25,6 +26,7 @@ import java.util.Map;
 public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDeptDO> implements SysDeptService {
     @Autowired
     private SysDeptMapper sysDeptMapper;
+    @Lazy
     @Autowired
     private SysUserService sysUserService;
 

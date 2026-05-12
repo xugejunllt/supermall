@@ -2,10 +2,9 @@ package com.lanf.mybatis.config;
 
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
 import com.lanf.constant.utils.UserContext;
+import com.lanf.mybatis.utils.TenantContextHolder;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
-
-import java.util.List;
 
 /**
  * 多租户处理器实现TenantLineHandler接口
@@ -49,15 +48,21 @@ public class MultiTenantHandler implements TenantLineHandler {
      * <p>
      * 默认都要进行解析并拼接多租户条件
      *
+     * system模块 才会引入 这个拦截器
+     * 所以默认 都需要拦截
      * @param tableName 表名
      * @return 是否忽略, true:表示忽略，false:需要解析并拼接多租户条件
      */
     @Override
     public boolean ignoreTable(String tableName) {
 
+        if (properties.getFilterTables().contains(tableName)) {
+            return true;
+        }
 
-        List<String> filterTables = properties.getFilterTables();
-        return !filterTables.contains(tableName);
+        return TenantContextHolder.isSkipTenant();
+
+
     }
 
 

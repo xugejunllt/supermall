@@ -63,7 +63,6 @@ public class SysMenuDO   extends BaseEntity{
     private boolean isSelect;
 
 
-    private Long tenantId;
 
 }
 

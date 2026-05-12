@@ -5,11 +5,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.MD5;
-
+import com.lanf.constant.utils.UserContext;
 import com.lanf.security.custom.IBCryptPasswordEncoder;
-import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.mapper.SysUserMapper;
-import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.entiry.SysDeptDO;
 import com.lanf.system.model.entiry.SysUserDO;
 import com.lanf.system.model.entiry.SysUserRoleDO;
@@ -37,7 +35,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUserDO> im
 
     @Autowired
     private SysUserRoleService sysUserRoleService;
-
+    @Lazy
     @Autowired
     private SysDeptService sysDeptService;
     @Lazy
@@ -47,10 +45,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUserDO> im
     private IBCryptPasswordEncoder customMd5PasswordEncoder;
     @Autowired
     private IBCryptPasswordEncoder cryptPasswordEncoder;
+
     @Override
     public IPage<SysUserDO> selectPage(Page<SysUserDO> pageParam, SysUserQueryVO userQueryVo) {
         //只查询当前登录所属部门数据
-        SysUserBO sysUser = AdminSessionCache.getSysUser();
+        SysUserDO sysUser = this.getById(UserContext.getUserId());
 
         if ("admin".equals(sysUser.getUsername())) {
             userQueryVo.setDeptId(null);
@@ -166,7 +165,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUserDO> im
 
     @Override
     public void changePwd(SysPwdVO sysPwdVo) {
-        SysUserDO sysUser = this.getById(UserUtils.getAdminUserId());
+        SysUserDO sysUser = this.getById(UserContext.getUserId());
         if (!MD5.encrypt(sysPwdVo.getPassword()).equals(sysUser.getPassword())) {
             throw new RuntimeException();
         }

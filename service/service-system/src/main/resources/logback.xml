@@ -7,10 +7,12 @@
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
 
 
-        <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.mdc.TraceIdMDCPatternLogbackLayout">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss}|%thread|%level|%logger{36}|%line|%X{tid}!%msg%n</pattern>
-        </layout>
-
+<!--        <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.mdc.TraceIdMDCPatternLogbackLayout">-->
+<!--            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
+<!--        </layout>-->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
     </appender>
 
 
@@ -27,9 +29,12 @@
                 <maxFileSize>100MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
-        <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.mdc.TraceIdMDCPatternLogbackLayout">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss}|%thread|%level|%logger{36}|%line|%X{tid}!%msg%n</pattern>
-        </layout>
+<!--        <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.mdc.TraceIdMDCPatternLogbackLayout">-->
+<!--            <pattern>%d{yyyy-MM-dd HH:mm:ss}|%thread|%level|%logger{36}|%line|%X{tid}!%msg%n</pattern>-->
+<!--        </layout>-->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
     </appender>
 
 

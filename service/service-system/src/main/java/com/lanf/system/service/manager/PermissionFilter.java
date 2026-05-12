@@ -108,12 +108,12 @@ public class PermissionFilter {
 
     /**
      * 是否是平台admin 账户
-     * @param tenetCode
+     * @param tenetId
      * @return
      */
-    public boolean isPlatformAdminAccount(String userName,String tenetCode){
+    public boolean isPlatformAdminAccount(String userName,Long tenetId){
 
-        return "admin".equals(userName) && Constants.ADMIN_TENANT_CODE.equals(tenetCode);
+        return "admin".equals(userName) && Constants.PLATFORM_BUSINESS_ID.equals(tenetId);
     }
 
 }

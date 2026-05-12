@@ -1,6 +1,6 @@
 package com.lanf.system.model.vo;
 
-import com.lanf.constant.web.PageResult;
+import com.lanf.constant.model.vo.PageResult;
 import lombok.Data;
 
 @Data

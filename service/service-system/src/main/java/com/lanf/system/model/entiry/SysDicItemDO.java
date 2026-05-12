@@ -33,6 +33,5 @@ public class SysDicItemDO extends BaseEntity {
     @TableField("name")
     private String name;
 
-    @TableField(fill = FieldFill.INSERT)
-    private Long tenantId;
+
 }

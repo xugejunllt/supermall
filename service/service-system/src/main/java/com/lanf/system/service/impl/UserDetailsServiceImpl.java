@@ -15,6 +15,7 @@ import com.lanf.system.service.merchant.IMerchantService;
 import com.lanf.web.utils.WebUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -28,6 +29,8 @@ import java.util.List;
 @Slf4j
 @Component("userDetailsServiceImpl")
 public class UserDetailsServiceImpl implements UserDetailsService {
+
+    @Lazy
     @Autowired
     private SysUserService sysUserService;
     @Autowired
@@ -72,7 +75,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
              * 排除权限 非平台账号
              */
             userPermsList = sysMenuService.findUserPermsList(sysUser.getId() + "", username);
-            if ( !permissionFilter.isPlatformAdminAccount(sysUser.getUsername(),tenantCode)){
+            if ( !permissionFilter.isPlatformAdminAccount(sysUser.getUsername(),sysUser.getTenantId())){
                 log.info("非平台租户,开始过滤按钮权限");
                 userPermsList = permissionFilter.excludeButton(userPermsList);
             }

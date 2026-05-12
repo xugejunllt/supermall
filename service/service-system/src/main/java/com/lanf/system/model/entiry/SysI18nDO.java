@@ -33,5 +33,4 @@ private static final long serialVersionUID = 1L;
         @TableField(exist = false)
         private String typeName;
 
-        private Long tenantId;
 }

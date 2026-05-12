@@ -2,11 +2,8 @@ package com.lanf.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.constant.constant.Constants;
 import com.lanf.constant.utils.UserContext;
-import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.mapper.SysMenuMapper;
-import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.model.entiry.SysMenuDO;
 import com.lanf.system.model.entiry.SysRoleMenuDO;
 import com.lanf.system.model.entiry.SysUserDO;
@@ -46,9 +43,9 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO> im
         //全部权限列表
         List<SysMenuDO> sysMenuList = sysMenuMapper.queryList("", "");
         if (CollectionUtils.isEmpty(sysMenuList)) return null;
-        SysUserBO sysUser = AdminSessionCache.getSysUser();
+        SysUserDO sysUser = sysUserService.getById(UserContext.getUserId());
 
-        if ( !permissionFilter.isPlatformAdminAccount(sysUser.getUsername(),sysUser.getTenantCode())){
+        if ( !permissionFilter.isPlatformAdminAccount(sysUser.getUsername(),sysUser.getTenantId())){
             log.info("非平台租户,开始过滤按钮和菜单权限");
             sysMenuList = permissionFilter.excludeMenuAndButton(sysMenuList);
         }
@@ -135,7 +132,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO> im
             sysMenuList = sysMenuMapper.findListByUserId(userId, null, typeList);
         }
         SysUserDO sysUser2 = sysUserService.getById(UserContext.getUserId());
-        if ( !permissionFilter.isPlatformAdminAccount(sysUser2.getUsername(),sysUser2.getTenantCode())){
+        if ( !permissionFilter.isPlatformAdminAccount(sysUser2.getUsername(),sysUser2.getTenantId())){
             log.info("非平台租户,开始过滤菜单权限");
             sysMenuList = permissionFilter.excludeMenu(sysMenuList);
         }
