@@ -22,6 +22,18 @@ public class RedissonCacheService {
 
         return redissonClient.getBuckets();
     }
+    // 在 RedissonCacheService 中添加
+    public boolean expire(String key, long timeout, TimeUnit unit) {
+        RBucket<Object> bucket = redissonClient.getBucket(key);
+        try {
+            bucket.expire(timeout, unit);
+
+            return true;
+        } catch (Exception e) {
+            log.error("续期异常:key={}", key, e);
+            return false;
+        }
+    }
 
     public  void set(String key, String value, long expireTime, TimeUnit timeUnit) {
         try {

@@ -8,6 +8,7 @@ import com.lanf.constant.constant.Constants;
 import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
+import com.lanf.security.config.AdminTokenConfig;
 import com.lanf.security.model.bo.AdminUser;
 import com.lanf.security.model.bo.AdminUserBO;
 import com.lanf.security.model.dto.LoginDTO;
@@ -51,22 +52,17 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private RedissonCacheService redissonCacheService;
 
-    private Long accessTokenExpMinutes;
-
-    private Long refreshTokenExpMinutes;
+    private AdminTokenConfig adminTokenConfig;
 
     private PermissionCacheService permissionCacheService;
 
     public AdminLoginFilter(AuthenticationManager authenticationManager,
                             RedissonCacheService redissonCacheService,
                             PermissionCacheService permissionCacheService,
-                            Long accessTokenExpMinutes,
-                            Long refreshTokenExpMinutes ) {
+                            AdminTokenConfig adminTokenConfig) {
         this.setAuthenticationManager(authenticationManager);
         this.setPostOnly(false);
         this.redissonCacheService = redissonCacheService;
-        this.accessTokenExpMinutes = accessTokenExpMinutes;
-        this.refreshTokenExpMinutes = refreshTokenExpMinutes;
         this.permissionCacheService = permissionCacheService;
         /**
          * 这个过滤器只拦截 /admin/system/index/login 接口
@@ -121,8 +117,11 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
         //权限
         Collection<GrantedAuthority> authorities = customUser.getAuthorities();
 
+        /**
+         * 过期时间与刷新token一致 当token刷新时 刷新这个权限缓存
+         */
         permissionCacheService.cachePermissions(sysUser.getId(),
-                sysUser.getChannel(), authorities, accessTokenExpMinutes);
+                sysUser.getChannel(), authorities, adminTokenConfig.getRefreshTokenExpMinutes());
 
         AuthRequestInfo authRequestInfo = null;
         try {
@@ -144,24 +143,22 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
 
         String deviceId = authRequestInfo.getDeviceId();
         String channel = authRequestInfo.getChannel();
-        log.info("当前chanel{}",channel);
-        log.info("userId{}",userId);
-        String accessToken = JwtUtils.createTokenForAdminWithMinutes(userId, deviceId,tenantId, accessTokenExpMinutes);
-        String refreshToken = JwtUtils.createTokenForAdminWithMinutes(userId, deviceId,tenantId, refreshTokenExpMinutes);
+        String accessToken = JwtUtils.createTokenForAdminWithMinutes(userId, deviceId,tenantId, adminTokenConfig.getAccessTokenExpMinutes());
+        String refreshToken = JwtUtils.createTokenForAdminWithMinutes(userId, deviceId,tenantId, adminTokenConfig.getRefreshTokenExpMinutes());
 
         String accessKey = String.format(RedisKeyConstants.USER_ACCESS_TOKEN, userId, channel);
         String refreshKey = String.format(RedisKeyConstants.USER_REFRESH_TOKEN, userId, channel);
 
-        redissonCacheService.set(accessKey, accessToken, accessTokenExpMinutes, TimeUnit.MINUTES);
-        redissonCacheService.set(refreshKey, refreshToken, refreshTokenExpMinutes, TimeUnit.MINUTES);
+        redissonCacheService.set(accessKey, accessToken, adminTokenConfig.getAccessTokenExpMinutes(), TimeUnit.MINUTES);
+        redissonCacheService.set(refreshKey, refreshToken, adminTokenConfig.getRefreshTokenExpMinutes(), TimeUnit.MINUTES);
 
 
         AdminUserTokenInfoVO tokenInfo = new AdminUserTokenInfoVO();
         tokenInfo.setAccessToken(accessToken);
         tokenInfo.setRefreshToken(refreshToken);
         // 计算过期时间戳（当前时间 + 有效期）
-        tokenInfo.setAccessTokenExp(DateUtils.getExpireTimestampFromMinutes(accessTokenExpMinutes));
-        tokenInfo.setRefreshTokenExp(DateUtils.getExpireTimestampFromDays(refreshTokenExpMinutes));
+        tokenInfo.setAccessTokenExp(DateUtils.getExpireTimestampFromMinutes(adminTokenConfig.getAccessTokenExpMinutes()));
+        tokenInfo.setRefreshTokenExp(DateUtils.getExpireTimestampFromDays(adminTokenConfig.getRefreshTokenExpMinutes()));
 
 
         return tokenInfo;

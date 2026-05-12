@@ -2,6 +2,7 @@ package com.lanf.security.service;
 
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.security.config.AdminTokenConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,6 +29,8 @@ public class PermissionCacheService {
     @Autowired
     private RedissonCacheService redissonCacheService;
 
+    @Autowired
+    private AdminTokenConfig adminTokenConfig;
     /**
      * 缓存用户权限到 Redis
      * 
@@ -146,7 +149,29 @@ public class PermissionCacheService {
             return false;
         }
     }
+    public boolean renewPermission(Long userId, String channel) {
+        if (userId == null || channel == null) {
+            log.warn("续期权限缓存失败：参数为空, userId={}, channel={}", userId, channel);
+            return false;
+        }
 
+        try {
+            String key = buildPermissionKey(userId, channel);
+
+            // 检查缓存是否存在
+            if (!redissonCacheService.exists(key)) {
+                log.debug("权限缓存不存在，无法续期, userId={}, channel={}", userId, channel);
+                return false;
+            }
+            // 直接续期（使用 Redis EXPIRE 命令）
+            return redissonCacheService.expire(key,adminTokenConfig.getRefreshTokenExpMinutes(),
+                    TimeUnit.MINUTES);
+
+        } catch (Exception e) {
+            log.error("续期权限缓存失败, userId={}, channel={}", userId, channel, e);
+            return false;
+        }
+    }
     /**
      * 构建权限缓存 Key
      * 

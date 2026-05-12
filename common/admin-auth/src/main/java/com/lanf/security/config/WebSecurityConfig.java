@@ -68,6 +68,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private PermissionCacheService permissionCacheService;
 
+    @Autowired
+    private AdminTokenConfig adminTokenConfig;
     @Bean
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {
@@ -100,7 +102,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                  */
                 .addFilterBefore(new AdminPermissionFilter(userPermissionCacheService,authService,authPathConfig), UsernamePasswordAuthenticationFilter.class)
                 .addFilter(new AdminLoginFilter(authenticationManager(),
-                        redissonCacheService,permissionCacheService,accessTokenExpMinutes,refreshTokenExpMinutes));
+                        redissonCacheService,
+                        permissionCacheService,
+                        adminTokenConfig));
 
 
         //禁用session
