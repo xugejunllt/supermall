@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -34,8 +33,7 @@ import java.util.List;
 @EnableWebSecurity //@EnableWebSecurity是开启SpringSecurity的默认行为
 @EnableGlobalMethodSecurity(prePostEnabled = true)//开启注解功能，默认禁用注解
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Autowired
-    private RedisTemplate redisTemplate;
+
 
     @Qualifier("userDetailsServiceImpl")
     @Autowired
@@ -54,10 +52,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private RedissonCacheService redissonCacheService;
-    @Value("${token.user.accessTokenExpMinutes:100000000}")
+    @Value("${token.admin.accessTokenExpMinutes:100000000}")
     private Long accessTokenExpMinutes;
 
-    @Value("${token.user.refreshTokenExpMinutes:1000000000}")
+    @Value("${token.admin.refreshTokenExpMinutes:1000000000}")
     private Long refreshTokenExpMinutes;
 
     @Bean
