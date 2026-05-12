@@ -114,7 +114,7 @@ public class LogisticsManagerServiceImpl implements LogisticsManagerService {
         subscribeResp.setResult(Boolean.TRUE);
         subscribeResp.setReturnCode("200");
         subscribeResp.setMessage("成功");
-        ResponseUtil.out(response, JsonUtils.toJsonString(subscribeResp));
+        ResponseUtil.outFail(response, JsonUtils.toJsonString(subscribeResp));
 
         /**
          * 构建返回结果

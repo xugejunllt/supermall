@@ -1,6 +1,5 @@
 package com.lanf.web.security.sign;
 
-import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -84,8 +83,7 @@ public class SigningKeyContext {
      */
     public static void setFromBase64(String signingKeyBase64) {
         if (signingKeyBase64 == null || signingKeyBase64.isEmpty()) {
-            log.warn("尝试设置空的signingKey");
-           throw new BizException("signingKey不能为空");
+           return;
         }
 
         try {

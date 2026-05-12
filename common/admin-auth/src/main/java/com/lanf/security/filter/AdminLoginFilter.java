@@ -120,7 +120,8 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
         try {
             authRequestInfo =  RequestAuthExtractor.extractBasicInfo( request);
         } catch (Exception e) {
-            ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.FAIL.getCode(),
+            log.error("登录认证异常",e);
+            ResponseUtil.outFail(response, Result.fail(CommonResultCodeEnum.FAIL.getCode(),
                     CommonResultCodeEnum.FAIL.getMessage()));
             return;
         }
@@ -128,20 +129,20 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
         AdminUserTokenInfoVO adminUserTokenInfoVO = createToken(authRequestInfo, sysUser.getId(),
                 sysUser.getTenantId());
         //2.响应数据
-        ResponseUtil.out(response, Result.ok(adminUserTokenInfoVO));
+        ResponseUtil.outSuccess(response, Result.ok(adminUserTokenInfoVO));
     }
 
     private AdminUserTokenInfoVO createToken(AuthRequestInfo authRequestInfo,Long userId,Long tenantId){
 
         String deviceId = authRequestInfo.getDeviceId();
         String channel = authRequestInfo.getChannel();
-
-
+        log.info("当前chanel{}",channel);
+        log.info("userId{}",userId);
         String accessToken = JwtUtils.createTokenForAdminWithMinutes(userId, deviceId,tenantId, accessTokenExpMinutes);
         String refreshToken = JwtUtils.createTokenForAdminWithMinutes(userId, deviceId,tenantId, refreshTokenExpMinutes);
 
-        String accessKey = String.format(RedisKeyConstants.ADMIN_ACCESS_TOKEN, userId, channel);
-        String refreshKey = String.format(RedisKeyConstants.ADMIN_REFRESH_TOKEN, userId, channel);
+        String accessKey = String.format(RedisKeyConstants.USER_ACCESS_TOKEN, userId, channel);
+        String refreshKey = String.format(RedisKeyConstants.USER_REFRESH_TOKEN, userId, channel);
 
         redissonCacheService.set(accessKey, accessToken, accessTokenExpMinutes, TimeUnit.MINUTES);
         redissonCacheService.set(refreshKey, refreshToken, refreshTokenExpMinutes, TimeUnit.MINUTES);
@@ -168,9 +169,9 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
         log.error("授权失败",e);
 
         if (e instanceof BadCredentialsException) {
-            ResponseUtil.out(response, Result.fail("用户名称或密码错误"));
+            ResponseUtil.outFail(response, Result.fail("用户名称或密码错误"));
         } else {
-            ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.FAIL.getCode(),
+            ResponseUtil.outFail(response, Result.fail(CommonResultCodeEnum.FAIL.getCode(),
                     CommonResultCodeEnum.FAIL.getMessage()));
         }
     }

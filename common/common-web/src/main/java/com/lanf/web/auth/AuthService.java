@@ -81,22 +81,22 @@ public class AuthService {
                 }
             } catch (ExpiredJwtException e) {
                 log.warn("Token已过期");
-                ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.TOKEN_EXPIRED.getCode(), CommonResultCodeEnum.TOKEN_EXPIRED.getMessage()));
+                ResponseUtil.outFail(response, Result.fail(CommonResultCodeEnum.TOKEN_EXPIRED.getCode(), CommonResultCodeEnum.TOKEN_EXPIRED.getMessage()));
                 return;
 
             } catch (BizException e) {
-                ResponseUtil.out(response, Result.fail(e.getCode(), e.getMessage()));
+                ResponseUtil.outFail(response, Result.fail(e.getCode(), e.getMessage()));
                 return;
             } catch (Exception e) {
                 log.warn("Token解析失败: {}", e.getMessage());
-                ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.AUTH_FAILED.getCode(), CommonResultCodeEnum.AUTH_FAILED.getMessage()));
+                ResponseUtil.outFail(response, Result.fail(CommonResultCodeEnum.AUTH_FAILED.getCode(), CommonResultCodeEnum.AUTH_FAILED.getMessage()));
                 return;
             }
 
             String jwtDeviceId = jwtTokenInfo.getDeviceId();
             if (!deviceId.equals(jwtDeviceId)) {
                 log.warn("设备ID不匹配，请求头: {}, Token中: {}", deviceId, jwtDeviceId);
-                ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.AUTH_FAILED.getCode(), "设备信息不匹配"));
+                ResponseUtil.outFail(response, Result.fail(CommonResultCodeEnum.AUTH_FAILED.getCode(), "设备信息不匹配"));
                 return;
             }
             /**
@@ -108,7 +108,7 @@ public class AuthService {
             String accessTokenCache = redissonCacheService.get(key);
             if (accessTokenCache == null ) {
                 log.warn("redis中 Token已过期");
-                ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.TOKEN_EXPIRED.getCode(), CommonResultCodeEnum.TOKEN_EXPIRED.getMessage()));
+                ResponseUtil.outFail(response, Result.fail(CommonResultCodeEnum.TOKEN_EXPIRED.getCode(), CommonResultCodeEnum.TOKEN_EXPIRED.getMessage()));
                 return;
             }
             if ( !accessTokenCache.equals(accessToken)) {
@@ -116,7 +116,7 @@ public class AuthService {
                  * 已被踢出了
                  */
                 log.warn("与缓存token不一致");
-                ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.KICKED_OUT.getCode(), CommonResultCodeEnum.KICKED_OUT.getMessage()));
+                ResponseUtil.outFail(response, Result.fail(CommonResultCodeEnum.KICKED_OUT.getCode(), CommonResultCodeEnum.KICKED_OUT.getMessage()));
                 return;
             }
 
@@ -130,7 +130,7 @@ public class AuthService {
 
         } catch (Exception e) {
             log.error("用户认证过滤器异常", e);
-            ResponseUtil.out(response, Result.fail(CommonResultCodeEnum.AUTH_FAILED.getCode(), CommonResultCodeEnum.AUTH_FAILED.getMessage()));
+            ResponseUtil.outFail(response, Result.fail(CommonResultCodeEnum.AUTH_FAILED.getCode(), CommonResultCodeEnum.AUTH_FAILED.getMessage()));
         } finally {
             UserContext.clear();
             SigningKeyContext.clear();

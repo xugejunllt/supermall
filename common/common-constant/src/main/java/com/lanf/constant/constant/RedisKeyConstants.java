@@ -20,16 +20,6 @@ public class RedisKeyConstants {
      */
     public static final String USER_REFRESH_TOKEN = "user:refresh:token:%s:%s";
 
-    /**
-     * 用户访问令牌
-     * 格式: admin:access:token:{userId}:{channel}
-     */
-    public static final String ADMIN_ACCESS_TOKEN = "admin:access:token:%s:%s";
 
-    /**
-     * 用户刷新令牌
-     * 格式: admin:refresh:token:{userId}:{channel}
-     */
-    public static final String ADMIN_REFRESH_TOKEN = "admin:refresh:token:%s:%s";
 
 }

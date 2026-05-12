@@ -25,7 +25,6 @@ public class AdminAuthFilter implements Filter, Ordered {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
-        log.info("admin认证过滤器");
         authService.authenticate(servletRequest, servletResponse, filterChain, true);
     }
 

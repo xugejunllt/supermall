@@ -73,7 +73,7 @@ public class AdminUser {
     //店铺id
     private Long shopId;
 
-    private Integer channel;
+    private String channel;
 
     private String deviceId;
     //租户id

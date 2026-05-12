@@ -81,7 +81,7 @@ public class SeckillFilter implements Filter {
         }
         String jsonBody = sb.toString();
         if (IStringUtils.isEmpty(jsonBody)) {
-            ResponseUtil.out(response, Result.fail("系统繁忙，请重试"));
+            ResponseUtil.outFail(response, Result.fail("系统繁忙，请重试"));
             return;
         }
 
@@ -89,7 +89,7 @@ public class SeckillFilter implements Filter {
         try {
             object = JsonUtils.toObject(jsonBody, PlaceDTO.class);
         } catch (Exception e) {
-            ResponseUtil.out(response, Result.fail("系统繁忙，请重试"));
+            ResponseUtil.outFail(response, Result.fail("系统繁忙，请重试"));
             return;
         }
         String token = object.getToken();
@@ -97,7 +97,7 @@ public class SeckillFilter implements Filter {
         Long skillItemId = object.getSeckillItemId();
 
         if (userId == null || skillItemId == null || IStringUtils.isEmpty(token)){
-            ResponseUtil.out(response, Result.fail("系统繁忙，请重试"));
+            ResponseUtil.outFail(response, Result.fail("系统繁忙，请重试"));
             return;
         }
         Integer secKillModel = null;
@@ -112,12 +112,12 @@ public class SeckillFilter implements Filter {
             if ( !userId.equals(jwtUserId) ||
                     !skillItemId.equals(jwtSkillItemId)
                  || secKillModel == null) {
-                ResponseUtil.out(response, Result.fail(100004, "系统繁忙，请重试"));
+                ResponseUtil.outFail(response, Result.fail(100004, "系统繁忙，请重试"));
                 return;
             }
 
         } catch (Exception e) {
-            ResponseUtil.out(response, Result.fail(100004, "系统繁忙，请重试"));
+            ResponseUtil.outFail(response, Result.fail(100004, "系统繁忙，请重试"));
             return;
         }
         String tokenKey = String.format(SECKILL_TOKEN_KEY_PRX, userId, skillItemId);
@@ -125,7 +125,7 @@ public class SeckillFilter implements Filter {
             /**
              * 与缓存token不一致 或者已经失效了
              */
-            ResponseUtil.out(response, Result.fail(100004, "太火爆了，再试一次"));
+            ResponseUtil.outFail(response, Result.fail(100004, "太火爆了，再试一次"));
             return;
         }
         //每个token只能使用一次
@@ -137,13 +137,13 @@ public class SeckillFilter implements Filter {
         try {
             SecKillStrategy strategy = secKillStrategyFactory.getStrategy(secKillModel);
             strategy.executeSecKill(object);
-            ResponseUtil.out(response, Result.ok());
+            ResponseUtil.outFail(response, Result.ok());
 
         } catch (BizException e) {
-            ResponseUtil.out(response, Result.fail(e.getCode(), e.getMessage()));
+            ResponseUtil.outFail(response, Result.fail(e.getCode(), e.getMessage()));
 
         } catch (Exception e) {
-            ResponseUtil.out(response, Result.fail(100004, "太火爆了，再试一次"));
+            ResponseUtil.outFail(response, Result.fail(100004, "太火爆了，再试一次"));
 
         }
     }

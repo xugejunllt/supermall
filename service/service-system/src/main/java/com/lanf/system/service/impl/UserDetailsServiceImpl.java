@@ -90,7 +90,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
 
         AdminUser sysUserBO = BeanCopyUtils.copyBean(sysUser, AdminUser.class);
-        sysUserBO.setChannel(Integer.parseInt(chanel));
+        sysUserBO.setChannel(chanel);
         sysUserBO.setDeviceId(deviceId);
         sysUserBO.setTenantId(merchantDO.getId());
         sysUserBO.setTenantCode(tenantCode);
