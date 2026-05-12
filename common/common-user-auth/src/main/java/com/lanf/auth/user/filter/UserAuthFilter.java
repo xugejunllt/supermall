@@ -1,6 +1,6 @@
 package com.lanf.auth.user.filter;
 
-import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.utils.UserContext;
@@ -39,8 +39,8 @@ public class UserAuthFilter implements Filter {
 
             ResponseUtil.outFail(response, Result.fail(e.getCode(), e.getMessage()));
         } catch (Exception e) {
-            ResponseUtil.outFail(response, Result.fail(CommonResultCodeEnum.AUTH_FAILED.getCode(),
-                    CommonResultCodeEnum.AUTH_FAILED.getMessage()));
+            ResponseUtil.outFail(response, Result.fail(CommonCodeEnum.AUTH_FAILED.getCode(),
+                    CommonCodeEnum.AUTH_FAILED.getMessage()));
         } finally {
             UserContext.clear();
             SigningKeyContext.clear();

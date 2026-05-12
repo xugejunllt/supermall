@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.lanf.constant.code.CommonResultCodeEnum.SIGN_VERIFY_FAILED;
+import static com.lanf.constant.code.CommonCodeEnum.SIGN_VERIFY_FAILED;
 
 /**
  * 签名验证过滤器

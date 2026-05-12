@@ -100,11 +100,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                  *
                  * AdminPermissionFilter 走在所有过滤器前面
                  */
-                .addFilterBefore(new AdminPermissionFilter(userPermissionCacheService,authService,authPathConfig), UsernamePasswordAuthenticationFilter.class)
-                .addFilter(new AdminLoginFilter(authenticationManager(),
-                        redissonCacheService,
-                        permissionCacheService,
-                        adminTokenConfig));
+                .addFilterBefore(new AdminPermissionFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilter(new AdminLoginFilter(authenticationManager()));
 
 
         //禁用session
@@ -144,8 +141,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     /**
-     * 配置哪些请求不拦截
-     * 排除swagger相关请求
+     *
+     * 这些请求  不进入spring security过滤器链
+     * 否则 -token认证-- 菜单权限认证
+     *
+     *
      */
     @Override
     public void configure(WebSecurity web)  {
@@ -159,6 +159,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         list.add("/temp/sysUser.xlsx");
         list.add("/img/**");
         list.add("/admin/system/index/getI18n");
+        list.add("/auth/refreshToken");
         String arr[] = list.toArray(new String[0]);
         web.ignoring().antMatchers(arr);
     }

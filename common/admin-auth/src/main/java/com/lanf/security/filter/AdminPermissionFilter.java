@@ -1,5 +1,6 @@
 package com.lanf.security.filter;
 
+import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
@@ -33,16 +34,15 @@ import java.util.List;
 public class AdminPermissionFilter extends OncePerRequestFilter implements Ordered {
 
 
-    private PermissionCacheService permissionCacheService;
-    private AuthService authService;
+    private final PermissionCacheService permissionCacheService;
+    private final AuthService authService;
 
-    private AuthPathConfig authPathConfig;
+    private final AuthPathConfig authPathConfig;
 
-    public AdminPermissionFilter(PermissionCacheService permissionCacheService,
-                                 AuthService authService, AuthPathConfig authPathConfig) {
-        this.permissionCacheService = permissionCacheService;
-        this.authService = authService;
-        this.authPathConfig = authPathConfig;
+    public AdminPermissionFilter() {
+        this.permissionCacheService = BeanUtil.getBean(PermissionCacheService.class);
+        this.authService = BeanUtil.getBean(AuthService.class);
+        this.authPathConfig = BeanUtil.getBean(AuthPathConfig.class);
     }
 
     @Override
@@ -57,6 +57,7 @@ public class AdminPermissionFilter extends OncePerRequestFilter implements Order
                 /**
                  * 跳过菜单权限
                  */
+                log.info("跳过菜单权限");
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -81,7 +82,7 @@ public class AdminPermissionFilter extends OncePerRequestFilter implements Order
             filterChain.doFilter(request, response);
             log.info("执行菜单权限过滤器结束");
         } catch (BizException e) {
-            ResponseUtil.outFail(response, Result.fail(e.getMessage()));
+            ResponseUtil.outFail(response, Result.fail(e.getCode(),e.getMessage()));
         } catch (Exception e) {
             log.error("添加菜单权限异常", e);
             ResponseUtil.outFail(response, Result.fail("添加菜单权限异常"));

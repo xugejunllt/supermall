@@ -1,6 +1,6 @@
 package com.lanf.security.handler;
 
-import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -23,7 +23,7 @@ public class SpringSecurityExceptionHandler {
     @ResponseBody
     public Result error(AccessDeniedException e) {
         //权限异常  没有访问权限 -spring security
-        return Result.fail(CommonResultCodeEnum.SERVICE_ERROR.getCode(), e.getMessage());
+        return Result.fail(CommonCodeEnum.FAIL.getCode(), e.getMessage());
 
     }
 

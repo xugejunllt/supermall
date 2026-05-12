@@ -1,5 +1,5 @@
 package com.lanf.constant.exception;
-import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonCodeEnum;
 import lombok.Data;
 
 /**
@@ -25,10 +25,10 @@ public class BizException extends RuntimeException {
     }
     public BizException( String message) {
         super(message);
-        this.code = CommonResultCodeEnum.FAIL.getCode();
+        this.code = CommonCodeEnum.FAIL.getCode();
         this.message = message;
     }
-    public BizException(CommonResultCodeEnum codeEnum) {
+    public BizException(CommonCodeEnum codeEnum) {
         super(codeEnum.getMessage());
         this.code = codeEnum.getCode();
         this.message = codeEnum.getMessage();

@@ -2,8 +2,9 @@ package com.lanf.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lanf.cache.service.RedissonCacheService;
+import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.DateUtils;
-import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.constant.exception.BizException;
@@ -48,22 +49,19 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
 
 
 
-    private AuthenticationManager authenticationManager;
+    private final RedissonCacheService redissonCacheService;
 
-    private RedissonCacheService redissonCacheService;
+    private final AdminTokenConfig adminTokenConfig;
 
-    private AdminTokenConfig adminTokenConfig;
+    private final PermissionCacheService permissionCacheService;
 
-    private PermissionCacheService permissionCacheService;
-
-    public AdminLoginFilter(AuthenticationManager authenticationManager,
-                            RedissonCacheService redissonCacheService,
-                            PermissionCacheService permissionCacheService,
-                            AdminTokenConfig adminTokenConfig) {
+    public AdminLoginFilter(AuthenticationManager authenticationManager) {
         this.setAuthenticationManager(authenticationManager);
         this.setPostOnly(false);
-        this.redissonCacheService = redissonCacheService;
-        this.permissionCacheService = permissionCacheService;
+        this.redissonCacheService = BeanUtil.getBean(RedissonCacheService.class);
+        this.permissionCacheService = BeanUtil.getBean(PermissionCacheService.class);
+        this.adminTokenConfig = BeanUtil.getBean(AdminTokenConfig.class);
+
         /**
          * 这个过滤器只拦截 /admin/system/index/login 接口
          */
@@ -128,8 +126,8 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
             authRequestInfo =  RequestAuthExtractor.extractBasicInfo( request);
         } catch (Exception e) {
             log.error("登录认证异常",e);
-            ResponseUtil.outFail(response, Result.fail(CommonResultCodeEnum.FAIL.getCode(),
-                    CommonResultCodeEnum.FAIL.getMessage()));
+            ResponseUtil.outFail(response, Result.fail(CommonCodeEnum.FAIL.getCode(),
+                    CommonCodeEnum.FAIL.getMessage()));
             return;
         }
         //1.创建token
@@ -176,8 +174,8 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
         if (e instanceof BadCredentialsException) {
             ResponseUtil.outFail(response, Result.fail("用户名称或密码错误"));
         } else {
-            ResponseUtil.outFail(response, Result.fail(CommonResultCodeEnum.FAIL.getCode(),
-                    CommonResultCodeEnum.FAIL.getMessage()));
+            ResponseUtil.outFail(response, Result.fail(CommonCodeEnum.FAIL.getCode(),
+                    CommonCodeEnum.FAIL.getMessage()));
         }
     }
 

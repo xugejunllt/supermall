@@ -1,6 +1,6 @@
 package com.lanf.web.handler;
 
-import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.exception.IRedisException;
 import com.lanf.constant.exception.MQException;
@@ -46,21 +46,21 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public Result error(IRedisException e) {
 
-        return Result.fail(CommonResultCodeEnum.SERVICE_ERROR.getCode(), CommonResultCodeEnum.SERVICE_ERROR.getMessage());
+        return Result.fail(CommonCodeEnum.FAIL.getCode(), CommonCodeEnum.FAIL.getMessage());
     }
 
     @ExceptionHandler(MQException.class)
     @ResponseBody
     public Result error(MQException e) {
 
-        return Result.fail(CommonResultCodeEnum.SERVICE_ERROR.getCode(), CommonResultCodeEnum.SERVICE_ERROR.getMessage());
+        return Result.fail(CommonCodeEnum.FAIL.getCode(), CommonCodeEnum.FAIL.getMessage());
     }
 
     @ExceptionHandler(UtilException.class)
     @ResponseBody
     public Result error(UtilException e) {
 
-        return Result.fail(CommonResultCodeEnum.SERVICE_ERROR.getCode(), CommonResultCodeEnum.SERVICE_ERROR.getMessage());
+        return Result.fail(CommonCodeEnum.FAIL.getCode(), CommonCodeEnum.FAIL.getMessage());
     }
 
 
@@ -72,9 +72,9 @@ public class GlobalExceptionHandler {
         if (!allErrors.isEmpty()) {
             ObjectError objectError = allErrors.get(0);
             String defaultMessage = objectError.getDefaultMessage();
-            return Result.fail(CommonResultCodeEnum.FAIL.getCode(), defaultMessage);
+            return Result.fail(CommonCodeEnum.FAIL.getCode(), defaultMessage);
         }
-        return Result.fail(CommonResultCodeEnum.FAIL.getCode(), CommonResultCodeEnum.FAIL.getMessage());
+        return Result.fail(CommonCodeEnum.FAIL.getCode(), CommonCodeEnum.FAIL.getMessage());
     }
 
 

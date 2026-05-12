@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Slf4j
 @RestController
-@RequestMapping("/system/admin/auth")
+@RequestMapping("/auth")
 @Api(tags = "管理员认证管理")
 public class AdminAuthController {
 

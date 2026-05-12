@@ -1,7 +1,7 @@
 package com.lanf.security.config;
 
 import com.lanf.common.utils.StackTraceUtil;
-import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -32,6 +32,6 @@ public class SecurityExceptionHandler {
 
         log.error("没有权限，异常堆栈[{}]", StackTraceUtil.getStackTrace(e));
 
-        return Result.fail(CommonResultCodeEnum.FAIL.getCode(),CommonResultCodeEnum.FAIL.getMessage());
+        return Result.fail(CommonCodeEnum.FAIL.getCode(), CommonCodeEnum.FAIL.getMessage());
     }
 }

@@ -1,7 +1,7 @@
 package com.lanf.web.auth;
 
 import com.lanf.cache.service.RedissonCacheService;
-import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.utils.UserContext;
@@ -71,21 +71,21 @@ public class AuthService {
                 }
             } catch (ExpiredJwtException e) {
                 log.warn("Token已过期");
-                throw new BizException(CommonResultCodeEnum.TOKEN_EXPIRED);
+                throw new BizException(CommonCodeEnum.TOKEN_EXPIRED);
 
             } catch (BizException e) {
                 throw e;
 
             } catch (Exception e) {
                 log.warn("Token解析失败: {}", e.getMessage());
-                throw new BizException(CommonResultCodeEnum.AUTH_FAILED);
+                throw new BizException(CommonCodeEnum.AUTH_FAILED);
 
             }
 
             String jwtDeviceId = jwtTokenInfo.getDeviceId();
             if (!deviceId.equals(jwtDeviceId)) {
                 log.warn("设备ID不匹配，请求头: {}, Token中: {}", deviceId, jwtDeviceId);
-                throw new BizException(CommonResultCodeEnum.AUTH_FAILED);
+                throw new BizException(CommonCodeEnum.AUTH_FAILED);
 
 
             }
@@ -98,14 +98,14 @@ public class AuthService {
             String accessTokenCache = redissonCacheService.get(key);
             if (accessTokenCache == null ) {
                 log.warn("redis中 Token已过期");
-                throw new BizException(CommonResultCodeEnum.TOKEN_EXPIRED);
+                throw new BizException(CommonCodeEnum.TOKEN_EXPIRED);
             }
             if ( !accessTokenCache.equals(accessToken)) {
                 /**
                  * 已被踢出了
                  */
                 log.warn("与缓存token不一致");
-                throw new BizException(CommonResultCodeEnum.KICKED_OUT);
+                throw new BizException(CommonCodeEnum.KICKED_OUT);
 
 
             }
@@ -119,7 +119,7 @@ public class AuthService {
 
         } catch (Exception e) {
             log.error("用户认证过滤器异常", e);
-            throw new BizException(CommonResultCodeEnum.AUTH_FAILED);
+            throw new BizException(CommonCodeEnum.AUTH_FAILED);
         }
 
 

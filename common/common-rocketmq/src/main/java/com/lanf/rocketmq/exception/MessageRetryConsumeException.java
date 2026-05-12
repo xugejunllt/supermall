@@ -1,6 +1,6 @@
 package com.lanf.rocketmq.exception;
 
-import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonCodeEnum;
 import lombok.Data;
 
 @Data
@@ -24,7 +24,7 @@ public class MessageRetryConsumeException extends RuntimeException {
     }
     public MessageRetryConsumeException( String message) {
         super(message);
-        this.code = CommonResultCodeEnum.FAIL.getCode();
+        this.code = CommonCodeEnum.FAIL.getCode();
         this.message = message;
     }
 }

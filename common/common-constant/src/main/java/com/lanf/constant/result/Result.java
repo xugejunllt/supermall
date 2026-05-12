@@ -1,6 +1,6 @@
 package com.lanf.constant.result;
 
-import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonCodeEnum;
 import lombok.Data;
 
 /**
@@ -36,8 +36,8 @@ public class Result<T> {
      */
     public static<T> Result<T> ok(T data){
         Result<T> result = new Result<>();
-        result.setCode(CommonResultCodeEnum.SUCCESS.getCode());
-        result.setMessage(CommonResultCodeEnum.SUCCESS.getMessage());
+        result.setCode(CommonCodeEnum.SUCCESS.getCode());
+        result.setMessage(CommonCodeEnum.SUCCESS.getMessage());
         result.setData(data);
         return   result;
     }
@@ -53,15 +53,15 @@ public class Result<T> {
     public static<T> Result<T> fail(String message){
 
         Result<T> result = new Result<>();
-        result.setCode(CommonResultCodeEnum.FAIL.getCode());
+        result.setCode(CommonCodeEnum.FAIL.getCode());
         result.setMessage(message);
         return  result;
     }
     public static<T> Result<T> fail(){
 
         Result<T> result = new Result<>();
-        result.setCode(CommonResultCodeEnum.SERVICE_ERROR.getCode());
-        result.setMessage(CommonResultCodeEnum.SERVICE_ERROR.getMessage());
+        result.setCode(CommonCodeEnum.FAIL.getCode());
+        result.setMessage(CommonCodeEnum.FAIL.getMessage());
         return  result;
     }
 

@@ -163,7 +163,7 @@ public class PermissionCacheService {
                 log.debug("权限缓存不存在，无法续期, userId={}, channel={}", userId, channel);
                 return false;
             }
-            // 直接续期（使用 Redis EXPIRE 命令）
+            // 直接续期
             return redissonCacheService.expire(key,adminTokenConfig.getRefreshTokenExpMinutes(),
                     TimeUnit.MINUTES);
 

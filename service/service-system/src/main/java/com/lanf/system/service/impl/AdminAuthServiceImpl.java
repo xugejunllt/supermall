@@ -3,7 +3,7 @@ package com.lanf.system.service.impl;
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IStringUtils;
-import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.security.config.AdminTokenConfig;
@@ -98,8 +98,8 @@ public class AdminAuthServiceImpl implements IAdminAuthService {
 
         }  catch (Exception e) {
             log.error("刷新令牌异常", e);
-            throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
-                    CommonResultCodeEnum.KICKED_OUT.getMessage());
+            throw new BizException(CommonCodeEnum.KICKED_OUT.getCode(),
+                    CommonCodeEnum.KICKED_OUT.getMessage());
         }
     }
 

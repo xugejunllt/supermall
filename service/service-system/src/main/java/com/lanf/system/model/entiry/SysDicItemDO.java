@@ -1,6 +1,5 @@
 package com.lanf.system.model.entiry;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
@@ -33,5 +32,5 @@ public class SysDicItemDO extends BaseEntity {
     @TableField("name")
     private String name;
 
-
+    private Long tenantId;
 }

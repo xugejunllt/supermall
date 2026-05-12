@@ -5,7 +5,7 @@ import com.lanf.cache.aop.DistributedLock;
 import com.lanf.cache.service.DistributedLocker;
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.*;
-import com.lanf.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.SmsCodeEnum;
@@ -341,15 +341,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             String refreshToken = dto.getRefreshToken();
             if (IStringUtils.isEmpty(refreshToken)) {
                 log.warn("刷新令牌为空");
-                throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
-                        CommonResultCodeEnum.KICKED_OUT.getMessage());
+                throw new BizException(CommonCodeEnum.KICKED_OUT.getCode(),
+                        CommonCodeEnum.KICKED_OUT.getMessage());
             }
             JwtTokenInfo jwtTokenInfo;
             try {
                 jwtTokenInfo = JwtUtils.parseUserToken(refreshToken);
             } catch (Exception e) {
-                throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
-                        CommonResultCodeEnum.KICKED_OUT.getMessage());
+                throw new BizException(CommonCodeEnum.KICKED_OUT.getCode(),
+                        CommonCodeEnum.KICKED_OUT.getMessage());
             }
             
             String requestDeviceId = authRequestInfo.getDeviceId();
@@ -357,8 +357,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
             if (!requestDeviceId.equals(tokenDeviceId)) {
                 log.warn("设备ID不一致，请求头: {}, Token中: {}", requestDeviceId, tokenDeviceId);
-                throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
-                        CommonResultCodeEnum.KICKED_OUT.getMessage());
+                throw new BizException(CommonCodeEnum.KICKED_OUT.getCode(),
+                        CommonCodeEnum.KICKED_OUT.getMessage());
             }
             Long userId = jwtTokenInfo.getUserId();
             String channel = authRequestInfo.getChannel();
@@ -367,13 +367,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             
             if (IStringUtils.isEmpty(cachedRefreshToken)) {
                 log.warn("刷新令牌已失效，可能已被使用或过期: userId={}", userId);
-                throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
-                        CommonResultCodeEnum.KICKED_OUT.getMessage());
+                throw new BizException(CommonCodeEnum.KICKED_OUT.getCode(),
+                        CommonCodeEnum.KICKED_OUT.getMessage());
             }
             if (!refreshToken.equals(cachedRefreshToken)) {
                 log.warn("刷新令牌与缓存不一致，可能存在安全风险: userId={}", userId);
-                throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
-                        CommonResultCodeEnum.KICKED_OUT.getMessage());
+                throw new BizException(CommonCodeEnum.KICKED_OUT.getCode(),
+                        CommonCodeEnum.KICKED_OUT.getMessage());
             }
             
             UserTokenInfoVO tokenInfo = generateAndCacheTokens(userId, authRequestInfo);
@@ -384,8 +384,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             
         } catch (Exception e) {
             log.error("刷新令牌异常",e);
-            throw new BizException(CommonResultCodeEnum.KICKED_OUT.getCode(),
-                    CommonResultCodeEnum.KICKED_OUT.getMessage());
+            throw new BizException(CommonCodeEnum.KICKED_OUT.getCode(),
+                    CommonCodeEnum.KICKED_OUT.getMessage());
         }
     }
 
