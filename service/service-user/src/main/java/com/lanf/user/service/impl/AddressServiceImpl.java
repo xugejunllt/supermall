@@ -10,7 +10,7 @@ import com.lanf.user.model.dto.SetDefaultAddressDTO;
 import com.lanf.user.model.entity.AddressDO;
 import com.lanf.user.model.vo.AddressListVO;
 import com.lanf.user.service.IAddressService;
-import com.lanf.web.utils.UserContext;
+import com.lanf.constant.utils.UserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -26,5 +26,6 @@ public class SysDicDO extends BaseEntity {
     @TableField("code")
     private String code;
 
-
+    @TableField(fill = FieldFill.INSERT)
+    private Long tenantId;
 }

@@ -36,7 +36,7 @@ import com.lanf.web.model.bo.JwtTokenInfo;
 import com.lanf.web.security.keygen.RsaEncryptKeyManager;
 import com.lanf.web.utils.IpUtil;
 import com.lanf.web.utils.JwtUtils;
-import com.lanf.web.utils.UserContext;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.web.utils.WebUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

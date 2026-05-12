@@ -1,7 +1,7 @@
 package com.lanf.web.interceptor;
 
 import com.lanf.web.auth.RequestAuthExtractor;
-import com.lanf.web.utils.UserContext;
+import com.lanf.constant.utils.UserContext;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;

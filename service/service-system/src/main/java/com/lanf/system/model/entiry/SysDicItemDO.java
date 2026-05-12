@@ -18,6 +18,7 @@ import lombok.Data;
 @ApiModel(description = "字典选项")
 @TableName("sys_dic_item")
 public class SysDicItemDO extends BaseEntity {
+
     private static final long serialVersionUID = 1L;
     @ApiModelProperty(value = "所属分类")
     @TableField("dic_code")
@@ -32,4 +33,6 @@ public class SysDicItemDO extends BaseEntity {
     @TableField("name")
     private String name;
 
+    @TableField(fill = FieldFill.INSERT)
+    private Long tenantId;
 }

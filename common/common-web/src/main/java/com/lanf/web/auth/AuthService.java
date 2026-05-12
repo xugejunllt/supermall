@@ -12,7 +12,7 @@ import com.lanf.web.model.bo.JwtTokenInfo;
 import com.lanf.web.security.sign.SigningKeyContext;
 import com.lanf.web.utils.JwtUtils;
 import com.lanf.web.utils.ResponseUtil;
-import com.lanf.web.utils.UserContext;
+import com.lanf.constant.utils.UserContext;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

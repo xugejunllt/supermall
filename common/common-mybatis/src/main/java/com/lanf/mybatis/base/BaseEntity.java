@@ -22,4 +22,11 @@ public class BaseEntity implements Serializable {
     @TableField( fill = FieldFill.INSERT)
     private Integer isDeleted;
 
+    @TableField( fill = FieldFill.INSERT)
+    private String createBy;
+
+    @TableField( fill = FieldFill.UPDATE)
+    private String updateBy;
+
+
 }

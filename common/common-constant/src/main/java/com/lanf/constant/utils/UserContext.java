@@ -1,4 +1,4 @@
-package com.lanf.web.utils;
+package com.lanf.constant.utils;
 
 public class UserContext {
 
