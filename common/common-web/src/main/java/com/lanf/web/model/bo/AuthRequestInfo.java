@@ -26,10 +26,7 @@ public class AuthRequestInfo {
     private String channel;
 
     private String version;
-    /**
-     * 租户ID（可选）
-     */
-    private Long tenantId;
+
 
 
 }

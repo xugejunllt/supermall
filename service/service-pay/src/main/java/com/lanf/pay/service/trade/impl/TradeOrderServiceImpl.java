@@ -52,7 +52,6 @@ import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CompensatePaymentOrderMessage;
 import com.lanf.rocketmq.model.message.RefundDTO;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserIdContext;
 import com.lanf.tcc.service.ITccOperationService;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.dto.UseCouponDTO;

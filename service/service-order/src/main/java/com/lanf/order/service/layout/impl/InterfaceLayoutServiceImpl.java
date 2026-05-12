@@ -29,7 +29,6 @@ import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.model.message.PrePayMsg;
 import com.lanf.rocketmq.util.MessageBuildAdapter;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserUtils;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.vo.CouponVO;
 import org.springframework.beans.factory.annotation.Autowired;

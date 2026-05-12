@@ -2,7 +2,6 @@ package com.lanf.welfare.controller.app;
 
 
 import com.lanf.constant.result.Result;
-import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.model.dto.ReceiveShopCouponDTO;
 import com.lanf.welfare.service.ICouponService;
 import lombok.extern.slf4j.Slf4j;

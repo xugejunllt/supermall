@@ -19,7 +19,6 @@ import com.lanf.system.service.SysDeptService;
 import com.lanf.system.service.SysMenuService;
 import com.lanf.system.service.SysUserRoleService;
 import com.lanf.system.service.SysUserService;
-import com.lanf.security.utils.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;

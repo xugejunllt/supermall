@@ -43,8 +43,6 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.search.api.SearchApiService;
 import com.lanf.search.model.query.OrderSearchQuery;
 import com.lanf.search.model.vo.OrderSearchVO;
-import com.lanf.security.utils.UserIdContext;
-import com.lanf.security.utils.UserUtils;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;
 import com.lanf.tcc.service.ITccOperationService;

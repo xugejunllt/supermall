@@ -8,7 +8,6 @@ import com.lanf.aftersales.model.vo.AfterSalesOrderPageVO;
 import com.lanf.aftersales.service.IAfterSalesOrderService;
 import com.lanf.aftersales.service.layout.InterfaceLayoutService;
 import com.lanf.constant.web.PageResult;
-import com.lanf.security.utils.UserUtils;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

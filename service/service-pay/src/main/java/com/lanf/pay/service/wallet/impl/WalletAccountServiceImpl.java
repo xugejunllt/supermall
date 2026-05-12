@@ -31,7 +31,6 @@ import com.lanf.pay.service.wallet.IWalletAccountService;
 import com.lanf.pay.service.wallet.IWalletWithdrawService;
 import com.lanf.pay.utils.PayServiceUtils;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserIdContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;

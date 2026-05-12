@@ -28,10 +28,10 @@ public class RequestAuthExtractor {
     public static final String CHANNEL_ANDROID = "android";
     public static final String CHANNEL_IOS = "ios";
     public static final String CHANNEL_APP = "app";
-    public static final String CHANNEL_WEB = "web";
+    public static final String CHANNEL_ADMIN_WEB = "admin_web";
     public static final String CHANNEL_PC = "pc";
 
-    public static AuthRequestInfo extractAuthInfo(HttpServletRequest request, boolean isAdmin) throws Exception {
+    public static AuthRequestInfo extractAuthInfo(HttpServletRequest request) throws Exception {
         if (request == null) {
             log.error("HTTP请求对象为空");
             throw new Exception("HTTP请求对象为空");
@@ -40,7 +40,6 @@ public class RequestAuthExtractor {
         String deviceId = request.getHeader(HEADER_DEVICE_ID);
         String accessToken = request.getHeader(HEADER_ACCESS_TOKEN);
         String channel = request.getHeader(HEADER_CHANNEL);
-        String tenantIdStr = request.getHeader(HEADER_TENANT_ID);
         String version = request.getHeader(HEADER_VERSION);
 
         if (!StringUtils.hasText(deviceId)) {
@@ -60,25 +59,12 @@ public class RequestAuthExtractor {
             log.warn("请求头中缺少channel参数");
             throw new BizException("请求头中缺少channel参数");
         }
-        Long tenantId = null;
-        if (isAdmin) {
-            if (!StringUtils.hasText(tenantIdStr)) {
-                log.warn("请求头中缺少tenantId参数");
-                throw new BizException("请求头中缺少tenantId参数");
-            }
-            try {
-                tenantId = Long.parseLong(tenantIdStr);
-            } catch (NumberFormatException e) {
-                log.warn("tenantId格式错误: {}", tenantIdStr);
-                throw new BizException("tenantId格式错误");
-            }
-        }
+
         channel = normalizeChannel(channel);
         AuthRequestInfo authRequestInfo = new AuthRequestInfo();
         authRequestInfo.setDeviceId(deviceId);
         authRequestInfo.setAccessToken(accessToken);
         authRequestInfo.setChannel(channel);
-        authRequestInfo.setTenantId(tenantId);
         authRequestInfo.setVersion( version);
 
         return authRequestInfo;
@@ -113,7 +99,6 @@ public class RequestAuthExtractor {
         authRequestInfo.setDeviceId(deviceId);
         authRequestInfo.setAccessToken(null);
         authRequestInfo.setChannel(channel);
-        authRequestInfo.setTenantId(null);
         authRequestInfo.setVersion(version);
 
         return authRequestInfo;

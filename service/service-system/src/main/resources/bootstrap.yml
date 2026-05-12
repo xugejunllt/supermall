@@ -26,6 +26,8 @@ spring:
             data-id: filterPath.yaml
           - group: common
             data-id: interfacemonitor.yaml
+          - group: common
+            data-id: common.yaml
 server:
   port: 9002
   servlet:

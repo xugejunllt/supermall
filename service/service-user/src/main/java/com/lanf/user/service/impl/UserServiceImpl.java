@@ -40,6 +40,7 @@ import com.lanf.web.utils.UserContext;
 import com.lanf.web.utils.WebUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -78,6 +79,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private RedissonCacheService redissonCacheService;
     @Autowired
     private RsaEncryptKeyManager rsaEncryptKeyManager;
+
+    @Value("${token.user.accessTokenExpMinutes:100000000}")
+    private Long accessTokenExpMinutes;
+
+    @Value("${token.user.refreshTokenExpMinutes:1000000000}")
+    private Long refreshTokenExpMinutes;
+
     @Override
     @DistributedLock(key = "#dto.phoneNumber")
     @Transactional
@@ -244,28 +252,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         String deviceId = authRequestInfo.getDeviceId();
         String channel = authRequestInfo.getChannel();
-        Long accessTokenExpDays = JwtUtils.getAccessTokenExpDays();
-        Long refreshTokenExpDays = JwtUtils.getRefreshTokenExpDays();
 
-        String accessToken = JwtUtils.createTokenForUserWithDays(userId, deviceId, accessTokenExpDays);
-        String refreshToken = JwtUtils.createTokenForUserWithDays(userId, deviceId, refreshTokenExpDays);
+        String accessToken = JwtUtils.createTokenForUserWithMinutes(userId, deviceId, accessTokenExpMinutes);
+        String refreshToken = JwtUtils.createTokenForUserWithMinutes(userId, deviceId, refreshTokenExpMinutes);
 
         String accessKey = String.format(RedisKeyConstants.USER_ACCESS_TOKEN, userId, channel);
         String refreshKey = String.format(RedisKeyConstants.USER_REFRESH_TOKEN, userId, channel);
 
-        redissonCacheService.set(accessKey, accessToken, accessTokenExpDays, TimeUnit.DAYS);
-        redissonCacheService.set(refreshKey, refreshToken, refreshTokenExpDays, TimeUnit.DAYS);
+        redissonCacheService.set(accessKey, accessToken, accessTokenExpMinutes, TimeUnit.MINUTES);
+        redissonCacheService.set(refreshKey, refreshToken, refreshTokenExpMinutes, TimeUnit.MINUTES);
 
         log.info("生成并缓存Token成功: userId={}, deviceId={}, accessTokenExpDays={}, refreshTokenExpDays={}",
-                userId, deviceId, accessTokenExpDays, refreshTokenExpDays);
+                userId, deviceId, accessTokenExpMinutes, refreshTokenExpMinutes);
 
         UserTokenInfoVO tokenInfo = new UserTokenInfoVO();
         tokenInfo.setAccessToken(accessToken);
         tokenInfo.setRefreshToken(refreshToken);
         
-        // 计算过期时间戳（当前时间 + 有效期）
-        tokenInfo.setAccessTokenExp(DateUtils.getExpireTimestampFromDays(accessTokenExpDays));
-        tokenInfo.setRefreshTokenExp(DateUtils.getExpireTimestampFromDays(refreshTokenExpDays));
+        // 返回毫秒
+        tokenInfo.setAccessTokenExp(DateUtils.getExpireTimestampFromMinutes(accessTokenExpMinutes));
+        tokenInfo.setRefreshTokenExp(DateUtils.getExpireTimestampFromMinutes(refreshTokenExpMinutes));
 
         return tokenInfo;
     }

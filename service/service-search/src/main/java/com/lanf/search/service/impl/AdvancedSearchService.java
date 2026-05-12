@@ -6,7 +6,6 @@ import com.lanf.search.model.bo.ScoredProduct;
 import com.lanf.search.model.document.GoodsDocument;
 import com.lanf.search.model.query.GoodsSearchQuery;
 import com.lanf.search.model.vo.HomePageVO;
-import com.lanf.security.utils.UserIdContext;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;

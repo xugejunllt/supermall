@@ -10,7 +10,6 @@ import com.lanf.goods.model.vo.CartListVO;
 import com.lanf.goods.service.goods.ICartService;
 import com.lanf.constant.web.PageQuery;
 import com.lanf.constant.web.PageResult;
-import com.lanf.security.utils.UserIdContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

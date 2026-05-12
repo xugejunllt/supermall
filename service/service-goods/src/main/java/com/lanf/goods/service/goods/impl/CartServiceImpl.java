@@ -22,7 +22,6 @@ import com.lanf.cache.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.constant.web.PageQuery;
 import com.lanf.constant.web.PageResult;
-import com.lanf.security.utils.UserIdContext;
 import com.lanf.system.api.SystemService;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;

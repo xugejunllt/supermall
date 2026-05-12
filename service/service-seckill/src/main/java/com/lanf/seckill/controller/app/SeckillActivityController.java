@@ -11,7 +11,6 @@ import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
 import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.seckill.service.strategy.SecKillResultCache;
-import com.lanf.security.utils.UserIdContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

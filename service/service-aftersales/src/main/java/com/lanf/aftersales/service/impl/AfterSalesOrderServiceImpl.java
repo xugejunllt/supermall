@@ -30,7 +30,6 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.constant.web.PageResult;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.api.StorageApiService;
 import com.lanf.system.api.SystemService;
 import com.lanf.system.model.vo.ShopVO;

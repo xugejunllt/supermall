@@ -44,7 +44,6 @@ import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserIdContext;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.bo.DiscountInfoBO;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;

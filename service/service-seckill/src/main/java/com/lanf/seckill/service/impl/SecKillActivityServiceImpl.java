@@ -26,7 +26,6 @@ import com.lanf.seckill.model.vo.SeckillTokenVO;
 import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.seckill.service.ISecKillItemService;
 import com.lanf.web.utils.JwtUtils;
-import com.lanf.security.utils.UserIdContext;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;

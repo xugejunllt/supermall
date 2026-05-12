@@ -2,12 +2,11 @@ package com.lanf.system.service.impl;
 
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.constant.Constants;
-import com.lanf.common.utils.MerchantIdContext;
+import com.lanf.security.model.bo.AdminUser;
+import com.lanf.security.model.bo.AdminUserBO;
 import com.lanf.system.mapper.SysUserMapper;
-import com.lanf.system.model.bo.CustomUserBO;
 import com.lanf.system.model.entiry.MerchantDO;
 import com.lanf.system.model.entiry.SysUserDO;
-import com.lanf.system.model.bo.SysUserBO;
 import com.lanf.system.service.SysMenuService;
 import com.lanf.system.service.SysUserService;
 import com.lanf.system.service.manager.PermissionFilter;
@@ -53,7 +52,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (merchantDO == null) {
             throw new UsernameNotFoundException("租户不存在！");
         }
-        MerchantIdContext.setMerchantId(merchantDO.getId());
         SysUserDO sysUser = sysUserService.lambdaQuery()
                 .eq(SysUserDO::getUsername, username)
                 .eq(SysUserDO::getTenantId, merchantDO.getId()).one();
@@ -79,12 +77,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             authorities.add(new SimpleGrantedAuthority(perm.trim()));
         }
 
-        SysUserBO sysUserBO = BeanCopyUtils.copyBean(sysUser, SysUserBO.class);
+        AdminUser sysUserBO = BeanCopyUtils.copyBean(sysUser, AdminUser.class);
         sysUserBO.setChannel(Integer.parseInt(chanel));
         sysUserBO.setDeviceId(deviceId);
-        sysUserBO.setMerchantId(merchantDO.getId());
+        sysUserBO.setTenantId(merchantDO.getId());
         sysUserBO.setTenantCode(tenantCode);
-        return new CustomUserBO(sysUserBO, authorities);
+        return new AdminUserBO(sysUserBO, authorities);
 
     }
 

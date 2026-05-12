@@ -1,4 +1,4 @@
-package com.lanf.system.model.bo;
+package com.lanf.security.model.bo;
 
 
 import lombok.Data;
@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class SysUserBO {
+public class AdminUser {
 
     private static final long serialVersionUID = 1L;
 
@@ -77,6 +77,6 @@ public class SysUserBO {
 
     private String deviceId;
     //租户id
-    private Long merchantId;
+    private Long tenantId;
 }
 

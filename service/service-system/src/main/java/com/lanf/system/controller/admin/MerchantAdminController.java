@@ -2,16 +2,19 @@ package com.lanf.system.controller.admin;
 
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.web.PageResult;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
 import com.lanf.system.model.entiry.MerchantDO;
 import com.lanf.system.model.query.CompanyPageQuery;
 import com.lanf.system.service.merchant.IMerchantService;
-import com.lanf.constant.result.Result;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>

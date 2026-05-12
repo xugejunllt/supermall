@@ -11,7 +11,6 @@ import com.lanf.logistics.service.IExpressService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.constant.web.PageQuery;
 import com.lanf.constant.web.PageResult;
-import com.lanf.security.utils.UserUtils;
 import org.springframework.stereotype.Service;
 
 /**

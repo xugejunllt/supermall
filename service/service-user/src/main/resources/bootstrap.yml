@@ -22,8 +22,8 @@ spring:
           - group: common
             data-id: rocketmq.yaml
           - group: common
-            data-id: filterPath.yaml
-            refresh: true
+            data-id: common.yaml
+
 
 server:
   port: 9006
@@ -34,28 +34,4 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
   type-enums-package: com.lanf.user.model.enums
 
-sign:
-  enabled: true
-  paths:
-    #用于测试 不需要登入 签名生成在UserTest.testCompleteSignProcess2
-    - /user/app/user/signTest1
-    #用于测试 不需要登入 签名生成在UserTest.testCompleteSignProcess2
-    - /user/app/user/signTest2
-# 鉴权路径配置
-auth:
-  # 排除鉴权的路径列表（支持完全匹配）
-  exclude-auth-paths:
-    - /user/app/user/register
-    - /user/app/user/registerSendCode
-    - /user/app/user/registerSendCode
-    - /user/app/user/getSignKey
-    - /user/app/user/loginSendCode
-    - /user/app/user/login
-    - /user/app/user/refreshToken
-    - /user/app/user/signTest1
-    - /user/app/user/getPublicKey
-  internalServicePaths:
-    #内部接口
-    - /user/app/user/registerSendCode2
-aes:
-  key: dGVzdC1rZXktMTIzNDU2Nz
+

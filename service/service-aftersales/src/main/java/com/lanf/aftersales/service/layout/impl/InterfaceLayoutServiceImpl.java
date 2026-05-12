@@ -23,7 +23,6 @@ import com.lanf.order.model.vo.OrderItemVO;
 import com.lanf.order.model.vo.OrderVO;
 import com.lanf.client.pay.api.PayApiService;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.security.utils.UserUtils;
 import com.lanf.storage.api.StorageApiService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,18 +1,18 @@
-package com.lanf.system.model.bo;
+package com.lanf.security.model.bo;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
 
-public class CustomUserBO extends User {
+public class AdminUserBO extends User {
 
     /**
      * 我们自己的用户实体对象，要调取用户信息时直接获取这个实体对象
      */
-    private SysUserBO sysUser;
+    private AdminUser sysUser;
 
-    public CustomUserBO(SysUserBO sysUser, Collection<? extends GrantedAuthority> authorities) {
+    public AdminUserBO(AdminUser sysUser, Collection<? extends GrantedAuthority> authorities) {
         /**
          * 给spring security 框架使用
          */
@@ -20,11 +20,11 @@ public class CustomUserBO extends User {
         this.sysUser = sysUser;
     }
 
-    public SysUserBO getSysUser() {
+    public AdminUser getSysUser() {
         return sysUser;
     }
 
-    public void setSysUser(SysUserBO sysUser) {
+    public void setSysUser(AdminUser sysUser) {
         this.sysUser = sysUser;
     }
 
