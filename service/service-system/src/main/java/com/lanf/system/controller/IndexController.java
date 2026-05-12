@@ -79,6 +79,7 @@ public class IndexController {
      */
     @GetMapping("/menuTree")
     public Result menuTree(HttpServletRequest request) {
+        log.info("获取菜单列表");
         SysUserDO sysUser = sysUserService.getById(UserContext.getUserId());
 
         List<SysMenuDO> menuList = sysMenuService.findUserMenuList(sysUser.getUsername());

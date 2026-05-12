@@ -23,6 +23,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -40,7 +41,6 @@ import java.util.concurrent.TimeUnit;
  * </p>
  */
 @Slf4j
-//@Component
 public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
 
 
@@ -116,6 +116,16 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
         AdminUser sysUser = customUser.getSysUser();
         //权限
         Collection<GrantedAuthority> authorities = customUser.getAuthorities();
+
+        Authentication newAuth = new UsernamePasswordAuthenticationToken(
+                customUser,        // 用户主体，通常是 UserDetails 对象
+                customUser.getPassword(),     // 用户的凭证，通常是密码
+                authorities                          // 用户的权限列表
+        );
+        // 步骤 3: 将新构建的 Authentication 对象设置到 Spring Security 的上下文中
+        SecurityContextHolder.getContext().setAuthentication(newAuth);
+
+
         AuthRequestInfo authRequestInfo = null;
         try {
             authRequestInfo =  RequestAuthExtractor.extractBasicInfo( request);

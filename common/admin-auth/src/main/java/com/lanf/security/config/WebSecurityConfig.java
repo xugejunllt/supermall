@@ -2,8 +2,9 @@ package com.lanf.security.config;
 
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.security.custom.IBCryptPasswordEncoder;
-import com.lanf.security.filter.AdminAuthFilter;
 import com.lanf.security.filter.AdminLoginFilter;
+import com.lanf.security.filter.AdminPermissionFilter;
+import com.lanf.security.service.PermissionCacheService;
 import com.lanf.web.auth.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,6 +59,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${token.admin.refreshTokenExpMinutes:1000000000}")
     private Long refreshTokenExpMinutes;
 
+    @Autowired
+    private PermissionCacheService userPermissionCacheService;
+
+
     @Bean
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {
@@ -80,13 +85,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 .and()
                 /**
-                 * TokenAuthenticationFilter放到UsernamePasswordAuthenticationFilter的前面，
+                 * PermissionFilter 放到UsernamePasswordAuthenticationFilter的前面，
                  * 这样做就是为了除了登录的时候去查询数据库外，
                  * 其他时候都用token进行认证。
                  * 就说 如果不配置  默认请求都先走 UsernamePasswordAuthenticationFilter
                  * 实际上 除登入接口外 都先走AdminAuthFilter
+                 *
                  */
-                .addFilterBefore(new AdminAuthFilter(authService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new AdminPermissionFilter(userPermissionCacheService), UsernamePasswordAuthenticationFilter.class)
                 .addFilter(new AdminLoginFilter(authenticationManager(),
                         redissonCacheService,accessTokenExpMinutes,refreshTokenExpMinutes));
 
