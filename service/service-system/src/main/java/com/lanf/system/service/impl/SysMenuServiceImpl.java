@@ -3,6 +3,7 @@ package com.lanf.system.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.constant.constant.Constants;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.mapper.SysMenuMapper;
 import com.lanf.system.model.bo.SysUserBO;
@@ -133,7 +134,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO> im
             typeList.add(1);
             sysMenuList = sysMenuMapper.findListByUserId(userId, null, typeList);
         }
-        SysUserBO sysUser2 = AdminSessionCache.getSysUser();
+        SysUserDO sysUser2 = sysUserService.getById(UserContext.getUserId());
         if ( !permissionFilter.isPlatformAdminAccount(sysUser2.getUsername(),sysUser2.getTenantCode())){
             log.info("非平台租户,开始过滤菜单权限");
             sysMenuList = permissionFilter.excludeMenu(sysMenuList);
