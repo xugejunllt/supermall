@@ -1,11 +1,15 @@
 package com.lanf.security.filter;
 
 import com.lanf.common.utils.IStringUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.security.service.PermissionCacheService;
+import com.lanf.web.auth.AuthService;
 import com.lanf.web.auth.RequestAuthExtractor;
+import com.lanf.web.config.AuthPathConfig;
 import com.lanf.web.model.bo.AuthRequestInfo;
+import com.lanf.web.security.sign.SigningKeyContext;
 import com.lanf.web.utils.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
@@ -30,21 +34,38 @@ public class AdminPermissionFilter extends OncePerRequestFilter implements Order
 
 
     private PermissionCacheService permissionCacheService;
+    private AuthService authService;
 
-    public AdminPermissionFilter(PermissionCacheService permissionCacheService) {
+    private AuthPathConfig authPathConfig;
+
+    public AdminPermissionFilter(PermissionCacheService permissionCacheService,
+                                 AuthService authService, AuthPathConfig authPathConfig) {
         this.permissionCacheService = permissionCacheService;
+        this.authService = authService;
+        this.authPathConfig = authPathConfig;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
-        log.info("执行菜单权限过滤器开始");
         try {
+            log.info("token鉴权开始");
+            authService.authenticate(request, true);
+            log.info("token鉴权结束");
+
+
+            if (authPathConfig.getExcludeAuthPaths().contains(request.getRequestURI())){
+                /**
+                 * 跳过菜单权限
+                 */
+                filterChain.doFilter(request, response);
+                return;
+            }
+            log.info("执行菜单权限过滤器开始");
             AuthRequestInfo requestInfo = RequestAuthExtractor.extractBasicInfo(request);
 
             List<GrantedAuthority> permissions = permissionCacheService.getPermissions(UserContext.getUserId()
                     , requestInfo.getChannel());
-            if (IStringUtils.isEmpty( permissions)){
+            if (IStringUtils.isEmpty(permissions)) {
                 log.error("添加菜单权限异常");
                 ResponseUtil.outFail(response, Result.fail("添加菜单权限异常"));
             }
@@ -58,18 +79,23 @@ public class AdminPermissionFilter extends OncePerRequestFilter implements Order
              */
             SecurityContextHolder.getContext().setAuthentication(authentication);
             filterChain.doFilter(request, response);
+            log.info("执行菜单权限过滤器结束");
+        } catch (BizException e) {
+            ResponseUtil.outFail(response, Result.fail(e.getMessage()));
         } catch (Exception e) {
             log.error("添加菜单权限异常", e);
             ResponseUtil.outFail(response, Result.fail("添加菜单权限异常"));
+        } finally {
+            UserContext.clear();
+            SigningKeyContext.clear();
         }
     }
 
     /**
      * 执行 顺序 后与 AdminTokenAuthFilter
-     *
      */
     @Override
     public int getOrder() {
-        return 2;
+        return 1;
     }
 }

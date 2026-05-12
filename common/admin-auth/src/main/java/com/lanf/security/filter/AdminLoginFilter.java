@@ -12,6 +12,7 @@ import com.lanf.security.model.bo.AdminUser;
 import com.lanf.security.model.bo.AdminUserBO;
 import com.lanf.security.model.dto.LoginDTO;
 import com.lanf.security.model.vo.AdminUserTokenInfoVO;
+import com.lanf.security.service.PermissionCacheService;
 import com.lanf.web.auth.RequestAuthExtractor;
 import com.lanf.web.model.bo.AuthRequestInfo;
 import com.lanf.web.utils.JwtUtils;
@@ -23,7 +24,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -55,8 +55,11 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private Long refreshTokenExpMinutes;
 
+    private PermissionCacheService permissionCacheService;
+
     public AdminLoginFilter(AuthenticationManager authenticationManager,
                             RedissonCacheService redissonCacheService,
+                            PermissionCacheService permissionCacheService,
                             Long accessTokenExpMinutes,
                             Long refreshTokenExpMinutes ) {
         this.setAuthenticationManager(authenticationManager);
@@ -64,6 +67,7 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
         this.redissonCacheService = redissonCacheService;
         this.accessTokenExpMinutes = accessTokenExpMinutes;
         this.refreshTokenExpMinutes = refreshTokenExpMinutes;
+        this.permissionCacheService = permissionCacheService;
         /**
          * 这个过滤器只拦截 /admin/system/index/login 接口
          */
@@ -117,14 +121,8 @@ public class AdminLoginFilter extends UsernamePasswordAuthenticationFilter {
         //权限
         Collection<GrantedAuthority> authorities = customUser.getAuthorities();
 
-        Authentication newAuth = new UsernamePasswordAuthenticationToken(
-                customUser,        // 用户主体，通常是 UserDetails 对象
-                customUser.getPassword(),     // 用户的凭证，通常是密码
-                authorities                          // 用户的权限列表
-        );
-        // 步骤 3: 将新构建的 Authentication 对象设置到 Spring Security 的上下文中
-        SecurityContextHolder.getContext().setAuthentication(newAuth);
-
+        permissionCacheService.cachePermissions(sysUser.getId(),
+                sysUser.getChannel(), authorities, accessTokenExpMinutes);
 
         AuthRequestInfo authRequestInfo = null;
         try {

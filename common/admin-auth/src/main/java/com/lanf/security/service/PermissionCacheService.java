@@ -36,7 +36,7 @@ public class PermissionCacheService {
      * @param authorities 权限列表
      * @param expireTime 过期时间（分钟）
      */
-    public void cachePermissions(Long userId, Integer channel, Collection<GrantedAuthority> authorities, long expireTime) {
+    public void cachePermissions(Long userId, String channel, Collection<GrantedAuthority> authorities, long expireTime) {
         if (userId == null || channel == null || authorities == null) {
             log.warn("缓存用户权限失败：参数为空, userId={}, channel={}", userId, channel);
             return;
@@ -50,7 +50,7 @@ public class PermissionCacheService {
 
             // 构建 Redis Key
             String key = buildPermissionKey(userId, channel);
-
+            log.info("菜单权限rediskey 是" +key);
             // 缓存权限列表
             redissonCacheService.set(key, JsonUtils.toJsonString(perms), expireTime, TimeUnit.MINUTES);
 
@@ -78,14 +78,17 @@ public class PermissionCacheService {
         try {
             // 构建 Redis Key
             String key = buildPermissionKey(userId, channel);
+            log.info("菜单权限rediskey" +key);
+            String cachePerms = redissonCacheService.get(key);
+            if (cachePerms == null || cachePerms.isEmpty()) {
+                log.info("用户权限缓存不存在，可能需要重新登录, userId={}, channel={}", userId, channel);
+                return Collections.emptyList();
+            }
 
             // 从 Redis 获取权限列表
             List<String> perms = JsonUtils.toList(redissonCacheService.get(key), String.class);
 
-            if (perms == null || perms.isEmpty()) {
-                log.debug("用户权限缓存不存在，可能需要重新登录, userId={}, channel={}", userId, channel);
-                return Collections.emptyList();
-            }
+
 
             // 转换为 GrantedAuthority 列表
             List<GrantedAuthority> authorities = perms.stream()

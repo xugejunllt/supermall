@@ -28,6 +28,10 @@ public class BizException extends RuntimeException {
         this.code = CommonResultCodeEnum.FAIL.getCode();
         this.message = message;
     }
-
+    public BizException(CommonResultCodeEnum codeEnum) {
+        super(codeEnum.getMessage());
+        this.code = codeEnum.getCode();
+        this.message = codeEnum.getMessage();
+    }
 
 }

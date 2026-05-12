@@ -6,6 +6,7 @@ import com.lanf.security.filter.AdminLoginFilter;
 import com.lanf.security.filter.AdminPermissionFilter;
 import com.lanf.security.service.PermissionCacheService;
 import com.lanf.web.auth.AuthService;
+import com.lanf.web.config.AuthPathConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,6 +63,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private PermissionCacheService userPermissionCacheService;
 
+    @Autowired
+    private AuthPathConfig authPathConfig;
+    @Autowired
+    private PermissionCacheService permissionCacheService;
 
     @Bean
     @Override
@@ -91,10 +96,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                  * 就说 如果不配置  默认请求都先走 UsernamePasswordAuthenticationFilter
                  * 实际上 除登入接口外 都先走AdminAuthFilter
                  *
+                 * AdminPermissionFilter 走在所有过滤器前面
                  */
-                .addFilterBefore(new AdminPermissionFilter(userPermissionCacheService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new AdminPermissionFilter(userPermissionCacheService,authService,authPathConfig), UsernamePasswordAuthenticationFilter.class)
                 .addFilter(new AdminLoginFilter(authenticationManager(),
-                        redissonCacheService,accessTokenExpMinutes,refreshTokenExpMinutes));
+                        redissonCacheService,permissionCacheService,accessTokenExpMinutes,refreshTokenExpMinutes));
 
 
         //禁用session
