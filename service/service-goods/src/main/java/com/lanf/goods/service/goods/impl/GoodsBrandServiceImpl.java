@@ -33,7 +33,8 @@ public class GoodsBrandServiceImpl extends ServiceImpl<GoodsBrandMapper, GoodsBr
     public void addGoodsBrand(AddGoodsBrandDTO dto) {
 
         String name = dto.getName();
-        GoodsBrandDO one = this.lambdaQuery().ge(GoodsBrandDO::getName, name).one();
+        GoodsBrandDO one = this.lambdaQuery()
+                .eq(GoodsBrandDO::getName, name).one();
         if (one != null){
             throw new BizException("品牌已存在");
         }
