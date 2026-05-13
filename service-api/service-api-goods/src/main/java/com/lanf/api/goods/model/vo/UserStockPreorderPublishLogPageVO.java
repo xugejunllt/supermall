@@ -4,6 +4,7 @@ package com.lanf.api.goods.model.vo;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 库存预售发布日志分页VO
@@ -42,9 +43,9 @@ public class UserStockPreorderPublishLogPageVO implements Serializable {
     private String status;
 
     /** 创建时间 */
-    private Data createTime;
+    private Date createTime;
 
     /** 更新时间 */
-    private Data updateTime;
+    private Date updateTime;
 
 }
