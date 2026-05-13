@@ -39,7 +39,7 @@ private static final long serialVersionUID=1L;
     private Long warehouseId;
 
     /** 商家id */
-    private Long merchantId;
+    private Long tenantId;
 
     private PublishStatusEnum status;
 

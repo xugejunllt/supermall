@@ -23,7 +23,7 @@ private static final long serialVersionUID=1L;
     /** sku图片 */
     private String skuPictureAddress;
 
-    /** sku描述 */
+    /** sku值 */
     private String attributeDesc;
 
     /** 排序（影响展示顺序） */

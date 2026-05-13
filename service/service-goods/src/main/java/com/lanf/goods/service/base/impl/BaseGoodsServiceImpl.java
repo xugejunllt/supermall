@@ -194,7 +194,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
 
             skuName.append(a.getAttribute())
                     .append(",").
-                    append(a.getAttributeDesc()).
+                    append(a.getAttributeValue()).
                     append(";");
 
         });

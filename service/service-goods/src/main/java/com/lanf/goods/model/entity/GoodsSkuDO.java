@@ -46,5 +46,5 @@ private static final long serialVersionUID=1L;
     private Integer sort;
 
     private Long version;
-
+    private Long  tenantId;
 }

@@ -43,6 +43,5 @@ private static final long serialVersionUID=1L;
     /** 版本号 乐观锁控制 */
     private Long version;
     
-    private Long  merchantId;
-
+    private Long tenantId;
 }

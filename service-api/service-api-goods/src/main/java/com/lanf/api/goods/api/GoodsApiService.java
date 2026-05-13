@@ -3,13 +3,14 @@ package com.lanf.api.goods.api;
 import com.lanf.api.goods.model.dto.*;
 import com.lanf.api.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.api.goods.model.query.GoodsPageQuery;
+import com.lanf.api.goods.model.query.ReconciliationStockFlowQuery;
 import com.lanf.api.goods.model.vo.*;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.api.goods.model.query.ReconciliationStockFlowQuery;
 import org.dromara.hmily.annotation.Hmily;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -79,7 +80,7 @@ public interface GoodsApiService {
      * 分页查询商品列表
      */
     @GetMapping("/goods/admin/goods/goodsPageQuery")
-    Result<PageResult<GoodsPageVO>> goodsPageQuery(GoodsPageQuery query);
+    Result<PageResult<GoodsPageVO>> goodsPageQuery(@SpringQueryMap GoodsPageQuery query);
 
     /**
      * 商品详细信息
@@ -93,7 +94,7 @@ public interface GoodsApiService {
      * 分页查询基础商品信息列表
      */
     @GetMapping("/goods/admin/baseGoods/baseGoodsPageQuery")
-    Result<PageResult<BaseGoodsPageVO>> baseGoodsPageQuery(BaseGoodsPageQuery query);
+    Result<PageResult<BaseGoodsPageVO>> baseGoodsPageQuery(@SpringQueryMap BaseGoodsPageQuery query);
 
     /**
      * 添加基础商品信息
@@ -125,7 +126,7 @@ public interface GoodsApiService {
      * 分页查询商品属性
      */
     @GetMapping("/goods/admin/goodsAttribute/goodsAttributePageQuery")
-    Result<PageResult<GoodsAttributePageVO>> goodsAttributePageQuery(PageQuery query);
+    Result<PageResult<GoodsAttributePageVO>> goodsAttributePageQuery(@SpringQueryMap PageQuery query);
 
     /**
      * 更新商品属性
@@ -157,7 +158,7 @@ public interface GoodsApiService {
      * 分页查询商品品牌
      */
     @GetMapping("/goods/admin/goodsBrand/goodsBrandPageQuery")
-    Result<PageResult<GoodsBrandPageVO>> goodsBrandPageQuery(PageQuery query);
+    Result<PageResult<GoodsBrandPageVO>> goodsBrandPageQuery(@SpringQueryMap PageQuery query);
 
     /**
      * 查询所有品牌
@@ -191,7 +192,7 @@ public interface GoodsApiService {
      * 分页查询店铺
      */
     @GetMapping("/goods/admin/shop/shopPageQuery")
-    Result<PageResult<ShopPageVO>> shopPageQuery(PageQuery query);
+    Result<PageResult<ShopPageVO>> shopPageQuery(@SpringQueryMap PageQuery query);
 
     /**
      * 查询所有店铺

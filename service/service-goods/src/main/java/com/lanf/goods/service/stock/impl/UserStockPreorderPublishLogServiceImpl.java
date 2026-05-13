@@ -84,7 +84,7 @@ public class UserStockPreorderPublishLogServiceImpl extends ServiceImpl<UserStoc
         stockPreorderPublishLogDO.setEventType(StockPreorderEventTypeEnum.RECYCLE);
         stockPreorderPublishLogDO.setPublishPlatform(publishStock.getPublishPlatform());
         stockPreorderPublishLogDO.setWarehouseId(publishStock.getWarehouseId());
-        stockPreorderPublishLogDO.setMerchantId(publishStock.getMerchantId());
+        stockPreorderPublishLogDO.setTenantId(publishStock.getMerchantId());
         stockPreorderPublishLogDO.setStatus(PublishStatusEnum.SUCCESS);
 
         return stockPreorderPublishLogDO;

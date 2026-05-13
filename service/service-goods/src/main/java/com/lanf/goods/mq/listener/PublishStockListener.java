@@ -59,7 +59,7 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
             one.setLockStock(0);
             one.setWarehouseId(message.getWarehouseId());
             one.setWarehouseName(message.getWarehouseName());
-            one.setMerchantId(message.getMerchantId());
+            one.setTenantId(message.getMerchantId());
             one.setVersion(0L);
         }
         Integer usableStock = one.getUsableStock() + message.getChangeQuantity();
@@ -115,7 +115,7 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
         userStockPreorderPublishLogDO.setEventType(message.getEventType());
         userStockPreorderPublishLogDO.setPublishPlatform(message.getPublishPlatform());
         userStockPreorderPublishLogDO.setWarehouseId(message.getWarehouseId());
-        userStockPreorderPublishLogDO.setMerchantId(message.getMerchantId());
+        userStockPreorderPublishLogDO.setTenantId(message.getMerchantId());
         userStockPreorderPublishLogDO.setStatus(PublishStatusEnum.SUCCESS);
         return userStockPreorderPublishLogDO;
     }

@@ -55,7 +55,6 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
 
         IPage<GoodsAttributeDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<GoodsAttributeDO> result = this.lambdaQuery().
-                eq(GoodsAttributeDO::getTenantId, MerchantIdContext.getMerchantId()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
         if (result.getRecords().isEmpty()){

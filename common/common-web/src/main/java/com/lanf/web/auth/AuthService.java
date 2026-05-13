@@ -54,7 +54,7 @@ public class AuthService {
 
                 return;
             }
-
+            log.info("开始鉴权");
             AuthRequestInfo authRequestInfo = RequestAuthExtractor.extractAuthInfo(request);
             String accessToken = authRequestInfo.getAccessToken();
             authRequestInfo.setAccessToken(null);

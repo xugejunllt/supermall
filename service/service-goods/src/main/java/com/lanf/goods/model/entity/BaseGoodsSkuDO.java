@@ -1,7 +1,5 @@
 package com.lanf.goods.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import lombok.Data;
@@ -29,7 +27,7 @@ private static final long serialVersionUID=1L;
     private String attribute;
 
     /** sku描述 */
-    private String attributeDesc;
+    private String attributeValue;
 
     /** sku图片 */
     private String skuPictureAddress;

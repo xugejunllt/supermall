@@ -52,5 +52,5 @@ private static final long serialVersionUID=1L;
 
     /** 仓库名称 */
     private String warehouseName;
-
+    private Long tenantId;
 }

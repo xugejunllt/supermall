@@ -26,7 +26,7 @@ private static final long serialVersionUID=1L;
      * 当前商品最大版本号
      */
     private Long maxVersion;
-
+    private Long  tenantId;
 
 
 }
