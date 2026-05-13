@@ -12,7 +12,7 @@ import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.goods.mapper.CartMapper;
 import com.lanf.goods.model.bo.CartSortOrderBO;
-import com.lanf.goods.model.bo.GoodsItemBO;
+import com.lanf.goods.model.bo.GoodsItem;
 import com.lanf.goods.model.bo.ShopGoodsBO;
 import com.lanf.goods.model.dto.*;
 import com.lanf.goods.model.entity.*;
@@ -390,10 +390,10 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
                  */
                 shopGoodsVO.setShopName(shopDO.getName());
             }
-            List<GoodsItemBO> cartItemList = new ArrayList<>(cartDOList.size());
+            List<GoodsItem> cartItemList = new ArrayList<>(cartDOList.size());
             for (CartDO cartDO : entry.getValue()){
                 GoodsSkuDO goodsSkuDO = goodsSkuDOMap.get(cartDO.getSkuId());
-                GoodsItemBO goodsItemVO = new GoodsItemBO();
+                GoodsItem goodsItemVO = new GoodsItem();
                 goodsItemVO.setSkuId(cartDO.getSkuId());
                 goodsItemVO.setCartId(cartDO.getId());
                 goodsItemVO.setSkuName(goodsSkuDO.getSkuName());

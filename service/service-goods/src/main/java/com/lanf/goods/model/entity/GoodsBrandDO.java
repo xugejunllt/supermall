@@ -28,7 +28,6 @@ private static final long serialVersionUID=1L;
     /** 排序坐标，越大越靠前 */
     private Integer sortIndex;
 
-    @TableField( fill = FieldFill.INSERT)
     private Long  tenantId;
 
 }

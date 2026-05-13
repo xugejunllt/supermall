@@ -57,7 +57,6 @@ private static final long serialVersionUID=1L;
     /** 属性code -skuCde映射 加速详细读 */
     private String unitCodeSkuCode;
 
-    @TableField( fill = FieldFill.INSERT)
     private Long  tenantId;
 
     private Long version;

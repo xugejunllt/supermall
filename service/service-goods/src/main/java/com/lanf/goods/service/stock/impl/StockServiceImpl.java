@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.goods.mapper.StockMapper;
-import com.lanf.goods.model.bo.GoodsSkuBO;
+import com.lanf.goods.model.bo.GoodsSku;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.dto.DeductStockDTO;
 import com.lanf.goods.model.dto.SeckillStockPreoccupationDTO;
@@ -151,15 +151,15 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         //订单总金额
         BigDecimal totalAmount = GoodsServiceUtils.calculateTotalAmount(goodsSkuDO.getPrice(), quantity);
-        GoodsSkuBO goodsSkuBO = buildGoodsSkuBO(goodsSkuDO, goodsDO, stockDO);
+        GoodsSku goodsSkuBO = buildGoodsSkuBO(goodsSkuDO, goodsDO, stockDO);
         DeductStockVO deductStockVO = new DeductStockVO();
         deductStockVO.setTotalAmount(totalAmount);
         deductStockVO.setGoodsSkuBO(goodsSkuBO);
         return deductStockVO;
     }
 
-    private GoodsSkuBO buildGoodsSkuBO(GoodsSkuDO goodsSkuDO, GoodsDO goodsDO, StockDO stockDO) {
-        GoodsSkuBO goodsSkuBO = new GoodsSkuBO();
+    private GoodsSku buildGoodsSkuBO(GoodsSkuDO goodsSkuDO, GoodsDO goodsDO, StockDO stockDO) {
+        GoodsSku goodsSkuBO = new GoodsSku();
         goodsSkuBO.setSkuId(goodsSkuDO.getId());
         goodsSkuBO.setGoodsId(goodsSkuDO.getGoodsId());
         goodsSkuBO.setGoodsName(goodsDO.getName());

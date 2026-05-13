@@ -32,7 +32,6 @@ private static final long serialVersionUID=1L;
 
     private Integer level;
 
-    @TableField( fill = FieldFill.INSERT)
     private Long  tenantId;
 
 }

@@ -14,8 +14,8 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.goods.api.GoodsApiService;
-import com.lanf.goods.model.bo.GoodsItemBO;
-import com.lanf.goods.model.bo.GoodsSkuBO;
+import com.lanf.goods.model.bo.GoodsItem;
+import com.lanf.goods.model.bo.GoodsSku;
 import com.lanf.goods.model.bo.ShopGoodsBO;
 import com.lanf.goods.model.dto.CalculateOrderTotalAmountDTO;
 import com.lanf.goods.model.dto.ClearCartDTO;
@@ -227,7 +227,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      */
     private OrderItemDTO createOrderItem(OrderInitParamsBO orderInitParamsBO, PlaceOrderDTO orderDTO, DeductStockVO deductStockVO) {
 
-        GoodsSkuBO goodsSkuBO = deductStockVO.getGoodsSkuBO();
+        GoodsSku goodsSkuBO = deductStockVO.getGoodsSkuBO();
         OrderItemDTO orderItem = new OrderItemDTO();
         orderItem.setOrderId(orderInitParamsBO.getOrderId());
         orderItem.setGoodsId(goodsSkuBO.getGoodsId());
@@ -435,7 +435,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      * @param cartItemList 购物车商品项列表
      * @return 订单金额
      */
-    private BigDecimal calculateOrderAmount(List<GoodsItemBO> cartItemList) {
+    private BigDecimal calculateOrderAmount(List<GoodsItem> cartItemList) {
         return cartItemList.stream()
                 .map(item -> BigDecimalUtil.multiply(item.getPrice(), new BigDecimal(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimalUtil::add);
@@ -468,7 +468,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         createMergeTradeOrderDTO.setTradeOrderItemList(tradeOrderItemList);
 
         for (ShopGoodsBO shopGoodsBO : goodsVOList) {
-            List<GoodsItemBO> cartItemList = shopGoodsBO.getCartItemList();
+            List<GoodsItem> cartItemList = shopGoodsBO.getCartItemList();
             BigDecimal orderAmount = calculateOrderAmount(cartItemList);
 
             CreateMergeTradeOrderItemDTO tradeOrderItem = new CreateMergeTradeOrderItemDTO();
@@ -519,10 +519,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
                                                SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO,
                                                SubmitCartDTO dto) {
         BigDecimal orderAmount = calculateOrderAmount(shopGoodsBO.getCartItemList());
-        List<GoodsItemBO> cartItemList = shopGoodsBO.getCartItemList();
+        List<GoodsItem> cartItemList = shopGoodsBO.getCartItemList();
         List<OrderItemDTO> orderItems = new ArrayList<>(cartItemList.size());
 
-        for (GoodsItemBO cartItem : cartItemList) {
+        for (GoodsItem cartItem : cartItemList) {
             OrderItemDTO orderItemDTO = buildOrderItemDTO(shopGoodsBO.getOrderId(), cartItem);
             orderItems.add(orderItemDTO);
         }
@@ -547,7 +547,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      * @param cartItem 购物车商品项
      * @return 订单项 DTO
      */
-    private OrderItemDTO buildOrderItemDTO(Long orderId, GoodsItemBO cartItem) {
+    private OrderItemDTO buildOrderItemDTO(Long orderId, GoodsItem cartItem) {
         OrderItemDTO orderItemDTO = new OrderItemDTO();
         orderItemDTO.setOrderId(orderId);
         orderItemDTO.setGoodsId(cartItem.getGoodsId());
