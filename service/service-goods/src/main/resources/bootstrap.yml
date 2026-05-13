@@ -44,4 +44,10 @@ server:
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
+    # 枚举类型处理器
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+#  # 或者全局配置
+#  global-config:
+#    db-config:
+#      enum-strategy: ORDINAL
 
