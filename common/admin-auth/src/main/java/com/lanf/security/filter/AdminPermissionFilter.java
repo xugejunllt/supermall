@@ -4,6 +4,7 @@ import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
+import com.lanf.constant.utils.TenantContextHolder;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.security.service.PermissionCacheService;
 import com.lanf.web.auth.AuthService;
@@ -82,13 +83,15 @@ public class AdminPermissionFilter extends OncePerRequestFilter implements Order
             filterChain.doFilter(request, response);
             log.info("执行菜单权限过滤器结束");
         } catch (BizException e) {
+            log.error("鉴权异常", e);
             ResponseUtil.outFail(response, Result.fail(e.getCode(),e.getMessage()));
         } catch (Exception e) {
-            log.error("添加菜单权限异常", e);
-            ResponseUtil.outFail(response, Result.fail("添加菜单权限异常"));
+            log.error("鉴权异常", e);
+            ResponseUtil.outFail(response, Result.fail("鉴权异常"));
         } finally {
             UserContext.clear();
             SigningKeyContext.clear();
+            TenantContextHolder.clear();
         }
     }
 

@@ -1,4 +1,4 @@
-package com.lanf.mybatis.utils;
+package com.lanf.constant.utils;
 
 public class TenantContextHolder {
     private static final ThreadLocal<Boolean> SKIP_TENANT = new ThreadLocal<>();
@@ -8,7 +8,8 @@ public class TenantContextHolder {
     }
 
     public static boolean isSkipTenant() {
-        return SKIP_TENANT.get() != null && SKIP_TENANT.get();
+        Boolean skipTenant = SKIP_TENANT.get();
+        return skipTenant == null || skipTenant;
     }
 
     public static void clear() {

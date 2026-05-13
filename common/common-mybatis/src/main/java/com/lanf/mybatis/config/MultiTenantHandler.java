@@ -2,7 +2,8 @@ package com.lanf.mybatis.config;
 
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
 import com.lanf.constant.utils.UserContext;
-import com.lanf.mybatis.utils.TenantContextHolder;
+import com.lanf.constant.utils.TenantContextHolder;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 
@@ -12,6 +13,7 @@ import net.sf.jsqlparser.expression.LongValue;
  * @author hege
  * @Date 2023-08-25
  */
+@Slf4j
 public class MultiTenantHandler implements TenantLineHandler {
 
     private final TenantProperties properties;
@@ -59,7 +61,9 @@ public class MultiTenantHandler implements TenantLineHandler {
         if (properties.getFilterTables().contains(tableName)) {
             return true;
         }
-
+        /**
+         * 如果上下文标记不存在 默认返回true
+         */
         return TenantContextHolder.isSkipTenant();
 
 

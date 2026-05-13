@@ -17,4 +17,10 @@ public class AuthPathConfig {
     private List<String> excludeAuthPaths;
 
     private List<String> internalServicePaths;
+
+    /**
+     * Admin 路径匹配模式列表
+     * 用于识别需要特殊处理的管理后台接口路径
+     */
+    private List<String> adminPaths;
 }

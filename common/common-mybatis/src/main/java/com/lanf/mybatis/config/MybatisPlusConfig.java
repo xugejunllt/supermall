@@ -30,9 +30,8 @@ public class MybatisPlusConfig {
         //向Mybatis过滤器链中添加分页拦截器
         interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
         interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
-        if (tenantEnableConfig.getEnable()) {
-            interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(new MultiTenantHandler(properties)));
-        }
+        interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(new MultiTenantHandler(properties)));
+
         return interceptor;
     }
 

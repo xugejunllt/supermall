@@ -2,7 +2,7 @@ package com.lanf.system.service.impl;
 
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.constant.Constants;
-import com.lanf.mybatis.utils.TenantContextHolder;
+import com.lanf.constant.utils.TenantContextHolder;
 import com.lanf.security.model.bo.AdminUser;
 import com.lanf.security.model.bo.AdminUserBO;
 import com.lanf.system.mapper.SysUserMapper;

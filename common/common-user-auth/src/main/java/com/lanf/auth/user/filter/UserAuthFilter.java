@@ -3,6 +3,7 @@ package com.lanf.auth.user.filter;
 import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
+import com.lanf.constant.utils.TenantContextHolder;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.web.auth.AuthService;
 import com.lanf.web.security.sign.SigningKeyContext;
@@ -36,14 +37,16 @@ public class UserAuthFilter implements Filter {
             authService.authenticate(servletRequest, false);
             filterChain.doFilter(servletRequest, response);
         } catch (BizException e) {
-
+            log.error("用户认证过滤器异常", e);
             ResponseUtil.outFail(response, Result.fail(e.getCode(), e.getMessage()));
         } catch (Exception e) {
+            log.error("用户认证过滤器异常", e);
             ResponseUtil.outFail(response, Result.fail(CommonCodeEnum.AUTH_FAILED.getCode(),
                     CommonCodeEnum.AUTH_FAILED.getMessage()));
         } finally {
             UserContext.clear();
             SigningKeyContext.clear();
+            TenantContextHolder.clear();
         }
     }
 }

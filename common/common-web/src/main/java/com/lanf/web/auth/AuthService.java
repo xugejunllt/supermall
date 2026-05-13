@@ -4,6 +4,7 @@ import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.utils.TenantContextHolder;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.web.config.AuthPathConfig;
 import com.lanf.web.model.bo.AuthRequestInfo;
@@ -37,7 +38,19 @@ public class AuthService {
         String requestURI = request.getRequestURI();
         List<String> excludeAuthPaths = authPathConfig.getExcludeAuthPaths();
         List<String> internalServicePaths = authPathConfig.getInternalServicePaths();
+        List<String> adminPaths = authPathConfig.getAdminPaths();
         try {
+
+            if ( adminPaths.contains(requestURI)) {
+                FeignRequestInfo authRequestInfo = RequestAuthExtractor.extractFeignAuthInfo(request);
+                log.info("接收到内部admin请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURI, authRequestInfo);
+                UserContext.setDeviceId(authRequestInfo.getDeviceId());
+                UserContext.setTenantId(authRequestInfo.getTenantId());
+                UserContext.setUserId(authRequestInfo.getUserId());
+                TenantContextHolder.setSkipTenant(false);
+                return;
+            }
+
             if (excludeAuthPaths.contains(requestURI)) {
                 AuthRequestInfo authRequestInfo = RequestAuthExtractor.extractBasicInfo(request);
                 log.info("接收到不需要鉴权请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURI, authRequestInfo);
@@ -51,10 +64,8 @@ public class AuthService {
                 UserContext.setDeviceId(authRequestInfo.getDeviceId());
                 UserContext.setTenantId(authRequestInfo.getTenantId());
                 UserContext.setUserId(authRequestInfo.getUserId());
-
                 return;
             }
-            log.info("开始鉴权");
             AuthRequestInfo authRequestInfo = RequestAuthExtractor.extractAuthInfo(request);
             String accessToken = authRequestInfo.getAccessToken();
             authRequestInfo.setAccessToken(null);
@@ -67,7 +78,6 @@ public class AuthService {
                     jwtTokenInfo = JwtUtils.parseAdminToken(accessToken);
                 } else {
                     jwtTokenInfo = JwtUtils.parseUserToken(accessToken);
-
                 }
             } catch (ExpiredJwtException e) {
                 log.warn("Token已过期");
