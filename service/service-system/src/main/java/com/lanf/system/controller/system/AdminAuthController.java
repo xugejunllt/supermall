@@ -1,4 +1,4 @@
-package com.lanf.system.controller.admin;
+package com.lanf.system.controller.system;
 
 import com.lanf.constant.result.Result;
 import com.lanf.system.model.dto.RefreshTokenDTO;

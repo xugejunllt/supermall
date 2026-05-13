@@ -1,6 +1,6 @@
 package com.lanf.goods.model.query;
 
-import com.lanf.constant.web.PageQuery;
+import com.lanf.constant.model.query.PageQuery;
 import lombok.Data;
 
 @Data

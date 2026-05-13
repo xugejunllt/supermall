@@ -1,4 +1,4 @@
-package com.lanf.system.controller;
+package com.lanf.system.controller.system;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;

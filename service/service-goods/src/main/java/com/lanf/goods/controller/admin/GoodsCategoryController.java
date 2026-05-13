@@ -1,12 +1,12 @@
 package com.lanf.goods.controller.admin;
 
 
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.GoodsCategoryAddDTO;
 import com.lanf.goods.model.vo.GoodsCategoryPageVO;
 import com.lanf.goods.service.goods.IGoodsCategoryService;
-import com.lanf.constant.web.PageQuery;
-import com.lanf.constant.web.PageResult;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -37,7 +37,7 @@ public class GoodsCategoryController {
         return Result.ok();
     }
     @GetMapping("/goodsCategoryPage")
-    public Result<PageResult<GoodsCategoryPageVO>> goodsCategoryPage( PageQuery query) {
+    public Result<PageResult<GoodsCategoryPageVO>> goodsCategoryPage(PageQuery query) {
 
         log.info("分页查询商品分类:query{}", query);
 

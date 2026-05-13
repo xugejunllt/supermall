@@ -1,4 +1,4 @@
-package com.lanf.goods.constant.code;
+package com.lanf.goods.constant;
 
 import lombok.Getter;
 
@@ -6,7 +6,7 @@ import lombok.Getter;
  * 统一返回结果状态信息类
  */
 @Getter
-public enum CommonResultCodeEnum {
+public enum GoodsCodeEnum {
 
     /**
      * 当次前段收到次code时 阻塞一秒后 重新发起请求，重试两次，
@@ -24,7 +24,7 @@ public enum CommonResultCodeEnum {
 
     private String message;
 
-     CommonResultCodeEnum(Integer code, String message) {
+     GoodsCodeEnum(Integer code, String message) {
         this.code = code;
         this.message = message;
     }

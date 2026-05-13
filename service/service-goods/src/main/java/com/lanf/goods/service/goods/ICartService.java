@@ -1,14 +1,14 @@
 package com.lanf.goods.service.goods;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.model.dto.*;
 import com.lanf.goods.model.entity.CartDO;
 import com.lanf.goods.model.vo.CartAddVO;
 import com.lanf.goods.model.vo.CartListVO;
 import com.lanf.goods.model.vo.ClearCartVO;
 import com.lanf.goods.model.vo.ValidateCartItemVO;
-import com.lanf.constant.web.PageQuery;
-import com.lanf.constant.web.PageResult;
 
 /**
  * <p>

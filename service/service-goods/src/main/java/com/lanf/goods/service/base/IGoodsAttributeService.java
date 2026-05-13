@@ -1,11 +1,11 @@
 package com.lanf.goods.service.base;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.model.dto.GoodsAttributeAddDTO;
 import com.lanf.goods.model.dto.GoodsAttributeUpdateDTO;
 import com.lanf.goods.model.entity.GoodsAttributeDO;
-import com.lanf.constant.web.PageQuery;
-import com.lanf.constant.web.PageResult;
 
 import java.util.List;
 

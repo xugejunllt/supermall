@@ -3,9 +3,18 @@ package com.lanf.goods.service.goods.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.*;
+import com.lanf.cache.aop.DistributedLock;
+import com.lanf.cache.service.DistributedLocker;
+import com.lanf.cache.service.RedissonCacheService;
+import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.IStringUtils;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.goods.constant.code.CommonResultCodeEnum;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.utils.IdUtils;
+import com.lanf.goods.constant.GoodsCodeEnum;
+import com.lanf.goods.constant.GoodsRedisKeyConstants;
 import com.lanf.goods.mapper.GoodsMapper;
 import com.lanf.goods.model.bo.*;
 import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
@@ -15,14 +24,8 @@ import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.vo.*;
 import com.lanf.goods.service.goods.*;
-import com.lanf.cache.aop.DistributedLock;
-import com.lanf.cache.service.DistributedLocker;
 import com.lanf.goods.service.stock.IStockService;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
-import com.lanf.cache.constant.RedisCacheConstants;
-import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.rocketmq.model.message.SyncGoodsInfoToEsMsg;
@@ -36,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -60,8 +64,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
     @Autowired
     private SystemService systemService;
-    @Autowired
-    private ISendMqMessageService sendMqMessageService;
+
     @Autowired
     private IStockService stockService;
     @Autowired
@@ -77,10 +80,12 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     private IShopService shopService;
     @Autowired
     private RocketMqClient rocketMqClient;
-    @Autowired
-    private RedisCache redisCache;
+
     @Autowired
     private DistributedLocker distributedLocker;
+    
+    @Autowired
+    private RedissonCacheService redissonCacheService;
 
     @DistributedLock(key = "#dto.code")
     @Transactional
@@ -222,18 +227,20 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     @Override
     public PageResult<GoodsPageVO> goodsPage(GoodsPageQuery query) {
         IPage<GoodsDO> page = new Page<>(query.getPage(), query.getPageSize());
-        IPage<GoodsDO> purchaseStorageOrderPage = this.lambdaQuery().
+        IPage<GoodsDO> result = this.lambdaQuery().
                 eq(!org.apache.commons.lang3.StringUtils.isEmpty(query.getCode()), GoodsDO::getCode, query.getCode()).
                 eq(!org.apache.commons.lang3.StringUtils.isEmpty(query.getName()), GoodsDO::getName, query.getName()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
-
-        if (purchaseStorageOrderPage.getRecords().isEmpty()) {
-
-            return PageResult.emptyResult(GoodsPageVO.class);
+        if (result.getRecords().isEmpty()){
+            return PageResult.emptyResult();
         }
+        PageResult<GoodsPageVO> resultVo = new PageResult<>();
+        resultVo.setTotal(result.getTotal());
+        resultVo.setSize(result.getSize());
+        resultVo.setRecords(BeanCopyUtils.copyBeanList(result.getRecords(), GoodsPageVO.class));
 
-        return PageResult.toPageResult(page, GoodsPageVO.class);
+        return resultVo;
     }
 
     @Override
@@ -302,7 +309,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
                 if (lock) {
                     detailVO = buildUserGoodsDetailVO(id);
                 } else {
-                    CommonResultCodeEnum codeEnum = CommonResultCodeEnum.LOCK_FAIL;
+                    GoodsCodeEnum codeEnum = GoodsCodeEnum.LOCK_FAIL;
                     throw new BizException(codeEnum.getCode(), codeEnum.getMessage());
                 }
                 //加入缓存中
@@ -356,13 +363,12 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     }
 
     private void addCache(Long keyPrefix, UserGoodsDetailVO value) {
-
-        redisCache.setCacheObject(RedisCacheConstants.getGOODS_DETAIL(keyPrefix),
-                JsonUtils.toJsonString(value), RedisCacheConstants.GOODS_DETAIL_EXP_TIME);
+        redissonCacheService.set(GoodsRedisKeyConstants.getGoodsDetailKey(keyPrefix),
+                JsonUtils.toJsonString(value), GoodsRedisKeyConstants.GOODS_DETAIL_EXP_TIME, TimeUnit.SECONDS);
     }
 
     private UserGoodsDetailVO getCache(Long keyPrefix) {
-        String cache = redisCache.getCacheObject(RedisCacheConstants.getGOODS_DETAIL(keyPrefix));
+        String cache = redissonCacheService.get(GoodsRedisKeyConstants.getGoodsDetailKey(keyPrefix));
         if (cache == null) {
             return null;
         }

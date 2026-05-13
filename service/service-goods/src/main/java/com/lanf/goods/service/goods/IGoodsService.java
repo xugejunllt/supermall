@@ -1,13 +1,13 @@
 package com.lanf.goods.service.goods;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.goods.model.dto.GoodsAddDTO;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
+import com.lanf.goods.model.dto.GoodsAddDTO;
 import com.lanf.goods.model.dto.UpDownStatusDTO;
 import com.lanf.goods.model.entity.GoodsDO;
 import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.vo.*;
-import com.lanf.constant.web.PageResult;
 
 import java.util.List;
 

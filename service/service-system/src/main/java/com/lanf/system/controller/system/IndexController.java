@@ -1,4 +1,4 @@
-package com.lanf.system.controller;
+package com.lanf.system.controller.system;
 
 import com.google.gson.JsonObject;
 import com.lanf.constant.result.Result;

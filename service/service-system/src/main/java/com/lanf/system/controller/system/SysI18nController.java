@@ -1,4 +1,4 @@
-package com.lanf.system.controller;
+package com.lanf.system.controller.system;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;

@@ -2,14 +2,14 @@ package com.lanf.goods.controller.admin;
 
 
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.BaseGoodsAddDTO;
 import com.lanf.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.goods.model.vo.BaseGoodsByCodeQueryVO;
 import com.lanf.goods.model.vo.BaseGoodsBySkuCodeQueryVO;
 import com.lanf.goods.model.vo.BaseGoodsPageVO;
 import com.lanf.goods.service.base.IBaseGoodsService;
-import com.lanf.constant.web.PageResult;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
