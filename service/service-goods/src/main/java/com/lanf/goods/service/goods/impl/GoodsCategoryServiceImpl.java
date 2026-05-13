@@ -3,17 +3,16 @@ package com.lanf.goods.service.goods.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.goods.model.dto.AddGoodsCategoryDTO;
+import com.lanf.api.goods.model.vo.GoodsCategoryPageVO;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.GoodsCategoryMapper;
-import com.lanf.api.goods.model.dto.AddGoodsCategoryDTO;
 import com.lanf.goods.model.entity.GoodsCategoryDO;
-import com.lanf.api.goods.model.vo.GoodsCategoryPageVO;
 import com.lanf.goods.service.goods.IGoodsCategoryService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,87 +40,115 @@ public class GoodsCategoryServiceImpl extends ServiceImpl<GoodsCategoryMapper, G
 
     @Override
     public PageResult<GoodsCategoryPageVO> goodsCategoryPageQuery(PageQuery query) {
-
         IPage<GoodsCategoryDO> page = new Page<>(query.getPage(), query.getPageSize());
-        //查一级分类
-        IPage<GoodsCategoryDO> pageResult = this.lambdaQuery().
-                eq(GoodsCategoryDO::getLevel, 1).
-                orderByDesc(GoodsCategoryDO::getUpdateTime)
-                .page(page);
-        if (pageResult.getRecords().isEmpty()){
-
-            return  PageResult.emptyResult();
+        
+        IPage<GoodsCategoryDO> levelOnePage = queryLevelOneCategories(page);
+        
+        if (levelOnePage.getRecords().isEmpty()) {
+            return PageResult.emptyResult();
         }
-        PageResult<GoodsCategoryPageVO> pageResult1 = new PageResult<>();
-        pageResult1.setRecords(BeanCopyUtils.copyBeanList(pageResult.getRecords(),
-                GoodsCategoryPageVO.class));
-        pageResult1.setTotal(pageResult.getTotal());
-        pageResult1.setSize(pageResult.getSize());
-
-        //查二级分类
-        List<Long> twoIdList = pageResult.getRecords().stream().map(GoodsCategoryDO::getId).collect(Collectors.toList());
-        List<GoodsCategoryDO> list = this.lambdaQuery().in(GoodsCategoryDO::getParentId, twoIdList).list();
-        if (list.isEmpty()){
-            return pageResult1;
+        
+        PageResult<GoodsCategoryPageVO> result = buildPageResult(levelOnePage);
+        
+        List<Long> levelOneIds = extractCategoryIds(levelOnePage.getRecords());
+        
+        Map<Long, List<GoodsCategoryPageVO>> levelTwoMap = queryAndGroupCategoriesByParentId(levelOneIds);
+        
+        if (levelTwoMap.isEmpty()) {
+            return result;
         }
-        //二级分类
-        List<GoodsCategoryPageVO> goodsCategoryPageVOList = BeanCopyUtils.copyBeanList(list, GoodsCategoryPageVO.class);
-        //二级分类map
-        Map<Long, List<GoodsCategoryPageVO>> goodsCategoryPageVOMap = new HashMap<>();
-
-        for (GoodsCategoryPageVO ca : goodsCategoryPageVOList) {
-
-            List<GoodsCategoryPageVO> categoryPageVOList = goodsCategoryPageVOMap.get(ca.getParentId());
-            if (categoryPageVOList == null) {
-                categoryPageVOList = new ArrayList<>();
-                goodsCategoryPageVOMap.put(ca.getParentId(), categoryPageVOList);
-            }
-            categoryPageVOList.add(ca);
-
-        }
-        //查三级分类
-        List<Long> threeIdList = list.stream().map(GoodsCategoryDO::getId).collect(Collectors.toList());
-        if (threeIdList.isEmpty()){
-            return pageResult1;
-        }
-        List<GoodsCategoryDO> threeList = this.lambdaQuery().in(GoodsCategoryDO::getParentId, threeIdList).list();
-
-        Map<Long, List<GoodsCategoryPageVO>> threeCategoryPageVOMap = new HashMap<>();
-
-        List<GoodsCategoryPageVO> threeCategoryPageVOList = BeanCopyUtils.copyBeanList(threeList, GoodsCategoryPageVO.class);
-
-        for (GoodsCategoryPageVO ca : threeCategoryPageVOList) {
-
-            List<GoodsCategoryPageVO> categoryPageVOList = threeCategoryPageVOMap.get(ca.getParentId());
-            if (categoryPageVOList == null) {
-                categoryPageVOList = new ArrayList<>();
-                threeCategoryPageVOMap.put(ca.getParentId(), categoryPageVOList);
-            }
-            categoryPageVOList.add(ca);
-
-        }
-        /**
-         * 添加级别引用
-         */
-
-        for (GoodsCategoryPageVO a : pageResult1.getRecords()){
-
-
-                List<GoodsCategoryPageVO> goodsCategoryPageVOList1 = goodsCategoryPageVOMap.get(a.getId());
-
-                if (goodsCategoryPageVOList1 == null){
-
-                    continue;
-                }
-                a.setChildren(goodsCategoryPageVOList1);
-                goodsCategoryPageVOList1.forEach(b -> {
-                    List<GoodsCategoryPageVO> goodsCategoryPageVOList3 = threeCategoryPageVOMap.get(b.getId());
-                    b.setChildren(goodsCategoryPageVOList3);
-
-                });
-
-        }
-
-        return pageResult1;
+        
+        List<Long> levelTwoIds = extractAllChildIds(levelTwoMap);
+        
+        Map<Long, List<GoodsCategoryPageVO>> levelThreeMap = queryAndGroupCategoriesByParentId(levelTwoIds);
+        
+        assembleCategoryTree(result.getRecords(), levelTwoMap, levelThreeMap);
+        
+        return result;
     }
+
+    /**
+     * 查询一级分类
+     */
+    private IPage<GoodsCategoryDO> queryLevelOneCategories(IPage<GoodsCategoryDO> page) {
+        return this.lambdaQuery()
+                .eq(GoodsCategoryDO::getLevel, 1)
+                .orderByDesc(GoodsCategoryDO::getUpdateTime)
+                .page(page);
+    }
+
+    /**
+     * 构建分页结果
+     */
+    private PageResult<GoodsCategoryPageVO> buildPageResult(IPage<GoodsCategoryDO> categoryPage) {
+        PageResult<GoodsCategoryPageVO> result = new PageResult<>();
+        result.setRecords(BeanCopyUtils.copyBeanList(categoryPage.getRecords(), GoodsCategoryPageVO.class));
+        result.setTotal(categoryPage.getTotal());
+        result.setSize(categoryPage.getSize());
+        return result;
+    }
+
+    /**
+     * 提取分类ID列表
+     */
+    private List<Long> extractCategoryIds(List<GoodsCategoryDO> categories) {
+        return categories.stream()
+                .map(GoodsCategoryDO::getId)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据父ID列表查询分类并按父ID分组
+     */
+    private Map<Long, List<GoodsCategoryPageVO>> queryAndGroupCategoriesByParentId(List<Long> parentIds) {
+        if (parentIds == null || parentIds.isEmpty()) {
+            return new HashMap<>();
+        }
+        
+        List<GoodsCategoryDO> categories = this.lambdaQuery()
+                .in(GoodsCategoryDO::getParentId, parentIds)
+                .list();
+        
+        if (categories.isEmpty()) {
+            return new HashMap<>();
+        }
+        
+        List<GoodsCategoryPageVO> categoryVOList = BeanCopyUtils.copyBeanList(categories, GoodsCategoryPageVO.class);
+        
+        return categoryVOList.stream()
+                .collect(Collectors.groupingBy(GoodsCategoryPageVO::getParentId));
+    }
+
+    /**
+     * 提取所有子分类ID
+     */
+    private List<Long> extractAllChildIds(Map<Long, List<GoodsCategoryPageVO>> categoryMap) {
+        return categoryMap.values().stream()
+                .flatMap(List::stream)
+                .map(GoodsCategoryPageVO::getId)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 组装分类树结构
+     */
+    private void assembleCategoryTree(List<GoodsCategoryPageVO> levelOneList,
+                                      Map<Long, List<GoodsCategoryPageVO>> levelTwoMap,
+                                      Map<Long, List<GoodsCategoryPageVO>> levelThreeMap) {
+        for (GoodsCategoryPageVO levelOne : levelOneList) {
+            List<GoodsCategoryPageVO> levelTwoList = levelTwoMap.get(levelOne.getId());
+            
+            if (levelTwoList == null || levelTwoList.isEmpty()) {
+                continue;
+            }
+            
+            levelOne.setChildren(levelTwoList);
+            
+            for (GoodsCategoryPageVO levelTwo : levelTwoList) {
+                List<GoodsCategoryPageVO> levelThreeList = levelThreeMap.get(levelTwo.getId());
+                levelTwo.setChildren(levelThreeList);
+            }
+        }
+    }
+
 }
