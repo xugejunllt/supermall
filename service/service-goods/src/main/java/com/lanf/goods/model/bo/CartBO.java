@@ -1,5 +1,6 @@
 package com.lanf.goods.model.bo;
 
+import com.lanf.goods.model.vo.CartGoodsVO;
 import lombok.Data;
 
 import java.io.Serializable;

@@ -7,7 +7,9 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.GoodsCategoryMapper;
+import com.lanf.goods.model.dto.GoodsCategoryAddDTO;
 import com.lanf.goods.model.entity.GoodsCategoryDO;
+import com.lanf.goods.model.vo.GoodsCategoryPageVO;
 import com.lanf.goods.service.goods.IGoodsCategoryService;
 import org.springframework.stereotype.Service;
 

@@ -2,12 +2,15 @@ package com.lanf.goods.controller.app;
 
 
 import com.lanf.constant.result.Result;
-
+import com.lanf.goods.model.vo.SkuDetailVO;
+import com.lanf.goods.model.vo.UserGoodsDetailVO;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>
