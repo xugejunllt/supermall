@@ -48,7 +48,7 @@ public interface GoodsApiService {
     public Result<List<ApiGoodsSkuVO>> queryBySkuCode(@RequestBody List<String> skuCode);
     @Deprecated
     @PostMapping("/goods/goodsApi/baseGoodsBySkuCodeBathQuery")
-    public Result<List<BaseGoodsBySkuCodeQueryVO>> baseGoodsBySkuCodeBathQuery(@RequestBody List<String> skuCodeList);
+    public Result<List<BaseGoodsBySkuCodeVO>> baseGoodsBySkuCodeBathQuery(@RequestBody List<String> skuCodeList);
     @Deprecated
     @PostMapping("/goods/goodsApi/checkAndQueryGoods")
     public Result<ApiGoodsSkuVO> checkAndQueryGoods(@RequestBody CheckAndQueryGoodsDTO dto);

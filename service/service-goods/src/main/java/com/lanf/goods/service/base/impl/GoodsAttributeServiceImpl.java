@@ -9,10 +9,12 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.GoodsAttributeMapper;
-import com.lanf.goods.model.dto.GoodsAttributeAddDTO;
-import com.lanf.goods.model.dto.GoodsAttributeUpdateDTO;
+import com.lanf.goods.model.dto.AddGoodsAttributeDTO;
+import com.lanf.goods.model.dto.UpdateGoodsAttributeDTO;
 import com.lanf.goods.model.entity.GoodsAttributeDO;
-import com.lanf.goods.model.vo.GoodsAttributeVO;
+import com.lanf.goods.model.vo.GoodsAttributeDetailVO;
+import com.lanf.goods.model.vo.GoodsAttributeListVO;
+import com.lanf.goods.model.vo.GoodsAttributePageVO;
 import com.lanf.goods.service.base.IGoodsAttributeService;
 import com.lanf.mybatis.base.BaseEntity;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,7 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
 
 
     @Override
-    public void goodsAttributeAdd(GoodsAttributeAddDTO dto) {
+    public void addGoodsAttribute(AddGoodsAttributeDTO dto) {
 
         GoodsAttributeDO one = this.lambdaQuery().
                 eq(GoodsAttributeDO::getAttribute, dto.getAttribute())
@@ -49,7 +51,7 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
     }
 
     @Override
-    public PageResult<GoodsAttributeDO> goodsAttributePage(PageQuery query) {
+    public PageResult<GoodsAttributePageVO> goodsAttributePageQuery(PageQuery query) {
 
         IPage<GoodsAttributeDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<GoodsAttributeDO> result = this.lambdaQuery().
@@ -60,15 +62,15 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
 
             return PageResult.emptyResult();
         }
-        PageResult<GoodsAttributeDO> resultVo = new PageResult<>();
+        PageResult<GoodsAttributePageVO> resultVo = new PageResult<>();
         resultVo.setTotal(result.getTotal());
         resultVo.setSize(result.getSize());
-        resultVo.setRecords(result.getRecords());
+        resultVo.setRecords(BeanCopyUtils.copyBeanList(result.getRecords(), GoodsAttributePageVO.class));
         return resultVo;
     }
 
     @Override
-    public void goodsAttributeUpdate(GoodsAttributeUpdateDTO dto) {
+    public void updateGoodsAttribute(UpdateGoodsAttributeDTO dto) {
 
         GoodsAttributeDO GoodsAttributeUpdate = new GoodsAttributeDO();
         GoodsAttributeUpdate.setId(dto.getId());
@@ -79,23 +81,23 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
     }
 
     @Override
-    public List<GoodsAttributeVO> goodsAttributeList() {
+    public List<GoodsAttributeListVO> goodsAttributeListQuery() {
 
         List<GoodsAttributeDO> list = this.lambdaQuery().eq(GoodsAttributeDO::getTenantId, MerchantIdContext.getMerchantId()).list();
         if (list.isEmpty()){
             return null;
         }
 
-        return BeanCopyUtils.copyBeanList(list, GoodsAttributeVO.class);
+        return BeanCopyUtils.copyBeanList(list, GoodsAttributeListVO.class);
     }
 
     @Override
-    public GoodsAttributeVO detail(Long id) {
+    public GoodsAttributeDetailVO goodsAttributeDetailQuery(Long id) {
         GoodsAttributeDO byId = this.getById(id);
         if (byId == null){
             return null;
         }
-        return BeanCopyUtils.copyBean(byId, GoodsAttributeVO.class);
+        return BeanCopyUtils.copyBean(byId, GoodsAttributeDetailVO.class);
     }
 
 }

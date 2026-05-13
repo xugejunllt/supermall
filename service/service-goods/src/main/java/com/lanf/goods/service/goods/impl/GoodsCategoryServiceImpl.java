@@ -7,7 +7,7 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.GoodsCategoryMapper;
-import com.lanf.goods.model.dto.GoodsCategoryAddDTO;
+import com.lanf.goods.model.dto.AddGoodsCategoryDTO;
 import com.lanf.goods.model.entity.GoodsCategoryDO;
 import com.lanf.goods.model.vo.GoodsCategoryPageVO;
 import com.lanf.goods.service.goods.IGoodsCategoryService;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class GoodsCategoryServiceImpl extends ServiceImpl<GoodsCategoryMapper, GoodsCategoryDO> implements IGoodsCategoryService {
 
     @Override
-    public void goodsCategoryAdd(GoodsCategoryAddDTO dto) {
+    public void addGoodsCategory(AddGoodsCategoryDTO dto) {
 
         GoodsCategoryDO goodsCategoryDO = new GoodsCategoryDO();
         BeanCopyUtils.copy(dto, goodsCategoryDO);
@@ -40,7 +40,7 @@ public class GoodsCategoryServiceImpl extends ServiceImpl<GoodsCategoryMapper, G
     }
 
     @Override
-    public PageResult<GoodsCategoryPageVO> goodsCategoryPage(PageQuery query) {
+    public PageResult<GoodsCategoryPageVO> goodsCategoryPageQuery(PageQuery query) {
 
         IPage<GoodsCategoryDO> page = new Page<>(query.getPage(), query.getPageSize());
         //查一级分类

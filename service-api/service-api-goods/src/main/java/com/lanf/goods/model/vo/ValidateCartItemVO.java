@@ -1,6 +1,6 @@
 package com.lanf.goods.model.vo;
 
-import com.lanf.goods.model.bo.ShopGoodsBO;
+import com.lanf.goods.model.bo.ShopGoods;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -16,6 +16,6 @@ public class ValidateCartItemVO implements Serializable {
     /** 总价 */
     private BigDecimal totalPrice;
     
-    private List<ShopGoodsBO> goodsVOList;
+    private List<ShopGoods> goodsVOList;
 
 }

@@ -4,10 +4,11 @@ package com.lanf.goods.controller.admin;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.goods.model.dto.GoodsAttributeAddDTO;
-import com.lanf.goods.model.dto.GoodsAttributeUpdateDTO;
-import com.lanf.goods.model.entity.GoodsAttributeDO;
-import com.lanf.goods.model.vo.GoodsAttributeVO;
+import com.lanf.goods.model.dto.AddGoodsAttributeDTO;
+import com.lanf.goods.model.dto.UpdateGoodsAttributeDTO;
+import com.lanf.goods.model.vo.GoodsAttributeDetailVO;
+import com.lanf.goods.model.vo.GoodsAttributeListVO;
+import com.lanf.goods.model.vo.GoodsAttributePageVO;
 import com.lanf.goods.service.base.IGoodsAttributeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,44 +33,44 @@ public class GoodsAttributeController {
     @Autowired
     private IGoodsAttributeService goodsAttributeService;
 
-    @PostMapping("/goodsAttributeAdd")
-    public Result<Void> goodsAttributeAdd(@Validated @RequestBody GoodsAttributeAddDTO dto) {
+    @PostMapping("/addGoodsAttribute")
+    public Result<Void> addGoodsAttribute(@Validated @RequestBody AddGoodsAttributeDTO dto) {
 
         log.info("添加商品属性:dto{}", dto);
-        goodsAttributeService.goodsAttributeAdd(dto);
+        goodsAttributeService.addGoodsAttribute(dto);
         return Result.ok();
     }
 
-    @GetMapping("/goodsAttributePage")
-    public Result<PageResult<GoodsAttributeDO>> goodsAttributePage(PageQuery query) {
+    @GetMapping("/goodsAttributePageQuery")
+    public Result<PageResult<GoodsAttributePageVO>> goodsAttributePageQuery(PageQuery query) {
 
         log.info("分页查询商品属性:query{}", query);
 
-        return Result.ok(goodsAttributeService.goodsAttributePage(query));
+        return Result.ok(goodsAttributeService.goodsAttributePageQuery(query));
     }
 
 
-    @PostMapping("/goodsAttributeUpdate")
-    public Result<Void> goodsAttributeUpdate(@Validated @RequestBody GoodsAttributeUpdateDTO dto) {
+    @PostMapping("/updateGoodsAttribute")
+    public Result<Void> updateGoodsAttribute(@Validated @RequestBody UpdateGoodsAttributeDTO dto) {
 
         log.info("更新商品属性:dto{}", dto);
-        goodsAttributeService.goodsAttributeUpdate(dto);
+        goodsAttributeService.updateGoodsAttribute(dto);
         return Result.ok();
     }
 
-    @GetMapping("/goodsAttributeList")
-    public Result<List<GoodsAttributeVO>> goodsAttributeList() {
+    @GetMapping("/goodsAttributeListQuery")
+    public Result<List<GoodsAttributeListVO>> goodsAttributeListQuery() {
 
         log.info("查询所有商品属性");
 
-        return Result.ok(goodsAttributeService.goodsAttributeList());
+        return Result.ok(goodsAttributeService.goodsAttributeListQuery());
     }
-    @GetMapping("/detail")
-    public Result<GoodsAttributeVO> detail(Long id) {
+    @GetMapping("/goodsAttributeDetailQuery")
+    public Result<GoodsAttributeDetailVO> goodsAttributeDetailQuery(Long id) {
 
-        log.info("属性详细");
+        log.info("属性详细{}",id);
 
-        return Result.ok(goodsAttributeService.detail(id));
+        return Result.ok(goodsAttributeService.goodsAttributeDetailQuery(id));
     }
 }
 

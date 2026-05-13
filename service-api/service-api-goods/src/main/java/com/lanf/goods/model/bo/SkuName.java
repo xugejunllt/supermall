@@ -8,7 +8,7 @@ import java.io.Serializable;
  * SKU名称BO
  */
 @Data
-public class SkuNameBO implements Serializable {
+public class SkuName implements Serializable {
 
     /** 属性 */
     private String attribute;

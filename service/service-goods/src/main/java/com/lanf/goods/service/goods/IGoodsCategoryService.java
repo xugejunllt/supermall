@@ -3,7 +3,7 @@ package com.lanf.goods.service.goods;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.goods.model.dto.GoodsCategoryAddDTO;
+import com.lanf.goods.model.dto.AddGoodsCategoryDTO;
 import com.lanf.goods.model.entity.GoodsCategoryDO;
 import com.lanf.goods.model.vo.GoodsCategoryPageVO;
 
@@ -17,7 +17,7 @@ import com.lanf.goods.model.vo.GoodsCategoryPageVO;
  */
 public interface IGoodsCategoryService extends IService<GoodsCategoryDO> {
 
-    void goodsCategoryAdd(GoodsCategoryAddDTO dto);
+    void addGoodsCategory(AddGoodsCategoryDTO dto);
 
-    PageResult<GoodsCategoryPageVO> goodsCategoryPage(PageQuery query);
+    PageResult<GoodsCategoryPageVO> goodsCategoryPageQuery(PageQuery query);
 }

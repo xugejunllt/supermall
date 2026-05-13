@@ -6,7 +6,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class BaseGoodsBySkuCodeQueryVO implements Serializable {
+public class BaseGoodsBySkuCodeVO implements Serializable {
 
 
     private String skuCode;

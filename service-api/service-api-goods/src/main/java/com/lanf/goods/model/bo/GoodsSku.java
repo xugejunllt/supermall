@@ -9,7 +9,7 @@ import java.math.BigDecimal;
  * 商品SKU BO
  */
 @Data
-public class GoodsSkuBO implements Serializable {
+public class GoodsSku implements Serializable {
 
     private Long skuId;
 

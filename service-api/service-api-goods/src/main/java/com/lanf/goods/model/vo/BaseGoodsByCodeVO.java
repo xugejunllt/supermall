@@ -9,7 +9,7 @@ import java.util.List;
  * 基础商品按编码查询VO
  */
 @Data
-public class BaseGoodsByCodeQueryVO implements Serializable {
+public class BaseGoodsByCodeVO implements Serializable {
 
     /** 商品名称 */
     private String name;

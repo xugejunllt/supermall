@@ -3,10 +3,12 @@ package com.lanf.goods.service.base;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.goods.model.dto.GoodsAttributeAddDTO;
-import com.lanf.goods.model.dto.GoodsAttributeUpdateDTO;
+import com.lanf.goods.model.dto.AddGoodsAttributeDTO;
+import com.lanf.goods.model.dto.UpdateGoodsAttributeDTO;
 import com.lanf.goods.model.entity.GoodsAttributeDO;
-import com.lanf.goods.model.vo.GoodsAttributeVO;
+import com.lanf.goods.model.vo.GoodsAttributeDetailVO;
+import com.lanf.goods.model.vo.GoodsAttributeListVO;
+import com.lanf.goods.model.vo.GoodsAttributePageVO;
 
 import java.util.List;
 
@@ -20,13 +22,13 @@ import java.util.List;
  */
 public interface IGoodsAttributeService extends IService<GoodsAttributeDO> {
 
-    void  goodsAttributeAdd(GoodsAttributeAddDTO dto);
+    void  addGoodsAttribute(AddGoodsAttributeDTO dto);
 
-    PageResult<GoodsAttributeDO> goodsAttributePage(PageQuery query);
+    PageResult<GoodsAttributePageVO> goodsAttributePageQuery(PageQuery query);
 
-    void  goodsAttributeUpdate(GoodsAttributeUpdateDTO dto);
+    void  updateGoodsAttribute(UpdateGoodsAttributeDTO dto);
 
-    List<GoodsAttributeVO> goodsAttributeList();
+    List<GoodsAttributeListVO> goodsAttributeListQuery();
 
-    GoodsAttributeVO detail(Long id);
+    GoodsAttributeDetailVO goodsAttributeDetailQuery(Long id);
 }

@@ -4,8 +4,9 @@ package com.lanf.goods.controller.admin;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.goods.model.dto.GoodsBrandAddDTO;
-import com.lanf.goods.model.vo.GoodsBrandVO;
+import com.lanf.goods.model.dto.AddGoodsBrandDTO;
+import com.lanf.goods.model.vo.GoodsBrandListVO;
+import com.lanf.goods.model.vo.GoodsBrandPageVO;
 import com.lanf.goods.service.goods.IGoodsBrandService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,27 +31,27 @@ public class GoodsBrandController {
     @Autowired
     private IGoodsBrandService goodsBrandService;
 
-    @PostMapping("/goodsBrandAdd")
-    public Result<Void> goodsBrandAdd(@Validated @RequestBody GoodsBrandAddDTO dto) {
+    @PostMapping("/addGoodsBrand")
+    public Result<Void> addGoodsBrand(@Validated @RequestBody AddGoodsBrandDTO dto) {
         log.info("添加商品品牌:dto{}", dto);
-        goodsBrandService.goodsBrandAdd(dto);
+        goodsBrandService.addGoodsBrand(dto);
         return Result.ok();
     }
 
-    @GetMapping("/goodsBrandPage")
-    public Result<PageResult<GoodsBrandVO>> goodsBrandPage(PageQuery query) {
+    @GetMapping("/goodsBrandPageQuery")
+    public Result<PageResult<GoodsBrandPageVO>> goodsBrandPageQuery(PageQuery query) {
 
         log.info("分页查询商品品牌:query{}", query);
 
-        return Result.ok(goodsBrandService.goodsBrandPage(query));
+        return Result.ok(goodsBrandService.goodsBrandPageQuery(query));
     }
 
-    @GetMapping("/goodsBrandList")
-    public Result<List<GoodsBrandVO>> goodsBrandList() {
+    @GetMapping("/goodsBrandListQuery")
+    public Result<List<GoodsBrandListVO>> goodsBrandListQuery() {
 
         log.info("查询所有品牌");
 
-        return Result.ok(goodsBrandService.goodsBrandList());
+        return Result.ok(goodsBrandService.goodsBrandListQuery());
     }
 
 }

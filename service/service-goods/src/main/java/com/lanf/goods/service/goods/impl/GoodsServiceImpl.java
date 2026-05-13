@@ -17,9 +17,10 @@ import com.lanf.goods.constant.GoodsCodeEnum;
 import com.lanf.goods.constant.GoodsRedisKeyConstants;
 import com.lanf.goods.mapper.GoodsMapper;
 import com.lanf.goods.model.bo.*;
+import com.lanf.goods.model.dto.AddGoodsDTO;
 import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
-import com.lanf.goods.model.dto.GoodsAddDTO;
 import com.lanf.goods.model.dto.UpDownStatusDTO;
+import com.lanf.goods.model.dto.UpGoodsDTO;
 import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.vo.*;
@@ -86,7 +87,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     @DistributedLock(key = "#dto.code")
     @Transactional
     @Override
-    public void goodsAdd(GoodsAddDTO dto) {
+    public void addGoods(AddGoodsDTO dto) {
 
         validateAddGoods(dto);
 
@@ -145,7 +146,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
     }
 
-    private void validateAddGoods(GoodsAddDTO dto) {
+    private void validateAddGoods(AddGoodsDTO dto) {
 
         Long categoryId = dto.getCategoryId();
         Long brandId = dto.getBrandId();
@@ -173,7 +174,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
     }
 
-    private static List<GoodsSkuAdd> getGoodsSkuAddDTOList(GoodsAddDTO dto) {
+    private static List<GoodsSkuAdd> getGoodsSkuAddDTOList(AddGoodsDTO dto) {
         List<GoodsSkuAdd> goodsSkuAddDTOList = dto.getGoodsSkuAddDTOList();
 
 
@@ -221,7 +222,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
 
     @Override
-    public PageResult<GoodsPageVO> goodsPage(GoodsPageQuery query) {
+    public PageResult<GoodsPageVO> goodsPageQuery(GoodsPageQuery query) {
         IPage<GoodsDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<GoodsDO> result = this.lambdaQuery().
                 eq(!org.apache.commons.lang3.StringUtils.isEmpty(query.getCode()), GoodsDO::getCode, query.getCode()).
@@ -240,7 +241,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     }
 
     @Override
-    public GoodsDetailVO goodsDetail(Long id) {
+    public GoodsDetailVO goodsDetailQuery(Long id) {
 
         GoodsDO goodsDO = this.getById(id);
         if (goodsDO == null) {
@@ -518,18 +519,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         return goodsSkuVOS;
     }
 
-    @Override
-    public void upDownStatus(UpDownStatusDTO dto) {
 
-
-        Integer upDownStatus = dto.getUpDownStatus();
-        Long id = dto.getId();
-        GoodsDO goodsDOUpdate = new GoodsDO();
-        goodsDOUpdate.setId(id);
-        goodsDOUpdate.setUpDownStatus(upDownStatus);
-        this.updateById(goodsDOUpdate);
-
-    }
 
     @Override
     public ApiGoodsSkuVO checkAndQueryGoods(CheckAndQueryGoodsDTO dto) {
@@ -586,8 +576,9 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     @DistributedLock(key = "#goodsId")
     @Transactional
     @Override
-    public void upGoods(Long goodsId) {
+    public void upGoods(UpGoodsDTO dto) {
 
+        Long goodsId = dto.getGoodsId();
         //validateUpGoods(goodsId);
         GoodsDO goodsDO = this.getById(goodsId);
         Long updateVersion = goodsDO.getVersion() + 1;

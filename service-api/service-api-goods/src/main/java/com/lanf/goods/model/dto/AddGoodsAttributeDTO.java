@@ -1,6 +1,5 @@
 package com.lanf.goods.model.dto;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -9,13 +8,14 @@ import java.io.Serializable;
 
 
 @Data
-public class GoodsAttributeAddDTO implements Serializable {
+public class AddGoodsAttributeDTO implements Serializable {
 
-    @ApiModelProperty(value = "属性")
     @NotBlank(message = "属性不能为空")
     private String attribute;
 
-    @ApiModelProperty(value = "属性值 多个 用;隔开")
+    /**
+     * 属性值 多个 用;隔开
+     */
     @NotBlank(message = "属性值不能为空")
     private String attributeValue;
 

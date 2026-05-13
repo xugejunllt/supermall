@@ -1,6 +1,6 @@
 package com.lanf.goods.model.vo;
 
-import com.lanf.goods.model.bo.ShopGoodsBO;
+import com.lanf.goods.model.bo.ShopGoods;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -15,6 +15,6 @@ public class ClearCartVO implements java.io.Serializable {
     /** 总价 */
     private BigDecimal totalPrice;
 
-    private List<ShopGoodsBO> goodsVOList;
+    private List<ShopGoods> goodsVOList;
 
 }

@@ -11,7 +11,7 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.BaseGoodsMapper;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
-import com.lanf.goods.model.dto.BaseGoodsAddDTO;
+import com.lanf.goods.model.dto.AddBaseGoodsDTO;
 import com.lanf.goods.model.dto.BaseGoodsSkuAddDTO;
 import com.lanf.goods.model.entity.BaseGoodsDO;
 import com.lanf.goods.model.entity.BaseGoodsSkuDO;
@@ -48,7 +48,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
 
     @Override
     @Transactional
-    public void baseGoodsAdd(BaseGoodsAddDTO baseGoodsAdd) {
+    public void addBaseGoods(AddBaseGoodsDTO baseGoodsAdd) {
 
         BaseGoodsDO baseGoodsDO = new BaseGoodsDO();
         BeanCopyUtils.copy(baseGoodsAdd, baseGoodsDO);
@@ -97,14 +97,14 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
     }
 
     @Override
-    public BaseGoodsByCodeQueryVO baseGoodsByCodeQuery(String code) {
+    public BaseGoodsByCodeVO baseGoodsByCodeQuery(String code) {
 
         BaseGoodsDO goodsDO = this.lambdaQuery().eq(BaseGoodsDO::getCode, code).one();
         if (goodsDO == null) {
             throw new BizException("商品信息不存在");
         }
         List<BaseGoodsSkuDO> baseGoodsSkuDOList = baseGoodsSkuService.lambdaQuery().eq(BaseGoodsSkuDO::getGoodsId, goodsDO.getId()).list();
-        BaseGoodsByCodeQueryVO baseGoodsByCodeQueryVO = new BaseGoodsByCodeQueryVO();
+        BaseGoodsByCodeVO baseGoodsByCodeQueryVO = new BaseGoodsByCodeVO();
         BeanCopyUtils.copy(goodsDO, baseGoodsByCodeQueryVO);
         List<BaseGoodsSkuByCodeQueryVO> baseGoodsSkuByCodeQueryVOS = BeanCopyUtils.copyBeanList(baseGoodsSkuDOList, BaseGoodsSkuByCodeQueryVO.class);
         Map<String, List<BaseGoodsSkuByCodeQueryVO>> skuMap = new HashMap<>();
@@ -171,7 +171,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
     }
 
     @Override
-    public BaseGoodsBySkuCodeQueryVO baseGoodsBySkuCodeQuery(String skuCode) {
+    public BaseGoodsBySkuCodeVO baseGoodsBySkuCodeQuery(String skuCode) {
 
         List<BaseGoodsSkuDO> baseGoodsSkuDOList = baseGoodsSkuService.lambdaQuery().eq(BaseGoodsSkuDO::getSkuCode, skuCode).list();
         if (baseGoodsSkuDOList.isEmpty()) {
@@ -181,7 +181,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
         Long goodsId = baseGoodsSkuDOList.get(0).getGoodsId();
         String goodsName = this.getById(goodsId).getName();
         String skuName = buildSkuName(baseGoodsSkuDOList);
-        BaseGoodsBySkuCodeQueryVO vo = new BaseGoodsBySkuCodeQueryVO();
+        BaseGoodsBySkuCodeVO vo = new BaseGoodsBySkuCodeVO();
         vo.setSkuName(skuName);
         vo.setName(goodsName);
         return vo;
@@ -202,7 +202,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
     }
 
     @Override
-    public List<BaseGoodsBySkuCodeQueryVO> baseGoodsBySkuCodeBathQuery(List<String> skuCodeList) {
+    public List<BaseGoodsBySkuCodeVO> baseGoodsBySkuCodeBathQuery(List<String> skuCodeList) {
 
 
         ThreadLocalUtils.addIgnoreTableName(true);
@@ -230,11 +230,11 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
 
         });
         Set<String> skuCodeSet = baseGoodsSkuMap.keySet();
-        List<BaseGoodsBySkuCodeQueryVO> baseGoodsBySkuCodeQueryVOList = new ArrayList<>(skuCodeSet.size());
+        List<BaseGoodsBySkuCodeVO> baseGoodsBySkuCodeQueryVOList = new ArrayList<>(skuCodeSet.size());
 
         for (String a : skuCodeSet) {
 
-            BaseGoodsBySkuCodeQueryVO vo = new BaseGoodsBySkuCodeQueryVO();
+            BaseGoodsBySkuCodeVO vo = new BaseGoodsBySkuCodeVO();
             List<BaseGoodsSkuDO> baseGoodsSkuDOS = baseGoodsSkuMap.get(a);
             String skuName = buildSkuName(baseGoodsSkuDOS);
             Long goodsId = baseGoodsSkuDOS.get(0).getGoodsId();

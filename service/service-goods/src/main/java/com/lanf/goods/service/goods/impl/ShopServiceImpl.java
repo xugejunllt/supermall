@@ -7,11 +7,14 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.ShopMapper;
-import com.lanf.goods.model.dto.ShopDTO;
+import com.lanf.goods.model.dto.AddShopDTO;
 import com.lanf.goods.model.entity.ShopDO;
+import com.lanf.goods.model.vo.ShopListVO;
+import com.lanf.goods.model.vo.ShopPageVO;
 import com.lanf.goods.service.goods.IShopService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,28 +29,37 @@ import java.util.List;
 public class ShopServiceImpl extends ServiceImpl<ShopMapper, ShopDO> implements IShopService {
 
     @Override
-    public void addShop(ShopDTO dto) {
+    public void addShop(AddShopDTO dto) {
         ShopDO shop = BeanCopyUtils.copyBean(dto, ShopDO.class);
         this.save(shop);
 
     }
 
     @Override
-    public PageResult<ShopDO> shopPage(PageQuery query) {
+    public PageResult<ShopPageVO> shopPageQuery(PageQuery query) {
         IPage<ShopDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<ShopDO> pageResult = this.lambdaQuery().
                 orderByDesc(ShopDO::getUpdateTime)
                 .page(page);
+        if (pageResult.getRecords().isEmpty()){
 
-        PageResult<ShopDO> result = new PageResult<>();
+            return PageResult.emptyResult();
+        }
+
+        PageResult<ShopPageVO> result = new PageResult<>();
         result.setTotal(pageResult.getTotal());
         result.setSize(pageResult.getSize());
-        result.setRecords(pageResult.getRecords());
+        result.setRecords(BeanCopyUtils.copyBeanList(pageResult.getRecords(), ShopPageVO.class));
         return result;
     }
 
     @Override
-    public List<ShopDO> shopList() {
-        return this.list();
+    public List<ShopListVO> shopListQuery() {
+
+        List<ShopDO> shopDOList = this.list();
+        if (shopDOList.isEmpty()){
+            return new ArrayList<>();
+        }
+        return BeanCopyUtils.copyBeanList(shopDOList, ShopListVO.class);
     }
 }

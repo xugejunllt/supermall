@@ -4,7 +4,7 @@ package com.lanf.goods.controller.admin;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.goods.model.dto.GoodsCategoryAddDTO;
+import com.lanf.goods.model.dto.AddGoodsCategoryDTO;
 import com.lanf.goods.model.vo.GoodsCategoryPageVO;
 import com.lanf.goods.service.goods.IGoodsCategoryService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,20 +28,20 @@ public class GoodsCategoryController {
     @Autowired
     private IGoodsCategoryService goodsCategoryService;
 
-    @PostMapping("/goodsCategoryAdd")
-    public Result<Void> goodsCategoryAdd(@Validated @RequestBody GoodsCategoryAddDTO dto) {
+    @PostMapping("/addGoodsCategory")
+    public Result<Void> addGoodsCategory(@Validated @RequestBody AddGoodsCategoryDTO dto) {
 
         log.info("添加商品分类:dto{}", dto);
-        goodsCategoryService.goodsCategoryAdd(dto);
+        goodsCategoryService.addGoodsCategory(dto);
 
         return Result.ok();
     }
-    @GetMapping("/goodsCategoryPage")
-    public Result<PageResult<GoodsCategoryPageVO>> goodsCategoryPage(PageQuery query) {
+    @GetMapping("/goodsCategoryPageQuery")
+    public Result<PageResult<GoodsCategoryPageVO>> goodsCategoryPageQuery(PageQuery query) {
 
         log.info("分页查询商品分类:query{}", query);
 
-        return Result.ok( goodsCategoryService.goodsCategoryPage(query));
+        return Result.ok( goodsCategoryService.goodsCategoryPageQuery(query));
     }
 
 }

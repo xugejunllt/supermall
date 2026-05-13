@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 
 @Data
-public class GoodsAttributeUpdateDTO implements Serializable {
+public class UpdateGoodsAttributeDTO implements Serializable {
 
     @NotNull(message ="id不能为空" )
     private Long id;

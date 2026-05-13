@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 
 @Data
-public class GoodsBrandAddDTO implements Serializable {
+public class AddGoodsBrandDTO implements Serializable {
 
     @ApiModelProperty(value = "名称")
     @NotBlank(message = "品牌名称不存在")

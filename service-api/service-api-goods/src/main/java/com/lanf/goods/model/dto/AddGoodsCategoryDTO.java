@@ -10,7 +10,7 @@ import java.io.Serializable;
  * 商品分类新增DTO
  */
 @Data
-public class GoodsCategoryAddDTO implements Serializable {
+public class AddGoodsCategoryDTO implements Serializable {
 
     /** 名称 */
     private String name;

@@ -2,11 +2,11 @@ package com.lanf.goods.service.base;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.goods.model.dto.BaseGoodsAddDTO;
+import com.lanf.goods.model.dto.AddBaseGoodsDTO;
 import com.lanf.goods.model.entity.BaseGoodsDO;
 import com.lanf.goods.model.query.BaseGoodsPageQuery;
-import com.lanf.goods.model.vo.BaseGoodsByCodeQueryVO;
-import com.lanf.goods.model.vo.BaseGoodsBySkuCodeQueryVO;
+import com.lanf.goods.model.vo.BaseGoodsByCodeVO;
+import com.lanf.goods.model.vo.BaseGoodsBySkuCodeVO;
 import com.lanf.goods.model.vo.BaseGoodsPageVO;
 
 import java.util.List;
@@ -21,13 +21,13 @@ import java.util.List;
  */
 public interface IBaseGoodsService extends IService<BaseGoodsDO> {
 
-    void  baseGoodsAdd(BaseGoodsAddDTO baseGoodsAdd);
+    void  addBaseGoods(AddBaseGoodsDTO baseGoodsAdd);
     PageResult<BaseGoodsPageVO> baseGoodsPageQuery(BaseGoodsPageQuery query);
 
-    BaseGoodsByCodeQueryVO baseGoodsByCodeQuery(String code);
+    BaseGoodsByCodeVO baseGoodsByCodeQuery(String code);
 
-    BaseGoodsBySkuCodeQueryVO baseGoodsBySkuCodeQuery(String skuCode);
+    BaseGoodsBySkuCodeVO baseGoodsBySkuCodeQuery(String skuCode);
 
-    List<BaseGoodsBySkuCodeQueryVO> baseGoodsBySkuCodeBathQuery(List<String> skuCodeList);
+    List<BaseGoodsBySkuCodeVO> baseGoodsBySkuCodeBathQuery(List<String> skuCodeList);
 
 }

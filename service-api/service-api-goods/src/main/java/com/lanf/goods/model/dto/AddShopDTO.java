@@ -8,7 +8,7 @@ import java.io.Serializable;
  * 店铺DTO
  */
 @Data
-public class ShopDTO implements Serializable {
+public class AddShopDTO implements Serializable {
 
 
     /** 店铺名称 */

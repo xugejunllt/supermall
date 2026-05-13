@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.goods.api.GoodsApiService;
-import com.lanf.goods.model.vo.BaseGoodsBySkuCodeQueryVO;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.constant.web.PageResult;
 import com.lanf.storage.mapper.StockMapper;

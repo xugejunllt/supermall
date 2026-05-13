@@ -3,8 +3,8 @@ package com.lanf.goods.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.goods.model.dto.GoodsAddDTO;
-import com.lanf.goods.model.dto.UpDownStatusDTO;
+import com.lanf.goods.model.dto.AddGoodsDTO;
+import com.lanf.goods.model.dto.UpGoodsDTO;
 import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.vo.GoodsDetailVO;
 import com.lanf.goods.model.vo.GoodsPageVO;
@@ -13,8 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * <p>
@@ -33,44 +31,37 @@ public class GoodsController {
     private IGoodsService goodsService;
 
 
-    @PostMapping("/goodsAdd")
-    public Result<Void> goodsAdd(@Validated @RequestBody GoodsAddDTO dto) {
+    @PostMapping("/addGoods")
+    public Result<Void> addGoods(@Validated @RequestBody AddGoodsDTO dto) {
         log.info("添加商品:dto{}", dto);
-        goodsService.goodsAdd(dto);
+        goodsService.addGoods(dto);
         return Result.ok();
     }
 
     @PostMapping("/upGoods")
-    public Result<Void> upGoods(@Validated @NotNull(message = "商品id不能为空") Long goodsId) {
+    public Result<Void> upGoods(@Validated @RequestBody UpGoodsDTO dto) {
 
-        log.info("上架商品:goodsId{}", goodsId);
-        goodsService.upGoods(goodsId);
+        log.info("上架商品:goodsId{}", dto);
+        goodsService.upGoods(dto);
         return Result.ok();
     }
 
 
-    @GetMapping("/goodsPage")
-    public Result<PageResult<GoodsPageVO>> goodsPage(GoodsPageQuery query) {
+    @GetMapping("/goodsPageQuery")
+    public Result<PageResult<GoodsPageVO>> goodsPageQuery(GoodsPageQuery query) {
 
         log.info("分页查询商品列表:query{}", query);
 
-        return Result.ok(goodsService.goodsPage(query));
+        return Result.ok(goodsService.goodsPageQuery(query));
     }
 
-    @GetMapping("/goodsDetail")
-    public Result<GoodsDetailVO> goodsDetail(Long id) {
+    @GetMapping("/goodsDetailQuery")
+    public Result<GoodsDetailVO> goodsDetailQuery(Long id) {
 
         log.info("商品详细信息:id{}", id);
 
-        return Result.ok(goodsService.goodsDetail(id));
+        return Result.ok(goodsService.goodsDetailQuery(id));
     }
 
-
-    @PostMapping("/upDownStatus")
-    public Result<Void> upDownStatus(@Validated @RequestBody UpDownStatusDTO dto) {
-        log.info("上下架商品:dto{}", dto);
-        goodsService.upDownStatus(dto);
-        return Result.ok();
-    }
 }
 

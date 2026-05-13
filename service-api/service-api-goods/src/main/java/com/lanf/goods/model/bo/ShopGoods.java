@@ -9,14 +9,14 @@ import java.util.List;
  * 店铺商品BO
  */
 @Data
-public class ShopGoodsBO implements Serializable {
+public class ShopGoods implements Serializable {
 
     private Long shopId;
     
     /** 店铺名称 */
     private String shopName;
 
-    private List<GoodsItemBO> cartItemList;
+    private List<GoodsItem> cartItemList;
 
     /**
      * 订单ID

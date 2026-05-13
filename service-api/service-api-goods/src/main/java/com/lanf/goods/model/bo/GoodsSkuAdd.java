@@ -11,7 +11,7 @@ import java.util.List;
  * 商品SKU新增BO
  */
 @Data
-public class GoodsSkuAddBO implements Serializable {
+public class GoodsSkuAdd implements Serializable {
 
 
     /** skuCode */
@@ -21,7 +21,7 @@ public class GoodsSkuAddBO implements Serializable {
     @NotBlank(message = "sku图片不能为空")
     private String skuPictureAddress;
 
-    private List<SkuNameBO> skuNameList;
+    private List<SkuName> skuNameList;
 
     /** 价格 */
     private BigDecimal price;

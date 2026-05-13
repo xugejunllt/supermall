@@ -9,7 +9,7 @@ import java.util.List;
  * 基础商品新增DTO
  */
 @Data
-public class BaseGoodsAddDTO implements Serializable {
+public class AddBaseGoodsDTO implements Serializable {
 
     /** 商品名称 */
     private String name;

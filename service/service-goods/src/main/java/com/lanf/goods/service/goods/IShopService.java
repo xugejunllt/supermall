@@ -3,8 +3,10 @@ package com.lanf.goods.service.goods;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.goods.model.dto.ShopDTO;
+import com.lanf.goods.model.dto.AddShopDTO;
 import com.lanf.goods.model.entity.ShopDO;
+import com.lanf.goods.model.vo.ShopListVO;
+import com.lanf.goods.model.vo.ShopPageVO;
 
 import java.util.List;
 
@@ -19,8 +21,8 @@ import java.util.List;
 public interface IShopService extends IService<ShopDO> {
 
 
-    void  addShop(ShopDTO dto);
-    PageResult<ShopDO> shopPage(PageQuery query);
+    void  addShop(AddShopDTO dto);
+    PageResult<ShopPageVO> shopPageQuery(PageQuery query);
 
-    List<ShopDO> shopList();
+    List<ShopListVO> shopListQuery();
 }

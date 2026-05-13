@@ -13,7 +13,7 @@ import com.lanf.constant.utils.UserContext;
 import com.lanf.goods.mapper.CartMapper;
 import com.lanf.goods.model.bo.CartSortOrderBO;
 import com.lanf.goods.model.bo.GoodsItem;
-import com.lanf.goods.model.bo.ShopGoodsBO;
+import com.lanf.goods.model.bo.ShopGoods;
 import com.lanf.goods.model.dto.*;
 import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.vo.*;
@@ -376,12 +376,12 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         //相同店铺id为一组
         Map<Long, List<CartDO>> shopIdCartDOMap = cartDOList.stream().collect(Collectors.groupingBy(CartDO::getShopId));
 
-        List<ShopGoodsBO> goodsVOList = new ArrayList<>(shopIdSet.size());
+        List<ShopGoods> goodsVOList = new ArrayList<>(shopIdSet.size());
         Set<Map.Entry<Long, List<CartDO>>> entries = shopIdCartDOMap.entrySet();
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (Map.Entry<Long, List<CartDO>> entry : entries){
             Long shopId = entry.getKey();
-            ShopGoodsBO shopGoodsVO = new ShopGoodsBO();
+            ShopGoods shopGoodsVO = new ShopGoods();
             shopGoodsVO.setShopId(shopId);
             ShopDO shopDO = shopDOMap.get(shopId);
             if ( shopDO!=null){

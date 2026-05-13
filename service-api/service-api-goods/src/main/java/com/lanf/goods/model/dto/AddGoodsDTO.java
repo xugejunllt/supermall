@@ -1,6 +1,6 @@
 package com.lanf.goods.model.dto;
 
-import com.lanf.goods.model.bo.GoodsSkuAddBO;
+import com.lanf.goods.model.bo.GoodsSkuAdd;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -13,7 +13,7 @@ import java.util.List;
  * 商品新增DTO
  */
 @Data
-public class GoodsAddDTO implements Serializable {
+public class AddGoodsDTO implements Serializable {
 
     /** 商品编码 */
     @NotBlank(message = "商品编码不能为空")
@@ -50,7 +50,7 @@ public class GoodsAddDTO implements Serializable {
     private String extendedTags;
 
     @NotEmpty(message = "商品sku不能为空")
-    private List<GoodsSkuAddBO> goodsSkuAddDTOList;
+    private List<GoodsSkuAdd> goodsSkuAddDTOList;
     
     @NotEmpty(message = "商品图片不能为空")
     private   List<String>  pictureAddressList;

@@ -3,10 +3,10 @@ package com.lanf.goods.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.goods.model.dto.BaseGoodsAddDTO;
+import com.lanf.goods.model.dto.AddBaseGoodsDTO;
 import com.lanf.goods.model.query.BaseGoodsPageQuery;
-import com.lanf.goods.model.vo.BaseGoodsByCodeQueryVO;
-import com.lanf.goods.model.vo.BaseGoodsBySkuCodeQueryVO;
+import com.lanf.goods.model.vo.BaseGoodsByCodeVO;
+import com.lanf.goods.model.vo.BaseGoodsBySkuCodeVO;
 import com.lanf.goods.model.vo.BaseGoodsPageVO;
 import com.lanf.goods.service.base.IBaseGoodsService;
 import lombok.extern.slf4j.Slf4j;
@@ -38,22 +38,22 @@ public class BaseGoodsController {
         return Result.ok(baseGoodsService.baseGoodsPageQuery(query));
     }
 
-    @PostMapping("/baseGoodsAdd")
-    public Result<PageResult<BaseGoodsPageVO>> baseGoodsAdd(@Validated @RequestBody BaseGoodsAddDTO baseGoodsAdd) {
+    @PostMapping("/addBaseGoods")
+    public Result<Void> addBaseGoods(@Validated @RequestBody AddBaseGoodsDTO baseGoodsAdd) {
 
         log.info("添加基础商品信息:baseGoodsAdd{}", baseGoodsAdd);
-        baseGoodsService.baseGoodsAdd(baseGoodsAdd);
+        baseGoodsService.addBaseGoods(baseGoodsAdd);
         return Result.ok();
     }
     @GetMapping("/baseGoodsByCodeQuery")
-    public Result<BaseGoodsByCodeQueryVO> baseGoodsByCodeQuery(String code) {
+    public Result<BaseGoodsByCodeVO> baseGoodsByCodeQuery(String code) {
 
         log.info("根据商品编码查询商品信息:code{}", code);
 
         return Result.ok(baseGoodsService.baseGoodsByCodeQuery(code));
     }
     @GetMapping("/baseGoodsBySkuCodeQuery")
-    public Result<BaseGoodsBySkuCodeQueryVO> baseGoodsBySkuCodeQuery(String skuCode) {
+    public Result<BaseGoodsBySkuCodeVO> baseGoodsBySkuCodeQuery(String skuCode) {
 
         log.info("根据sku编码查询sku信息:skuCode{}", skuCode);
 

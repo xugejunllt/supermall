@@ -10,7 +10,7 @@ import java.util.Date;
  * 商品品牌VO
  */
 @Data
-public class GoodsBrandVO implements Serializable {
+public class GoodsBrandListVO implements Serializable {
 
     /** 名称 */
     private String name;

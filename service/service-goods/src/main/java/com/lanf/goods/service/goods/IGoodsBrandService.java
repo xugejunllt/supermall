@@ -3,9 +3,10 @@ package com.lanf.goods.service.goods;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.goods.model.dto.GoodsBrandAddDTO;
+import com.lanf.goods.model.dto.AddGoodsBrandDTO;
 import com.lanf.goods.model.entity.GoodsBrandDO;
-import com.lanf.goods.model.vo.GoodsBrandVO;
+import com.lanf.goods.model.vo.GoodsBrandListVO;
+import com.lanf.goods.model.vo.GoodsBrandPageVO;
 
 import java.util.List;
 
@@ -19,9 +20,9 @@ import java.util.List;
  */
 public interface IGoodsBrandService extends IService<GoodsBrandDO> {
 
-    void  goodsBrandAdd(GoodsBrandAddDTO dto);
-    PageResult<GoodsBrandVO> goodsBrandPage(PageQuery query);
+    void  addGoodsBrand(AddGoodsBrandDTO dto);
+    PageResult<GoodsBrandPageVO> goodsBrandPageQuery(PageQuery query);
 
-    List<GoodsBrandVO> goodsBrandList();
+    List<GoodsBrandListVO> goodsBrandListQuery();
 
 }

@@ -2,9 +2,10 @@ package com.lanf.goods.service.goods;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
+import com.lanf.goods.model.dto.AddGoodsDTO;
 import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
-import com.lanf.goods.model.dto.GoodsAddDTO;
 import com.lanf.goods.model.dto.UpDownStatusDTO;
+import com.lanf.goods.model.dto.UpGoodsDTO;
 import com.lanf.goods.model.entity.GoodsDO;
 import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.vo.*;
@@ -21,23 +22,18 @@ import java.util.List;
  */
 public interface IGoodsService extends IService<GoodsDO> {
 
-    void  goodsAdd(GoodsAddDTO dto);
+    void  addGoods(AddGoodsDTO dto);
 
-    PageResult<GoodsPageVO> goodsPage(GoodsPageQuery query);
+    PageResult<GoodsPageVO> goodsPageQuery(GoodsPageQuery query);
 
-    GoodsDetailVO goodsDetail(Long id);
+    GoodsDetailVO goodsDetailQuery(Long id);
 
 
     UserGoodsDetailVO userGoodsDetail(Long id);
     SkuDetailVO  queryBySkuId(Long skuId);
     List<ApiGoodsSkuVO> queryBySkuCode(List<String> skuCode);
 
-    /**
-     *
-     * 上下架商品
-     *
-     */
-    void upDownStatus(UpDownStatusDTO dto);
+
 
     /**
      * 校验和查询商品信息
@@ -49,5 +45,5 @@ public interface IGoodsService extends IService<GoodsDO> {
      * 上架商品
      *
      */
-    void upGoods(Long goodsId);
+    void upGoods(UpGoodsDTO dto);
 }

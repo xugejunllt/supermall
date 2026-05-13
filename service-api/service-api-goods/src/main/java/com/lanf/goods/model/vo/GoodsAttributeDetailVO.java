@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class GoodsAttributeVO implements Serializable {
+public class GoodsAttributeDetailVO implements Serializable {
 
     @ApiModelProperty(value = "属性")
     private String attribute;

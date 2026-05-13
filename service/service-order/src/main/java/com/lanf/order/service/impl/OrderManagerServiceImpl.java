@@ -16,7 +16,7 @@ import com.lanf.constant.result.RpcResultParser;
 import com.lanf.goods.api.GoodsApiService;
 import com.lanf.goods.model.bo.GoodsItem;
 import com.lanf.goods.model.bo.GoodsSku;
-import com.lanf.goods.model.bo.ShopGoodsBO;
+import com.lanf.goods.model.bo.ShopGoods;
 import com.lanf.goods.model.dto.CalculateOrderTotalAmountDTO;
 import com.lanf.goods.model.dto.ClearCartDTO;
 import com.lanf.goods.model.dto.DeductStockDTO;
@@ -451,14 +451,14 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
 
-    private void addField(List<ShopGoodsBO> goodsVOList){
+    private void addField(List<ShopGoods> goodsVOList){
         //添加订单id 这样订单id与交易单的订单id一一关联起来
         goodsVOList.forEach(shopGoodsBO -> {shopGoodsBO.setOrderId(IdUtils.generateId());});
 
     }
 
 
-    private CreateMergeTradeOrderDTO buildCreateMergeTradeOrderDTO(SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO,SubmitCartDTO dto, List<ShopGoodsBO> goodsVOList) {
+    private CreateMergeTradeOrderDTO buildCreateMergeTradeOrderDTO(SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO,SubmitCartDTO dto, List<ShopGoods> goodsVOList) {
         CreateMergeTradeOrderDTO createMergeTradeOrderDTO = new CreateMergeTradeOrderDTO();
         createMergeTradeOrderDTO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
         createMergeTradeOrderDTO.setUserId(submitCartOrderInitParamsBO.getUserId());
@@ -467,7 +467,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         List<CreateMergeTradeOrderItemDTO> tradeOrderItemList = new ArrayList<>(goodsVOList.size());
         createMergeTradeOrderDTO.setTradeOrderItemList(tradeOrderItemList);
 
-        for (ShopGoodsBO shopGoodsBO : goodsVOList) {
+        for (ShopGoods shopGoodsBO : goodsVOList) {
             List<GoodsItem> cartItemList = shopGoodsBO.getCartItemList();
             BigDecimal orderAmount = calculateOrderAmount(cartItemList);
 
@@ -490,10 +490,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private BathCreateOrderDTO buildBathCreateOrderDTO(SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO,
                                                        SubmitCartDTO dto,
                                                        ClearCartVO clearCartVO) {
-        List<ShopGoodsBO> goodsVOList = clearCartVO.getGoodsVOList();
+        List<ShopGoods> goodsVOList = clearCartVO.getGoodsVOList();
         List<CreateOrderDTO> createOrderDTOList = new ArrayList<>(goodsVOList.size());
 
-        for (ShopGoodsBO shopGoodsBO : goodsVOList) {
+        for (ShopGoods shopGoodsBO : goodsVOList) {
             CreateOrderDTO createOrderDTO = buildCreateOrderDTO(shopGoodsBO, submitCartOrderInitParamsBO, dto);
             createOrderDTOList.add(createOrderDTO);
         }
@@ -515,7 +515,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      * @param dto 提交购物车请求参数
      * @return 创建订单的 DTO
      */
-    private CreateOrderDTO buildCreateOrderDTO(ShopGoodsBO shopGoodsBO,
+    private CreateOrderDTO buildCreateOrderDTO(ShopGoods shopGoodsBO,
                                                SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO,
                                                SubmitCartDTO dto) {
         BigDecimal orderAmount = calculateOrderAmount(shopGoodsBO.getCartItemList());
