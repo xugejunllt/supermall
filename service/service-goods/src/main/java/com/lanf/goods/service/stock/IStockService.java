@@ -3,7 +3,10 @@ package com.lanf.goods.service.stock;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.api.goods.model.dto.DeductStockDTO;
 import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
+import com.lanf.api.goods.model.query.StockPageQuery;
 import com.lanf.api.goods.model.vo.DeductStockVO;
+import com.lanf.api.goods.model.vo.StockPageVO;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.vo.StockEnoughVO;
@@ -20,8 +23,6 @@ import java.util.Map;
  * @since 2025-11-29
  */
 public interface IStockService extends IService<StockDO> {
-
-
 
 
     //key:skuCode
@@ -46,5 +47,9 @@ public interface IStockService extends IService<StockDO> {
      */
     void seckillStockPreoccupation(SeckillStockPreoccupationDTO dto);
 
+    /**
+     * 分页查询库存
+     */
+    PageResult<StockPageVO> stockPageQuery(StockPageQuery query);
 
 }

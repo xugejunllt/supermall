@@ -1,12 +1,19 @@
 package com.lanf.goods.service.stock.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.goods.model.bo.GoodsSku;
 import com.lanf.api.goods.model.dto.DeductStockDTO;
 import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
+import com.lanf.api.goods.model.query.StockPageQuery;
 import com.lanf.api.goods.model.vo.DeductStockVO;
+import com.lanf.api.goods.model.vo.StockPageVO;
+import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.entity.GoodsDO;
@@ -22,6 +29,7 @@ import com.lanf.goods.service.stock.IUserStockFlowService;
 import com.lanf.goods.utils.GoodsServiceUtils;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -369,4 +377,24 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             throw new BizException("预占库存失败");
         }
     }
+    @Override
+    public PageResult<StockPageVO> stockPageQuery(StockPageQuery query) {
+        IPage<StockDO> page = new Page<>(query.getPage(), query.getPageSize());
+
+        LambdaQueryWrapper<StockDO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(StringUtils.isNotBlank(query.getSkuCode()), StockDO::getSkuCode, query.getSkuCode())
+                .eq(query.getWarehouseId() != null, StockDO::getWarehouseId, query.getWarehouseId())
+                .like(StringUtils.isNotBlank(query.getGoodsName()), StockDO::getGoodsName, query.getGoodsName())
+                .orderByDesc(StockDO::getUpdateTime);
+
+        IPage<StockDO> result = this.page(page, wrapper);
+
+        PageResult<StockPageVO> pageResult = new PageResult<>();
+        pageResult.setRecords(BeanCopyUtils.copyBeanList(result.getRecords(), StockPageVO.class));
+        pageResult.setTotal(result.getTotal());
+        pageResult.setSize(result.getSize());
+
+        return pageResult;
+    }
+
 }

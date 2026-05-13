@@ -5,6 +5,9 @@ import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.api.goods.model.dto.*;
 import com.lanf.api.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.api.goods.model.query.GoodsPageQuery;
+import com.lanf.api.goods.model.query.StockPageQuery;
+import com.lanf.api.goods.model.query.UserStockFlowPageQuery;
+import com.lanf.api.goods.model.query.UserStockPreorderPublishLogPageQuery;
 import com.lanf.api.goods.model.vo.*;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
@@ -237,6 +240,35 @@ public class GoodsAdminController {
     public Result<Void> recycleStock(@Validated @RequestBody RecycleStockDTO recycleStockDTO) {
         log.info("[{}]开始,入参:[{}]", "回收库存", recycleStockDTO);
         return goodsAdminApiService.recycleStock(recycleStockDTO);
+    }
+
+    // ==================== 库存管理 ====================
+
+    /**
+     * 分页查询库存
+     */
+    @GetMapping("/stockPageQuery")
+    public Result<PageResult<StockPageVO>> stockPageQuery(StockPageQuery query) {
+        log.info("[{}]开始,入参:[{}]", "分页查询库存", query);
+        return goodsAdminApiService.stockPageQuery(query);
+    }
+
+    /**
+     * 分页查询库存流水
+     */
+    @GetMapping("/userStockFlowPageQuery")
+    public Result<PageResult<UserStockFlowPageVO>> userStockFlowPageQuery(UserStockFlowPageQuery query) {
+        log.info("[{}]开始,入参:[{}]", "分页查询库存流水", query);
+        return goodsAdminApiService.userStockFlowPageQuery(query);
+    }
+
+    /**
+     * 分页查询库存预售发布日志
+     */
+    @GetMapping("/userStockPreorderPublishLogPageQuery")
+    public Result<PageResult<UserStockPreorderPublishLogPageVO>> userStockPreorderPublishLogPageQuery(UserStockPreorderPublishLogPageQuery query) {
+        log.info("[{}]开始,入参:[{}]", "分页查询库存预售发布日志", query);
+        return goodsAdminApiService.userStockPreorderPublishLogPageQuery(query);
     }
 
 }

@@ -36,6 +36,14 @@ public class GoodsDetailVO implements Serializable {
     /** 上下架状态 0:下架 ,1:上架 */
     private Integer upDownStatus;
 
+
+    /** 搜索提示词标签 */
+    private List<String> promptWordLabel;
+
+    /** 扩展标签 用于展示 */
+    private List<String> extendedTags;
+
+
     private List<GoodsSkuDetail> goodsSkuDetailVOList;
 
 

@@ -306,6 +306,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         goodsDetailVO.setBrandName(brandDO.getName());
         goodsDetailVO.setGoodsSkuDetailVOList(goodsSkuDetailVOList);
 
+        goodsDetailVO.setExtendedTags(JsonUtils.toList(goodsDO.getExtendedTags(), String.class));
+        goodsDetailVO.setPromptWordLabel(JsonUtils.toList(goodsDO.getPromptWordLabel(), String.class));
         return goodsDetailVO;
     }
 
