@@ -31,7 +31,7 @@ public class GoodsBrandController {
     private IGoodsBrandService goodsBrandService;
 
     @PostMapping("/goodsBrandAdd")
-    public Result goodsBrandAdd(@Validated @RequestBody GoodsBrandAddDTO dto) {
+    public Result<Void> goodsBrandAdd(@Validated @RequestBody GoodsBrandAddDTO dto) {
         log.info("添加商品品牌:dto{}", dto);
         goodsBrandService.goodsBrandAdd(dto);
         return Result.ok();

@@ -3,9 +3,9 @@ package com.lanf.goods.mq.listener.event;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
-import com.lanf.goods.model.enums.StockFlowEventTypeEnum;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockFlowService;
 import com.lanf.order.mq.constant.OrderClientTopicName;
@@ -47,7 +47,7 @@ public class CancelOrderEventRollbackStockListener implements RocketMQListener<C
 
         List<UserStockFlowDO> userStockFlowDOList = userStockFlowService.lambdaQuery()
                 .eq(UserStockFlowDO::getOrderId, message.getOrderId())
-                .eq(UserStockFlowDO::getEventType, StockFlowEventTypeEnum.CANCEL_ORDER_INBOUND.getCode())
+                .eq(UserStockFlowDO::getEventType, UserStockFlowEventTypeEnum.CANCEL_ORDER_INBOUND.getCode())
                 .in(UserStockFlowDO::getUserStockId, message.getSkuIdList())
                 .list();
         if (userStockFlowDOList.isEmpty()){
@@ -142,7 +142,7 @@ public class CancelOrderEventRollbackStockListener implements RocketMQListener<C
 
             Integer totalQuantity = stockDO.getUsableStock() + stockDO.getLockStock();
             a.setId(null);
-            a.setEventType(StockFlowEventTypeEnum.CANCEL_ORDER_INBOUND.getCode());
+            a.setEventType(UserStockFlowEventTypeEnum.CANCEL_ORDER_INBOUND);
             a.setAfterQuantity(totalQuantity);
             a.setBeforeQuantity(totalQuantity+changeQuantity);
             a.setChangeQuantity(changeQuantity);

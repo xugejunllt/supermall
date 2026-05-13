@@ -1,7 +1,7 @@
 package com.lanf.goods.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.lanf.goods.model.enums.UserStockFlowEventTypeEnum;
+import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

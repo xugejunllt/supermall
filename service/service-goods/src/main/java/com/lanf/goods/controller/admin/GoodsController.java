@@ -1,15 +1,14 @@
 package com.lanf.goods.controller.admin;
 
 
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.GoodsAddDTO;
 import com.lanf.goods.model.dto.UpDownStatusDTO;
 import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.vo.GoodsDetailVO;
 import com.lanf.goods.model.vo.GoodsPageVO;
 import com.lanf.goods.service.goods.IGoodsService;
-import com.lanf.constant.web.PageResult;
-import com.lanf.constant.result.Result;
-import com.lanf.common.utils.MerchantIdContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -45,7 +44,6 @@ public class GoodsController {
     public Result upGoods(@Validated @NotNull(message = "商品id不能为空") Long goodsId) {
 
         log.info("上架商品:goodsId{}", goodsId);
-        MerchantIdContext.setMerchantId(1441223317880180736L);
         goodsService.upGoods(goodsId);
         return Result.ok();
     }

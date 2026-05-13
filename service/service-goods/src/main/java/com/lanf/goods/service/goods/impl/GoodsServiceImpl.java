@@ -30,8 +30,6 @@ import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.rocketmq.model.message.SyncGoodsInfoToEsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.system.api.SystemService;
-import com.lanf.system.model.vo.ShopVO;
 import com.lanf.web.utils.CndUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,8 +60,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     @Autowired
     private IGoodsSkuService goodsSkuService;
 
-    @Autowired
-    private SystemService systemService;
 
     @Autowired
     private IStockService stockService;
@@ -567,24 +563,24 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         GoodsSkuDO goodsSkuDO = goodsSkuService.getById(skuId);
         ThreadLocalUtils.addIgnoreTableName(true);
         GoodsDO goodsDO = this.getById(goodsSkuDO.getGoodsId());
-        Long shopId = goodsDO.getShopId();
-        List<ShopVO> shopVOList = systemService.shopQuery(Arrays.asList(shopId)).getData();
-        if (shopVOList.isEmpty()) {
-            return null;
-        }
-        Map<Long, ShopVO> shopVOMap = shopVOList.stream()
-                .collect(Collectors.toMap(ShopVO::getId, Function.identity()));
+//        Long shopId = goodsDO.getShopId();
+//        List<ShopVO> shopVOList = systemService.shopQuery(Arrays.asList(shopId)).getData();
+//        if (shopVOList.isEmpty()) {
+//            return null;
+//        }
+//        Map<Long, ShopVO> shopVOMap = shopVOList.stream()
+//                .collect(Collectors.toMap(ShopVO::getId, Function.identity()));
+//
+//        SkuDetailVO skuDetailVO = new SkuDetailVO();
+//        skuDetailVO.setShopId(shopId);
+//        skuDetailVO.setId(skuId);
+//        skuDetailVO.setShopName(shopVOMap.get(shopId).getName());
+//        skuDetailVO.setSkuPictureAddress(goodsSkuDO.getSkuPictureAddress());
+//        skuDetailVO.setGoodsName(goodsDO.getName());
+//        skuDetailVO.setSkuName(goodsSkuDO.getSkuName());
+//        skuDetailVO.setPrice(goodsSkuDO.getPrice());
 
-        SkuDetailVO skuDetailVO = new SkuDetailVO();
-        skuDetailVO.setShopId(shopId);
-        skuDetailVO.setId(skuId);
-        skuDetailVO.setShopName(shopVOMap.get(shopId).getName());
-        skuDetailVO.setSkuPictureAddress(goodsSkuDO.getSkuPictureAddress());
-        skuDetailVO.setGoodsName(goodsDO.getName());
-        skuDetailVO.setSkuName(goodsSkuDO.getSkuName());
-        skuDetailVO.setPrice(goodsSkuDO.getPrice());
-
-        return skuDetailVO;
+        return null;
     }
 
     @DistributedLock(key = "#goodsId")

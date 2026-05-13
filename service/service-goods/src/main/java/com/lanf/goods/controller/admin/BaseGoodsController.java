@@ -1,7 +1,6 @@
 package com.lanf.goods.controller.admin;
 
 
-import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.BaseGoodsAddDTO;
@@ -31,12 +30,12 @@ public class BaseGoodsController {
     @Autowired
     private IBaseGoodsService baseGoodsService;
 
-    @GetMapping("/baseGoodsPage")
-    public Result<PageResult<BaseGoodsPageVO>> baseGoodsPage(BaseGoodsPageQuery query) {
+    @GetMapping("/baseGoodsPageQuery")
+    public Result<PageResult<BaseGoodsPageVO>> baseGoodsPageQuery(BaseGoodsPageQuery query) {
 
-        log.info("[{}]开始,入参:[{}]", "分页查询基础商品信息列表", JsonUtils.toJsonString(query));
+        log.info("[{}]开始,入参:[{}]", "分页查询基础商品信息列表", query);
 
-        return Result.ok(baseGoodsService.baseGoodsPage(query));
+        return Result.ok(baseGoodsService.baseGoodsPageQuery(query));
     }
 
     @PostMapping("/baseGoodsAdd")

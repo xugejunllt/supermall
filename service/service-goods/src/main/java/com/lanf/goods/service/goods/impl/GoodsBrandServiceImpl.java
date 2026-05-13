@@ -4,13 +4,13 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.GoodsBrandMapper;
 import com.lanf.goods.model.dto.GoodsBrandAddDTO;
 import com.lanf.goods.model.entity.GoodsBrandDO;
 import com.lanf.goods.service.goods.IGoodsBrandService;
-import com.lanf.constant.web.PageQuery;
-import com.lanf.constant.web.PageResult;
-import com.lanf.constant.exception.BizException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,8 +48,12 @@ public class GoodsBrandServiceImpl extends ServiceImpl<GoodsBrandMapper, GoodsBr
                 orderByDesc(GoodsBrandDO::getUpdateTime)
                 .page(page);
 
+        PageResult<GoodsBrandDO> result = new PageResult<>();
+        result.setTotal(pageResult.getTotal());
+        result.setSize(pageResult.getSize());
+        result.setRecords(pageResult.getRecords());
 
-        return PageResult.toPageResult(pageResult, GoodsBrandDO.class);
+        return result;
     }
 
     @Override

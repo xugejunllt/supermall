@@ -32,7 +32,7 @@ public class GoodsAttributeController {
     private IGoodsAttributeService goodsAttributeService;
 
     @PostMapping("/goodsAttributeAdd")
-    public Result goodsAttributeAdd(@Validated @RequestBody GoodsAttributeAddDTO dto) {
+    public Result<Void> goodsAttributeAdd(@Validated @RequestBody GoodsAttributeAddDTO dto) {
 
         log.info("添加商品属性:dto{}", dto);
         goodsAttributeService.goodsAttributeAdd(dto);

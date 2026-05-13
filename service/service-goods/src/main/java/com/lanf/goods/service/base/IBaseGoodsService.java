@@ -1,13 +1,13 @@
 package com.lanf.goods.service.base;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.model.dto.BaseGoodsAddDTO;
 import com.lanf.goods.model.entity.BaseGoodsDO;
 import com.lanf.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.goods.model.vo.BaseGoodsByCodeQueryVO;
 import com.lanf.goods.model.vo.BaseGoodsBySkuCodeQueryVO;
 import com.lanf.goods.model.vo.BaseGoodsPageVO;
-import com.lanf.constant.web.PageResult;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ import java.util.List;
 public interface IBaseGoodsService extends IService<BaseGoodsDO> {
 
     void  baseGoodsAdd(BaseGoodsAddDTO baseGoodsAdd);
-    PageResult<BaseGoodsPageVO> baseGoodsPage(BaseGoodsPageQuery query);
+    PageResult<BaseGoodsPageVO> baseGoodsPageQuery(BaseGoodsPageQuery query);
 
     BaseGoodsByCodeQueryVO baseGoodsByCodeQuery(String code);
 

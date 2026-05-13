@@ -2,9 +2,9 @@ package com.lanf.goods.mq.listener.event;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
-import com.lanf.goods.model.enums.UserStockFlowEventTypeEnum;
 import com.lanf.goods.mq.constant.GoodsMqGroupName;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockFlowService;

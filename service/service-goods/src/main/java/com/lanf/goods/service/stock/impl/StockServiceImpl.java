@@ -2,6 +2,7 @@ package com.lanf.goods.service.stock.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.bo.GoodsSkuBO;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
@@ -12,7 +13,6 @@ import com.lanf.goods.model.entity.GoodsDO;
 import com.lanf.goods.model.entity.GoodsSkuDO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
-import com.lanf.goods.model.enums.UserStockFlowEventTypeEnum;
 import com.lanf.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.service.goods.IGoodsService;

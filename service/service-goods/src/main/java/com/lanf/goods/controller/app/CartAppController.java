@@ -1,15 +1,16 @@
 package com.lanf.goods.controller.app;
 
 
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.goods.model.dto.CartAddDTO;
 import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
 import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
 import com.lanf.goods.model.vo.CartAddVO;
 import com.lanf.goods.model.vo.CartListVO;
 import com.lanf.goods.service.goods.ICartService;
-import com.lanf.constant.web.PageQuery;
-import com.lanf.constant.web.PageResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -36,7 +37,7 @@ public class CartAppController {
     public Result<CartAddVO> addCart(@Validated @RequestBody CartAddDTO dto) {
 
         log.info("添加购物车:dto{}", dto);
-        dto.setUserId(UserIdContext.getUserId());
+        dto.setUserId(UserContext.getUserId());
         return Result.ok( cartService.cartAdd(dto));
     }
 

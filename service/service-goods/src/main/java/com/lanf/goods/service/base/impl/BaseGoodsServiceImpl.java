@@ -6,6 +6,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
+import com.lanf.constant.context.MerchantIdContext;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.BaseGoodsMapper;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.dto.BaseGoodsAddDTO;
@@ -18,10 +21,6 @@ import com.lanf.goods.service.base.IBaseGoodsService;
 import com.lanf.goods.service.base.IBaseGoodsSkuService;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
-import com.lanf.common.utils.MerchantIdContext;
-
-import com.lanf.constant.exception.BizException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -77,20 +76,23 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
     }
 
     @Override
-    public PageResult<BaseGoodsPageVO> baseGoodsPage(BaseGoodsPageQuery query) {
+    public PageResult<BaseGoodsPageVO> baseGoodsPageQuery(BaseGoodsPageQuery query) {
 
         IPage<BaseGoodsDO> page = new Page<>(query.getPage(), query.getPageSize());
-        IPage<BaseGoodsDO> purchaseStorageOrderPage = this.lambdaQuery().
+        IPage<BaseGoodsDO> result = this.lambdaQuery().
                 eq(!StringUtils.isEmpty(query.getGoodsCode()), BaseGoodsDO::getCode, query.getGoodsCode()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
 
-        if (purchaseStorageOrderPage.getRecords().isEmpty()) {
+        if (result.getRecords().isEmpty()) {
 
-            return PageResult.emptyResult(BaseGoodsPageVO.class);
+            return PageResult.emptyResult();
         }
-
-        return PageResult.toPageResult(page, BaseGoodsPageVO.class);
+        PageResult<BaseGoodsPageVO> resultVo = new PageResult<>();
+        resultVo.setRecords(BeanCopyUtils.copyBeanList(result.getRecords(), BaseGoodsPageVO.class));
+        resultVo.setTotal(result.getTotal());
+        resultVo.setSize(result.getSize());
+        return resultVo;
 
     }
 

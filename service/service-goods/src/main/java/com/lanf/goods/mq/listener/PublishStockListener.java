@@ -1,6 +1,6 @@
 package com.lanf.goods.mq.listener;
 
-import com.lanf.mybatis.utils.IdUtils;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockPreorderPublishLogDO;
 import com.lanf.goods.mq.constant.GoodsMqGroupName;

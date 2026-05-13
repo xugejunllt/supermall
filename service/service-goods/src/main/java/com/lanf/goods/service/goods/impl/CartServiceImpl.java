@@ -3,9 +3,13 @@ package com.lanf.goods.service.goods.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.goods.mapper.CartMapper;
 import com.lanf.goods.model.bo.CartSortOrderBO;
 import com.lanf.goods.model.bo.GoodsItemBO;
@@ -18,11 +22,7 @@ import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
 import com.lanf.goods.service.goods.IShopService;
 import com.lanf.goods.utils.GoodsServiceUtils;
-import com.lanf.cache.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageQuery;
-import com.lanf.constant.web.PageResult;
-import com.lanf.system.api.SystemService;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
@@ -46,8 +46,7 @@ import java.util.stream.Collectors;
 @Service
 public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements ICartService {
 
-    @Autowired
-    private SystemService systemService;
+
     @Autowired
     private IGoodsSkuService goodsSkuService;
     @Autowired
@@ -66,7 +65,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         // 验证库存和SKU信息
         validateCartItem(dto, skuCode);
         // 查询是否已存在相同的购物车项
-        Long userId = UserIdContext.getUserId();
+        Long userId = UserContext.getUserId();
         GoodsSkuDO goodsSkuDO = goodsSkuService.lambdaQuery()
                 .eq(GoodsSkuDO::getSkuCode, dto.getSkuCode()).one();
         Long skuId = goodsSkuDO.getId();
@@ -132,7 +131,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
 
         Long sortOrder = 1L;
         CartDO cartDO = new CartDO();
-        cartDO.setUserId(UserIdContext.getUserId());
+        cartDO.setUserId(UserContext.getUserId());
         cartDO.setShopId(goodsDO.getShopId());
         cartDO.setSkuId(goodsSkuDO.getId());
         cartDO.setGoodsId(goodsSkuDO.getGoodsId());
@@ -252,7 +251,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
     @Override
     public PageResult<CartListVO> listCart(PageQuery query) {
 
-        Long userId = UserIdContext.getUserId();
+        Long userId = UserContext.getUserId();
         IPage<CartDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<CartDO> pageResult = this.lambdaQuery()
                 .eq(CartDO::getUserId, userId)
@@ -316,7 +315,11 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
             cartListVOList.add(cartListVO);
 
         }
-        return PageResult.toPageResult(pageResult,cartListVOList);
+        PageResult<CartListVO> resultVo = new PageResult<>();
+        resultVo.setTotal(pageResult.getTotal());
+        resultVo.setSize(query.getPageSize());
+        resultVo.setRecords(cartListVOList);
+        return resultVo;
     }
 
 

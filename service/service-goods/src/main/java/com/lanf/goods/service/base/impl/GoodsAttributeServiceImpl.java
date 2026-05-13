@@ -4,16 +4,16 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.constant.context.MerchantIdContext;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.GoodsAttributeMapper;
 import com.lanf.goods.model.dto.GoodsAttributeAddDTO;
 import com.lanf.goods.model.dto.GoodsAttributeUpdateDTO;
 import com.lanf.goods.model.entity.GoodsAttributeDO;
 import com.lanf.goods.service.base.IGoodsAttributeService;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageQuery;
-import com.lanf.constant.web.PageResult;
-import com.lanf.common.utils.MerchantIdContext;
-import com.lanf.constant.exception.BizException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,8 +34,7 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
     public void goodsAttributeAdd(GoodsAttributeAddDTO dto) {
 
         GoodsAttributeDO one = this.lambdaQuery().
-                eq(GoodsAttributeDO::getAttribute, dto.getAttribute()).
-                eq(GoodsAttributeDO::getTenantId, MerchantIdContext.getMerchantId())
+                eq(GoodsAttributeDO::getAttribute, dto.getAttribute())
                 .one();
         if (one != null) {
             throw new BizException("属性已存在");
@@ -56,8 +55,15 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
                 eq(GoodsAttributeDO::getTenantId, MerchantIdContext.getMerchantId()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
+        if (result.getRecords().isEmpty()){
 
-        return PageResult.toPageResult(result);
+            return PageResult.emptyResult();
+        }
+        PageResult<GoodsAttributeDO> resultVo = new PageResult<>();
+        resultVo.setTotal(result.getTotal());
+        resultVo.setSize(result.getSize());
+        resultVo.setRecords(result.getRecords());
+        return resultVo;
     }
 
     @Override

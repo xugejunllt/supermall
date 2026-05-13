@@ -1,12 +1,12 @@
 package com.lanf.goods.controller.admin;
 
 
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.ShopDTO;
 import com.lanf.goods.model.entity.ShopDO;
 import com.lanf.goods.service.goods.IShopService;
-import com.lanf.constant.web.PageQuery;
-import com.lanf.constant.web.PageResult;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

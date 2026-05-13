@@ -4,13 +4,13 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.GoodsCategoryMapper;
 import com.lanf.goods.model.dto.GoodsCategoryAddDTO;
 import com.lanf.goods.model.entity.GoodsCategoryDO;
 import com.lanf.goods.model.vo.GoodsCategoryPageVO;
 import com.lanf.goods.service.goods.IGoodsCategoryService;
-import com.lanf.constant.web.PageQuery;
-import com.lanf.constant.web.PageResult;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -50,9 +50,13 @@ public class GoodsCategoryServiceImpl extends ServiceImpl<GoodsCategoryMapper, G
                 .page(page);
         if (pageResult.getRecords().isEmpty()){
 
-            return  PageResult.emptyResult(GoodsCategoryPageVO.class);
+            return  PageResult.emptyResult();
         }
-        PageResult<GoodsCategoryPageVO> pageResult1 = PageResult.toPageResult(pageResult, GoodsCategoryPageVO.class);
+        PageResult<GoodsCategoryPageVO> pageResult1 = new PageResult<>();
+        pageResult1.setRecords(BeanCopyUtils.copyBeanList(pageResult.getRecords(),
+                GoodsCategoryPageVO.class));
+        pageResult1.setTotal(pageResult.getTotal());
+        pageResult1.setSize(pageResult.getSize());
 
         //查二级分类
         List<Long> twoIdList = pageResult.getRecords().stream().map(GoodsCategoryDO::getId).collect(Collectors.toList());
