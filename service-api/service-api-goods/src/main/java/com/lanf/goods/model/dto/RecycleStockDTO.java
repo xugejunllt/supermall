@@ -1,6 +1,6 @@
 package com.lanf.goods.model.dto;
 
-import com.lanf.storage.model.enums.PublishPlatformEnum;
+import com.lanf.constant.model.enums.storage.PublishPlatformEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

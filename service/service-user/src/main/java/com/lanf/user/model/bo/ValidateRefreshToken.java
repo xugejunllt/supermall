@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class ValidateRefreshTokenBO implements Serializable {
+public class ValidateRefreshToken implements Serializable {
 
     private Boolean refreshTokenExpired;
 

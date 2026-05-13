@@ -12,6 +12,7 @@ import com.lanf.goods.mapper.GoodsAttributeMapper;
 import com.lanf.goods.model.dto.GoodsAttributeAddDTO;
 import com.lanf.goods.model.dto.GoodsAttributeUpdateDTO;
 import com.lanf.goods.model.entity.GoodsAttributeDO;
+import com.lanf.goods.model.vo.GoodsAttributeVO;
 import com.lanf.goods.service.base.IGoodsAttributeService;
 import com.lanf.mybatis.base.BaseEntity;
 import org.springframework.stereotype.Service;
@@ -78,15 +79,23 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
     }
 
     @Override
-    public List<GoodsAttributeDO> goodsAttributeList() {
+    public List<GoodsAttributeVO> goodsAttributeList() {
 
-        return this.lambdaQuery().eq(GoodsAttributeDO::getTenantId, MerchantIdContext.getMerchantId()).list();
+        List<GoodsAttributeDO> list = this.lambdaQuery().eq(GoodsAttributeDO::getTenantId, MerchantIdContext.getMerchantId()).list();
+        if (list.isEmpty()){
+            return null;
+        }
+
+        return BeanCopyUtils.copyBeanList(list, GoodsAttributeVO.class);
     }
 
     @Override
-    public GoodsAttributeDO detail(Long id) {
-
-        return this.getById(id);
+    public GoodsAttributeVO detail(Long id) {
+        GoodsAttributeDO byId = this.getById(id);
+        if (byId == null){
+            return null;
+        }
+        return BeanCopyUtils.copyBean(byId, GoodsAttributeVO.class);
     }
 
 }

@@ -10,9 +10,11 @@ import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.GoodsBrandMapper;
 import com.lanf.goods.model.dto.GoodsBrandAddDTO;
 import com.lanf.goods.model.entity.GoodsBrandDO;
+import com.lanf.goods.model.vo.GoodsBrandVO;
 import com.lanf.goods.service.goods.IGoodsBrandService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,24 +43,29 @@ public class GoodsBrandServiceImpl extends ServiceImpl<GoodsBrandMapper, GoodsBr
     }
 
     @Override
-    public PageResult<GoodsBrandDO> goodsBrandPage(PageQuery query) {
+    public PageResult<GoodsBrandVO> goodsBrandPage(PageQuery query) {
 
         IPage<GoodsBrandDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<GoodsBrandDO> pageResult = this.lambdaQuery().
                 orderByDesc(GoodsBrandDO::getUpdateTime)
                 .page(page);
-
-        PageResult<GoodsBrandDO> result = new PageResult<>();
+        if (pageResult.getRecords().isEmpty()){
+            return PageResult.emptyResult();
+        }
+        PageResult<GoodsBrandVO> result = new PageResult<>();
         result.setTotal(pageResult.getTotal());
         result.setSize(pageResult.getSize());
-        result.setRecords(pageResult.getRecords());
+        result.setRecords(BeanCopyUtils.copyBeanList(pageResult.getRecords(), GoodsBrandVO.class));
 
         return result;
     }
 
     @Override
-    public List<GoodsBrandDO> goodsBrandList() {
-
-        return this.lambdaQuery().list();
+    public List<GoodsBrandVO> goodsBrandList() {
+        List<GoodsBrandDO> list = this.lambdaQuery().list();
+        if (list.isEmpty()){
+            return new ArrayList<>();
+        }
+        return BeanCopyUtils.copyBeanList(list, GoodsBrandVO.class);
     }
 }

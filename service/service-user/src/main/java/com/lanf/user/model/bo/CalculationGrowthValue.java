@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class CalculationGrowthValueBO implements Serializable {
+public class CalculationGrowthValue implements Serializable {
 
 
 

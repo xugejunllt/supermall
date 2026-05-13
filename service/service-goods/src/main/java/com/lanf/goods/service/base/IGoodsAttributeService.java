@@ -6,6 +6,7 @@ import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.model.dto.GoodsAttributeAddDTO;
 import com.lanf.goods.model.dto.GoodsAttributeUpdateDTO;
 import com.lanf.goods.model.entity.GoodsAttributeDO;
+import com.lanf.goods.model.vo.GoodsAttributeVO;
 
 import java.util.List;
 
@@ -25,7 +26,7 @@ public interface IGoodsAttributeService extends IService<GoodsAttributeDO> {
 
     void  goodsAttributeUpdate(GoodsAttributeUpdateDTO dto);
 
-    List<GoodsAttributeDO> goodsAttributeList();
+    List<GoodsAttributeVO> goodsAttributeList();
 
-    GoodsAttributeDO detail(Long id);
+    GoodsAttributeVO detail(Long id);
 }

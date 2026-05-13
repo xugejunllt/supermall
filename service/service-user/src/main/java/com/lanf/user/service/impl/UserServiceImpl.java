@@ -14,7 +14,7 @@ import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.user.constant.UserRedisKeyConstants;
 import com.lanf.user.mapper.UserMapper;
-import com.lanf.user.model.bo.UserLevelBO;
+import com.lanf.user.model.bo.UserLevel;
 import com.lanf.user.model.dto.LoginSendCodeDTO;
 import com.lanf.user.model.dto.LoginUserDTO;
 import com.lanf.user.model.dto.RefreshTokenDTO;
@@ -413,7 +413,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         Long userId = UserContext.getUserId();
 
         UserVO userVO = getUserById();
-        UserLevelBO userLevel = userLevelService.getUserLevel(userId);
+        UserLevel userLevel = userLevelService.getUserLevel(userId);
 
         UserDetailVO userDetailVO = BeanCopyUtils.copyBean(userVO, UserDetailVO.class);
         userDetailVO.setLevel(userLevel.getLevel());

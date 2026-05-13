@@ -2,7 +2,7 @@ package com.lanf.goods.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.storage.model.enums.PublishPlatformEnum;
+import com.lanf.constant.model.enums.storage.PublishPlatformEnum;
 import com.lanf.storage.model.enums.PublishStatusEnum;
 import com.lanf.storage.model.enums.StockPreorderEventTypeEnum;
 import io.swagger.annotations.ApiModelProperty;

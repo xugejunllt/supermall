@@ -5,7 +5,7 @@ import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.GoodsBrandAddDTO;
-import com.lanf.goods.model.entity.GoodsBrandDO;
+import com.lanf.goods.model.vo.GoodsBrandVO;
 import com.lanf.goods.service.goods.IGoodsBrandService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +38,7 @@ public class GoodsBrandController {
     }
 
     @GetMapping("/goodsBrandPage")
-    public Result<PageResult<GoodsBrandDO>> goodsBrandPage(PageQuery query) {
+    public Result<PageResult<GoodsBrandVO>> goodsBrandPage(PageQuery query) {
 
         log.info("分页查询商品品牌:query{}", query);
 
@@ -46,7 +46,7 @@ public class GoodsBrandController {
     }
 
     @GetMapping("/goodsBrandList")
-    public Result<List<GoodsBrandDO>> goodsBrandList() {
+    public Result<List<GoodsBrandVO>> goodsBrandList() {
 
         log.info("查询所有品牌");
 

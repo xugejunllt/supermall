@@ -8,8 +8,8 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.BenefitGrantEventEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.user.mapper.UserLevelMapper;
-import com.lanf.user.model.bo.CalculationGrowthValueBO;
-import com.lanf.user.model.bo.UserLevelBO;
+import com.lanf.user.model.bo.CalculationGrowthValue;
+import com.lanf.user.model.bo.UserLevel;
 import com.lanf.user.model.dto.CalculationGrowthValueDTO;
 import com.lanf.user.model.dto.GrantBenefitDTO;
 import com.lanf.user.model.dto.LevelBenefitDTO;
@@ -65,7 +65,7 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
         //创建新用户等级
         createUserLevel(userId, levelMap);
         //计算成长值
-        CalculationGrowthValueBO growthValueBO = doCalculationGrowthValue(dto, levelMap);
+        CalculationGrowthValue growthValueBO = doCalculationGrowthValue(dto, levelMap);
         //更新
         updateUserLevel(growthValueBO);
         if (growthValueBO.getUpgrade()) {
@@ -98,7 +98,7 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
 
     }
 
-    private void updateUserLevel(CalculationGrowthValueBO growthValueBO) {
+    private void updateUserLevel(CalculationGrowthValue growthValueBO) {
 
         log.info("更新成长值开始");
         Long userId = growthValueBO.getUserId();
@@ -120,7 +120,7 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
 
     }
 
-    private CalculationGrowthValueBO doCalculationGrowthValue(CalculationGrowthValueDTO dto, Map<Integer, UserLevelConfigDO> levelMap) {
+    private CalculationGrowthValue doCalculationGrowthValue(CalculationGrowthValueDTO dto, Map<Integer, UserLevelConfigDO> levelMap) {
 
 
         log.info("开始计算");
@@ -177,7 +177,7 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
             log.info("已满级");
         }
 
-        CalculationGrowthValueBO bo = new CalculationGrowthValueBO();
+        CalculationGrowthValue bo = new CalculationGrowthValue();
         bo.setUserId(userId);
         bo.setEventName(byCode.getName());
         bo.setEventCode(eventCode);
@@ -256,7 +256,7 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
     }
 
     @Override
-    public UserLevelBO getUserLevel(Long userId) {
+    public UserLevel getUserLevel(Long userId) {
 
 
         UserLevelDO userLevelDO = getByUserId(userId);
@@ -274,7 +274,7 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
             throw new BizException("未找到等级配置");
         }
 
-        return BeanCopyUtils.copyBean(userLevelConfigDO, UserLevelBO.class);
+        return BeanCopyUtils.copyBean(userLevelConfigDO, UserLevel.class);
     }
 
     private UserLevelDO getByUserId(Long userId) {

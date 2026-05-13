@@ -34,14 +34,14 @@ public class GoodsController {
 
 
     @PostMapping("/goodsAdd")
-    public Result goodsAdd(@Validated @RequestBody GoodsAddDTO dto) {
+    public Result<Void> goodsAdd(@Validated @RequestBody GoodsAddDTO dto) {
         log.info("添加商品:dto{}", dto);
         goodsService.goodsAdd(dto);
         return Result.ok();
     }
 
     @PostMapping("/upGoods")
-    public Result upGoods(@Validated @NotNull(message = "商品id不能为空") Long goodsId) {
+    public Result<Void> upGoods(@Validated @NotNull(message = "商品id不能为空") Long goodsId) {
 
         log.info("上架商品:goodsId{}", goodsId);
         goodsService.upGoods(goodsId);
@@ -67,7 +67,7 @@ public class GoodsController {
 
 
     @PostMapping("/upDownStatus")
-    public Result upDownStatus(@Validated @RequestBody UpDownStatusDTO dto) {
+    public Result<Void> upDownStatus(@Validated @RequestBody UpDownStatusDTO dto) {
         log.info("上下架商品:dto{}", dto);
         goodsService.upDownStatus(dto);
         return Result.ok();

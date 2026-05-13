@@ -29,7 +29,7 @@ public class GoodsCategoryController {
     private IGoodsCategoryService goodsCategoryService;
 
     @PostMapping("/goodsCategoryAdd")
-    public Result goodsCategoryAdd(@Validated @RequestBody GoodsCategoryAddDTO dto) {
+    public Result<Void> goodsCategoryAdd(@Validated @RequestBody GoodsCategoryAddDTO dto) {
 
         log.info("添加商品分类:dto{}", dto);
         goodsCategoryService.goodsCategoryAdd(dto);

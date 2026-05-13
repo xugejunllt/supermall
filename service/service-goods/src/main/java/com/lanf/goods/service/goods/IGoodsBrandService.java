@@ -5,6 +5,7 @@ import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.model.dto.GoodsBrandAddDTO;
 import com.lanf.goods.model.entity.GoodsBrandDO;
+import com.lanf.goods.model.vo.GoodsBrandVO;
 
 import java.util.List;
 
@@ -19,8 +20,8 @@ import java.util.List;
 public interface IGoodsBrandService extends IService<GoodsBrandDO> {
 
     void  goodsBrandAdd(GoodsBrandAddDTO dto);
-    PageResult<GoodsBrandDO> goodsBrandPage(PageQuery query);
+    PageResult<GoodsBrandVO> goodsBrandPage(PageQuery query);
 
-    List<GoodsBrandDO> goodsBrandList();
+    List<GoodsBrandVO> goodsBrandList();
 
 }

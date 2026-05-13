@@ -1,6 +1,6 @@
 package com.lanf.storage.mq.message;
 
-import com.lanf.storage.model.enums.PublishPlatformEnum;
+import com.lanf.constant.model.enums.storage.PublishPlatformEnum;
 import com.lanf.storage.model.enums.StockPreorderEventTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

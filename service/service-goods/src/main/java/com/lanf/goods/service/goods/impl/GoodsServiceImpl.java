@@ -18,8 +18,6 @@ import com.lanf.goods.constant.GoodsRedisKeyConstants;
 import com.lanf.goods.mapper.GoodsMapper;
 import com.lanf.goods.model.bo.*;
 import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
-import com.lanf.goods.model.dto.GoodsAddDTO;
-import com.lanf.goods.model.dto.UpDownStatusDTO;
 import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.query.GoodsPageQuery;
 import com.lanf.goods.model.vo.*;

@@ -7,6 +7,7 @@ import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.GoodsAttributeAddDTO;
 import com.lanf.goods.model.dto.GoodsAttributeUpdateDTO;
 import com.lanf.goods.model.entity.GoodsAttributeDO;
+import com.lanf.goods.model.vo.GoodsAttributeVO;
 import com.lanf.goods.service.base.IGoodsAttributeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,7 @@ public class GoodsAttributeController {
 
 
     @PostMapping("/goodsAttributeUpdate")
-    public Result goodsAttributeUpdate(@Validated @RequestBody GoodsAttributeUpdateDTO dto) {
+    public Result<Void> goodsAttributeUpdate(@Validated @RequestBody GoodsAttributeUpdateDTO dto) {
 
         log.info("更新商品属性:dto{}", dto);
         goodsAttributeService.goodsAttributeUpdate(dto);
@@ -57,14 +58,14 @@ public class GoodsAttributeController {
     }
 
     @GetMapping("/goodsAttributeList")
-    public Result<List<GoodsAttributeDO>> goodsAttributeList() {
+    public Result<List<GoodsAttributeVO>> goodsAttributeList() {
 
         log.info("查询所有商品属性");
 
         return Result.ok(goodsAttributeService.goodsAttributeList());
     }
     @GetMapping("/detail")
-    public Result<GoodsAttributeDO> detail(Long id) {
+    public Result<GoodsAttributeVO> detail(Long id) {
 
         log.info("属性详细");
 

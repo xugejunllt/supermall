@@ -30,7 +30,7 @@ public class ShopController {
     private IShopService shopService;
 
     @PostMapping("/addShop")
-    public Result addShop(@Validated @RequestBody ShopDTO dto) {
+    public Result<Void> addShop(@Validated @RequestBody ShopDTO dto) {
         log.info("添加店铺:dto{}", dto);
         shopService.addShop(dto);
         return Result.ok();

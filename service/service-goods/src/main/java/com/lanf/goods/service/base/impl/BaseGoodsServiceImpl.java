@@ -11,8 +11,6 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.BaseGoodsMapper;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
-import com.lanf.goods.model.dto.BaseGoodsAddDTO;
-import com.lanf.goods.model.dto.BaseGoodsSkuAddDTO;
 import com.lanf.goods.model.entity.BaseGoodsDO;
 import com.lanf.goods.model.entity.BaseGoodsSkuDO;
 import com.lanf.goods.model.query.BaseGoodsPageQuery;

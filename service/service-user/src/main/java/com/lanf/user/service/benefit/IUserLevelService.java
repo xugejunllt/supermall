@@ -1,7 +1,7 @@
 package com.lanf.user.service.benefit;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.user.model.bo.UserLevelBO;
+import com.lanf.user.model.bo.UserLevel;
 import com.lanf.user.model.dto.CalculationGrowthValueDTO;
 import com.lanf.user.model.entity.UserLevelDO;
 
@@ -21,5 +21,5 @@ public interface IUserLevelService extends IService<UserLevelDO> {
      */
     void  calculationGrowthValue(CalculationGrowthValueDTO dto);
 
-    UserLevelBO getUserLevel(Long userId);
+    UserLevel getUserLevel(Long userId);
 }
