@@ -14,8 +14,8 @@ public class BaseGoodsByCodeVO implements Serializable {
     /** 商品名称 */
     private String name;
 
-    /** 多个属性名用","分隔 */
-    private String attributeSplit;
+    private Long goodsId;
+
 
     private List<BaseGoodsSkuByCodeQueryVO> baseGoodsSkuByCodeQueryVOList;
 }

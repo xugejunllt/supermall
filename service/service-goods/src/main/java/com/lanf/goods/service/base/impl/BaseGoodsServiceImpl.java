@@ -3,20 +3,24 @@ package com.lanf.goods.service.base.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.api.goods.model.vo.*;
-import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.common.utils.ThreadLocalUtils;
-import com.lanf.constant.context.MerchantIdContext;
-import com.lanf.constant.exception.BizException;
-import com.lanf.constant.model.vo.PageResult;
-import com.lanf.goods.mapper.BaseGoodsMapper;
-import com.lanf.goods.model.bo.SkuCodeStockBO;
+import com.lanf.api.goods.model.bo.Attributes;
 import com.lanf.api.goods.model.dto.AddBaseGoodsDTO;
 import com.lanf.api.goods.model.dto.BaseGoodsSkuAddDTO;
+import com.lanf.api.goods.model.query.BaseGoodsPageQuery;
+import com.lanf.api.goods.model.vo.BaseGoodsByCodeVO;
+import com.lanf.api.goods.model.vo.BaseGoodsBySkuCodeVO;
+import com.lanf.api.goods.model.vo.BaseGoodsPageVO;
+import com.lanf.api.goods.model.vo.BaseGoodsSkuByCodeQueryVO;
+import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.CodeGenerateUtils;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.common.utils.ThreadLocalUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.utils.IdUtils;
+import com.lanf.goods.mapper.BaseGoodsMapper;
 import com.lanf.goods.model.entity.BaseGoodsDO;
 import com.lanf.goods.model.entity.BaseGoodsSkuDO;
-import com.lanf.api.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.goods.service.base.IBaseGoodsService;
 import com.lanf.goods.service.base.IBaseGoodsSkuService;
 import com.lanf.goods.service.stock.IStockService;
@@ -49,29 +53,89 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
     @Override
     @Transactional
     public void addBaseGoods(AddBaseGoodsDTO baseGoodsAdd) {
+        Long goodsId = IdUtils.generateId();
+        
+        BaseGoodsDO baseGoodsDO = buildBaseGoodsDO(baseGoodsAdd, goodsId);
+        
+        List<BaseGoodsSkuDO> baseGoodsSkuSave = buildBaseGoodsSkuList(baseGoodsAdd, goodsId);
 
-        BaseGoodsDO baseGoodsDO = new BaseGoodsDO();
-        BeanCopyUtils.copy(baseGoodsAdd, baseGoodsDO);
-        baseGoodsDO.setCode(CodeGenerateUtils.generaCode());
-        List<BaseGoodsSkuDO> baseGoodsSkuSave = new ArrayList<>();
-
-        List<List<BaseGoodsSkuAddDTO>> baseGoodsSkuAddList = baseGoodsAdd.getBaseGoodsSkuAddList();
-        for (List<BaseGoodsSkuAddDTO> as : baseGoodsSkuAddList) {
-
-            String skuCode = CodeGenerateUtils.generaCode();
-            List<BaseGoodsSkuDO> baseGoodsSkuList = BeanCopyUtils.copyBeanList(as, BaseGoodsSkuDO.class);
-            baseGoodsSkuList.forEach(a -> {
-                a.setSkuCode(skuCode);
-            });
-            baseGoodsSkuSave.addAll(baseGoodsSkuList);
-        }
-        //
         this.save(baseGoodsDO);
-        baseGoodsSkuSave.forEach(a -> {
-            a.setGoodsId(baseGoodsDO.getId());
-            a.setTenantId(MerchantIdContext.getMerchantId());
-        });
         baseGoodsSkuService.saveBatch(baseGoodsSkuSave);
+    }
+
+    /**
+     * 构建基础商品对象
+     */
+    private BaseGoodsDO buildBaseGoodsDO(AddBaseGoodsDTO baseGoodsAdd, Long goodsId) {
+        BaseGoodsDO baseGoodsDO = new BaseGoodsDO();
+        baseGoodsDO.setId(goodsId);
+        baseGoodsDO.setName(baseGoodsAdd.getName());
+        baseGoodsDO.setPictureAddress(baseGoodsAdd.getPictureAddress());
+        baseGoodsDO.setCode(CodeGenerateUtils.generaCode());
+        return baseGoodsDO;
+    }
+
+    /**
+     * 构建基础商品SKU列表
+     */
+    private List<BaseGoodsSkuDO> buildBaseGoodsSkuList(AddBaseGoodsDTO baseGoodsAdd, Long goodsId) {
+        List<BaseGoodsSkuDO> baseGoodsSkuSave = new ArrayList<>();
+        List<List<BaseGoodsSkuAddDTO>> baseGoodsSkuAddList = baseGoodsAdd.getBaseGoodsSkuAddList();
+        
+        for (List<BaseGoodsSkuAddDTO> skuGroup : baseGoodsSkuAddList) {
+            BaseGoodsSkuDO baseGoodsSkuDO = buildBaseGoodsSkuDO(skuGroup, goodsId);
+            baseGoodsSkuSave.add(baseGoodsSkuDO);
+        }
+        
+        return baseGoodsSkuSave;
+    }
+
+    /**
+     * 构建单个基础商品SKU对象
+     */
+    private BaseGoodsSkuDO buildBaseGoodsSkuDO(List<BaseGoodsSkuAddDTO> skuGroup, Long goodsId) {
+        List<Attributes> attributes = buildAttributesList(skuGroup);
+        String attributeDetail = buildAttributeDetailString(attributes);
+        String skuCode = CodeGenerateUtils.generaCode();
+        
+        BaseGoodsSkuDO baseGoodsSkuDO = new BaseGoodsSkuDO();
+        baseGoodsSkuDO.setSkuCode(skuCode);
+        baseGoodsSkuDO.setGoodsId(goodsId);
+        baseGoodsSkuDO.setAttributes(JsonUtils.toJsonString(attributes));
+        baseGoodsSkuDO.setAttributeDetail(attributeDetail);
+        baseGoodsSkuDO.setSort(skuGroup.get(0).getSort());
+        
+        return baseGoodsSkuDO;
+    }
+
+    /**
+     * 构建属性列表
+     */
+    private List<Attributes> buildAttributesList(List<BaseGoodsSkuAddDTO> skuGroup) {
+        List<Attributes> attributes = new ArrayList<>();
+        for (BaseGoodsSkuAddDTO skuAddDTO : skuGroup) {
+            Attributes attribute = new Attributes();
+            attribute.setAttribute(skuAddDTO.getAttribute());
+            attribute.setAttributeValue(skuAddDTO.getAttributeDesc());
+            attributes.add(attribute);
+        }
+        return attributes;
+    }
+
+    /**
+     * 构建属性详情字符串
+     * 格式：attribute,attributeValue;attribute,attributeValue;
+     */
+    private String buildAttributeDetailString(List<Attributes> attributes) {
+        return attributes.stream()
+                .map(attr -> attr.getAttribute() + "," + attr.getAttributeValue() + ";")
+                .collect(Collectors.joining());
+    }
+
+    /**
+     * 保存基础商品和SKU
+     */
+    private void saveBaseGoods(BaseGoodsDO baseGoodsDO, List<BaseGoodsSkuDO> baseGoodsSkuSave) {
 
     }
 
@@ -98,72 +162,67 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
 
     @Override
     public BaseGoodsByCodeVO baseGoodsByCodeQuery(String code) {
+        BaseGoodsDO goodsDO = getBaseGoodsByCode(code);
+        
+        List<BaseGoodsSkuDO> baseGoodsSkuDOList =  baseGoodsSkuService.lambdaQuery()
+                .eq(BaseGoodsSkuDO::getGoodsId, goodsDO.getId())
+                .list();
+        
+        List<BaseGoodsSkuByCodeQueryVO> skuVOList = buildBaseGoodsSkuVOList(baseGoodsSkuDOList);
 
+        return buildBaseGoodsByCodeVO(goodsDO, skuVOList);
+    }
+
+    /**
+     * 根据商品编码查询基础商品
+     */
+    private BaseGoodsDO getBaseGoodsByCode(String code) {
         BaseGoodsDO goodsDO = this.lambdaQuery().eq(BaseGoodsDO::getCode, code).one();
         if (goodsDO == null) {
             throw new BizException("商品信息不存在");
         }
-        List<BaseGoodsSkuDO> baseGoodsSkuDOList = baseGoodsSkuService.lambdaQuery().eq(BaseGoodsSkuDO::getGoodsId, goodsDO.getId()).list();
-        BaseGoodsByCodeVO baseGoodsByCodeQueryVO = new BaseGoodsByCodeVO();
-        BeanCopyUtils.copy(goodsDO, baseGoodsByCodeQueryVO);
-        List<BaseGoodsSkuByCodeQueryVO> baseGoodsSkuByCodeQueryVOS = BeanCopyUtils.copyBeanList(baseGoodsSkuDOList, BaseGoodsSkuByCodeQueryVO.class);
-        Map<String, List<BaseGoodsSkuByCodeQueryVO>> skuMap = new HashMap<>();
-        List<String> skuCodeList = new ArrayList<>();
-        for (BaseGoodsSkuByCodeQueryVO ba : baseGoodsSkuByCodeQueryVOS) {
-            String skuCode = ba.getSkuCode();
-            List<BaseGoodsSkuByCodeQueryVO> baseGoodsSkuByCodeQueryVOS1 = skuMap.computeIfAbsent(skuCode, k -> new ArrayList<>());
-            baseGoodsSkuByCodeQueryVOS1.add(ba);
+        return goodsDO;
+    }
+
+
+
+    /**
+     * 构建基础商品SKU VO列表
+     */
+    private List<BaseGoodsSkuByCodeQueryVO> buildBaseGoodsSkuVOList(List<BaseGoodsSkuDO> baseGoodsSkuDOList) {
+        List<BaseGoodsSkuByCodeQueryVO> skuVOList = new ArrayList<>();
+        for (BaseGoodsSkuDO baseGoodsSkuDO : baseGoodsSkuDOList) {
+            BaseGoodsSkuByCodeQueryVO skuVO = buildBaseGoodsSkuVO(baseGoodsSkuDO);
+            skuVOList.add(skuVO);
         }
-        List<BaseGoodsSkuByCodeQueryVO> baseGoodsSkuByCodeQueryVOList = new ArrayList<>();
-        Set<String> attributeSet = new HashSet<>();
-        StringBuilder attributeSplit = new StringBuilder();
-        skuMap.values().forEach(a -> {
+        return skuVOList;
+    }
 
-            BaseGoodsSkuByCodeQueryVO vo = new BaseGoodsSkuByCodeQueryVO();
-            List<BaseGoodsSkuDO> skuList = BeanCopyUtils.copyBeanList(a, BaseGoodsSkuDO.class);
-            BaseGoodsSkuByCodeQueryVO byCodeQueryVO = a.get(0);
-            BeanCopyUtils.copy(byCodeQueryVO, vo);
-            List<SkuNameVO> skuNameVOList = new ArrayList<>();
+    /**
+     * 构建单个基础商品SKU VO
+     */
+    private BaseGoodsSkuByCodeQueryVO buildBaseGoodsSkuVO(BaseGoodsSkuDO baseGoodsSkuDO) {
+        BaseGoodsSkuByCodeQueryVO skuVO = new BaseGoodsSkuByCodeQueryVO();
+        skuVO.setSkuCode(baseGoodsSkuDO.getSkuCode());
+        skuVO.setSort(baseGoodsSkuDO.getSort());
+        skuVO.setAttributeDetail(baseGoodsSkuDO.getAttributeDetail());
+        skuVO.setAttributes(JsonUtils.toList(baseGoodsSkuDO.getAttributes(), Attributes.class));
+        return skuVO;
+    }
 
-            a.forEach(b -> {
-                SkuNameVO skuNameVO = new SkuNameVO();
-                skuNameVO.setAttribute(b.getAttribute());
-                skuNameVO.setSort(b.getSort());
-                skuNameVO.setDesc(b.getAttributeDesc());
-                skuNameVOList.add(skuNameVO);
-            });
-            a.forEach(b -> {
-                attributeSet.add(b.getAttribute());
-            });
-            String skuName = buildSkuName(skuList);
-            //进行升序
-            skuNameVOList.sort(Comparator.comparing(SkuNameVO::getSort));
-            vo.setSkuNameVOList(skuNameVOList);
-            vo.setSkuName(skuName);
-            skuCodeList.add(vo.getSkuCode());
-            baseGoodsSkuByCodeQueryVOList.add(vo);
-        });
 
-        List<String> attributeSplitList = new ArrayList<>(attributeSet);
-        for (int i=0;i<attributeSplitList.size();i++){
-            attributeSplit.append(attributeSplitList.get(i));
-            if ( i!=attributeSet.size()-1){
-                attributeSplit.append(",");
-            }
-        }
-        /**
-         * 添加库存
-         */
-        // skuCodeList
-        Map<String, SkuCodeStockBO> stockBOMap = stockService.findBySkuCode(skuCodeList);
-        baseGoodsSkuByCodeQueryVOList.forEach(a ->{
-            String skuCode = a.getSkuCode();
-            SkuCodeStockBO stockBO = stockBOMap.get(skuCode);
-            a.setUsableStock(stockBO.getTotalStock());
-        });
-        baseGoodsByCodeQueryVO.setAttributeSplit(attributeSplit.toString());
-        baseGoodsByCodeQueryVO.setBaseGoodsSkuByCodeQueryVOList(baseGoodsSkuByCodeQueryVOList);
-        return baseGoodsByCodeQueryVO;
+
+
+
+    /**
+     * 构建基础商品按编码查询VO
+     */
+    private BaseGoodsByCodeVO buildBaseGoodsByCodeVO(BaseGoodsDO goodsDO, List<BaseGoodsSkuByCodeQueryVO> skuVOList) {
+        BaseGoodsByCodeVO baseGoodsByCodeVO = new BaseGoodsByCodeVO();
+        baseGoodsByCodeVO.setName(goodsDO.getName());
+        baseGoodsByCodeVO.setGoodsId(goodsDO.getId());
+        baseGoodsByCodeVO.setBaseGoodsSkuByCodeQueryVOList(skuVOList);
+        return baseGoodsByCodeVO;
     }
 
     @Override
@@ -188,10 +247,10 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
         StringBuffer skuName = new StringBuffer();
         baseGoodsSkuDOList.forEach(a -> {
 
-            skuName.append(a.getAttribute())
-                    .append(",").
-                    append(a.getAttributeDesc()).
-                    append(";");
+//            skuName.append(a.getAttribute())
+//                    .append(",").
+//                    append(a.getAttributeDesc()).
+//                    append(";");
 
         });
         return skuName.toString();

@@ -1,5 +1,6 @@
 package com.lanf.api.goods.model.vo;
 
+import com.lanf.api.goods.model.bo.Attributes;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,24 +16,17 @@ public class BaseGoodsSkuByCodeQueryVO implements Serializable {
 
     /** skuCode */
     private String skuCode;
-    
-    /** 可使用库存 */
-    private Integer usableStock;
-    
-    /** sku名称 */
-    private String skuName;
-    
-    /** sku名称 */
-    private String attribute;
-
-    /** sku描述 */
-    private String attributeDesc;
-
-    /** sku图片 */
-    private String skuPictureAddress;
-
-    private List<SkuNameVO> skuNameVOList;
 
     /** 排序（影响展示顺序） */
     private Integer sort;
+
+    /** sku详细 */
+    private String attributeDetail;
+    /** sku 属性 */
+    private List<Attributes> attributes;
+
+
+
+
+
 }

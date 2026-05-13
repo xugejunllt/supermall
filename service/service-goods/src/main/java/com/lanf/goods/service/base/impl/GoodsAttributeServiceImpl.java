@@ -3,22 +3,22 @@ package com.lanf.goods.service.base.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.goods.model.dto.AddGoodsAttributeDTO;
+import com.lanf.api.goods.model.dto.UpdateGoodsAttributeDTO;
+import com.lanf.api.goods.model.vo.GoodsAttributeDetailVO;
+import com.lanf.api.goods.model.vo.GoodsAttributeListVO;
+import com.lanf.api.goods.model.vo.GoodsAttributePageVO;
 import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.constant.context.MerchantIdContext;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.GoodsAttributeMapper;
-import com.lanf.api.goods.model.dto.AddGoodsAttributeDTO;
-import com.lanf.api.goods.model.dto.UpdateGoodsAttributeDTO;
 import com.lanf.goods.model.entity.GoodsAttributeDO;
-import com.lanf.api.goods.model.vo.GoodsAttributeDetailVO;
-import com.lanf.api.goods.model.vo.GoodsAttributeListVO;
-import com.lanf.api.goods.model.vo.GoodsAttributePageVO;
 import com.lanf.goods.service.base.IGoodsAttributeService;
 import com.lanf.mybatis.base.BaseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,7 +45,6 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
 
         GoodsAttributeDO goodsAttributeDO = new GoodsAttributeDO();
         BeanCopyUtils.copy(dto, goodsAttributeDO);
-        goodsAttributeDO.setTenantId(MerchantIdContext.getMerchantId());
         this.save(goodsAttributeDO);
 
     }
@@ -82,9 +81,10 @@ public class GoodsAttributeServiceImpl extends ServiceImpl<GoodsAttributeMapper,
     @Override
     public List<GoodsAttributeListVO> goodsAttributeListQuery() {
 
-        List<GoodsAttributeDO> list = this.lambdaQuery().eq(GoodsAttributeDO::getTenantId, MerchantIdContext.getMerchantId()).list();
+        List<GoodsAttributeDO> list = this.lambdaQuery()
+                .list();
         if (list.isEmpty()){
-            return null;
+            return new ArrayList<>();
         }
 
         return BeanCopyUtils.copyBeanList(list, GoodsAttributeListVO.class);
