@@ -3,8 +3,13 @@ package com.lanf.goods.service.goods.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.goods.model.bo.Attributes;
 import com.lanf.api.goods.model.bo.GoodsSkuAdd;
 import com.lanf.api.goods.model.bo.SkuName;
+import com.lanf.api.goods.model.dto.AddGoodsDTO;
+import com.lanf.api.goods.model.dto.CheckAndQueryGoodsDTO;
+import com.lanf.api.goods.model.dto.UpGoodsDTO;
+import com.lanf.api.goods.model.query.GoodsPageQuery;
 import com.lanf.api.goods.model.vo.*;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.cache.service.DistributedLocker;
@@ -19,13 +24,14 @@ import com.lanf.constant.utils.IdUtils;
 import com.lanf.goods.constant.GoodsCodeEnum;
 import com.lanf.goods.constant.GoodsRedisKeyConstants;
 import com.lanf.goods.mapper.GoodsMapper;
-import com.lanf.goods.model.bo.*;
-import com.lanf.api.goods.model.dto.AddGoodsDTO;
-import com.lanf.api.goods.model.dto.CheckAndQueryGoodsDTO;
-import com.lanf.api.goods.model.dto.UpGoodsDTO;
+import com.lanf.goods.model.bo.SkuAttributeBO;
+import com.lanf.goods.model.bo.SkuAttributeDetailBO;
+import com.lanf.goods.model.bo.SkuCodeStockBO;
+import com.lanf.goods.model.bo.UnitCodeSkuCodeBO;
 import com.lanf.goods.model.entity.*;
-import com.lanf.api.goods.model.query.GoodsPageQuery;
-import com.lanf.goods.model.vo.*;
+import com.lanf.goods.model.vo.GoodsSkuVO;
+import com.lanf.goods.model.vo.SkuDetailVO;
+import com.lanf.goods.model.vo.UserGoodsDetailVO;
 import com.lanf.goods.service.goods.*;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.mybatis.base.BaseEntity;
@@ -92,136 +98,166 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     public void addGoods(AddGoodsDTO dto) {
 
         validateAddGoods(dto);
-
-        /**
-         * 计算DB数据
-         */
-        GoodsDO goodsDO = BeanCopyUtils.copyBean(dto, GoodsDO.class);
         Long goodsId = IdUtils.generateId();
-        List<GoodsSkuAdd> goodsSkuAddDTOList = getGoodsSkuAddDTOList(dto);
-        List<GoodsSkuDO> goodsDOS = BeanCopyUtils.copyBeanList(goodsSkuAddDTOList, GoodsSkuDO.class);
-
-        //搜索标签 --转成json字符串
-        List<String> promptWordLabelList = IStringUtils.toList(dto.getPromptWordLabel(), ",");
-        String promptWordLabel = JsonUtils.toJsonString(promptWordLabelList);
-        //扩展表标签
-        List<String> extendedTagsList = IStringUtils.toList(dto.getExtendedTags(), ",");
-        String extendedTags = JsonUtils.toJsonString(extendedTagsList);
-        //图片地址处理
-        String pictureAddressList = JsonUtils.toJsonString(dto.getPictureAddressList());
-        //版本号 用于追随
         Long version = 1L;
+        GoodsDO goodsDO = buildGoodsDO(dto, goodsId, version);
+        List<GoodsSkuDO> goodsSkuList = buildGoodsSkuList(dto.getGoodsSkuAddDTOList(), goodsId, version);
+        saveGoodsWithHistory(goodsDO, goodsSkuList);
+    }
 
-        /**
-         * 初始化属性
-         */
-
-        goodsDOS.forEach(a -> {
-            a.setGoodsId(goodsId);
-            a.setVersion(version);
-        });
-
-        //构建SkuAttributeBO  UnitCodeSkuCodeBO
-        List<SkuAttributeBO> skuAttributeVOS = buildSkuAttributeVO(goodsDOS);
-        List<UnitCodeSkuCodeBO> codeSkuCodeVOList = buildUnitCodeSkuCodeVOList(goodsDOS);
-        //设置商品主图
-        goodsDO.setPictureAddress(pictureAddressList);
-        //默认下架 手动进行上架
-        goodsDO.setUpDownStatus(1);
-        goodsDO.setVersion(version);
-        goodsDO.setPromptWordLabel(promptWordLabel);
-        goodsDO.setExtendedTags(extendedTags);
+    /**
+     * 构建商品主对象
+     */
+    private GoodsDO buildGoodsDO(AddGoodsDTO dto, Long goodsId, Long version) {
+        GoodsDO goodsDO = BeanCopyUtils.copyBean(dto, GoodsDO.class);
+        
         goodsDO.setId(goodsId);
-        goodsDO.setSkuAttributeDetail(JsonUtils.toJsonString(skuAttributeVOS));
-        goodsDO.setUnitCodeSkuCode(JsonUtils.toJsonString(codeSkuCodeVOList));
-        /**
-         * 构建历史记录
-         */
-        GoodsHistoryVersionDO goodsHistoryVersionDO = BeanCopyUtils.copyBean(goodsDO, GoodsHistoryVersionDO.class);
-        List<GoodsSkuHistoryVersionDO> goodsSkuHistoryVersionDOS = BeanCopyUtils.copyBeanList(goodsDOS, GoodsSkuHistoryVersionDO.class);
+        goodsDO.setVersion(version);
+        goodsDO.setUpDownStatus(0);
+        goodsDO.setPictureAddress(JsonUtils.toJsonString(dto.getPictureAddressList()));
+        goodsDO.setPromptWordLabel(convertListToJson(dto.getPromptWordLabel()));
+        goodsDO.setExtendedTags(convertListToJson(dto.getExtendedTags()));
+        
+        return goodsDO;
+    }
 
+    /**
+     * 将逗号分隔的字符串转换为 JSON 字符串
+     */
+    private String convertListToJson(String commaSeparatedStr) {
+        if (commaSeparatedStr == null || commaSeparatedStr.trim().isEmpty()) {
+            return JsonUtils.toJsonString(new ArrayList<>());
+        }
+        List<String> list = IStringUtils.toList(commaSeparatedStr, ",");
+        return JsonUtils.toJsonString(list);
+    }
+
+    /**
+     * 构建商品SKU列表
+     */
+    private List<GoodsSkuDO> buildGoodsSkuList(List<GoodsSkuAdd> skuAddList, Long goodsId, Long version) {
+        List<GoodsSkuDO> goodsSkuList = BeanCopyUtils.copyBeanList(skuAddList, GoodsSkuDO.class);
+        
+        for (GoodsSkuDO sku : goodsSkuList) {
+            initializeSkuAttributes(sku, goodsId, version);
+        }
+        
+        return goodsSkuList;
+    }
+
+    /**
+     * 初始化SKU属性
+     */
+    private void initializeSkuAttributes(GoodsSkuDO sku, Long goodsId, Long version) {
+        sku.setGoodsId(goodsId);
+        sku.setVersion(version);
+        
+        String attributeDetail = sku.getAttributeDetail();
+        List<Attributes> attributes = parseAttributeDetail(attributeDetail);
+        sku.setAttributes(JsonUtils.toJsonString(attributes));
+    }
+
+    /**
+     * 保存商品及历史记录
+     */
+    private void saveGoodsWithHistory(GoodsDO goodsDO, List<GoodsSkuDO> goodsSkuList) {
+
+        GoodsHistoryVersionDO goodsHistory = BeanCopyUtils.copyBean(goodsDO, GoodsHistoryVersionDO.class);
+        List<GoodsSkuHistoryVersionDO> skuHistoryList = BeanCopyUtils.copyBeanList(goodsSkuList, GoodsSkuHistoryVersionDO.class);
         this.save(goodsDO);
-        goodsSkuService.saveBatch(goodsDOS);
-        goodsHistoryVersionService.save(goodsHistoryVersionDO);
-        goodsSkuHistoryVersionService.saveBatch(goodsSkuHistoryVersionDOS);
-
-
+        goodsSkuService.saveBatch(goodsSkuList);
+        goodsHistoryVersionService.save(goodsHistory);
+        goodsSkuHistoryVersionService.saveBatch(skuHistoryList);
     }
 
+    /**
+     * 校验添加商品参数
+     */
     private void validateAddGoods(AddGoodsDTO dto) {
-
-        Long categoryId = dto.getCategoryId();
-        Long brandId = dto.getBrandId();
-        String name = dto.getName();
-        String code = dto.getCode();
-//        GoodsDO goods1 = this.lambdaQuery().eq(GoodsDO::getCode, code).one();
-////        if (goods1 != null) {
-////            throw new BizException("商品已发布");
-////        }
-        List<GoodsSkuAdd> goodsSkuAddDTOList1 = dto.getGoodsSkuAddDTOList();
-        GoodsDO goods = this.lambdaQuery().eq(GoodsDO::getName, name).one();
-        if (goods != null) {
-            throw new BizException("商品名称已存在");
-        }
-
-        GoodsCategoryDO categoryDO = goodsCategoryService.lambdaQuery().eq(BaseEntity::getId, categoryId).eq(GoodsCategoryDO::getLevel, 3).one();
-        if (categoryDO == null) {
-            throw new BizException("商品分类不存在");
-        }
-        GoodsBrandDO brandDO = goodsBrandService.getById(brandId);
-        if (brandDO == null) {
-            throw new BizException("商品品牌不存在");
-
-        }
-
+        validateCategory(dto.getCategoryId());
+        validateBrand(dto.getBrandId());
+        validateSkuList(dto.getGoodsSkuAddDTOList());
     }
 
-    private static List<GoodsSkuAdd> getGoodsSkuAddDTOList(AddGoodsDTO dto) {
-        List<GoodsSkuAdd> goodsSkuAddDTOList = dto.getGoodsSkuAddDTOList();
+    /**
+     * 校验商品分类
+     */
+    private void validateCategory(Long categoryId) {
+        if (categoryId == null) {
+            throw new BizException("商品分类不能为空");
+        }
+        
+        GoodsCategoryDO category = goodsCategoryService.lambdaQuery()
+                .eq(BaseEntity::getId, categoryId)
+                .eq(GoodsCategoryDO::getLevel, 3)
+                .one();
+        
+        if (category == null) {
+            throw new BizException("商品分类不存在或不是三级分类");
+        }
+    }
 
+    /**
+     * 校验商品品牌
+     */
+    private void validateBrand(Long brandId) {
+        if (brandId == null) {
+            throw new BizException("商品品牌不能为空");
+        }
+        
+        GoodsBrandDO brand = goodsBrandService.getById(brandId);
+        if (brand == null) {
+            throw new BizException("商品品牌不存在");
+        }
+    }
 
-        for (int i = 0; i < goodsSkuAddDTOList.size(); i++) {
+    /**
+     * 校验SKU列表
+     */
+    private void validateSkuList(List<GoodsSkuAdd> skuList) {
+        if (skuList == null || skuList.isEmpty()) {
+            throw new BizException("商品SKU不能为空");
+        }
+        
+        for (GoodsSkuAdd sku : skuList) {
+            if (sku.getAttributeDetail() == null || sku.getAttributeDetail().trim().isEmpty()) {
+                throw new BizException("SKU属性详情不能为空");
+            }
+        }
+    }
 
-            boolean defaultSelect = i == 0;
-            GoodsSkuAdd a = goodsSkuAddDTOList.get(i);
-            if (defaultSelect) {
-                //将第一组sku设为默认 这里通常前端选择第一组sku 页面没有写所以这里写死
-                a.setDefaultSelect(1);
+    /**
+     * 将属性详情字符串转换为 Attributes 列表
+     * 格式：颜色,白色;内存,16g;
+     */
+    private List<Attributes> parseAttributeDetail(String attributeDetail) {
+        if (attributeDetail == null || attributeDetail.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Attributes> attributes = new ArrayList<>();
+
+        // 按分号分割
+        String[] pairs = attributeDetail.split(";");
+
+        for (String pair : pairs) {
+            if (pair.trim().isEmpty()) {
+                continue;
             }
 
-            List<SkuName> skuNameList = a.getSkuNameList();
-            Collections.sort(skuNameList, Comparator.comparing(SkuName::getSort));
-            /**
-             * 给每个属性值添加一个唯一id 在商品详细页-sku组合选择时方便计算
-             */
-            skuNameList.forEach(b -> {
-                b.setUnitId(IdUtils.generateId());
-                b.setDefaultSelect(defaultSelect ? 1 : 0);
-            });
-            /**
-             *
-             * [{"attribute":"颜色","desc":"白色","sort":1},
-             * {"attribute":"内存","desc":"32g","sort":2}]
-             *
-             */
-            String skuNameJson = JsonUtils.toJsonString(skuNameList);
-            //拼接skuName
-            StringBuffer v1 = new StringBuffer();
-            skuNameList.forEach(b -> {
+            // 按逗号分割
+            String[] keyValue = pair.split(",", 2);
 
-                v1.append(b.getAttribute()).
-                        append(",").
-                        append(b.getDesc()).
-                        append(";");
-            });
-            a.setSkuNameJson(skuNameJson);
-            a.setSkuName(v1.toString());
-
+            if (keyValue.length == 2) {
+                Attributes attribute = new Attributes();
+                attribute.setAttribute(keyValue[0].trim());
+                attribute.setAttributeValue(keyValue[1].trim());
+                attributes.add(attribute);
+            }
         }
 
-        return goodsSkuAddDTOList;
+        return attributes;
     }
-
 
     @Override
     public PageResult<GoodsPageVO> goodsPageQuery(GoodsPageQuery query) {
@@ -341,9 +377,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
          */
         //获取默认选中的sku
         GoodsSkuDO defaultGoodsSkuDO = getDefaultGoodsSkuDO(goodsSkuDOList);
-        List<SkuAttributeBO> skuAttributeVOS = JsonUtils.toList(goodsDO.getSkuAttributeDetail(), SkuAttributeBO.class);
 
-        List<UnitCodeSkuCodeBO> codeSkuCodeVOList = JsonUtils.toList(goodsDO.getUnitCodeSkuCode(), UnitCodeSkuCodeBO.class);
         List<GoodsSkuVO> goodsSkuVOS = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuVO.class);
         /**
          * 构建返回数据
@@ -354,8 +388,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         goodsDetailVO.setPictureList(JsonUtils.toList(goodsDO.getPictureAddress(), String.class));
         goodsDetailVO.setGoodsName(goodsDO.getName());
         goodsDetailVO.setPrice(defaultGoodsSkuDO.getPrice());
-        goodsDetailVO.setSkuAttributeVOList(skuAttributeVOS);
-        goodsDetailVO.setUnitCodeSkuCodeVOList(codeSkuCodeVOList);
         goodsDetailVO.setGoodsSkuVOList(goodsSkuVOS);
 
         return goodsDetailVO;
@@ -383,14 +415,9 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         List<UnitCodeSkuCodeBO> unitCodeSkuCodeVOList = new ArrayList<>();
         goodsSkuDOList.forEach(a -> {
 
-            String skuNameJson = a.getSkuNameJson();
-            List<SkuName> nameJsonBOList2 = JsonUtils.toList(skuNameJson, SkuName.class);
 
-            List<Long> unitIdList = nameJsonBOList2.stream().map(SkuName::getUnitId).collect(Collectors.toList());
-            String unitCode = generateUnitCode(unitIdList);
 
             UnitCodeSkuCodeBO unitCodeSkuCodeVO = new UnitCodeSkuCodeBO();
-            unitCodeSkuCodeVO.setUnitCode(unitCode);
             unitCodeSkuCodeVO.setSkuCode(a.getSkuCode());
             unitCodeSkuCodeVOList.add(unitCodeSkuCodeVO);
 
@@ -417,11 +444,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
          * 解析所有 sku 的属性
          */
         List<SkuName> allSkuNameJsonBOList = new ArrayList<>();
-        for (GoodsSkuDO skuDO : goodsSkuDOList) {
-            String skuNameJson = skuDO.getSkuNameJson();
-            List<SkuName> nameJsonBOList2 = JsonUtils.toList(skuNameJson, SkuName.class);
-            allSkuNameJsonBOList.addAll(nameJsonBOList2);
-        }
+
         //进行分组 key:属性名称 value:属性值
         Map<String, List<SkuName>> groupByAttribute = groupByAttribute(allSkuNameJsonBOList);
 
@@ -430,13 +453,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
          */
         List<String> attributeNameSet = new ArrayList<>();
         //选取第一个sku属性进行解析
-        String doSkuNameJson = goodsSkuDOList.get(0).getSkuNameJson();
-        List<SkuName> nameJsonBOList = JsonUtils.toList(doSkuNameJson, SkuName.class);
         //按 sort进行降序 这样才能保证属性名称按顺序展示
-        nameJsonBOList.sort(Comparator.comparing(SkuName::getSort).reversed());
-        for (SkuName jsonBO : nameJsonBOList) {
-            attributeNameSet.add(jsonBO.getAttribute());
-        }
+
         attributeNameSet.forEach(a -> {
             SkuAttributeBO skuAttributeVO = new SkuAttributeBO();
             skuAttributeVO.setAttributeName(a);
@@ -702,7 +720,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         goodsInfoToEsMsg.setTenantId(goodsDO.getTenantId());
         goodsInfoToEsMsg.setVersion(goodsDO.getVersion());
         goodsInfoToEsMsg.setSkuId(firstGoodsSku.getId());
-        goodsInfoToEsMsg.setSkuName(firstGoodsSku.getSkuName());
         goodsInfoToEsMsg.setPrice(firstGoodsSku.getPrice().doubleValue());
         goodsInfoToEsMsg.setAttributes(attributes);
         goodsInfoToEsMsg.setPromptWordLabel(promptWordLabel);
@@ -715,19 +732,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
         List<SyncGoodsInfoToEsMsg.Attribute> sku = new ArrayList<>();
 
-        goodsSkuDOList.forEach(a -> {
-            String skuNameJson = a.getSkuNameJson();
-            //SkuNameDTO
-            List<SkuName> list = JsonUtils.toList(skuNameJson, SkuName.class);
-
-            list.forEach(b -> {
-                SyncGoodsInfoToEsMsg.Attribute attribute = new SyncGoodsInfoToEsMsg.Attribute();
-                attribute.setAttrName(b.getAttribute());
-                attribute.setAttrValue(b.getDesc());
-                sku.add(attribute);
-            });
-
-        });
 
         return sku;
     }

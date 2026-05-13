@@ -334,7 +334,6 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         cartItemVO.setGoodsId(cartDO.getGoodsId());
         cartItemVO.setSkuId(cartDO.getSkuId());
         cartItemVO.setSkuCode(cartDO.getSkuCode());
-        cartItemVO.setSkuName(goodsSkuDO.getSkuName());
         cartItemVO.setGoodsName(goodsDO.getName());
         cartItemVO.setQuantity(cartDO.getQuantity());
         cartItemVO.setPrice(goodsSkuDO.getPrice());
@@ -400,7 +399,6 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
                 GoodsItem goodsItemVO = new GoodsItem();
                 goodsItemVO.setSkuId(cartDO.getSkuId());
                 goodsItemVO.setCartId(cartDO.getId());
-                goodsItemVO.setSkuName(goodsSkuDO.getSkuName());
                 goodsItemVO.setGoodsName(goodsDOMap.get(cartDO.getGoodsId()).getName());
                 goodsItemVO.setQuantity(cartDO.getQuantity());
                 goodsItemVO.setPrice(goodsSkuDO.getPrice());

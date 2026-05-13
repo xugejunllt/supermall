@@ -163,7 +163,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
     @Override
     public BaseGoodsByCodeVO baseGoodsByCodeQuery(String code) {
         BaseGoodsDO goodsDO = getBaseGoodsByCode(code);
-        
+
         List<BaseGoodsSkuDO> baseGoodsSkuDOList =  baseGoodsSkuService.lambdaQuery()
                 .eq(BaseGoodsSkuDO::getGoodsId, goodsDO.getId())
                 .list();
@@ -207,6 +207,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
         skuVO.setSort(baseGoodsSkuDO.getSort());
         skuVO.setAttributeDetail(baseGoodsSkuDO.getAttributeDetail());
         skuVO.setAttributes(JsonUtils.toList(baseGoodsSkuDO.getAttributes(), Attributes.class));
+        skuVO.setBaseGoodsSkuId(baseGoodsSkuDO.getId());
         return skuVO;
     }
 

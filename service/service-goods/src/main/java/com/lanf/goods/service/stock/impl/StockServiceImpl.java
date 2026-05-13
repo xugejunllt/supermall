@@ -164,7 +164,6 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         goodsSkuBO.setGoodsId(goodsSkuDO.getGoodsId());
         goodsSkuBO.setGoodsName(goodsDO.getName());
         goodsSkuBO.setSkuCode(goodsSkuDO.getSkuCode());
-        goodsSkuBO.setSkuName(goodsSkuDO.getSkuName());
         goodsSkuBO.setSkuPictureAddress(goodsSkuDO.getSkuPictureAddress());
         goodsSkuBO.setPrice(goodsSkuDO.getPrice());
         goodsSkuBO.setSkuVersion(goodsSkuDO.getVersion());

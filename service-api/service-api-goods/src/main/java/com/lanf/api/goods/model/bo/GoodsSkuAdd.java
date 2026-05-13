@@ -5,7 +5,6 @@ import lombok.Data;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * 商品SKU新增BO
@@ -13,15 +12,15 @@ import java.util.List;
 @Data
 public class GoodsSkuAdd implements Serializable {
 
-
+    private Long baseGoodsSkuId;
     /** skuCode */
     private String skuCode;
-    
+
+    private String attributeDetail;
+
     /** sku图片 */
     @NotBlank(message = "sku图片不能为空")
     private String skuPictureAddress;
-
-    private List<SkuName> skuNameList;
 
     /** 价格 */
     private BigDecimal price;
@@ -29,12 +28,6 @@ public class GoodsSkuAdd implements Serializable {
     /** 成本价格 */
     private BigDecimal costPrice;
 
-
-
-    private String skuNameJson;
-    
-    private String skuName;
-    
     /** 0:没有选中 ,1:默认选中 */
     private Integer defaultSelect;
     

@@ -178,7 +178,7 @@ public interface GoodsApiService {
      * 分页查询商品分类
      */
     @GetMapping("/goods/admin/goodsCategory/goodsCategoryPageQuery")
-    Result<PageResult<GoodsCategoryPageVO>> goodsCategoryPageQuery(PageQuery query);
+    Result<PageResult<GoodsCategoryPageVO>> goodsCategoryPageQuery(@SpringQueryMap PageQuery query);
 
     // ==================== 店铺管理 ====================
 

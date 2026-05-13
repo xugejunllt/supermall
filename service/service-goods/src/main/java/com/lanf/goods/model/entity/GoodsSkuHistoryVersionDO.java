@@ -26,11 +26,8 @@ private static final long serialVersionUID=1L;
     /** skuCode */
     private String skuCode;
 
-    /** sku名称json */
-    private String skuNameJson;
-
-    /** sku名称 */
-    private String skuName;
+    /** sku详细 */
+    private String attributeDetail;
 
     /** sku图片 */
     private String skuPictureAddress;

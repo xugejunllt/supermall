@@ -12,6 +12,9 @@ import java.util.List;
 @Data
 public class BaseGoodsSkuByCodeQueryVO implements Serializable {
 
+
+    private Long baseGoodsSkuId;
+
     private Long goodsId;
 
     /** skuCode */

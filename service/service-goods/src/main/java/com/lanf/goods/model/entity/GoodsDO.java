@@ -1,7 +1,5 @@
 package com.lanf.goods.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import lombok.Data;
@@ -42,7 +40,7 @@ private static final long serialVersionUID=1L;
     /** 品牌 */
     private Long brandId;
 
-    /** 上下架状态 0:上架 ,1:下架 */
+    /** 上下架状态 0:下架 ,1:上架 */
     private Integer upDownStatus;
     
     /** 搜索提示词标签 */
@@ -51,11 +49,6 @@ private static final long serialVersionUID=1L;
     /** 扩展标签 用于展示 */
     private String extendedTags;
     
-    /** sku详细 加速详细读 */
-    private String skuAttributeDetail;
-    
-    /** 属性code -skuCde映射 加速详细读 */
-    private String unitCodeSkuCode;
 
     private Long  tenantId;
 
