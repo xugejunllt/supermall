@@ -3,12 +3,12 @@ package com.lanf.goods.service.base;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.goods.model.dto.AddGoodsAttributeDTO;
-import com.lanf.goods.model.dto.UpdateGoodsAttributeDTO;
+import com.lanf.api.goods.model.dto.AddGoodsAttributeDTO;
+import com.lanf.api.goods.model.dto.UpdateGoodsAttributeDTO;
 import com.lanf.goods.model.entity.GoodsAttributeDO;
-import com.lanf.goods.model.vo.GoodsAttributeDetailVO;
-import com.lanf.goods.model.vo.GoodsAttributeListVO;
-import com.lanf.goods.model.vo.GoodsAttributePageVO;
+import com.lanf.api.goods.model.vo.GoodsAttributeDetailVO;
+import com.lanf.api.goods.model.vo.GoodsAttributeListVO;
+import com.lanf.api.goods.model.vo.GoodsAttributePageVO;
 
 import java.util.List;
 

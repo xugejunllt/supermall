@@ -2,7 +2,7 @@ package com.lanf.order.controller.app;
 
 
 import com.lanf.constant.result.Result;
-import com.lanf.goods.model.dto.ValidateCartDTO;
+import com.lanf.api.goods.model.dto.ValidateCartDTO;
 import com.lanf.order.model.dto.SubmitCartDTO;
 import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;

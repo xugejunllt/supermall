@@ -3,9 +3,9 @@ package com.lanf.goods.service.goods;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.goods.model.dto.AddGoodsCategoryDTO;
+import com.lanf.api.goods.model.dto.AddGoodsCategoryDTO;
 import com.lanf.goods.model.entity.GoodsCategoryDO;
-import com.lanf.goods.model.vo.GoodsCategoryPageVO;
+import com.lanf.api.goods.model.vo.GoodsCategoryPageVO;
 
 /**
  * <p>

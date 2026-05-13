@@ -1,6 +1,6 @@
 package com.lanf.order.model.vo;
 
-import com.lanf.goods.model.bo.ShopGoods;
+import com.lanf.api.goods.model.bo.ShopGoods;
 import lombok.Data;
 
 import java.io.Serializable;

@@ -2,8 +2,8 @@ package com.lanf.goods.service.stock;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.goods.model.entity.UserStockFlowDO;
-import com.lanf.goods.model.query.ReconciliationStockFlowQuery;
-import com.lanf.goods.model.vo.ReconciliationStockFlowVO;
+import com.lanf.api.goods.model.query.ReconciliationStockFlowQuery;
+import com.lanf.api.goods.model.vo.ReconciliationStockFlowVO;
 
 /**
  * <p>

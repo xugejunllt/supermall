@@ -8,10 +8,10 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.GoodsBrandMapper;
-import com.lanf.goods.model.dto.AddGoodsBrandDTO;
+import com.lanf.api.goods.model.dto.AddGoodsBrandDTO;
 import com.lanf.goods.model.entity.GoodsBrandDO;
-import com.lanf.goods.model.vo.GoodsBrandListVO;
-import com.lanf.goods.model.vo.GoodsBrandPageVO;
+import com.lanf.api.goods.model.vo.GoodsBrandListVO;
+import com.lanf.api.goods.model.vo.GoodsBrandPageVO;
 import com.lanf.goods.service.goods.IGoodsBrandService;
 import org.springframework.stereotype.Service;
 

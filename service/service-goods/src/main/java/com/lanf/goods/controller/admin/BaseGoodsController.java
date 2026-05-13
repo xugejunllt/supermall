@@ -3,11 +3,11 @@ package com.lanf.goods.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.goods.model.dto.AddBaseGoodsDTO;
-import com.lanf.goods.model.query.BaseGoodsPageQuery;
-import com.lanf.goods.model.vo.BaseGoodsByCodeVO;
-import com.lanf.goods.model.vo.BaseGoodsBySkuCodeVO;
-import com.lanf.goods.model.vo.BaseGoodsPageVO;
+import com.lanf.api.goods.model.dto.AddBaseGoodsDTO;
+import com.lanf.api.goods.model.query.BaseGoodsPageQuery;
+import com.lanf.api.goods.model.vo.BaseGoodsByCodeVO;
+import com.lanf.api.goods.model.vo.BaseGoodsBySkuCodeVO;
+import com.lanf.api.goods.model.vo.BaseGoodsPageVO;
 import com.lanf.goods.service.base.IBaseGoodsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

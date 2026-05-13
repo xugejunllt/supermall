@@ -1,7 +1,7 @@
 package com.lanf.goods.controller.admin;
 
 import com.lanf.constant.result.Result;
-import com.lanf.goods.model.dto.RecycleStockDTO;
+import com.lanf.api.goods.model.dto.RecycleStockDTO;
 import com.lanf.goods.service.stock.IUserStockPreorderPublishLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -7,10 +7,10 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.mapper.ShopMapper;
-import com.lanf.goods.model.dto.AddShopDTO;
+import com.lanf.api.goods.model.dto.AddShopDTO;
 import com.lanf.goods.model.entity.ShopDO;
-import com.lanf.goods.model.vo.ShopListVO;
-import com.lanf.goods.model.vo.ShopPageVO;
+import com.lanf.api.goods.model.vo.ShopListVO;
+import com.lanf.api.goods.model.vo.ShopPageVO;
 import com.lanf.goods.service.goods.IShopService;
 import org.springframework.stereotype.Service;
 

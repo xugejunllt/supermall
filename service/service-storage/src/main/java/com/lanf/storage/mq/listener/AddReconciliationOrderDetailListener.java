@@ -6,9 +6,9 @@ package com.lanf.storage.mq.listener;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.result.RpcResultParser;
-import com.lanf.goods.api.GoodsApiService;
-import com.lanf.goods.model.query.ReconciliationStockFlowQuery;
-import com.lanf.goods.model.vo.ReconciliationStockFlowVO;
+import com.lanf.api.goods.api.GoodsApiService;
+import com.lanf.api.goods.model.query.ReconciliationStockFlowQuery;
+import com.lanf.api.goods.model.vo.ReconciliationStockFlowVO;
 import com.lanf.order.api.OrderApiService;
 import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.query.ReconciliationOrderItemQuery;

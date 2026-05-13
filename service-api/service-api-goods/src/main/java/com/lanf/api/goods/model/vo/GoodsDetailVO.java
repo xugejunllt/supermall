@@ -1,0 +1,40 @@
+package com.lanf.api.goods.model.vo;
+
+import lombok.Data;
+
+import java.io.Serializable;
+import java.util.List;
+
+/**
+ * 商品详情VO
+ */
+@Data
+public class GoodsDetailVO implements Serializable {
+
+
+    private Long id;
+
+    /** 商品编码 */
+    private String code;
+
+    /** 商品名称 */
+    private String name;
+
+    /** 副标题 */
+    private String title;
+
+    /** 图片地址，多个,用"，"隔开 */
+    private String pictureAddress;
+
+    /** 商品3级分类 */
+    private String categoryName;
+
+    /** 品牌 */
+    private String brandName;
+
+    /** 上下架状态 0:上架 ,1:下架 */
+    private Integer upDownStatus;
+
+    private List<GoodsSkuDetailVO> goodsSkuDetailVOList;
+
+}

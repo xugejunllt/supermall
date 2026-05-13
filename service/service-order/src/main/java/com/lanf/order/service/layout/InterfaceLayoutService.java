@@ -1,11 +1,9 @@
 package com.lanf.order.service.layout;
 
-import com.lanf.goods.model.dto.CheckAndQueryGoodsDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.dto.OnePlaceAnOrderDTO;
 import com.lanf.order.model.dto.SubmitOrderDTO;
 import com.lanf.order.model.vo.CreateOrderVO;
-import com.lanf.order.model.vo.OnePlaceAnOrderVO;
 
 /**
  * 接口编排

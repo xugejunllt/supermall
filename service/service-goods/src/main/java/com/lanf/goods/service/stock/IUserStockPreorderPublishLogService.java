@@ -1,7 +1,7 @@
 package com.lanf.goods.service.stock;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.goods.model.dto.RecycleStockDTO;
+import com.lanf.api.goods.model.dto.RecycleStockDTO;
 import com.lanf.goods.model.entity.UserStockPreorderPublishLogDO;
 
 /**

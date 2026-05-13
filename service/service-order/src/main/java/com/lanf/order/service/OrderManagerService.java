@@ -1,6 +1,6 @@
 package com.lanf.order.service;
 
-import com.lanf.goods.model.dto.ValidateCartDTO;
+import com.lanf.api.goods.model.dto.ValidateCartDTO;
 import com.lanf.order.model.dto.CalculateOrderAmountDTO;
 import com.lanf.order.model.dto.CancelOrderDTO;
 import com.lanf.order.model.dto.PlaceOrderDTO;

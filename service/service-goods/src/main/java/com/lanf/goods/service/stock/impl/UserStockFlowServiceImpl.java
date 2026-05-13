@@ -5,9 +5,9 @@ import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.goods.mapper.UserStockFlowMapper;
 import com.lanf.goods.model.entity.UserStockFlowDO;
-import com.lanf.goods.model.query.ReconciliationStockFlowQuery;
-import com.lanf.goods.model.vo.ReconciliationStockFlow;
-import com.lanf.goods.model.vo.ReconciliationStockFlowVO;
+import com.lanf.api.goods.model.query.ReconciliationStockFlowQuery;
+import com.lanf.api.goods.model.vo.ReconciliationStockFlow;
+import com.lanf.api.goods.model.vo.ReconciliationStockFlowVO;
 import com.lanf.goods.service.stock.IUserStockFlowService;
 import org.springframework.stereotype.Service;
 

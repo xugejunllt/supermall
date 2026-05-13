@@ -2,12 +2,12 @@ package com.lanf.goods.service.base;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.goods.model.dto.AddBaseGoodsDTO;
+import com.lanf.api.goods.model.dto.AddBaseGoodsDTO;
 import com.lanf.goods.model.entity.BaseGoodsDO;
-import com.lanf.goods.model.query.BaseGoodsPageQuery;
-import com.lanf.goods.model.vo.BaseGoodsByCodeVO;
-import com.lanf.goods.model.vo.BaseGoodsBySkuCodeVO;
-import com.lanf.goods.model.vo.BaseGoodsPageVO;
+import com.lanf.api.goods.model.query.BaseGoodsPageQuery;
+import com.lanf.api.goods.model.vo.BaseGoodsByCodeVO;
+import com.lanf.api.goods.model.vo.BaseGoodsBySkuCodeVO;
+import com.lanf.api.goods.model.vo.BaseGoodsPageVO;
 
 import java.util.List;
 

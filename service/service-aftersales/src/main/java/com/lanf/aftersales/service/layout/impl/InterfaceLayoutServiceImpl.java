@@ -15,7 +15,7 @@ import com.lanf.constant.result.RpcResultParser;
 import com.lanf.aftersales.mq.AftersalesClientTopicName;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
-import com.lanf.goods.api.GoodsApiService;
+import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.order.api.OrderApiService;

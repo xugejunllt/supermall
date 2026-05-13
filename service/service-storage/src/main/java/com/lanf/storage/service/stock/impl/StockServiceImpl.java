@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
-import com.lanf.goods.api.GoodsApiService;
+import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.constant.web.PageResult;
 import com.lanf.storage.mapper.StockMapper;

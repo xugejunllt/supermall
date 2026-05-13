@@ -3,10 +3,10 @@ package com.lanf.goods.service.goods;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.goods.model.dto.AddShopDTO;
+import com.lanf.api.goods.model.dto.AddShopDTO;
 import com.lanf.goods.model.entity.ShopDO;
-import com.lanf.goods.model.vo.ShopListVO;
-import com.lanf.goods.model.vo.ShopPageVO;
+import com.lanf.api.goods.model.vo.ShopListVO;
+import com.lanf.api.goods.model.vo.ShopPageVO;
 
 import java.util.List;
 

@@ -32,6 +32,8 @@ spring:
             data-id: rocketmq.yaml
           - group: common
             data-id: hmily.yaml
+          - group: common
+            data-id: common.yaml
 #          - group: common
 #            data-id: cdn.yaml
 

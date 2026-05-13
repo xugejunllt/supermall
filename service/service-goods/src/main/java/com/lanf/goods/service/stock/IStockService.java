@@ -2,11 +2,11 @@ package com.lanf.goods.service.stock;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.goods.model.bo.SkuCodeStockBO;
-import com.lanf.goods.model.dto.DeductStockDTO;
-import com.lanf.goods.model.dto.SeckillStockPreoccupationDTO;
+import com.lanf.api.goods.model.dto.DeductStockDTO;
+import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.entity.StockDO;
-import com.lanf.goods.model.vo.DeductStockVO;
+import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.StockEnoughVO;
 
 import java.util.List;
