@@ -111,16 +111,12 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
         List<String> skuCodeList = new ArrayList<>();
         for (BaseGoodsSkuByCodeQueryVO ba : baseGoodsSkuByCodeQueryVOS) {
             String skuCode = ba.getSkuCode();
-            List<BaseGoodsSkuByCodeQueryVO> baseGoodsSkuByCodeQueryVOS1 = skuMap.get(skuCode);
-            if (baseGoodsSkuByCodeQueryVOS1 == null) {
-                baseGoodsSkuByCodeQueryVOS1 = new ArrayList<>();
-                skuMap.put(skuCode, baseGoodsSkuByCodeQueryVOS1);
-            }
+            List<BaseGoodsSkuByCodeQueryVO> baseGoodsSkuByCodeQueryVOS1 = skuMap.computeIfAbsent(skuCode, k -> new ArrayList<>());
             baseGoodsSkuByCodeQueryVOS1.add(ba);
         }
         List<BaseGoodsSkuByCodeQueryVO> baseGoodsSkuByCodeQueryVOList = new ArrayList<>();
         Set<String> attributeSet = new HashSet<>();
-        StringBuffer attributeSplit = new StringBuffer();
+        StringBuilder attributeSplit = new StringBuilder();
         skuMap.values().forEach(a -> {
 
             BaseGoodsSkuByCodeQueryVO vo = new BaseGoodsSkuByCodeQueryVO();
@@ -194,7 +190,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
 
             skuName.append(a.getAttribute())
                     .append(",").
-                    append(a.getAttributeValue()).
+                    append(a.getAttributeDesc()).
                     append(";");
 
         });

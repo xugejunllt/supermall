@@ -27,7 +27,7 @@ private static final long serialVersionUID=1L;
     private String attribute;
 
     /** sku描述 */
-    private String attributeValue;
+    private String attributeDesc;
 
     /** sku图片 */
     private String skuPictureAddress;
