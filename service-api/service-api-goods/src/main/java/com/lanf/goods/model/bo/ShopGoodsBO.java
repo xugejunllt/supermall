@@ -5,11 +5,15 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * 店铺商品BO
+ */
 @Data
 public class ShopGoodsBO implements Serializable {
 
     private Long shopId;
-    //店铺名称
+    
+    /** 店铺名称 */
     private String shopName;
 
     private List<GoodsItemBO> cartItemList;

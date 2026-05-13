@@ -6,14 +6,15 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * 清空购物车VO
+ */
 @Data
 public class ClearCartVO implements java.io.Serializable {
 
-    //总价
+    /** 总价 */
     private BigDecimal totalPrice;
 
     private List<ShopGoodsBO> goodsVOList;
-
-
 
 }

@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -22,13 +21,13 @@ public class GoodsCategoryDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
-    @ApiModelProperty(value = "名称")
+    /** 名称 */
     private String name;
 
-    @ApiModelProperty(value = "上级分类id")
+    /** 上级分类id */
     private Long parentId;
 
-    @ApiModelProperty(value = "排序坐标，越大越靠前")
+    /** 排序坐标，越大越靠前 */
     private Integer sortIndex;
 
     private Integer level;

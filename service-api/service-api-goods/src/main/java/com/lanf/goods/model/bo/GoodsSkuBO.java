@@ -1,11 +1,13 @@
 package com.lanf.goods.model.bo;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+/**
+ * 商品SKU BO
+ */
 @Data
 public class GoodsSkuBO implements Serializable {
 
@@ -17,18 +19,19 @@ public class GoodsSkuBO implements Serializable {
 
     private String goodsTitle;
 
-    @ApiModelProperty(value = "skuCode")
+    /** skuCode */
     private String skuCode;
 
     private String skuName;
 
-    @ApiModelProperty(value = "sku图片")
+    /** sku图片 */
     private String skuPictureAddress;
 
-    @ApiModelProperty(value = "价格")
+    /** 价格 */
     private BigDecimal price;
 
     private Long skuVersion;
+    
     private Long goodsVersion;
 
     private Long warehouseId;

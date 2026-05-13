@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 对账库存流水
+ */
 @Data
 public class ReconciliationStockFlow implements Serializable {
 
@@ -12,6 +15,5 @@ public class ReconciliationStockFlow implements Serializable {
     private String skuCode;
 
     private Long warehouseId;
-
 
 }

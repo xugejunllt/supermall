@@ -5,6 +5,9 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+/**
+ * SKU详情VO
+ */
 @Data
 public class SkuDetailVO implements Serializable {
 
@@ -21,7 +24,6 @@ public class SkuDetailVO implements Serializable {
     private String skuName;
 
     private BigDecimal price;
-
 
 }
 

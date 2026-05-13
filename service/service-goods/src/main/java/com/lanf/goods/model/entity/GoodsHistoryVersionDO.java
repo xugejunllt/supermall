@@ -2,7 +2,6 @@ package com.lanf.goods.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -21,38 +20,38 @@ private static final long serialVersionUID=1L;
 
 
 
-    @ApiModelProperty(value = "商品编码")
+    /** 商品编码 */
     private String code;
 
-    @ApiModelProperty(value = "商品名称")
+    /** 商品名称 */
     private String name;
 
-    @ApiModelProperty(value = "店铺id")
+    /** 店铺id */
     private Long shopId;
 
-    @ApiModelProperty(value = "副标题")
+    /** 副标题 */
     private String title;
 
-    @ApiModelProperty(value = "图片地址，多个,用“，”隔开")
+    /** 图片地址，多个,用"，"隔开 */
     private String pictureAddress;
 
-    @ApiModelProperty(value = "商品3级分类")
+    /** 商品3级分类 */
     private Long categoryId;
 
-    @ApiModelProperty(value = "品牌")
+    /** 品牌 */
     private Long brandId;
 
-    @ApiModelProperty(value = "上下架状态 0:上架 ,1:下架")
+    /** 上下架状态 0:上架 ,1:下架 */
     private Integer upDownStatus;
 
     private Long tenantId;
 
     private Long version;
 
-    //搜索提示词标签
+    /** 搜索提示词标签 */
     private String promptWordLabel;
-    //扩展标签 用于展示
+    
+    /** 扩展标签 用于展示 */
     private String extendedTags;
-
 
 }

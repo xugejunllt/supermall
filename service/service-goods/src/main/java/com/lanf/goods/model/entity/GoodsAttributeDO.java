@@ -2,7 +2,6 @@ package com.lanf.goods.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -20,13 +19,14 @@ public class GoodsAttributeDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
-    @ApiModelProperty(value = "属性")
+    /** 属性 */
     private String attribute;
 
-    @ApiModelProperty(value = "属性值 多个 用;隔开")
+    /** 属性值 多个 用;隔开 */
     private String attributeValue;
 
     private Integer sort;
+    
     private Long tenantId;
 
 }

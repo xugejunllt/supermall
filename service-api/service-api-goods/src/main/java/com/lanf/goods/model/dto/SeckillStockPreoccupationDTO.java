@@ -5,6 +5,9 @@ import lombok.Data;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
+/**
+ * 秒杀库存预占DTO
+ */
 @Data
 public class SeckillStockPreoccupationDTO implements Serializable {
 
@@ -14,6 +17,7 @@ public class SeckillStockPreoccupationDTO implements Serializable {
     private String skuCode;
 
     private Long warehouseId;
+    
     /**
      * 预占数量
      */

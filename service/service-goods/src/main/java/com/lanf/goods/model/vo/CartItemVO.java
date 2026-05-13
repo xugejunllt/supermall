@@ -5,6 +5,9 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+/**
+ * 购物车项VO
+ */
 @Data
 public class CartItemVO implements Serializable {
 
@@ -20,10 +23,11 @@ public class CartItemVO implements Serializable {
     private String skuName;
 
     private String goodsName;
-    //数量
+    
+    /** 数量 */
     private Integer quantity;
-    //价格
+    
+    /** 价格 */
     private BigDecimal price;
-
 
 }

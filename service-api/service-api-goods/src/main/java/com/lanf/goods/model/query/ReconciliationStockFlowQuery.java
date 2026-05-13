@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 对账库存流水查询
+ */
 @Data
 public class ReconciliationStockFlowQuery implements Serializable {
 

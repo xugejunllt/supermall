@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -23,24 +22,22 @@ private static final long serialVersionUID=1L;
 
     private Long goodsId;
 
-    @ApiModelProperty(value = "skuCode")
+    /** skuCode */
     private String skuCode;
 
-    @ApiModelProperty(value = "sku名称")
+    /** sku名称 */
     private String attribute;
 
-    @ApiModelProperty(value = "sku描述")
-
+    /** sku描述 */
     private String attributeDesc;
 
-    @ApiModelProperty(value = "sku图片")
+    /** sku图片 */
     private String skuPictureAddress;
 
-    @ApiModelProperty(value = "排序（影响展示顺序）")
+    /** 排序（影响展示顺序） */
     private Integer sort;
+    
     @TableField( fill = FieldFill.INSERT)
     private Long  tenantId;
-
-
 
 }

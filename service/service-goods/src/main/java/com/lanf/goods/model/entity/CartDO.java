@@ -2,7 +2,6 @@ package com.lanf.goods.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -22,7 +21,7 @@ private static final long serialVersionUID=1L;
 
     private Long userId;
 
-    @ApiModelProperty(value = "店铺id")
+    /** 店铺id */
     private Long shopId;
 
     private Long goodsId;
@@ -31,13 +30,12 @@ private static final long serialVersionUID=1L;
 
     private String skuCode;
 
-    @ApiModelProperty(value = "数量")
+    /** 数量 */
     private Integer quantity;
 
-    //排序顺序，越小越靠前
+    /** 排序顺序，越小越靠前 */
     private Long sortOrder;
 
     private Long version;
-
 
 }
