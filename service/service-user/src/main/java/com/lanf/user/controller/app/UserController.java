@@ -72,11 +72,7 @@ public class UserController {
 
 
 
-    /**
-     * 如果出现异常 统一退出登入
-     * @param dto
-     * @return
-     */
+
     @PostMapping("/refreshToken")
     public Result<UserTokenInfoVO> refreshToken(@Validated @RequestBody RefreshTokenDTO dto,HttpServletRequest request) {
 
@@ -87,7 +83,7 @@ public class UserController {
         return Result.ok(refreshTokenVO);
     }
 
-    @PostMapping("/userDetailQuery")
+    @GetMapping("/userDetailQuery")
     public Result<UserDetailVO> userDetailQuery() {
 
         log.info("获取用户详细开始");

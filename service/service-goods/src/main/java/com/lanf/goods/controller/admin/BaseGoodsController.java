@@ -33,7 +33,7 @@ public class BaseGoodsController {
     @GetMapping("/baseGoodsPageQuery")
     public Result<PageResult<BaseGoodsPageVO>> baseGoodsPageQuery(BaseGoodsPageQuery query) {
 
-        log.info("[{}]开始,入参:[{}]", "分页查询基础商品信息列表", query);
+        log.info("分页查询基础商品信息列表开始,入参:[{}]", query);
 
         return Result.ok(baseGoodsService.baseGoodsPageQuery(query));
     }

@@ -42,7 +42,7 @@ public class AddressAppController {
     }
 
 
-    @PostMapping("/addressListQuery")
+    @GetMapping("/addressListQuery")
     public Result<List<AddressListVO>> addressListQuery() {
 
         Long userId = UserContext.getUserId();
