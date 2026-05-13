@@ -1,6 +1,9 @@
 package com.lanf.api.goods.model.vo;
 
 
+import com.lanf.constant.model.enums.storage.PublishPlatformEnum;
+import com.lanf.constant.model.enums.storage.PublishStatusEnum;
+import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -28,10 +31,10 @@ public class UserStockPreorderPublishLogPageVO implements Serializable {
     private Integer changeQuantity;
 
     /** 事件类型 */
-    private String eventType;
+    private StockPreorderEventTypeEnum eventType;
 
     /** 发布平台 */
-    private String publishPlatform;
+    private PublishPlatformEnum publishPlatform;
 
     /** 仓库ID */
     private Long warehouseId;
@@ -40,7 +43,7 @@ public class UserStockPreorderPublishLogPageVO implements Serializable {
     private Long tenantId;
 
     /** 状态 */
-    private String status;
+    private PublishStatusEnum status;
 
     /** 创建时间 */
     private Date createTime;

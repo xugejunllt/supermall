@@ -23,11 +23,6 @@ public enum PublishPlatformEnum {
         this.name = name;
     }
 
-    @JsonValue
-    public Integer getCode() {
-        return code;
-    }
-
     @JsonCreator
     public static PublishPlatformEnum getByCode(Integer code) {
         if (code == null) {

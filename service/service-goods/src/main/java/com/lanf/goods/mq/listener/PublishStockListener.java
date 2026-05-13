@@ -8,7 +8,7 @@ import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockFlowService;
 import com.lanf.goods.service.stock.IUserStockPreorderPublishLogService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
-import com.lanf.storage.model.enums.PublishStatusEnum;
+import com.lanf.constant.model.enums.storage.PublishStatusEnum;
 import com.lanf.storage.mq.constant.StorageClientTopicName;
 import com.lanf.storage.mq.message.PublishStockMessage;
 import lombok.extern.slf4j.Slf4j;

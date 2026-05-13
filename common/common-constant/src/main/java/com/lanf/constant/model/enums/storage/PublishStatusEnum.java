@@ -1,4 +1,4 @@
-package com.lanf.storage.model.enums;
+package com.lanf.constant.model.enums.storage;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -6,35 +6,30 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
- * 库存预购单事件类型枚举
+ * 发布状态枚举
  */
 @Getter
-public enum StockPreorderEventTypeEnum {
+public enum PublishStatusEnum {
 
-    PUBLISH(0, "发布"),
-    RECYCLE(1, "回收");
+    SUCCESS(0, "成功"),
+    FAILED(1, "失败");
 
     @EnumValue
     @JsonValue
     private final Integer code;
     private final String name;
 
-    StockPreorderEventTypeEnum(Integer code, String name) {
+    PublishStatusEnum(Integer code, String name) {
         this.code = code;
         this.name = name;
     }
 
-    @JsonValue
-    public Integer getCode() {
-        return code;
-    }
-
     @JsonCreator
-    public static StockPreorderEventTypeEnum getByCode(Integer code) {
+    public static PublishStatusEnum getByCode(Integer code) {
         if (code == null) {
             return null;
         }
-        for (StockPreorderEventTypeEnum typeEnum : StockPreorderEventTypeEnum.values()) {
+        for (PublishStatusEnum typeEnum : PublishStatusEnum.values()) {
             if (code.equals(typeEnum.getCode())) {
                 return typeEnum;
             }
