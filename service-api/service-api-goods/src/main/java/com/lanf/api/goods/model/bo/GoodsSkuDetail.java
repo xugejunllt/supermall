@@ -1,21 +1,22 @@
-package com.lanf.api.goods.model.vo;
+package com.lanf.api.goods.model.bo;
 
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 商品SKU详情VO
  */
 @Data
-public class GoodsSkuDetailVO implements Serializable {
+public class GoodsSkuDetail implements Serializable {
 
     /** skuCode */
     private String skuCode;
 
     /** sku名称 */
-    private String skuName;
+    private String attributeDetail;
 
     /** sku图片 */
     private String skuPictureAddress;
@@ -26,7 +27,5 @@ public class GoodsSkuDetailVO implements Serializable {
     /** 成本价格 */
     private BigDecimal costPrice;
 
-    /** 商品库存 */
-    private Integer stock;
-
+    private List<StockDetail> stockDetailList;
 }

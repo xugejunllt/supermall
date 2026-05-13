@@ -1,19 +1,18 @@
 package com.lanf.goods.service.stock.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.goods.model.bo.GoodsSku;
+import com.lanf.api.goods.model.dto.DeductStockDTO;
+import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
+import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.goods.mapper.StockMapper;
-import com.lanf.api.goods.model.bo.GoodsSku;
-import com.lanf.goods.model.bo.SkuCodeStockBO;
-import com.lanf.api.goods.model.dto.DeductStockDTO;
-import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.entity.GoodsDO;
 import com.lanf.goods.model.entity.GoodsSkuDO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
-import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
@@ -60,26 +59,24 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     private IGoodsService goodsService;
 
 
+    /**
+     * 查找所有库存
+     * 多仓库
+     *
+     */
+
     @Override
-    public Map<String, SkuCodeStockBO> findBySkuCode(List<String> skuCode) {
+    public Map<String, StockDO> findBySkuCode(List<String> skuCode) {
 
         List<StockDO> stockDOList = this.lambdaQuery().in(StockDO::getSkuCode, skuCode).list();
 
-        Map<String, SkuCodeStockBO> stockCount = new HashMap<>();
+        Map<String, StockDO> stockCount = new HashMap<>();
 
         for (StockDO stockDO : stockDOList) {
 
             String skuCode1 = stockDO.getSkuCode();
-            SkuCodeStockBO skuCodeStockBO = stockCount.get(skuCode1);
+            stockCount.put(skuCode1, stockDO);
 
-            if (skuCodeStockBO == null) {
-                SkuCodeStockBO stockBO = new SkuCodeStockBO();
-                stockBO.setTotalStock(stockDO.getUsableStock());
-                stockCount.put(skuCode1, stockBO);
-            } else {
-                Integer count2 = skuCodeStockBO.getTotalStock() + stockDO.getUsableStock();
-                skuCodeStockBO.setTotalStock(count2);
-            }
         }
 
         return stockCount;

@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class Attributes implements Serializable {
+public class AttributesJson implements Serializable {
 
     private String attribute;
 

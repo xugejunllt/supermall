@@ -1,5 +1,6 @@
 package com.lanf.api.goods.model.vo;
 
+import com.lanf.api.goods.model.bo.GoodsSkuDetail;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -32,9 +33,11 @@ public class GoodsDetailVO implements Serializable {
     /** 品牌 */
     private String brandName;
 
-    /** 上下架状态 0:上架 ,1:下架 */
+    /** 上下架状态 0:下架 ,1:上架 */
     private Integer upDownStatus;
 
-    private List<GoodsSkuDetailVO> goodsSkuDetailVOList;
+    private List<GoodsSkuDetail> goodsSkuDetailVOList;
+
+
 
 }

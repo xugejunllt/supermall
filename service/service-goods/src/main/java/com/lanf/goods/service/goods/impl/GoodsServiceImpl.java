@@ -3,14 +3,15 @@ package com.lanf.goods.service.goods.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.api.goods.model.bo.Attributes;
-import com.lanf.api.goods.model.bo.GoodsSkuAdd;
-import com.lanf.api.goods.model.bo.SkuName;
+import com.lanf.api.goods.model.bo.*;
 import com.lanf.api.goods.model.dto.AddGoodsDTO;
 import com.lanf.api.goods.model.dto.CheckAndQueryGoodsDTO;
 import com.lanf.api.goods.model.dto.UpGoodsDTO;
 import com.lanf.api.goods.model.query.GoodsPageQuery;
-import com.lanf.api.goods.model.vo.*;
+import com.lanf.api.goods.model.vo.ApiGoodsSkuVO;
+import com.lanf.api.goods.model.vo.GoodsDetailVO;
+import com.lanf.api.goods.model.vo.GoodsPageVO;
+import com.lanf.api.goods.model.vo.SkuNameVO;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.cache.service.DistributedLocker;
 import com.lanf.cache.service.RedissonCacheService;
@@ -26,7 +27,6 @@ import com.lanf.goods.constant.GoodsRedisKeyConstants;
 import com.lanf.goods.mapper.GoodsMapper;
 import com.lanf.goods.model.bo.SkuAttributeBO;
 import com.lanf.goods.model.bo.SkuAttributeDetailBO;
-import com.lanf.goods.model.bo.SkuCodeStockBO;
 import com.lanf.goods.model.bo.UnitCodeSkuCodeBO;
 import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.vo.GoodsSkuVO;
@@ -153,7 +153,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         sku.setVersion(version);
         
         String attributeDetail = sku.getAttributeDetail();
-        List<Attributes> attributes = parseAttributeDetail(attributeDetail);
+        List<AttributesJson> attributes = parseAttributeDetail(attributeDetail);
         sku.setAttributes(JsonUtils.toJsonString(attributes));
     }
 
@@ -230,12 +230,12 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
      * 将属性详情字符串转换为 Attributes 列表
      * 格式：颜色,白色;内存,16g;
      */
-    private List<Attributes> parseAttributeDetail(String attributeDetail) {
+    private List<AttributesJson> parseAttributeDetail(String attributeDetail) {
         if (attributeDetail == null || attributeDetail.trim().isEmpty()) {
             return new ArrayList<>();
         }
 
-        List<Attributes> attributes = new ArrayList<>();
+        List<AttributesJson> attributes = new ArrayList<>();
 
         // 按分号分割
         String[] pairs = attributeDetail.split(";");
@@ -249,7 +249,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             String[] keyValue = pair.split(",", 2);
 
             if (keyValue.length == 2) {
-                Attributes attribute = new Attributes();
+                AttributesJson attribute = new AttributesJson();
                 attribute.setAttribute(keyValue[0].trim());
                 attribute.setAttributeValue(keyValue[1].trim());
                 attributes.add(attribute);
@@ -290,24 +290,15 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         GoodsCategoryDO categoryDO = goodsCategoryService.lambdaQuery().eq(BaseEntity::getId, goodsDO.getCategoryId()).eq(GoodsCategoryDO::getLevel, 3).one();
         GoodsBrandDO brandDO = goodsBrandService.getById(goodsDO.getBrandId());
         List<String> skuCodes = goodsSkuDOList.stream().map(GoodsSkuDO::getSkuCode).collect(Collectors.toList());
-        Map<String, SkuCodeStockBO> stockBOMap = stockService.findBySkuCode(skuCodes);
-        List<GoodsSkuDetailVO> goodsSkuDetailVOList = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuDetailVO.class);
+        List<StockDO> stockDOList = stockService.lambdaQuery()
+                .in(StockDO::getSkuCode, skuCodes)
+                .list();
 
+        List<GoodsSkuDetail> goodsSkuDetailVOList = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuDetail.class);
 
-        goodsSkuDetailVOList.forEach(a -> {
-            /**
-             * 添加库存
-             */
-            SkuCodeStockBO stockBO = stockBOMap.get(a.getSkuCode());
-            a.setStock(stockBO.getTotalStock());
+        Map<String, List<StockDetail>> stockDetailMap = buildStockDetailMap(stockDOList);
 
-            /**
-             * 图片地址转成CDN地址
-             */
-            String skuPictureAddress = cndUtils.replace(a.getSkuPictureAddress());
-            a.setSkuPictureAddress(skuPictureAddress);
-
-        });
+        attachStockDetailsToSkus(goodsSkuDetailVOList, stockDetailMap);
 
         GoodsDetailVO goodsDetailVO = new GoodsDetailVO();
         BeanCopyUtils.copy(goodsDO, goodsDetailVO);
@@ -318,7 +309,56 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         return goodsDetailVO;
     }
 
+    private Map<String, List<StockDetail>> buildStockDetailMap(List<StockDO> stockDOList) {
+        if (stockDOList == null || stockDOList.isEmpty()) {
+            return new HashMap<>();
+        }
 
+        Map<String, List<StockDetail>> stockDetailMap = new HashMap<>();
+
+        for (StockDO stockDO : stockDOList) {
+            StockDetail stockDetail = convertToStockDetail(stockDO);
+
+            String skuCode = stockDO.getSkuCode();
+            List<StockDetail> stockDetails = stockDetailMap.computeIfAbsent(skuCode, k -> new ArrayList<>());
+            stockDetails.add(stockDetail);
+        }
+
+        return stockDetailMap;
+    }
+    /**
+     * 将 StockDO 转换为 StockDetail
+     */
+    private StockDetail convertToStockDetail(StockDO stockDO) {
+        StockDetail stockDetail = new StockDetail();
+        stockDetail.setSkuCode(stockDO.getSkuCode());
+        stockDetail.setWarehouseId(stockDO.getWarehouseId());
+        stockDetail.setWarehouseName(stockDO.getWarehouseName());
+        stockDetail.setUnit(stockDO.getUnit());
+        stockDetail.setUsableStock(stockDO.getUsableStock());
+        stockDetail.setLockStock(stockDO.getLockStock());
+        return stockDetail;
+    }
+    /**
+     * 将库存详情挂载到 SKU 上
+     */
+    private void attachStockDetailsToSkus(List<GoodsSkuDetail> skuDetailList,
+                                          Map<String, List<StockDetail>> stockDetailMap) {
+        if (skuDetailList == null || skuDetailList.isEmpty()) {
+            return;
+        }
+
+        for (GoodsSkuDetail skuDetail : skuDetailList) {
+            String skuCode = skuDetail.getSkuCode();
+            List<StockDetail> stockDetails = stockDetailMap.get(skuCode);
+
+            if (stockDetails != null && !stockDetails.isEmpty()) {
+                skuDetail.setStockDetailList(stockDetails);
+            } else {
+                skuDetail.setStockDetailList(new ArrayList<>());
+            }
+        }
+    }
     /**
      * 能不用list就不用 丢掉了顺序
      *
@@ -355,13 +395,13 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         }
         UserGoodsDetailVO goodsDetailVO = getCache(id);
         List<GoodsSkuVO> goodsSkuVOS = goodsDetailVO.getGoodsSkuVOList();
-        //添加库存
-        List<String> skuCodes = goodsSkuVOS.stream().map(GoodsSkuVO::getSkuCode).collect(Collectors.toList());
-        Map<String, SkuCodeStockBO> stockBOMap = stockService.findBySkuCode(skuCodes);
-        goodsSkuVOS.forEach(a -> {
-            SkuCodeStockBO stockBO = stockBOMap.get(a.getSkuCode());
-            a.setTotalStock(stockBO.getTotalStock());
-        });
+//        //添加库存
+//        List<String> skuCodes = goodsSkuVOS.stream().map(GoodsSkuVO::getSkuCode).collect(Collectors.toList());
+//        Map<String, SkuCodeStockBO> stockBOMap = stockService.findBySkuCode(skuCodes);
+//        goodsSkuVOS.forEach(a -> {
+//            SkuCodeStockBO stockBO = stockBOMap.get(a.getSkuCode());
+//            a.setTotalStock(stockBO.getTotalStock());
+//        });
 
         return goodsDetailVO;
     }

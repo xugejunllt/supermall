@@ -3,7 +3,7 @@ package com.lanf.goods.service.base.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.api.goods.model.bo.Attributes;
+import com.lanf.api.goods.model.bo.AttributesJson;
 import com.lanf.api.goods.model.dto.AddBaseGoodsDTO;
 import com.lanf.api.goods.model.dto.BaseGoodsSkuAddDTO;
 import com.lanf.api.goods.model.query.BaseGoodsPageQuery;
@@ -94,7 +94,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
      * 构建单个基础商品SKU对象
      */
     private BaseGoodsSkuDO buildBaseGoodsSkuDO(List<BaseGoodsSkuAddDTO> skuGroup, Long goodsId) {
-        List<Attributes> attributes = buildAttributesList(skuGroup);
+        List<AttributesJson> attributes = buildAttributesList(skuGroup);
         String attributeDetail = buildAttributeDetailString(attributes);
         String skuCode = CodeGenerateUtils.generaCode();
         
@@ -111,10 +111,10 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
     /**
      * 构建属性列表
      */
-    private List<Attributes> buildAttributesList(List<BaseGoodsSkuAddDTO> skuGroup) {
-        List<Attributes> attributes = new ArrayList<>();
+    private List<AttributesJson> buildAttributesList(List<BaseGoodsSkuAddDTO> skuGroup) {
+        List<AttributesJson> attributes = new ArrayList<>();
         for (BaseGoodsSkuAddDTO skuAddDTO : skuGroup) {
-            Attributes attribute = new Attributes();
+            AttributesJson attribute = new AttributesJson();
             attribute.setAttribute(skuAddDTO.getAttribute());
             attribute.setAttributeValue(skuAddDTO.getAttributeDesc());
             attributes.add(attribute);
@@ -126,7 +126,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
      * 构建属性详情字符串
      * 格式：attribute,attributeValue;attribute,attributeValue;
      */
-    private String buildAttributeDetailString(List<Attributes> attributes) {
+    private String buildAttributeDetailString(List<AttributesJson> attributes) {
         return attributes.stream()
                 .map(attr -> attr.getAttribute() + "," + attr.getAttributeValue() + ";")
                 .collect(Collectors.joining());
@@ -206,7 +206,7 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
         skuVO.setSkuCode(baseGoodsSkuDO.getSkuCode());
         skuVO.setSort(baseGoodsSkuDO.getSort());
         skuVO.setAttributeDetail(baseGoodsSkuDO.getAttributeDetail());
-        skuVO.setAttributes(JsonUtils.toList(baseGoodsSkuDO.getAttributes(), Attributes.class));
+        skuVO.setAttributes(JsonUtils.toList(baseGoodsSkuDO.getAttributes(), AttributesJson.class));
         skuVO.setBaseGoodsSkuId(baseGoodsSkuDO.getId());
         return skuVO;
     }
