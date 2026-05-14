@@ -4,7 +4,7 @@ import com.lanf.api.goods.model.dto.*;
 import com.lanf.api.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.api.goods.model.query.GoodsPageQuery;
 import com.lanf.api.goods.model.query.ReconciliationStockFlowQuery;
-import com.lanf.api.goods.model.query.StockPageQuery;
+import com.lanf.api.goods.model.query.UserStockPageQuery;
 import com.lanf.api.goods.model.query.UserStockFlowPageQuery;
 import com.lanf.api.goods.model.query.UserStockPreorderPublishLogPageQuery;
 import com.lanf.api.goods.model.vo.*;
@@ -215,7 +215,7 @@ public interface GoodsApiService {
      * 分页查询库存
      */
     @GetMapping("/goods/admin/stock/stockPageQuery")
-    Result<PageResult<StockPageVO>> stockPageQuery(@SpringQueryMap StockPageQuery query);
+    Result<PageResult<StockPageVO>> stockPageQuery(@SpringQueryMap UserStockPageQuery query);
 
     /**
      * 分页查询库存流水
