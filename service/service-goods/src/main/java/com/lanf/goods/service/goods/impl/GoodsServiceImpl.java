@@ -679,6 +679,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             throw new BizException("更新失败!");
         }
         boolean update2 = goodsSkuService.lambdaUpdate()
+                .eq(GoodsSkuDO::getVersion, goodsDO.getVersion())
                 .set(GoodsSkuDO::getVersion, updateVersion)
                 .eq(GoodsSkuDO::getGoodsId, goodsDOId).update();
         if (!update2) {
