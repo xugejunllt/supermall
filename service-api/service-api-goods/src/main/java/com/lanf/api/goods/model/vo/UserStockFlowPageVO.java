@@ -1,6 +1,7 @@
 package com.lanf.api.goods.model.vo;
 
 
+import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -31,7 +32,7 @@ public class UserStockFlowPageVO implements Serializable {
     private Long orderId;
 
     /** 事件类型 */
-    private String eventType;
+    private UserStockFlowEventTypeEnum eventType;
 
     /** 变更前数量 */
     private Integer beforeQuantity;

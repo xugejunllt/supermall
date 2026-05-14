@@ -1,21 +1,26 @@
 package com.lanf.api.goods.model.dto;
 
 import com.lanf.constant.model.enums.storage.PublishPlatformEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.Min;
 import java.io.Serializable;
 
 @Data
 public class RecycleStockDTO implements Serializable {
 
 
-    @ApiModelProperty(value = "库存id")
+    /**
+     * 库存id
+     */
     private Long stockId;
 
-    @ApiModelProperty(value = "sku编码")
+    /**
+     * sku编码
+     */
     private String skuCode;
 
+    @Min(value = 1, message = "数量不能小于1")
     private Integer changeQuantity;
 
     private PublishPlatformEnum publishPlatform;
