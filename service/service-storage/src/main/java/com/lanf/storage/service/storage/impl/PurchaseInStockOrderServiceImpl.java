@@ -13,6 +13,7 @@ import com.lanf.api.storage.model.vo.PurchaseInStockOrderPageVO;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
@@ -343,7 +344,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
             stockFlow.setAfterQuantity(afterQuantity);
             stockFlow.setWarehouseId(warehouse.getId());
             stockFlow.setWarehouseName(warehouse.getName());
-            
+            stockFlow.setCreateDate(DateUtils.format(new Date(), DateUtils.DATE));
             stockFlowList.add(stockFlow);
         }
         
