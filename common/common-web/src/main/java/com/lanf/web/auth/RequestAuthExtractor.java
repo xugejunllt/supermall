@@ -66,7 +66,6 @@ public class RequestAuthExtractor {
         authRequestInfo.setAccessToken(accessToken);
         authRequestInfo.setChannel(channel);
         authRequestInfo.setVersion( version);
-
         return authRequestInfo;
     }
 

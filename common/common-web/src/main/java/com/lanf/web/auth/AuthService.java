@@ -68,7 +68,7 @@ public class AuthService {
             }
             AuthRequestInfo authRequestInfo = RequestAuthExtractor.extractAuthInfo(request);
             String accessToken = authRequestInfo.getAccessToken();
-            authRequestInfo.setAccessToken(null);
+
             log.info("接收到鉴权请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURI, authRequestInfo);
 
             String deviceId = authRequestInfo.getDeviceId();
@@ -87,7 +87,7 @@ public class AuthService {
                 throw e;
 
             } catch (Exception e) {
-                log.warn("Token解析失败: {}", e.getMessage());
+                log.error("Token解析失败:", e);
                 throw new BizException(CommonCodeEnum.AUTH_FAILED);
 
             }
