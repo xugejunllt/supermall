@@ -2,7 +2,7 @@ package com.lanf.storage.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.storage.model.enums.ReconciliationOrderStatusEnum;
+import com.lanf.api.storage.model.enums.ReconciliationOrderStatusEnum;
 import lombok.Data;
 
 /**

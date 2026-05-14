@@ -9,16 +9,17 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.storage.mapper.PurchaseOrderMapper;
-import com.lanf.storage.model.bo.CalculatePurchaseOrderMoneyBO;
+import com.lanf.api.storage.model.bo.CalculatePurchaseOrderMoneyBO;
+import com.lanf.api.storage.model.bo.PurchaseOrderItem;
 import com.lanf.storage.model.bo.PurchaseOrderItemAddBO;
-import com.lanf.storage.model.dto.AddPurchaseOrderDTO;
-import com.lanf.storage.model.dto.CalculatePurchaseOrderItemMoneyDTO;
-import com.lanf.storage.model.dto.CalculatePurchaseOrderMoneyDTO;
-import com.lanf.storage.model.dto.PurchaseOrderItemAddDTO;
+import com.lanf.api.storage.model.dto.AddPurchaseOrderDTO;
+import com.lanf.api.storage.model.dto.CalculatePurchaseOrderItemMoneyDTO;
+import com.lanf.api.storage.model.dto.CalculatePurchaseOrderMoneyDTO;
+import com.lanf.api.storage.model.dto.PurchaseOrderItemAddDTO;
 import com.lanf.storage.model.entity.*;
-import com.lanf.storage.model.query.PurchaseOrderPageQuery;
-import com.lanf.storage.model.vo.PurchaseOrderDetailVO;
-import com.lanf.storage.model.vo.PurchaseOrderPageVO;
+import com.lanf.api.storage.model.query.PurchaseOrderPageQuery;
+import com.lanf.api.storage.model.vo.PurchaseOrderDetailVO;
+import com.lanf.api.storage.model.vo.PurchaseOrderPageVO;
 import com.lanf.storage.service.manager.StorageManagerService;
 import com.lanf.storage.service.purchase.IPurchaseOrderItemService;
 import com.lanf.storage.service.purchase.IPurchaseOrderService;
@@ -210,7 +211,7 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         purchaseOrderDetailVO.setSupplierName(supplier.getName());
         //填充商品item
         List<PurchaseOrderItemDO> list = purchaseOrderItemService.lambdaQuery().eq(PurchaseOrderItemDO::getPurchaseOrderId, id).list();
-        purchaseOrderDetailVO.setPurchaseOrderItemList(list);
+        purchaseOrderDetailVO.setPurchaseOrderItemList(BeanCopyUtils.copyBeanList(list, PurchaseOrderItem.class));
 
         return purchaseOrderDetailVO;
     }

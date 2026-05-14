@@ -3,9 +3,9 @@ package com.lanf.storage.service.stock;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.storage.model.entity.StockDO;
-import com.lanf.storage.model.query.StockPageQuery;
-import com.lanf.storage.model.vo.StockPageQueryVO;
-import com.lanf.storage.model.vo.StockVO;
+import com.lanf.api.storage.model.query.StockPageQuery;
+import com.lanf.api.storage.model.vo.StockPageQueryVO;
+import com.lanf.api.storage.model.vo.StockVO;
 
 import java.util.List;
 

@@ -3,10 +3,10 @@ package com.lanf.storage.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.storage.model.dto.InStockPurchaseInStockOrderDTO;
-import com.lanf.storage.model.query.PurchaseInStockOrderPageQuery;
-import com.lanf.storage.model.vo.PurchaseInStockOrderDetailVO;
-import com.lanf.storage.model.vo.PurchaseInStockOrderPageVO;
+import com.lanf.api.storage.model.dto.InStockPurchaseInStockOrderDTO;
+import com.lanf.api.storage.model.query.PurchaseInStockOrderPageQuery;
+import com.lanf.api.storage.model.vo.PurchaseInStockOrderDetailVO;
+import com.lanf.api.storage.model.vo.PurchaseInStockOrderPageVO;
 import com.lanf.storage.service.storage.IPurchaseInStockOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

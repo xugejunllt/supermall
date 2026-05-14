@@ -3,10 +3,10 @@ package com.lanf.storage.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.storage.model.dto.AddSupplierDTO;
-import com.lanf.storage.model.query.SupplierPageQuery;
-import com.lanf.storage.model.vo.SupplierListVO;
-import com.lanf.storage.model.vo.SupplierPageVO;
+import com.lanf.api.storage.model.dto.AddSupplierDTO;
+import com.lanf.api.storage.model.query.SupplierPageQuery;
+import com.lanf.api.storage.model.vo.SupplierListVO;
+import com.lanf.api.storage.model.vo.SupplierPageVO;
 import com.lanf.storage.service.supplier.ISupplierService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

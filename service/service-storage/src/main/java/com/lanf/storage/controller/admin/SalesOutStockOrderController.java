@@ -3,10 +3,10 @@ package com.lanf.storage.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.storage.model.dto.OutStockSalesOutStockOrderDTO;
-import com.lanf.storage.model.query.SalesOutStockOrderPageQuery;
-import com.lanf.storage.model.vo.SalesOutStockOrderDetailVO;
-import com.lanf.storage.model.vo.SalesOutStockOrderPageVO;
+import com.lanf.api.storage.model.dto.OutStockSalesOutStockOrderDTO;
+import com.lanf.api.storage.model.query.SalesOutStockOrderPageQuery;
+import com.lanf.api.storage.model.vo.SalesOutStockOrderDetailVO;
+import com.lanf.api.storage.model.vo.SalesOutStockOrderPageVO;
 import com.lanf.storage.service.storage.ISalesOutStockOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

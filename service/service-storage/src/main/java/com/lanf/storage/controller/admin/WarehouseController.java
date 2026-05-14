@@ -3,11 +3,10 @@ package com.lanf.storage.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.storage.model.dto.AddWarehouseDTO;
-import com.lanf.storage.model.query.WarehousePageQuery;
-import com.lanf.storage.model.vo.WarehousePageVO;
+import com.lanf.api.storage.model.dto.AddWarehouseDTO;
+import com.lanf.api.storage.model.query.WarehousePageQuery;
+import com.lanf.api.storage.model.vo.WarehousePageVO;
 import com.lanf.storage.service.warehous.IWarehouseService;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

@@ -1,6 +1,6 @@
 package com.lanf.storage.controller.api;
 
-import com.lanf.storage.model.vo.StockVO;
+import com.lanf.api.storage.model.vo.StockVO;
 import com.lanf.storage.service.stock.IStockService;
 import com.lanf.storage.service.storage.ISalesOutStockOrderService;
 import com.lanf.constant.result.Result;

@@ -3,7 +3,7 @@ package com.lanf.goods.service.stock;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.api.goods.model.dto.DeductStockDTO;
 import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
-import com.lanf.api.goods.model.query.StockPageQuery;
+import com.lanf.api.goods.model.query.UserStockPageQuery;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.StockPageVO;
 import com.lanf.constant.model.vo.PageResult;
@@ -50,6 +50,6 @@ public interface IStockService extends IService<StockDO> {
     /**
      * 分页查询库存
      */
-    PageResult<StockPageVO> stockPageQuery(StockPageQuery query);
+    PageResult<StockPageVO> stockPageQuery(UserStockPageQuery query);
 
 }

@@ -1,7 +1,7 @@
 package com.lanf.storage.mq.message;
 
 import com.lanf.storage.model.bo.ReconciliationOrderDetailBO;
-import com.lanf.storage.model.enums.ReconciliationOrderStatusEnum;
+import com.lanf.api.storage.model.enums.ReconciliationOrderStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;

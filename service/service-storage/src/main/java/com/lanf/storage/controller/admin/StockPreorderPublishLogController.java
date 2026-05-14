@@ -1,7 +1,7 @@
 package com.lanf.storage.controller.admin;
 
 import com.lanf.constant.result.Result;
-import com.lanf.storage.model.dto.PublishStockDTO;
+import com.lanf.api.storage.model.dto.PublishStockDTO;
 import com.lanf.storage.service.stock.IStockPreorderPublishLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

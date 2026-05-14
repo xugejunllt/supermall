@@ -1,7 +1,7 @@
 package com.lanf.storage.service.stock;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.storage.model.dto.PublishStockDTO;
+import com.lanf.api.storage.model.dto.PublishStockDTO;
 import com.lanf.storage.model.entity.StockPreorderPublishLogDO;
 
 /**

@@ -3,11 +3,11 @@ package com.lanf.storage.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.storage.model.dto.AddPurchaseOrderDTO;
-import com.lanf.storage.model.dto.ReviewDTO;
-import com.lanf.storage.model.query.PurchaseOrderPageQuery;
-import com.lanf.storage.model.vo.PurchaseOrderDetailVO;
-import com.lanf.storage.model.vo.PurchaseOrderPageVO;
+import com.lanf.api.storage.model.dto.AddPurchaseOrderDTO;
+import com.lanf.api.storage.model.dto.ReviewDTO;
+import com.lanf.api.storage.model.query.PurchaseOrderPageQuery;
+import com.lanf.api.storage.model.vo.PurchaseOrderDetailVO;
+import com.lanf.api.storage.model.vo.PurchaseOrderPageVO;
 import com.lanf.storage.service.purchase.IPurchaseOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

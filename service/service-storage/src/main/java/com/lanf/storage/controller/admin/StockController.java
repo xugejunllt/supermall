@@ -3,8 +3,8 @@ package com.lanf.storage.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.storage.model.query.StockPageQuery;
-import com.lanf.storage.model.vo.StockPageQueryVO;
+import com.lanf.api.storage.model.query.StockPageQuery;
+import com.lanf.api.storage.model.vo.StockPageQueryVO;
 import com.lanf.storage.service.stock.IStockService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

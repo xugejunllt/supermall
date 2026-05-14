@@ -9,7 +9,7 @@ import com.lanf.order.mq.message.AddSalesOutStockOrderMessage;
 import com.lanf.order.mq.message.InOutStockOrderItem;
 import com.lanf.storage.model.entity.InOutStockOrderItemDO;
 import com.lanf.storage.model.entity.SalesOutStockOrderDO;
-import com.lanf.storage.model.enums.StorageStatusEnum;
+import com.lanf.api.storage.model.enums.StorageStatusEnum;
 import com.lanf.storage.mq.constant.StorageMqGroupName;
 import com.lanf.storage.service.storage.IInOutStockOrderItemService;
 import com.lanf.storage.service.storage.ISalesOutStockOrderService;

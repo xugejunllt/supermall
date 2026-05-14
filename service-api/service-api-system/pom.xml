@@ -18,6 +18,7 @@
              <artifactId>common-constant</artifactId>
              <version>${common.version}</version>
          </dependency>
+
      </dependencies>
 
 </project>

@@ -1,7 +1,7 @@
 package com.lanf.goods.controller.admin;
 
 
-import com.lanf.api.goods.model.query.StockPageQuery;
+import com.lanf.api.goods.model.query.UserStockPageQuery;
 import com.lanf.api.goods.model.vo.StockPageVO;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
@@ -29,7 +29,7 @@ public class StockForAdminController {
     private IStockService stockService;
 
     @GetMapping("/stockPageQuery")
-    public Result<PageResult<StockPageVO>> stockPageQuery(StockPageQuery query) {
+    public Result<PageResult<StockPageVO>> stockPageQuery(UserStockPageQuery query) {
         log.info("分页查询库存:query{}", query);
         return Result.ok(stockService.stockPageQuery(query));
     }

@@ -2,11 +2,11 @@ package com.lanf.storage.service.storage;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.storage.model.dto.InStockPurchaseInStockOrderDTO;
+import com.lanf.api.storage.model.dto.InStockPurchaseInStockOrderDTO;
 import com.lanf.storage.model.entity.PurchaseInStockOrderDO;
-import com.lanf.storage.model.query.PurchaseInStockOrderPageQuery;
-import com.lanf.storage.model.vo.PurchaseInStockOrderDetailVO;
-import com.lanf.storage.model.vo.PurchaseInStockOrderPageVO;
+import com.lanf.api.storage.model.query.PurchaseInStockOrderPageQuery;
+import com.lanf.api.storage.model.vo.PurchaseInStockOrderDetailVO;
+import com.lanf.api.storage.model.vo.PurchaseInStockOrderPageVO;
 
 /**
  * <p>

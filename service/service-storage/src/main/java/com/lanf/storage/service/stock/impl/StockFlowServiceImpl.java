@@ -8,8 +8,8 @@ import com.lanf.constant.model.vo.PageResult;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.storage.mapper.StockFlowMapper;
 import com.lanf.storage.model.entity.StockFlowDO;
-import com.lanf.storage.model.query.StockFlowPageQuery;
-import com.lanf.storage.model.vo.StockFlowPageVO;
+import com.lanf.api.storage.model.query.StockFlowPageQuery;
+import com.lanf.api.storage.model.vo.StockFlowPageVO;
 import com.lanf.storage.service.stock.IStockFlowService;
 import org.springframework.stereotype.Service;
 

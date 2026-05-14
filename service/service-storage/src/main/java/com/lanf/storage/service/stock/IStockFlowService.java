@@ -3,8 +3,8 @@ package com.lanf.storage.service.stock;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.storage.model.entity.StockFlowDO;
-import com.lanf.storage.model.query.StockFlowPageQuery;
-import com.lanf.storage.model.vo.StockFlowPageVO;
+import com.lanf.api.storage.model.query.StockFlowPageQuery;
+import com.lanf.api.storage.model.vo.StockFlowPageVO;
 
 /**
  * <p>

@@ -9,7 +9,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @MapperScan(basePackages = "com.lanf.system.mapper")
 @SpringBootApplication(scanBasePackages="com.lanf")
 @EnableDiscoveryClient  //nacos注册
-@EnableFeignClients(basePackages = {"com.lanf.api.goods.api"})
+@EnableFeignClients(basePackages = {"com.lanf.api.goods.api","com.lanf.api.storage.api"})
 public class SystemApplication {
     public static void main(String[] args) {
         SpringApplication.run(SystemApplication.class, args);

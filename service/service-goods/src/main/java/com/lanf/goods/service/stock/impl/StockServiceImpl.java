@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.goods.model.bo.GoodsSku;
 import com.lanf.api.goods.model.dto.DeductStockDTO;
 import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
-import com.lanf.api.goods.model.query.StockPageQuery;
+import com.lanf.api.goods.model.query.UserStockPageQuery;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.StockPageVO;
 import com.lanf.common.utils.BeanCopyUtils;
@@ -378,7 +378,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         }
     }
     @Override
-    public PageResult<StockPageVO> stockPageQuery(StockPageQuery query) {
+    public PageResult<StockPageVO> stockPageQuery(UserStockPageQuery query) {
         IPage<StockDO> page = new Page<>(query.getPage(), query.getPageSize());
 
         LambdaQueryWrapper<StockDO> wrapper = new LambdaQueryWrapper<>();

@@ -2,11 +2,11 @@ package com.lanf.storage.service.supplier;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.storage.model.dto.AddSupplierDTO;
+import com.lanf.api.storage.model.dto.AddSupplierDTO;
 import com.lanf.storage.model.entity.SupplierDO;
-import com.lanf.storage.model.query.SupplierPageQuery;
-import com.lanf.storage.model.vo.SupplierListVO;
-import com.lanf.storage.model.vo.SupplierPageVO;
+import com.lanf.api.storage.model.query.SupplierPageQuery;
+import com.lanf.api.storage.model.vo.SupplierListVO;
+import com.lanf.api.storage.model.vo.SupplierPageVO;
 
 import java.util.List;
 

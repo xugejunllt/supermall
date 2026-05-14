@@ -5,7 +5,7 @@ import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.api.goods.model.dto.*;
 import com.lanf.api.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.api.goods.model.query.GoodsPageQuery;
-import com.lanf.api.goods.model.query.StockPageQuery;
+import com.lanf.api.goods.model.query.UserStockPageQuery;
 import com.lanf.api.goods.model.query.UserStockFlowPageQuery;
 import com.lanf.api.goods.model.query.UserStockPreorderPublishLogPageQuery;
 import com.lanf.api.goods.model.vo.*;
@@ -248,7 +248,7 @@ public class GoodsAdminController {
      * 分页查询库存
      */
     @GetMapping("/stockPageQuery")
-    public Result<PageResult<StockPageVO>> stockPageQuery(StockPageQuery query) {
+    public Result<PageResult<StockPageVO>> stockPageQuery(UserStockPageQuery query) {
         log.info("[{}]开始,入参:[{}]", "分页查询库存", query);
         return goodsAdminApiService.stockPageQuery(query);
     }
