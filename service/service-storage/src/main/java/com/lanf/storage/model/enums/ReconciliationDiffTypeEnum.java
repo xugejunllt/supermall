@@ -44,10 +44,6 @@ public enum ReconciliationDiffTypeEnum {
         this.name = name;
     }
 
-    @JsonValue
-    public Integer getCode() {
-        return code;
-    }
 
     /**
      * 根据code获取枚举

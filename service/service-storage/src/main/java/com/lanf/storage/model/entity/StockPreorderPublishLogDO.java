@@ -5,7 +5,6 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.constant.model.enums.storage.PublishPlatformEnum;
 import com.lanf.constant.model.enums.storage.PublishStatusEnum;
 import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -26,10 +25,10 @@ private static final long serialVersionUID=1L;
 
     private String flowNo;
 
-    @ApiModelProperty(value = "库存id")
+    /** 库存id */
     private Long stockId;
 
-    @ApiModelProperty(value = "sku编码")
+    /** sku编码 */
     private String skuCode;
 
     private Integer changeQuantity;
@@ -40,10 +39,8 @@ private static final long serialVersionUID=1L;
 
     private Long warehouseId;
 
-    @ApiModelProperty(value = "商家id")
-    private Long merchantId;
-
     private PublishStatusEnum status;
 
+    private Long  tenantId;
 
 }

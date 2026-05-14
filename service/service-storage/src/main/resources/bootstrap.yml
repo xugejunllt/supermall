@@ -21,12 +21,10 @@ spring:
             data-id: redis.yaml
           - group: common
             data-id: tenant.yaml
-            refresh: true
-          - group: common
-            data-id: filterPath.yaml
-            refresh: true
           - group: common
             data-id: rocketmq.yaml
+          - group: common
+            data-id: common.yaml
 server:
   port: 9004
   servlet:

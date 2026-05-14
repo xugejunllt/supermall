@@ -1,6 +1,5 @@
 package com.lanf.storage.model.vo;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,7 +10,7 @@ public class SalesOutStockOrderDetailVO implements Serializable {
 
 
     private Long id;
-    @ApiModelProperty(value = "单据编码")
+    /** 单据编码 */
     private String code;
     //总的预计入库量
     private Integer totalExpectStorageQuantity;

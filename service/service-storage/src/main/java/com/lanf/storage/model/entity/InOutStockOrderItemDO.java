@@ -2,7 +2,6 @@ package com.lanf.storage.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -22,24 +21,25 @@ private static final long serialVersionUID=1L;
 
     private Long inOutStockOrderId;
 
-    @ApiModelProperty(value = "商品名称")
+    /** 商品名称 */
     private String goodsName;
 
-    @ApiModelProperty(value = "sku编码,库存最小单位")
+    /** sku编码,库存最小单位 */
     private String skuCode;
 
-    @ApiModelProperty(value = "总数量")
+    /** 总数量 */
     private Integer totalQuantity;
 
-    @ApiModelProperty(value = "剩余数量")
+    /** 剩余数量 */
     private Integer surplusQuantity;
 
-    @ApiModelProperty(value = "单位")
+    /** 单位 */
     private String unit;
 
-    @ApiModelProperty(value = "仓库id")
+    /** 仓库id */
     private Long warehouseId;
 
+    private Long  tenantId;
 
 
 }

@@ -2,7 +2,6 @@ package com.lanf.storage.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -21,28 +20,29 @@ private static final long serialVersionUID=1L;
 
 
 
-    @ApiModelProperty(value = "单据编码")
+    /** 单据编码 */
     private String code;
 
-    @ApiModelProperty(value = "售后单id")
+    /** 售后单id */
     private Long afterSalesOrderId;
 
-    @ApiModelProperty(value = "预计入库数量")
+    /** 预计入库数量 */
     private Integer expectQuantity;
 
-    @ApiModelProperty(value = "实际入库数量")
+    /** 实际入库数量 */
     private Integer actualQuantity;
 
-    @ApiModelProperty(value = "出库状态0:待入库, 1:已入库 ")
+    /** 出库状态0:待入库, 1:已入库 */
     private Integer storageStatus;
 
-    @ApiModelProperty(value = "仓库id")
+    /** 仓库id */
     private Long warehouseId;
 
-    @ApiModelProperty(value = "备注")
+    /** 备注 */
     private String remarks;
 
     private Long version;
+    private Long  tenantId;
 
 
 }

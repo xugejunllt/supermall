@@ -25,10 +25,7 @@ public enum StockFlowTypeEnum {
         this.name = name;
     }
 
-    @JsonValue
-    public Integer getCode() {
-        return code;
-    }
+
 
     @JsonCreator
     public static StockFlowTypeEnum getByCode(Integer code) {

@@ -24,23 +24,15 @@ public enum ReconciliationOrderStatusEnum {
      */
     CANCELLED(2, "已取消"),
 
-
     ;
     @EnumValue
     @JsonValue
     private final Integer code;
     private final String name;
 
-
-
-
     ReconciliationOrderStatusEnum(Integer code, String name) {
         this.code = code;
         this.name = name;
-    }
-    @JsonValue
-    public Integer getCode() {
-        return code;
     }
 
     public static ReconciliationOrderStatusEnum getOrderStatusEnum(Integer code) {

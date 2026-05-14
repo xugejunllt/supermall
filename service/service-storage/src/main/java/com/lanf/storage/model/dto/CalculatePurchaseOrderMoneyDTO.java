@@ -1,6 +1,5 @@
 package com.lanf.storage.model.dto;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.Max;
@@ -16,12 +15,12 @@ public class CalculatePurchaseOrderMoneyDTO implements Serializable {
 
     @Max(value = 1000000,message = "采购运费超过最大值")
     @Min(value = 0,message = "采购运费小于最小值")
-    @ApiModelProperty(value = "采购运费")
+    /** 采购运费 */
     private BigDecimal freight;
 
     @Max(value = 1000000,message = "其他费用超过最大值")
     @Min(value = 0,message = "其他费用小于最小值")
-    @ApiModelProperty(value = "其他费用")
+    /** 其他费用 */
     private BigDecimal otherFreight;
 
     @NotEmpty

@@ -3,15 +3,15 @@ package com.lanf.storage.service.stock.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.enums.FlowNoPrefixEnum;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.model.enums.storage.PublishStatusEnum;
+import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.mapper.StockPreorderPublishLogMapper;
 import com.lanf.storage.model.dto.PublishStockDTO;
 import com.lanf.storage.model.entity.StockDO;
 import com.lanf.storage.model.entity.StockPreorderPublishLogDO;
-import com.lanf.constant.model.enums.storage.PublishStatusEnum;
-import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
 import com.lanf.storage.mq.constant.StorageClientTopicName;
 import com.lanf.storage.mq.message.PublishStockMessage;
 import com.lanf.storage.service.stock.IStockPreorderPublishLogService;
@@ -92,7 +92,6 @@ public class StockPreorderPublishLogServiceImpl extends ServiceImpl<StockPreorde
         stockPreorderPublishLogDO.setEventType(StockPreorderEventTypeEnum.PUBLISH);
         stockPreorderPublishLogDO.setPublishPlatform(publishStock.getPublishPlatform());
         stockPreorderPublishLogDO.setWarehouseId(publishStock.getWarehouseId());
-        stockPreorderPublishLogDO.setMerchantId(publishStock.getMerchantId());
         stockPreorderPublishLogDO.setStatus(PublishStatusEnum.SUCCESS);
 
         return stockPreorderPublishLogDO;

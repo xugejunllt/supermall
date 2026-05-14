@@ -3,7 +3,6 @@ package com.lanf.storage.model.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.storage.model.enums.StorageStatusEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -21,16 +20,16 @@ public class SalesOutStockOrderDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
-    @ApiModelProperty(value = "单据编码")
+    /** 单据编码 */
     private String code;
 
-    @ApiModelProperty(value = "订单id")
+    /** 订单id */
     private Long orderId;
 
     private StorageStatusEnum storageStatus;
 
     private Long version;
-
+    private Long  tenantId;
 
 
 }
