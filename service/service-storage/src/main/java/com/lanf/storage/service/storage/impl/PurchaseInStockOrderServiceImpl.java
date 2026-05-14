@@ -166,30 +166,26 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
                 }
             });
         }
-        
+        StorageStatusEnum updateStorageStatus = null;
         // 8.3 乐观锁更新入库单（当全部入库时使用版本号控制）
         if (storageStatus == StorageStatusEnum.COMPLETED) {
-            boolean updateSuccess = this.lambdaUpdate()
-                    .eq(PurchaseInStockOrderDO::getId, storageOrderDO.getId())
-                    .eq(PurchaseInStockOrderDO::getVersion, storageOrderDO.getVersion())
-                    .set(PurchaseInStockOrderDO::getActualStorageQuantity, actualStorageQuantity)
-                    .set(PurchaseInStockOrderDO::getStorageStatus, StorageStatusEnum.COMPLETED)
-                    .set(PurchaseInStockOrderDO::getVersion, storageOrderDO.getVersion() + 1)
-                    .update();
-            
-            if (!updateSuccess) {
-                log.error("更新入库单为已完成状态失败，入库单ID: {}", storageOrderDO.getId());
-                throw new BizException("更新入库单状态失败，请重试");
-            }
+            updateStorageStatus = StorageStatusEnum.COMPLETED;
         } else {
             // 部分入库，普通更新
-            PurchaseInStockOrderDO updateDO = new PurchaseInStockOrderDO();
-            updateDO.setId(storageOrderDO.getId());
-            updateDO.setActualStorageQuantity(actualStorageQuantity);
-            updateDO.setStorageStatus(StorageStatusEnum.PARTIAL_OUTBOUND);
-            this.updateById(updateDO);
+            updateStorageStatus = StorageStatusEnum.PARTIAL_OUTBOUND;
         }
-        
+        boolean updateSuccess = this.lambdaUpdate()
+                .eq(PurchaseInStockOrderDO::getId, storageOrderDO.getId())
+                .eq(PurchaseInStockOrderDO::getVersion, storageOrderDO.getVersion())
+                .set(PurchaseInStockOrderDO::getActualStorageQuantity, actualStorageQuantity)
+                .set(PurchaseInStockOrderDO::getStorageStatus, updateStorageStatus)
+                .set(PurchaseInStockOrderDO::getVersion, storageOrderDO.getVersion() + 1)
+                .update();
+
+        if (!updateSuccess) {
+            log.error("更新入库单为已完成状态失败，入库单ID: {}", storageOrderDO.getId());
+            throw new BizException("更新入库单状态失败，请重试");
+        }
         // 8.4 更新入库单明细数量
         storageOrderItemDetailsService.updateBatchById(storageOrderItemDetailsDOUpdate);
         
