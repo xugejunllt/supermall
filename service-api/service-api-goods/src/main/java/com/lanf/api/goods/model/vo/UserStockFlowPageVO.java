@@ -45,4 +45,6 @@ public class UserStockFlowPageVO implements Serializable {
     /** 创建时间 */
     private Date createTime;
 
+    private String warehouseName;
+
 }

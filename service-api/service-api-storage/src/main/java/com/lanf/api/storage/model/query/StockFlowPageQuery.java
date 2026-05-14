@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class StockFlowPageQuery extends PageQuery {
 
-    private String bizNumber;
 
+    private Long orderId;
 
 }

@@ -46,4 +46,6 @@ private static final long serialVersionUID=1L;
     /** 变更后数量 */
     private Integer afterQuantity;
     private Long tenantId;
+
+    private String warehouseName;
 }

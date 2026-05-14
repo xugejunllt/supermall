@@ -20,12 +20,10 @@ public class PublishStockMessage implements Serializable {
 
     private Long warehouseId;
 
-    @ApiModelProperty(value = "商家id")
-    private Long merchantId;
+    private Long tenantId;
 
     private String goodsName;
 
-    @ApiModelProperty(value = "单位")
     private String unit;
 
     private String warehouseName;

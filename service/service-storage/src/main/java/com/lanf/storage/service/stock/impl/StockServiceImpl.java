@@ -53,6 +53,10 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         result.setTotal(purchaseOrderPage.getTotal());
         result.setSize(purchaseOrderPage.getSize());
         result.setRecords(BeanCopyUtils.copyBeanList(purchaseOrderPage.getRecords(), StockPageQueryVO.class));
+        //计算总库存
+        result.getRecords().forEach(item -> {
+            item.setTotalStock(item.getUsableStock() + item.getPreStock());
+        });
 
         return result;
     }

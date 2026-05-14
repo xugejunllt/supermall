@@ -7,6 +7,7 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.constant.model.enums.storage.PublishStatusEnum;
 import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.mapper.StockPreorderPublishLogMapper;
 import com.lanf.api.storage.model.dto.PublishStockDTO;
@@ -103,7 +104,7 @@ public class StockPreorderPublishLogServiceImpl extends ServiceImpl<StockPreorde
         publishStockMessage.setSkuCode(publishStock.getSkuCode());
         publishStockMessage.setChangeQuantity(publishStock.getChangeQuantity());
         publishStockMessage.setWarehouseId(publishStock.getWarehouseId());
-        publishStockMessage.setMerchantId(publishStock.getMerchantId());
+        publishStockMessage.setTenantId(UserContext.getTenantId());
         publishStockMessage.setGoodsName(one.getGoodsName());
         publishStockMessage.setUnit(one.getUnit());
         publishStockMessage.setWarehouseName(one.getWarehouseName());

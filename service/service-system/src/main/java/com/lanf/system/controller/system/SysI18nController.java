@@ -85,6 +85,7 @@ public class SysI18nController {
     @ApiOperation(value = "保存国际化语言")
     @PostMapping("/save")
     public Result save(@RequestBody SysI18nDO sysI18n) {
+        sysI18n.setType("3001");
         sysI18nService.save(sysI18n);
         return Result.ok();
     }

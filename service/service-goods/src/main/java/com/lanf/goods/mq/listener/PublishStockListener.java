@@ -42,7 +42,7 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
     @Override
     public void onMessage(PublishStockMessage message) {
 
-
+        log.info("收到预发售库存消息:{}",message);
         StockDO one = stockService.lambdaQuery()
                 .eq(StockDO::getSkuCode, message.getSkuCode())
                 .eq(StockDO::getWarehouseId, message.getWarehouseId())
@@ -59,7 +59,7 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
             one.setLockStock(0);
             one.setWarehouseId(message.getWarehouseId());
             one.setWarehouseName(message.getWarehouseName());
-            one.setTenantId(message.getMerchantId());
+            one.setTenantId(message.getTenantId());
             one.setVersion(0L);
         }
         Integer usableStock = one.getUsableStock() + message.getChangeQuantity();
@@ -115,7 +115,7 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
         userStockPreorderPublishLogDO.setEventType(message.getEventType());
         userStockPreorderPublishLogDO.setPublishPlatform(message.getPublishPlatform());
         userStockPreorderPublishLogDO.setWarehouseId(message.getWarehouseId());
-        userStockPreorderPublishLogDO.setTenantId(message.getMerchantId());
+        userStockPreorderPublishLogDO.setTenantId(message.getTenantId());
         userStockPreorderPublishLogDO.setStatus(PublishStatusEnum.SUCCESS);
         return userStockPreorderPublishLogDO;
     }
