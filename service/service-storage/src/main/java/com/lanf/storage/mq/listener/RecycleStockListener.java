@@ -1,14 +1,15 @@
 package com.lanf.storage.mq.listener;
 
+import com.lanf.api.storage.mq.constant.StorageClientTopicName;
+import com.lanf.api.storage.mq.message.RecycleStockMessage;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.storage.PublishStatusEnum;
+import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.storage.model.entity.StockDO;
 import com.lanf.storage.model.entity.StockPreorderPublishLogDO;
-import com.lanf.constant.model.enums.storage.PublishStatusEnum;
-import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
-import com.lanf.api.storage.mq.constant.StorageClientTopicName;
 import com.lanf.storage.mq.constant.StorageMqGroupName;
-import com.lanf.api.storage.mq.message.RecycleStockMessage;
 import com.lanf.storage.service.stock.IStockPreorderPublishLogService;
 import com.lanf.storage.service.stock.IStockService;
 import lombok.extern.slf4j.Slf4j;
@@ -86,7 +87,8 @@ public class RecycleStockListener implements RocketMQListener<RecycleStockMessag
         stockPreorderPublishLogDO.setPublishPlatform(publishStock.getPublishPlatform());
         stockPreorderPublishLogDO.setWarehouseId(publishStock.getWarehouseId());
         stockPreorderPublishLogDO.setStatus(PublishStatusEnum.SUCCESS);
-
+        stockPreorderPublishLogDO.setTenantId(publishStock.getTenantId());
+        stockPreorderPublishLogDO.setWarehouseName(publishStock.getWarehouseName());
         return stockPreorderPublishLogDO;
     }
 

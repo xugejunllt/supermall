@@ -13,6 +13,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.goods.mapper.UserStockPreorderPublishLogMapper;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockPreorderPublishLogDO;
@@ -92,9 +93,9 @@ public class UserStockPreorderPublishLogServiceImpl extends ServiceImpl<UserStoc
         stockPreorderPublishLogDO.setEventType(StockPreorderEventTypeEnum.RECYCLE);
         stockPreorderPublishLogDO.setPublishPlatform(publishStock.getPublishPlatform());
         stockPreorderPublishLogDO.setWarehouseId(publishStock.getWarehouseId());
-        stockPreorderPublishLogDO.setTenantId(publishStock.getMerchantId());
+        stockPreorderPublishLogDO.setTenantId(UserContext.getTenantId());
         stockPreorderPublishLogDO.setStatus(PublishStatusEnum.SUCCESS);
-
+        stockPreorderPublishLogDO.setWarehouseName(one.getWarehouseName());
         return stockPreorderPublishLogDO;
     }
 
@@ -106,7 +107,8 @@ public class UserStockPreorderPublishLogServiceImpl extends ServiceImpl<UserStoc
         publishStockMessage.setWarehouseId(publishStock.getWarehouseId());
         publishStockMessage.setEventType(StockPreorderEventTypeEnum.RECYCLE);
         publishStockMessage.setPublishPlatform(publishStock.getPublishPlatform());
-
+        publishStockMessage.setWarehouseName(one.getWarehouseName());
+        publishStockMessage.setTenantId(UserContext.getTenantId());
         return publishStockMessage;
     }
     @Override

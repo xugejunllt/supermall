@@ -11,7 +11,7 @@ public class RecycleStockMessage implements Serializable {
 
 
     private String flowNo;
-
+    private Long tenantId;
     /**
      * sku编码
      */
@@ -20,7 +20,8 @@ public class RecycleStockMessage implements Serializable {
     private Integer changeQuantity;
 
     private Long warehouseId;
-
+    /** 仓库名称 */
+    private String warehouseName;
     private StockPreorderEventTypeEnum eventType;
 
     private PublishPlatformEnum publishPlatform;
