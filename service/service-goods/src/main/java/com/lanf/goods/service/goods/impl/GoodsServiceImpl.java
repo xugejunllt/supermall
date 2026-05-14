@@ -701,7 +701,11 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         }
         goodsHistoryVersionService.save(goodsHistoryVersionDO);
         goodsSkuHistoryVersionService.saveBatch(goodsSkuHistoryVersionDOS);
-
+        /**
+         * 每次商品修改 都需要同步到ES 这里方便测试
+         * 上架触发同步ES操作
+         *
+         */
 
         String key = goodsDOId.toString() ;
         rocketMqClient.syncSendOrderly(TopicName.SAVE_GOODS_ES_TOPIC,
