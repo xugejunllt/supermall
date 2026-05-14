@@ -69,9 +69,12 @@ public class SyncGoodsInfoToEsMsg implements Serializable {
      */
     @Data
     public static class Attribute {
-        private String attrName;
 
-        private String attrValue;
+        private Long skuId;
+
+        private String attribute;
+
+        private String attributeValue;
     }
 
 }

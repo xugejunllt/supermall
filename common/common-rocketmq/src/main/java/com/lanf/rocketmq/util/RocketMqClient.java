@@ -32,7 +32,7 @@ public class RocketMqClient {
      *
      */
     public void syncSendOrderly(String topic, String message,String key){
-
+        log.info("发送顺序mq消息开始:topic:{},message:{}",topic, message);
         rocketMQTemplate.syncSendOrderly(topic, message, key);
     }
 

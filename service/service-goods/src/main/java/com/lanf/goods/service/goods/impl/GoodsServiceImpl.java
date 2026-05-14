@@ -36,7 +36,6 @@ import com.lanf.goods.service.goods.*;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.rocketmq.model.message.SyncGoodsInfoToEsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.web.utils.CndUtils;
@@ -635,7 +634,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         return null;
     }
 
-    @DistributedLock(key = "#goodsId")
+    @DistributedLock(key = "#dto.goodsId")
     @Transactional
     @Override
     public void upGoods(UpGoodsDTO dto) {
@@ -646,7 +645,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         Long updateVersion = goodsDO.getVersion() + 1;
         Long goodsDOId = goodsDO.getId();
         boolean saveGoodsSyncEsRecord = true;
-        Integer getUpDownStatus = 0;
+        Integer getUpDownStatus = 1;
         GoodsSyncEsRecordDO one = goodsSyncEsRecordService.lambdaQuery()
                 .eq(GoodsSyncEsRecordDO::getGoodsId, goodsDOId)
                 .one();
@@ -667,6 +666,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             a.setVersion(updateVersion);
             a.setId(null);
         });
+        //商品数据同步到ES中
+        SyncGoodsInfoToEsMsg goodsInfoToEsMsg = buildSyncGoodsInfoToEsMsg(goodsId);
         /**
          * 更新DB
          */
@@ -701,9 +702,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         goodsHistoryVersionService.save(goodsHistoryVersionDO);
         goodsSkuHistoryVersionService.saveBatch(goodsSkuHistoryVersionDOS);
 
-        //商品数据同步到ES中
-        SyncGoodsInfoToEsMsg goodsInfoToEsMsg = buildSyncGoodsInfoToEsMsg(goodsId);
-        String key = goodsDOId + ":" + updateVersion + ":" + EventCodeEnum.GOODS_TO_ES.getCode();
+
+        String key = goodsDOId.toString() ;
         rocketMqClient.syncSendOrderly(TopicName.SAVE_GOODS_ES_TOPIC,
                 JsonUtils.toJsonString(goodsInfoToEsMsg), key);
 
@@ -773,7 +773,18 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     private List<SyncGoodsInfoToEsMsg.Attribute> buildAttribute(List<GoodsSkuDO> goodsSkuDOList) {
 
         List<SyncGoodsInfoToEsMsg.Attribute> sku = new ArrayList<>();
+        goodsSkuDOList.forEach(goodsSkuDO -> {
 
+            Long skuId = goodsSkuDO.getId();
+            List<AttributesJson> list = JsonUtils.toList(goodsSkuDO.getAttributes(), AttributesJson.class);
+            list.forEach(b -> {
+                SyncGoodsInfoToEsMsg.Attribute attribute = new SyncGoodsInfoToEsMsg.Attribute();
+                attribute.setSkuId(skuId);
+                attribute.setAttribute(b.getAttribute());
+                attribute.setAttributeValue(b.getAttributeValue());
+                sku.add( attribute);
+            });
+        });
 
         return sku;
     }
