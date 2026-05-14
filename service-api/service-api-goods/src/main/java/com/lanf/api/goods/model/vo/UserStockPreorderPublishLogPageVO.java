@@ -50,5 +50,6 @@ public class UserStockPreorderPublishLogPageVO implements Serializable {
 
     /** 更新时间 */
     private Date updateTime;
-
+    /** 仓库名称 */
+    private String warehouseName;
 }

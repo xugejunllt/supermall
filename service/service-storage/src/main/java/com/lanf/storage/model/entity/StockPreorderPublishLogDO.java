@@ -42,5 +42,6 @@ private static final long serialVersionUID=1L;
     private PublishStatusEnum status;
 
     private Long  tenantId;
-
+    /** 仓库名称 */
+    private String warehouseName;
 }

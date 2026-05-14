@@ -1,16 +1,23 @@
 package com.lanf.storage.service.stock.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.constant.model.enums.storage.PublishStatusEnum;
 import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.mapper.StockPreorderPublishLogMapper;
 import com.lanf.api.storage.model.dto.PublishStockDTO;
+import com.lanf.api.storage.model.query.StockPreorderPublishLogPageQuery;
+import com.lanf.api.storage.model.vo.StockPreorderPublishLogPageVO;
 import com.lanf.storage.model.entity.StockDO;
 import com.lanf.storage.model.entity.StockPreorderPublishLogDO;
 import com.lanf.api.storage.mq.constant.StorageClientTopicName;
@@ -83,6 +90,29 @@ public class StockPreorderPublishLogServiceImpl extends ServiceImpl<StockPreorde
 
     }
 
+    @Override
+    public PageResult<StockPreorderPublishLogPageVO> stockPreorderPublishLogPageQuery(StockPreorderPublishLogPageQuery query) {
+
+        IPage<StockPreorderPublishLogDO> page = new Page<>(query.getPage(), query.getPageSize());
+
+        LambdaQueryWrapper<StockPreorderPublishLogDO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(!org.apache.commons.lang3.StringUtils.isEmpty(query.getSkuCode()), StockPreorderPublishLogDO::getSkuCode, query.getSkuCode())
+                .eq(query.getStockId() != null, StockPreorderPublishLogDO::getStockId, query.getStockId())
+                .eq(query.getWarehouseId() != null, StockPreorderPublishLogDO::getWarehouseId, query.getWarehouseId())
+                .eq(query.getPublishPlatform() != null, StockPreorderPublishLogDO::getPublishPlatform, query.getPublishPlatform())
+                .eq(query.getStatus() != null, StockPreorderPublishLogDO::getStatus, query.getStatus())
+                .orderByDesc(StockPreorderPublishLogDO::getCreateTime);
+
+        IPage<StockPreorderPublishLogDO> result = this.page(page, wrapper);
+
+        PageResult<StockPreorderPublishLogPageVO> pageResult = new PageResult<>();
+        pageResult.setRecords(BeanCopyUtils.copyBeanList(result.getRecords(), StockPreorderPublishLogPageVO.class));
+        pageResult.setTotal(result.getTotal());
+        pageResult.setSize(result.getSize());
+
+        return pageResult;
+    }
+
     private StockPreorderPublishLogDO buildStockPreorderPublishLogDO(PublishStockDTO publishStock, StockDO one){
         String flowNo = CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.PUBLISH_PREORDER_STOCK_FLOW) ;
         StockPreorderPublishLogDO stockPreorderPublishLogDO = new StockPreorderPublishLogDO();
@@ -94,7 +124,7 @@ public class StockPreorderPublishLogServiceImpl extends ServiceImpl<StockPreorde
         stockPreorderPublishLogDO.setPublishPlatform(publishStock.getPublishPlatform());
         stockPreorderPublishLogDO.setWarehouseId(publishStock.getWarehouseId());
         stockPreorderPublishLogDO.setStatus(PublishStatusEnum.SUCCESS);
-
+        stockPreorderPublishLogDO.setWarehouseName(one.getWarehouseName());
         return stockPreorderPublishLogDO;
     }
 

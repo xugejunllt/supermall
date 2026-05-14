@@ -1,47 +1,51 @@
-package com.lanf.goods.model.entity;
+package com.lanf.api.storage.model.vo;
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.constant.model.enums.storage.PublishPlatformEnum;
 import com.lanf.constant.model.enums.storage.PublishStatusEnum;
 import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
 import lombok.Data;
 
+import java.io.Serializable;
+import java.util.Date;
+
 /**
- * <p>
- * 库存预售发布记录
- * </p>
- *
- * @author jarven
- * @since 2026-05-05
+ * 库存预售发布日志分页VO
  */
 @Data
-@TableName("user_stock_preorder_publish_log")
-public class UserStockPreorderPublishLogDO extends BaseEntity {
+public class StockPreorderPublishLogPageVO implements Serializable {
 
-private static final long serialVersionUID=1L;
+    /** ID */
+    private Long id;
 
+    /** 流水号 */
     private String flowNo;
 
-    /** 库存id */
+    /** 库存ID */
     private Long stockId;
 
-    /** sku编码 */
+    /** SKU编码 */
     private String skuCode;
 
+    /** 变更数量 */
     private Integer changeQuantity;
 
+    /** 事件类型 */
     private StockPreorderEventTypeEnum eventType;
 
-    /** 发布平台，支持多商城。0：mail商城 */
+    /** 发布平台 */
     private PublishPlatformEnum publishPlatform;
 
+    /** 仓库ID */
     private Long warehouseId;
 
-    /** 商家id */
-    private Long tenantId;
-
+    /** 状态 */
     private PublishStatusEnum status;
+
+    /** 创建时间 */
+    private Date createTime;
+
+    /** 更新时间 */
+    private Date updateTime;
     /** 仓库名称 */
     private String warehouseName;
 }

@@ -145,4 +145,10 @@ public class StorageAdminController {
         return storageApiService.publishStock(publishStock);
     }
 
+    @GetMapping("/stockPreorderPublishLogPageQuery")
+    public Result<PageResult<StockPreorderPublishLogPageVO>> stockPreorderPublishLogPageQuery(StockPreorderPublishLogPageQuery query) {
+        log.info("分页查询库存预售发布日志:query{}", query);
+        return storageApiService.stockPreorderPublishLogPageQuery(query);
+    }
+
 }

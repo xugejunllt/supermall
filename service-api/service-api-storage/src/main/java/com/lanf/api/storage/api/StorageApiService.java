@@ -94,4 +94,7 @@ public interface StorageApiService {
     @PostMapping("/storage/admin/stockPreorderPublishLog/publishStock")
     Result<Void> publishStock(@RequestBody PublishStockDTO publishStock);
 
+    @GetMapping("/storage/admin/stockPreorderPublishLog/stockPreorderPublishLogPageQuery")
+    Result<PageResult<StockPreorderPublishLogPageVO>> stockPreorderPublishLogPageQuery(@SpringQueryMap StockPreorderPublishLogPageQuery query);
+
 }
