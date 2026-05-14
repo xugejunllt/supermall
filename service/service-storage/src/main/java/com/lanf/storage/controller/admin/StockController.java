@@ -1,11 +1,11 @@
 package com.lanf.storage.controller.admin;
 
 
-import com.lanf.constant.web.PageResult;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
 import com.lanf.storage.model.query.StockPageQuery;
 import com.lanf.storage.model.vo.StockPageQueryVO;
 import com.lanf.storage.service.stock.IStockService;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,12 +27,13 @@ public class StockController {
 
     @Autowired
     private IStockService stockService;
-    @GetMapping("/stockPage")
-    public Result<PageResult<StockPageQueryVO>> stockPage(StockPageQuery query) {
+
+    @GetMapping("/stockPageQuery")
+    public Result<PageResult<StockPageQueryVO>> stockPageQuery(StockPageQuery query) {
 
         log.info("分页查询库存列表:query{}",query);
 
-        return Result.ok(stockService.stockPage(query));
+        return Result.ok(stockService.stockPageQuery(query));
     }
 }
 

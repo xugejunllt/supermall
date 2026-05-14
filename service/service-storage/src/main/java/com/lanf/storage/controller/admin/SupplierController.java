@@ -1,13 +1,13 @@
 package com.lanf.storage.controller.admin;
 
 
-import com.lanf.constant.web.PageResult;
-import com.lanf.storage.model.dto.SupplierAddDTO;
-import com.lanf.storage.model.entity.SupplierDO;
-import com.lanf.storage.model.query.SupplierPageQuery;
-import com.lanf.storage.service.supplier.ISupplierService;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import io.swagger.annotations.ApiOperation;
+import com.lanf.storage.model.dto.AddSupplierDTO;
+import com.lanf.storage.model.query.SupplierPageQuery;
+import com.lanf.storage.model.vo.SupplierListVO;
+import com.lanf.storage.model.vo.SupplierPageVO;
+import com.lanf.storage.service.supplier.ISupplierService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -31,18 +31,16 @@ public class SupplierController {
     @Autowired
     private ISupplierService supplierService;
 
-    @ApiOperation(value = "分页查询供应商列表")
-    @GetMapping("/supplierDOPage")
-    public Result<PageResult<SupplierDO>> supplierPage(SupplierPageQuery query) {
+    @GetMapping("/supplierPageQuery")
+    public Result<PageResult<SupplierPageVO>> supplierPageQuery(SupplierPageQuery query) {
 
         log.info("分页查询供应商列表:query{}", query);
 
-        return Result.ok(supplierService.supplierPage(query));
+        return Result.ok(supplierService.supplierPageQuery(query));
     }
 
-    @ApiOperation(value = "添加供应商")
     @PostMapping("/addSupplier")
-    public Result addSupplier(@Validated @RequestBody SupplierAddDTO warehouse) {
+    public Result<Void> addSupplier(@Validated @RequestBody AddSupplierDTO warehouse) {
 
         log.info("添加供应商:query{}", warehouse);
         supplierService.addSupplier(warehouse);
@@ -52,9 +50,10 @@ public class SupplierController {
 
    // @PreAuthorize("hasAuthority('bnt.supplier.supplierList')")
     @GetMapping("/supplierList")
-    public Result<List<SupplierDO>> supplierList() {
+    public Result<List<SupplierListVO>> supplierListQuery() {
+
         log.info("查询供应商列表");
-        return Result.ok(supplierService.supplierList());
+        return Result.ok(supplierService.supplierListQuery());
     }
 
 }

@@ -1,12 +1,10 @@
 package com.lanf.storage.service.purchase;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.constant.web.PageResult;
-import com.lanf.storage.model.dto.CalculatePurchaseOrderMoneyDTO;
-import com.lanf.storage.model.dto.PurchaseOrderAddDTO;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.storage.model.dto.AddPurchaseOrderDTO;
 import com.lanf.storage.model.entity.PurchaseOrderDO;
 import com.lanf.storage.model.query.PurchaseOrderPageQuery;
-import com.lanf.storage.model.vo.CalculatePurchaseOrderMoneyVO;
 import com.lanf.storage.model.vo.PurchaseOrderDetailVO;
 import com.lanf.storage.model.vo.PurchaseOrderPageVO;
 
@@ -21,12 +19,11 @@ import com.lanf.storage.model.vo.PurchaseOrderPageVO;
 public interface IPurchaseOrderService extends IService<PurchaseOrderDO> {
 
 
-     void  purchaseOrderAdd(PurchaseOrderAddDTO purchaseOrderAdd);
-     CalculatePurchaseOrderMoneyVO calculatePurchaseOrderMoney(CalculatePurchaseOrderMoneyDTO calculatePurchaseOrderMoney);
+     void  addPurchaseOrder(AddPurchaseOrderDTO purchaseOrderAdd);
 
-     PageResult<PurchaseOrderPageVO> purchaseOrderPage(PurchaseOrderPageQuery query);
+     PageResult<PurchaseOrderPageVO> purchaseOrderPageQuery(PurchaseOrderPageQuery query);
 
-     PurchaseOrderDetailVO purchaseOrderDetail(Long id);
+     PurchaseOrderDetailVO purchaseOrderDetailQuery(Long id);
 
      /**
       * 审核通过

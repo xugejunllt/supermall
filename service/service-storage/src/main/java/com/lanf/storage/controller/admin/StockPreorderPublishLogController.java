@@ -19,8 +19,8 @@ public class StockPreorderPublishLogController {
     @Autowired
     private IStockPreorderPublishLogService stockPreorderPublishLogService;
 
-    @PostMapping("/recycleStock")
-    public Result<Void> recycleStock(@Validated @RequestBody PublishStockDTO publishStock) {
+    @PostMapping("/publishStock")
+    public Result<Void> publishStock(@Validated @RequestBody PublishStockDTO publishStock) {
 
         log.info("发布预售库存:dto{}", publishStock);
         stockPreorderPublishLogService.publishStock(publishStock);

@@ -3,11 +3,11 @@ package com.lanf.storage.service.stock.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.ThreadLocalUtils;
-import com.lanf.api.goods.api.GoodsApiService;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
 import com.lanf.storage.mapper.StockMapper;
 import com.lanf.storage.model.entity.StockDO;
 import com.lanf.storage.model.query.StockPageQuery;
@@ -36,7 +36,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @Autowired
     private GoodsApiService goodsApiService;
     @Override
-    public PageResult<StockPageQueryVO> stockPage(StockPageQuery query) {
+    public PageResult<StockPageQueryVO> stockPageQuery(StockPageQuery query) {
 
 
         IPage<StockDO> page = new Page<>(query.getPage(), query.getPageSize());
@@ -47,11 +47,14 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         if (purchaseOrderPage.getRecords().isEmpty()) {
 
-            return PageResult.emptyResult(StockPageQueryVO.class);
+            return PageResult.emptyResult();
         }
+        PageResult<StockPageQueryVO> result = new PageResult<>();
+        result.setTotal(purchaseOrderPage.getTotal());
+        result.setSize(purchaseOrderPage.getSize());
+        result.setRecords(BeanCopyUtils.copyBeanList(purchaseOrderPage.getRecords(), StockPageQueryVO.class));
 
-
-        return PageResult.toPageResult(page, StockPageQueryVO.class);
+        return result;
     }
 
     @Override

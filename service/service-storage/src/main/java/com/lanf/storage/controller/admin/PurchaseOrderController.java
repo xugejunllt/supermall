@@ -1,20 +1,20 @@
 package com.lanf.storage.controller.admin;
 
 
-import com.lanf.constant.web.PageResult;
-import com.lanf.storage.model.dto.CalculatePurchaseOrderMoneyDTO;
-import com.lanf.storage.model.dto.PurchaseOrderAddDTO;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
+import com.lanf.storage.model.dto.AddPurchaseOrderDTO;
 import com.lanf.storage.model.dto.ReviewDTO;
 import com.lanf.storage.model.query.PurchaseOrderPageQuery;
-import com.lanf.storage.model.vo.CalculatePurchaseOrderMoneyVO;
 import com.lanf.storage.model.vo.PurchaseOrderDetailVO;
 import com.lanf.storage.model.vo.PurchaseOrderPageVO;
 import com.lanf.storage.service.purchase.IPurchaseOrderService;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 /**
  * <p>
@@ -32,41 +32,36 @@ public class PurchaseOrderController {
     @Autowired
     private IPurchaseOrderService purchaseOrderService;
 
-    @PostMapping("/purchaseOrderAdd")
-    public Result purchaseOrderAdd(@Validated @RequestBody PurchaseOrderAddDTO purchaseOrderAdd) {
+    @PostMapping("/addPurchaseOrder")
+    public Result<Valid> addPurchaseOrder(@Validated @RequestBody AddPurchaseOrderDTO purchaseOrderAdd) {
+
         log.info("添加采购单:purchaseOrderAdd{}", purchaseOrderAdd);
-        purchaseOrderService.purchaseOrderAdd(purchaseOrderAdd);
+        purchaseOrderService.addPurchaseOrder(purchaseOrderAdd);
         return Result.ok();
     }
 
-    @PostMapping("/calculatePurchaseOrderMoney")
-    public Result<CalculatePurchaseOrderMoneyVO> calculatePurchaseOrderMoney(@Validated @RequestBody CalculatePurchaseOrderMoneyDTO calculatePurchaseOrderMoney) {
 
-        log.info("计算采购单各项金额:purchaseOrderAdd{}", calculatePurchaseOrderMoney);
-        return Result.ok(purchaseOrderService.calculatePurchaseOrderMoney(calculatePurchaseOrderMoney));
-    }
-
-    @GetMapping("/purchaseOrderPage")
-    public Result<PageResult<PurchaseOrderPageVO>> purchaseOrderPage(PurchaseOrderPageQuery query) {
+    @GetMapping("/purchaseOrderPageQuery")
+    public Result<PageResult<PurchaseOrderPageVO>> purchaseOrderPageQuery(PurchaseOrderPageQuery query) {
 
         log.info("分页查询采购单列表:query{}", query);
 
-        return Result.ok(purchaseOrderService.purchaseOrderPage(query));
+        return Result.ok(purchaseOrderService.purchaseOrderPageQuery(query));
     }
 
-    @GetMapping("/purchaseOrderDetail")
-    public Result<PurchaseOrderDetailVO> purchaseOrderDetail(Long id) {
+    @GetMapping("/purchaseOrderDetailQuery")
+    public Result<PurchaseOrderDetailVO> purchaseOrderDetailQuery(Long id) {
 
         log.info("采购单详细:id{}", id);
 
-        return Result.ok(purchaseOrderService.purchaseOrderDetail(id));
+        return Result.ok(purchaseOrderService.purchaseOrderDetailQuery(id));
     }
 
     /**
      * 采购单审核
      */
     @PostMapping("/auditApprove")
-    public Result auditApprove(@RequestBody ReviewDTO dto) {
+    public Result<Void> auditApprove(@RequestBody ReviewDTO dto) {
 
         log.info("采购单审核通过:dto{},", dto);
         purchaseOrderService.auditApprove(dto.getId());

@@ -1,10 +1,12 @@
 package com.lanf.storage.service.supplier;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.constant.web.PageResult;
-import com.lanf.storage.model.dto.SupplierAddDTO;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.storage.model.dto.AddSupplierDTO;
 import com.lanf.storage.model.entity.SupplierDO;
 import com.lanf.storage.model.query.SupplierPageQuery;
+import com.lanf.storage.model.vo.SupplierListVO;
+import com.lanf.storage.model.vo.SupplierPageVO;
 
 import java.util.List;
 
@@ -18,10 +20,10 @@ import java.util.List;
  */
 public interface ISupplierService extends IService<SupplierDO> {
 
-    void  addSupplier(SupplierAddDTO supplier);
+    void  addSupplier(AddSupplierDTO supplier);
 
-    PageResult<SupplierDO> supplierPage(SupplierPageQuery query);
+    PageResult<SupplierPageVO> supplierPageQuery(SupplierPageQuery query);
 
-    List<SupplierDO> supplierList();
+    List<SupplierListVO> supplierListQuery();
 
 }

@@ -1,8 +1,8 @@
 package com.lanf.storage.service.storage;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.constant.web.PageResult;
-import com.lanf.storage.model.dto.InStockDTO;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.storage.model.dto.InStockPurchaseInStockOrderDTO;
 import com.lanf.storage.model.entity.PurchaseInStockOrderDO;
 import com.lanf.storage.model.query.PurchaseInStockOrderPageQuery;
 import com.lanf.storage.model.vo.PurchaseInStockOrderDetailVO;
@@ -18,7 +18,9 @@ import com.lanf.storage.model.vo.PurchaseInStockOrderPageVO;
  */
 public interface IPurchaseInStockOrderService extends IService<PurchaseInStockOrderDO> {
 
-        void inStock(InStockDTO inStorageDTO);
-        PageResult<PurchaseInStockOrderPageVO> purchaseInStockOrderPage(PurchaseInStockOrderPageQuery query);
-        PurchaseInStockOrderDetailVO purchaseInStockOrderDetail(Long id);
+        void inStockPurchaseInStockOrder(InStockPurchaseInStockOrderDTO inStorageDTO);
+
+        PageResult<PurchaseInStockOrderPageVO> purchaseInStockOrderPageQuery(PurchaseInStockOrderPageQuery query);
+
+        PurchaseInStockOrderDetailVO purchaseInStockOrderDetailQuery(Long id);
 }

@@ -8,7 +8,7 @@ import com.lanf.storage.model.entity.StockFlowDO;
 import com.lanf.storage.model.enums.ReconciliationDiffTypeEnum;
 import com.lanf.storage.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.storage.model.enums.ReconciliationOrderStatusEnum;
-import com.lanf.storage.model.enums.StockFlowTypeEnum;
+import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
 import com.lanf.storage.mq.constant.StorageMqGroupName;
 import com.lanf.storage.mq.constant.StorageMqTopicName;
 import com.lanf.storage.mq.message.ShortStockReconciliation;

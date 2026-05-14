@@ -3,20 +3,19 @@ package com.lanf.storage.service.storage.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.mybatis.utils.IdUtils;
-import com.lanf.constant.enums.FlowNoPrefixEnum;
 import com.lanf.constant.exception.BizException;
-import com.lanf.cache.aop.DistributedLock;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
 import com.lanf.storage.mapper.PurchaseInStockOrderMapper;
 import com.lanf.storage.model.bo.StockSaveOrUpdateBO;
 import com.lanf.storage.model.bo.StockUpdateBO;
-import com.lanf.storage.model.dto.InStockDTO;
 import com.lanf.storage.model.dto.InStockItemDTO;
+import com.lanf.storage.model.dto.InStockPurchaseInStockOrderDTO;
 import com.lanf.storage.model.entity.*;
 import com.lanf.storage.model.query.PurchaseInStockOrderPageQuery;
 import com.lanf.storage.model.vo.PurchaseInStockOrderDetailVO;
@@ -58,8 +57,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
     private IWarehouseService warehouseService;
     @Autowired
     private ISupplierService supplierService;
-    @Autowired
-    private IStorageFlowService storageDetailsService;
+
     @Autowired
     private IStockFlowService stockFlowService;
     @Autowired
@@ -70,17 +68,14 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
     private IPurchaseOrderService purchaseOrderService;
     @Autowired
     private TransactionTemplate transactionTemplate;
-    @Autowired
-    private ISendMqMessageService sendMqMessageService;
-    
-    
+
     /**
      * 入库
      */
     @Transactional(rollbackFor = {Exception.class})
     @DistributedLock(key = "#inStorageDTO.purchaseInStockOrderId")
     @Override
-    public void inStock(InStockDTO inStorageDTO) {
+    public void inStockPurchaseInStockOrder(InStockPurchaseInStockOrderDTO inStorageDTO) {
 
 
         /**
@@ -132,7 +127,6 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
                 boolean update = stockService.lambdaUpdate().
                         eq(StockDO::getId, a.getId()).
                         eq(StockDO::getVersion, a.getVersion()).
-                        set(StockDO::getUsableStock, a.getTotalStock()).
                         set(StockDO::getVersion, a.getVersion() + 1).
                         update();
                 if (!update) {
@@ -193,7 +187,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         return status;
     }
 
-    private void inStorageCheck(PurchaseInStockOrderDO storageOrderDO, List<InStockItemDTO> inStorageItemList, InStockDTO inStorageDTO) {
+    private void inStorageCheck(PurchaseInStockOrderDO storageOrderDO, List<InStockItemDTO> inStorageItemList, InStockPurchaseInStockOrderDTO inStorageDTO) {
 
         if (storageOrderDO == null) {
             throw new BizException("入库单不存在");
@@ -325,7 +319,6 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
     private static StockUpdateBO getStockUpdateBO(InStockItemDTO st, StockDO stockDO) {
         Integer totalStock = stockDO.getUsableStock() + st.getActualQuantity();
         StockUpdateBO stockUpdateBO = new StockUpdateBO();
-        stockUpdateBO.setTotalStock(totalStock);
         stockUpdateBO.setId(stockDO.getId());
         stockUpdateBO.setVersion(stockDO.getVersion());
 
@@ -333,7 +326,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
     }
 
     @Override
-    public PageResult<PurchaseInStockOrderPageVO> purchaseInStockOrderPage(PurchaseInStockOrderPageQuery query) {
+    public PageResult<PurchaseInStockOrderPageVO> purchaseInStockOrderPageQuery(PurchaseInStockOrderPageQuery query) {
 
         IPage<PurchaseInStockOrderDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<PurchaseInStockOrderDO> purchaseStorageOrderPage = this.lambdaQuery().
@@ -343,19 +336,20 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
 
         if (purchaseStorageOrderPage.getRecords().isEmpty()) {
 
-            return PageResult.emptyResult(PurchaseInStockOrderPageVO.class);
+            return PageResult.emptyResult();
         }
 
-        PageResult<PurchaseInStockOrderPageVO> pageResult = PageResult.toPageResult(page, PurchaseInStockOrderPageVO.class);
 
-        List<PurchaseInStockOrderDO> records = purchaseStorageOrderPage.getRecords();
+        PageResult<PurchaseInStockOrderPageVO> result = new PageResult<>();
+        result.setTotal(purchaseStorageOrderPage.getTotal());
+        result.setRecords(BeanCopyUtils.copyBeanList(purchaseStorageOrderPage.getRecords(), PurchaseInStockOrderPageVO.class));
+        result.setSize(purchaseStorageOrderPage.getSize());
 
-
-        return pageResult;
+        return result;
     }
 
     @Override
-    public PurchaseInStockOrderDetailVO purchaseInStockOrderDetail(Long id) {
+    public PurchaseInStockOrderDetailVO purchaseInStockOrderDetailQuery(Long id) {
 
         PurchaseInStockOrderDO storageOrderDO = this.getById(id);
         if (storageOrderDO == null) {

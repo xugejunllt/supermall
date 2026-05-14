@@ -21,7 +21,7 @@ public class StorageClientTopicName {
      */
     public static final String SALES_OUT_STOCK_ORDER_FINISH_TOPIC = "SALES_OUT_STOCK_ORDER_FINISH_TOPIC";
 
-
+    public static final String AFTER_SALES_IN_STOCK_FINISH_TOPIC = "AFTER_SALES_IN_STOCK_FINISH_TOPIC";
 
 
 }

@@ -1,13 +1,13 @@
 package com.lanf.storage.controller.admin;
 
 
-import com.lanf.constant.web.PageResult;
-import com.lanf.storage.model.dto.InStockDTO;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
+import com.lanf.storage.model.dto.InStockPurchaseInStockOrderDTO;
 import com.lanf.storage.model.query.PurchaseInStockOrderPageQuery;
 import com.lanf.storage.model.vo.PurchaseInStockOrderDetailVO;
 import com.lanf.storage.model.vo.PurchaseInStockOrderPageVO;
 import com.lanf.storage.service.storage.IPurchaseInStockOrderService;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -29,26 +29,31 @@ public class PurchaseInStockOrderController {
     @Autowired
     private IPurchaseInStockOrderService purchaseStorageOrderService;
 
-    @PostMapping("/inStock")
-    public Result inStock(@Validated @RequestBody InStockDTO inStock) {
+    /**
+     * 采购入库单入库
+     *
+     *
+     */
+    @PostMapping("/inStockPurchaseInStockOrder")
+    public Result<Void> inStockPurchaseInStockOrder(@Validated @RequestBody InStockPurchaseInStockOrderDTO inStock) {
 
-        log.info("入库:inStock{}", inStock);
-        purchaseStorageOrderService.inStock(inStock);
+        log.info("采购入库单 入库:inStock{}", inStock);
+        purchaseStorageOrderService.inStockPurchaseInStockOrder(inStock);
         return Result.ok();
     }
 
-    @GetMapping("/purchaseInStockOrderPage")
+    @GetMapping("/purchaseInStockOrderPageQuery")
     public Result<PageResult<PurchaseInStockOrderPageVO>> purchaseInStockOrderPage(PurchaseInStockOrderPageQuery query) {
         log.info("分页查询库采购入库单列表:query{}", query);
 
-        return Result.ok(purchaseStorageOrderService.purchaseInStockOrderPage(query));
+        return Result.ok(purchaseStorageOrderService.purchaseInStockOrderPageQuery(query));
     }
 
-    @GetMapping("/purchaseInStockOrderDetail")
-    public Result<PurchaseInStockOrderDetailVO> purchaseInStockOrderDetail(Long id) {
+    @GetMapping("/purchaseInStockOrderDetailQuery")
+    public Result<PurchaseInStockOrderDetailVO> purchaseInStockOrderDetailQuery(Long id) {
         log.info("采购单详细:id{}", id);
 
-        return Result.ok(purchaseStorageOrderService.purchaseInStockOrderDetail(id));
+        return Result.ok(purchaseStorageOrderService.purchaseInStockOrderDetailQuery(id));
     }
 
 }

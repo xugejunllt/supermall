@@ -1,10 +1,11 @@
 package com.lanf.storage.service.warehous;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.constant.web.PageResult;
-import com.lanf.storage.model.dto.WarehouseAddDTO;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.storage.model.dto.AddWarehouseDTO;
 import com.lanf.storage.model.entity.WarehouseDO;
 import com.lanf.storage.model.query.WarehousePageQuery;
+import com.lanf.storage.model.vo.WarehousePageVO;
 
 /**
  * <p>
@@ -16,8 +17,8 @@ import com.lanf.storage.model.query.WarehousePageQuery;
  */
 public interface IWarehouseService extends IService<WarehouseDO> {
 
-    void  addWarehouse(WarehouseAddDTO warehouse);
+    void  addWarehouse(AddWarehouseDTO warehouse);
 
-    PageResult<WarehouseDO>  warehousePage(WarehousePageQuery query);
+    PageResult<WarehousePageVO> warehousePageQuery(WarehousePageQuery query);
 
 }

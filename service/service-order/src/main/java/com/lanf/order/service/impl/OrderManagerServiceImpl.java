@@ -1,18 +1,6 @@
 package com.lanf.order.service.impl;
 
 
-import com.lanf.cache.aop.DistributedLock;
-import com.lanf.client.pay.api.PayApiService;
-import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
-import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
-import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
-import com.lanf.common.utils.BigDecimalUtil;
-import com.lanf.common.utils.IStringUtils;
-import com.lanf.mybatis.utils.IdUtils;
-import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.exception.BizException;
-import com.lanf.constant.result.Result;
-import com.lanf.constant.result.RpcResultParser;
 import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.api.goods.model.bo.GoodsItem;
 import com.lanf.api.goods.model.bo.GoodsSku;
@@ -25,12 +13,25 @@ import com.lanf.api.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
+import com.lanf.cache.aop.DistributedLock;
+import com.lanf.client.pay.api.PayApiService;
+import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
+import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
+import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
+import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.common.utils.IStringUtils;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.bo.DiscountInfoBO;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.constant.mq.OrderTopicWithTag;
+import com.lanf.constant.result.RpcResultParser;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.order.api.OrderApiService;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.OrderDO;
-import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
@@ -44,11 +45,6 @@ import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.welfare.api.WelfareApiService;
-import com.lanf.welfare.model.bo.DiscountInfoBO;
-import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
-import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
-import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -324,7 +320,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
         message.setOrderId(orderId);
         message.setUserId(userId);
-        rocketMqClient.sendOrderlyMessageWithTags(OrderClientTopicName.ORDER_EVENT_TOPIC,
+        rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message),
                 orderId.toString());    }
 

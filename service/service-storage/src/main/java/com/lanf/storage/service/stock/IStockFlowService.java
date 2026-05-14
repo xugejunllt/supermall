@@ -1,9 +1,10 @@
 package com.lanf.storage.service.stock;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.constant.web.PageResult;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.storage.model.entity.StockFlowDO;
 import com.lanf.storage.model.query.StockFlowPageQuery;
+import com.lanf.storage.model.vo.StockFlowPageVO;
 
 /**
  * <p>
@@ -15,7 +16,7 @@ import com.lanf.storage.model.query.StockFlowPageQuery;
  */
 public interface IStockFlowService extends IService<StockFlowDO> {
 
-    PageResult<StockFlowDO> stockFlowPage(StockFlowPageQuery query);
+    PageResult<StockFlowPageVO> stockFlowPageQuery(StockFlowPageQuery query);
 
 
 }

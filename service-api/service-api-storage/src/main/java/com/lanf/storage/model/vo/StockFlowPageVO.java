@@ -1,24 +1,13 @@
-package com.lanf.storage.model.entity;
+package com.lanf.storage.model.vo;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
-import com.lanf.mybatis.base.BaseEntity;
 import lombok.Data;
 
-/**
- * <p>
- * 库存流水
- * </p>
- *
- * @author 江帅帅 Jss_forever
- * @since 2024-05-30
- */
+import java.io.Serializable;
+import java.util.Date;
+
 @Data
-@TableName("stock_flow")
-public class StockFlowDO extends BaseEntity {
-
-private static final long serialVersionUID=1L;
-
+public class StockFlowPageVO implements Serializable {
 
     /** 唯一流水号 */
     private String flowNo;
@@ -50,9 +39,14 @@ private static final long serialVersionUID=1L;
     /** 仓库名称 */
     private String warehouseName;
 
-    private Long tenantId;
+    private Long id;
 
-    private String createDate;
+    private Date createTime;
 
+    private Date updateTime;
+
+    private String createBy;
+
+    private String updateBy;
 
 }

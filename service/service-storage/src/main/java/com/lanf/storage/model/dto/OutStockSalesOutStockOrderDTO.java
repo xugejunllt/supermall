@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class OutStockDTO implements Serializable {
+public class OutStockSalesOutStockOrderDTO implements Serializable {
 
     //销售出库单id
     private Long salesOutStockOrderId;

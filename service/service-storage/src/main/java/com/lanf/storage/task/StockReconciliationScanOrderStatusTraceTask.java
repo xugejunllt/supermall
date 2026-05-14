@@ -9,7 +9,7 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.model.bo.ReconciliationOrderDetailBO;
 import com.lanf.storage.model.entity.ReconciliationOrderDetailDO;
 import com.lanf.storage.model.entity.StockFlowDO;
-import com.lanf.storage.model.enums.StockFlowTypeEnum;
+import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
 import com.lanf.storage.mq.constant.StorageMqTopicName;
 import com.lanf.storage.mq.message.LongStockReconciliation;
 import com.lanf.storage.mq.message.LongStockReconciliationMessage;

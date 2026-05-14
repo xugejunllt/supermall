@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class PurchaseOrderAddDTO implements Serializable {
+public class AddPurchaseOrderDTO implements Serializable {
 
 
 

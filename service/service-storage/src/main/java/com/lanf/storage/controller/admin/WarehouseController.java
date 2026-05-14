@@ -1,12 +1,12 @@
 package com.lanf.storage.controller.admin;
 
 
-import com.lanf.constant.web.PageResult;
-import com.lanf.storage.model.dto.WarehouseAddDTO;
-import com.lanf.storage.model.entity.WarehouseDO;
-import com.lanf.storage.model.query.WarehousePageQuery;
-import com.lanf.storage.service.warehous.IWarehouseService;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
+import com.lanf.storage.model.dto.AddWarehouseDTO;
+import com.lanf.storage.model.query.WarehousePageQuery;
+import com.lanf.storage.model.vo.WarehousePageVO;
+import com.lanf.storage.service.warehous.IWarehouseService;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,25 +29,22 @@ public class WarehouseController {
     @Autowired
     private IWarehouseService warehouseService;
 
-    @ApiOperation(value = "分页查询仓库列表")
-    @GetMapping("/ware" +
-            "housePage")
-    public Result<PageResult<WarehouseDO>> warehousePage(WarehousePageQuery query) {
+    @GetMapping("/warehousePageQuery")
+    public Result<PageResult<WarehousePageVO>> warehousePageQuery(WarehousePageQuery query) {
 
-        log.info("分页查询仓库列表:query{}",query);
+        log.info("分页查询仓库列表:query{}", query);
 
-        return Result.ok( warehouseService.warehousePage(query));
+        return Result.ok(warehouseService.warehousePageQuery(query));
     }
 
-    @ApiOperation(value = "添加仓库")
     @PostMapping("/addWarehouse")
-    public Result addWarehouse(@Validated @RequestBody WarehouseAddDTO warehouse) {
+    public Result<Void> addWarehouse(@Validated @RequestBody AddWarehouseDTO warehouse) {
 
 
-        log.info("添加仓库:query{}",warehouse);
+        log.info("添加仓库:query{}", warehouse);
         warehouseService.addWarehouse(warehouse);
 
-        return Result.ok( );
+        return Result.ok();
     }
 
 }

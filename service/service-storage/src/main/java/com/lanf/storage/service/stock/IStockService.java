@@ -1,7 +1,7 @@
 package com.lanf.storage.service.stock;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.constant.web.PageResult;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.storage.model.entity.StockDO;
 import com.lanf.storage.model.query.StockPageQuery;
 import com.lanf.storage.model.vo.StockPageQueryVO;
@@ -19,7 +19,7 @@ import java.util.List;
  */
 public interface IStockService extends IService<StockDO> {
 
-    PageResult<StockPageQueryVO> stockPage(StockPageQuery query);
+    PageResult<StockPageQueryVO> stockPageQuery(StockPageQuery query);
 
 
     List<StockVO> querySkuCodeList(List<String> skuCodeList);

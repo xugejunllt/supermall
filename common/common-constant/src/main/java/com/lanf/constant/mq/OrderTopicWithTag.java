@@ -1,6 +1,6 @@
 package com.lanf.constant.mq;
 
-public class OrderTag {
+public class OrderTopicWithTag {
 
     /**
      * 订单事件总 Topic

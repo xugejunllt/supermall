@@ -1,8 +1,9 @@
 package com.lanf.aftersales.mq;
 
+import com.lanf.aftersales.mq.constant.AfterSalesGroupName;
 import com.lanf.aftersales.service.IAfterSalesOrderService;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.storage.mq.StorageClientTopicName;
+import com.lanf.storage.mq.constant.StorageClientTopicName;
 import com.lanf.storage.mq.message.AfterSalesInStockFinishMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RocketMQMessageListener(topic =  StorageClientTopicName.AFTER_SALES_IN_STOCK_FINISH_TOPIC, consumerGroup = StorageClientTopicName.AFTER_SALES_IN_STOCK_FINISH_GROUP)
+@RocketMQMessageListener(topic =  StorageClientTopicName.AFTER_SALES_IN_STOCK_FINISH_TOPIC, consumerGroup = AfterSalesGroupName.AFTER_SALES_IN_STOCK_FINISH_GROUP)
 public class AfterSalesInStockFinishListener implements RocketMQListener<AfterSalesInStockFinishMessage> {
 
     @Autowired

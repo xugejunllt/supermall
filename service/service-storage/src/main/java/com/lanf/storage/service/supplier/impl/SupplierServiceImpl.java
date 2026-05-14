@@ -5,17 +5,20 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
 import com.lanf.storage.mapper.SupplierMapper;
-import com.lanf.storage.model.dto.SupplierAddDTO;
+import com.lanf.storage.model.dto.AddSupplierDTO;
 import com.lanf.storage.model.entity.SupplierDO;
 import com.lanf.storage.model.query.SupplierPageQuery;
+import com.lanf.storage.model.vo.SupplierListVO;
+import com.lanf.storage.model.vo.SupplierPageVO;
 import com.lanf.storage.service.supplier.ISupplierService;
-import com.lanf.constant.exception.BizException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,7 +33,7 @@ import java.util.List;
 public class SupplierServiceImpl extends ServiceImpl<SupplierMapper, SupplierDO> implements ISupplierService {
 
     @Override
-    public void addSupplier(SupplierAddDTO supplier) {
+    public void addSupplier(AddSupplierDTO supplier) {
 
 
         SupplierDO supplierDO = this.lambdaQuery().eq(SupplierDO::getName, supplier.getName()).one();
@@ -45,23 +48,34 @@ public class SupplierServiceImpl extends ServiceImpl<SupplierMapper, SupplierDO>
     }
 
     @Override
-    public PageResult<SupplierDO> supplierPage(SupplierPageQuery query) {
+    public PageResult<SupplierPageVO> supplierPageQuery(SupplierPageQuery query) {
 
         IPage<SupplierDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<SupplierDO> companyPage = this.lambdaQuery().
                 eq(!StringUtils.isEmpty(query.getName()), SupplierDO::getCode, query.getName()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
+        if (companyPage.getRecords().isEmpty()) {
 
-        return PageResult.toPageResult(companyPage);
+            return PageResult.emptyResult();
+        }
+        PageResult<SupplierPageVO> result = new PageResult<>();
+        result.setTotal(companyPage.getTotal());
+        result.setSize(companyPage.getSize());
+        result.setRecords(BeanCopyUtils.copyBeanList(companyPage.getRecords(), SupplierPageVO.class));
+
+        return result;
 
     }
 
     @Override
-    public List<SupplierDO> supplierList() {
+    public List<SupplierListVO> supplierListQuery() {
 
-
-        return this.list();
+        List<SupplierDO> list = this.list();
+        if (list.isEmpty()){
+            return Collections.emptyList();
+        }
+        return BeanCopyUtils.copyBeanList(list, SupplierListVO.class);
     }
 
 }

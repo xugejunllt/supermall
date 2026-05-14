@@ -2,8 +2,8 @@ package com.lanf.storage.mq.listener;
 
 
 import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.mybatis.utils.IdUtils;
-import com.lanf.constant.enums.FlowNoPrefixEnum;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.message.AddSalesOutStockOrderMessage;
 import com.lanf.order.mq.message.InOutStockOrderItem;

@@ -1,4 +1,4 @@
-package com.lanf.storage.model.enums;
+package com.lanf.constant.model.enums.storage;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;

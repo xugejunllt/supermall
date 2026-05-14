@@ -6,7 +6,7 @@ import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 @Data
-public class SupplierAddDTO implements Serializable {
+public class AddSupplierDTO implements Serializable {
 
 
     @NotBlank(message = "供应商名称不能为空")

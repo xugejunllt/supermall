@@ -4,7 +4,7 @@ package com.lanf.constant.model.enums.order;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.lanf.constant.mq.OrderTag;
+import com.lanf.constant.mq.OrderTopicWithTag;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -20,30 +20,30 @@ public enum OrderStatusEnum {
      * 当所有单完成后 -1 --> 0
      * 该状态 不允许用户查询出来
      */
-    WAIT_CONFIRM(-1, "待确认", OrderTag.TAG_WAIT_CONFIRM),
-    WAIT_PAY(0, "待付款", OrderTag.TAG_WAIT_PAY),
-    PAID(1, "已付款", OrderTag.TAG_PAID),
+    WAIT_CONFIRM(-1, "待确认", OrderTopicWithTag.TAG_WAIT_CONFIRM),
+    WAIT_PAY(0, "待付款", OrderTopicWithTag.TAG_WAIT_PAY),
+    PAID(1, "已付款", OrderTopicWithTag.TAG_PAID),
     /**
      * 商家审核通过后 已 1-->2 生成销售出库单
      */
-    WAIT_OUTBOUND(2, "待出库", OrderTag.TAG_WAIT_OUTBOUND),
-    OUTBOUNDED(3, "已出库", OrderTag.TAG_OUTBOUNDED),
-    SHIPPED(4, "已发货", OrderTag.TAG_SHIPPED),
-    WAIT_COMMENT(5, "待评价", OrderTag.TAG_WAIT_COMMENT),
+    WAIT_OUTBOUND(2, "待出库", OrderTopicWithTag.TAG_WAIT_OUTBOUND),
+    OUTBOUNDED(3, "已出库", OrderTopicWithTag.TAG_OUTBOUNDED),
+    SHIPPED(4, "已发货", OrderTopicWithTag.TAG_SHIPPED),
+    WAIT_COMMENT(5, "待评价", OrderTopicWithTag.TAG_WAIT_COMMENT),
     /**
      * 1.主动评价
      * 2.如果超过7天没有评价，系统自动评价
      *
      */
-    COMPLETED(6, "已评价(已完成)", OrderTag.TAG_COMPLETED),
+    COMPLETED(6, "已评价(已完成)", OrderTopicWithTag.TAG_COMPLETED),
 
-    CANCELLED(7, "已取消", OrderTag.TAG_CANCELLED),
+    CANCELLED(7, "已取消", OrderTopicWithTag.TAG_CANCELLED),
     /**
      *
      *  1.已取消订单 3天之后 转成 已关闭
      *  2.售后完成 不取消订单
      */
-    CLOSED(8, "已关闭,订单已终结", OrderTag.TAG_CLOSED),
+    CLOSED(8, "已关闭,订单已终结", OrderTopicWithTag.TAG_CLOSED),
 
     ;
     @EnumValue
@@ -69,10 +69,7 @@ public enum OrderStatusEnum {
         this.tag = tag;
     }
     
-    @JsonValue
-    public Integer getCode() {
-        return code;
-    }
+
     
     public static boolean isCancelable(Integer code) {
         return CANCELABLE_STATUS_SET.contains(code);

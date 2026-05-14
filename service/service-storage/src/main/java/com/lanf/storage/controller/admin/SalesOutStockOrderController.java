@@ -1,13 +1,13 @@
 package com.lanf.storage.controller.admin;
 
 
-import com.lanf.constant.web.PageResult;
-import com.lanf.storage.model.dto.OutStockDTO;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
+import com.lanf.storage.model.dto.OutStockSalesOutStockOrderDTO;
 import com.lanf.storage.model.query.SalesOutStockOrderPageQuery;
 import com.lanf.storage.model.vo.SalesOutStockOrderDetailVO;
 import com.lanf.storage.model.vo.SalesOutStockOrderPageVO;
 import com.lanf.storage.service.storage.ISalesOutStockOrderService;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -23,26 +23,26 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/salesOutStockOrder")
+@RequestMapping("/admin/salesOutStockOrder")
 public class SalesOutStockOrderController {
 
     @Autowired
     private ISalesOutStockOrderService salesOutStockOrderService;
 
-    @PostMapping("/outStock")
-    public Result<Void> outStock(@Validated @RequestBody OutStockDTO dto) {
+    @PostMapping("/outStockSalesOutStockOrder")
+    public Result<Void> outStockSalesOutStockOrder(@Validated @RequestBody OutStockSalesOutStockOrderDTO dto) {
 
-        log.info("出库:dto{}", dto);
-        salesOutStockOrderService.outStock(dto);
+        log.info("销售出库单出库:dto{}", dto);
+        salesOutStockOrderService.outStockSalesOutStockOrder(dto);
         return Result.ok();
     }
 
-    @GetMapping("/salesOutStockOrderPage")
-    public Result<PageResult<SalesOutStockOrderPageVO>> salesOutStockOrderPage(SalesOutStockOrderPageQuery query) {
+    @GetMapping("/salesOutStockOrderPageQuery")
+    public Result<PageResult<SalesOutStockOrderPageVO>> salesOutStockOrderPageQuery(SalesOutStockOrderPageQuery query) {
 
         log.info("分页查询库销售出库单列表:query{}", query);
 
-        return Result.ok(salesOutStockOrderService.salesOutStockOrderPage(query));
+        return Result.ok(salesOutStockOrderService.salesOutStockOrderPageQuery(query));
     }
 
     @GetMapping("/salesOutStockOrderDetail")

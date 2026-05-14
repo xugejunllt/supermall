@@ -5,19 +5,18 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
-import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.storage.mapper.PurchaseOrderMapper;
 import com.lanf.storage.model.bo.CalculatePurchaseOrderMoneyBO;
 import com.lanf.storage.model.bo.PurchaseOrderItemAddBO;
+import com.lanf.storage.model.dto.AddPurchaseOrderDTO;
 import com.lanf.storage.model.dto.CalculatePurchaseOrderItemMoneyDTO;
 import com.lanf.storage.model.dto.CalculatePurchaseOrderMoneyDTO;
-import com.lanf.storage.model.dto.PurchaseOrderAddDTO;
 import com.lanf.storage.model.dto.PurchaseOrderItemAddDTO;
 import com.lanf.storage.model.entity.*;
 import com.lanf.storage.model.query.PurchaseOrderPageQuery;
-import com.lanf.storage.model.vo.CalculatePurchaseOrderMoneyVO;
 import com.lanf.storage.model.vo.PurchaseOrderDetailVO;
 import com.lanf.storage.model.vo.PurchaseOrderPageVO;
 import com.lanf.storage.service.manager.StorageManagerService;
@@ -28,15 +27,14 @@ import com.lanf.storage.service.storage.IPurchaseInStockOrderService;
 import com.lanf.storage.service.storage.impl.manager.StorageAdapter;
 import com.lanf.storage.service.supplier.ISupplierService;
 import com.lanf.storage.service.warehous.IWarehouseService;
-import com.lanf.constant.exception.BizException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * <p>
@@ -67,7 +65,7 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
 
     @Transactional
     @Override
-    public void purchaseOrderAdd(PurchaseOrderAddDTO purchaseOrderAdd) {
+    public void addPurchaseOrder(AddPurchaseOrderDTO purchaseOrderAdd) {
 
         //进行校验
         purchaseOrderAddCheck(purchaseOrderAdd);
@@ -89,7 +87,7 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
     }
 
 
-    private void purchaseOrderAddCheck(PurchaseOrderAddDTO purchaseOrderAdd) {
+    private void purchaseOrderAddCheck(AddPurchaseOrderDTO purchaseOrderAdd) {
 
         SupplierDO supplier = supplierService.getById(purchaseOrderAdd.getSupplierId());
         if (supplier == null) {
@@ -97,7 +95,7 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         }
     }
 
-    private PurchaseOrderDO buildPurchaseOrderDO(PurchaseOrderAddDTO purchaseOrderAdd) {
+    private PurchaseOrderDO buildPurchaseOrderDO(AddPurchaseOrderDTO purchaseOrderAdd) {
 
         PurchaseOrderDO purchaseOrder = new PurchaseOrderDO();
 
@@ -120,7 +118,7 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
 
     }
 
-    private List<PurchaseOrderItemAddBO> buildPurchaseOrderItemAddBO(List<PurchaseOrderItemAddDTO> purchaseOrderItemAddList, PurchaseOrderAddDTO purchaseOrderAdd) {
+    private List<PurchaseOrderItemAddBO> buildPurchaseOrderItemAddBO(List<PurchaseOrderItemAddDTO> purchaseOrderItemAddList, AddPurchaseOrderDTO purchaseOrderAdd) {
 
         List<PurchaseOrderItemAddBO> purchaseOrderItemAddBOList =
                 BeanCopyUtils.copyBeanList(purchaseOrderItemAddList, PurchaseOrderItemAddBO.class);
@@ -155,23 +153,10 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         return "";
     }
 
-    /**
-     * 计算采购单各项金额
-     *
-     * @
-     */
-    @Override
-    public CalculatePurchaseOrderMoneyVO calculatePurchaseOrderMoney(CalculatePurchaseOrderMoneyDTO calculatePurchaseOrderMoney) {
 
-        CalculatePurchaseOrderMoneyBO calculatePurchaseOrderMoneyBO = storageAdapter.calculatePurchaseOrderMoney(calculatePurchaseOrderMoney);
-        CalculatePurchaseOrderMoneyVO calculatePurchaseOrderMoneyVO = new CalculatePurchaseOrderMoneyVO();
-        calculatePurchaseOrderMoneyVO.setCalculatePurchaseOrderMoney(calculatePurchaseOrderMoneyBO);
-
-        return calculatePurchaseOrderMoneyVO;
-    }
 
     @Override
-    public PageResult<PurchaseOrderPageVO> purchaseOrderPage(PurchaseOrderPageQuery query) {
+    public PageResult<PurchaseOrderPageVO> purchaseOrderPageQuery(PurchaseOrderPageQuery query) {
 
         IPage<PurchaseOrderDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<PurchaseOrderDO> purchaseOrderPage = this.lambdaQuery().
@@ -179,32 +164,32 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
 
-        if (purchaseOrderPage.getRecords().isEmpty()) {
+//        if (purchaseOrderPage.getRecords().isEmpty()) {
+//
+//            return PageResult.emptyResult(PurchaseOrderPageVO.class);
+//        }
+//
+//        PageResult<PurchaseOrderPageVO> pageResult = PageResult.toPageResult(page, PurchaseOrderPageVO.class);
+//
+//        List<PurchaseOrderDO> records = purchaseOrderPage.getRecords();
+//        /**
+//         * 填充关联属性
+//         */
+//        //用set接收 去重
+//        Set<Long> supplierIdList = records.stream().map(PurchaseOrderDO::getSupplierId).collect(Collectors.toSet());
+//        Map<Long, SupplierDO> supplierMap = supplierService.lambdaQuery().in(SupplierDO::getId, supplierIdList).list().stream().
+//                collect(Collectors.toMap(SupplierDO::getId, Function.identity()));
+//
+//
+//        pageResult.getRecords().forEach(vo -> {
+//            vo.setSupplierName(supplierMap.get(vo.getSupplierId()).getName());
+//        });
 
-            return PageResult.emptyResult(PurchaseOrderPageVO.class);
-        }
-
-        PageResult<PurchaseOrderPageVO> pageResult = PageResult.toPageResult(page, PurchaseOrderPageVO.class);
-
-        List<PurchaseOrderDO> records = purchaseOrderPage.getRecords();
-        /**
-         * 填充关联属性
-         */
-        //用set接收 去重
-        Set<Long> supplierIdList = records.stream().map(PurchaseOrderDO::getSupplierId).collect(Collectors.toSet());
-        Map<Long, SupplierDO> supplierMap = supplierService.lambdaQuery().in(SupplierDO::getId, supplierIdList).list().stream().
-                collect(Collectors.toMap(SupplierDO::getId, Function.identity()));
-
-
-        pageResult.getRecords().forEach(vo -> {
-            vo.setSupplierName(supplierMap.get(vo.getSupplierId()).getName());
-        });
-
-        return pageResult;
+        return null;
     }
 
     @Override
-    public PurchaseOrderDetailVO purchaseOrderDetail(Long id) {
+    public PurchaseOrderDetailVO purchaseOrderDetailQuery(Long id) {
 
         PurchaseOrderDO purchaseOrder = this.getById(id);
 
@@ -291,7 +276,6 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         purchaseOrderUpdate.setId(id);
         purchaseOrderUpdate.setStatus(1);
         purchaseOrderUpdate.setReviewTime(new Date());
-        purchaseOrderUpdate.setReviewer(AdminSessionCache.getSysUser().getName());
         return purchaseOrderUpdate;
     }
 

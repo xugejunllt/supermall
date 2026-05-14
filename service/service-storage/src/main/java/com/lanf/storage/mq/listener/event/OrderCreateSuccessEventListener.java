@@ -1,9 +1,9 @@
 package com.lanf.storage.mq.listener.event;
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.goods.model.enums.UserStockFlowEventTypeEnum;
-import com.lanf.order.model.enums.OrderStatusEnum;
-import com.lanf.order.mq.constant.OrderClientTopicName;
+import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.rocketmq.model.enums.DelayLevelEnum;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -26,9 +26,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RocketMQMessageListener(
         consumerGroup = StorageMqGroupName.ORDER_CREATE_SUCCESS_EVENT_ADD_RECONCILIATION_ORDER_GROUP,
-        topic = OrderClientTopicName.ORDER_EVENT_TOPIC,
+        topic = OrderTopicWithTag.ORDER_EVENT_TOPIC,
         consumeMode = ConsumeMode.ORDERLY,
-        selectorExpression = OrderClientTopicName.TAG_WAIT_PAY
+        selectorExpression = OrderTopicWithTag.TAG_WAIT_PAY
 )
 public class OrderCreateSuccessEventListener implements RocketMQListener<OrderCreateSuccessMessage> {
 

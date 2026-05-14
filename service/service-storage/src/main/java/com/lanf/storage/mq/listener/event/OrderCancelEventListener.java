@@ -1,8 +1,8 @@
 package com.lanf.storage.mq.listener.event;
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.goods.model.enums.UserStockFlowEventTypeEnum;
-import com.lanf.order.model.enums.OrderStatusEnum;
+import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.rocketmq.model.enums.DelayLevelEnum;

@@ -5,13 +5,15 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
-import com.lanf.common.utils.*;
-import com.lanf.constant.enums.LogisticsTrackStatusEnum;
+import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.CodeGenerateUtils;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
+import com.lanf.constant.model.enums.LogisticsTrackStatusEnum;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
-import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.order.api.OrderApiService;
 import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.model.message.OutStockFinishEventMessage;
@@ -19,9 +21,10 @@ import com.lanf.rocketmq.util.MessageBuildAdapter;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.mapper.SalesOutStockOrderMapper;
 import com.lanf.storage.model.bo.StockUpdateBO;
-import com.lanf.storage.model.dto.OutStockDTO;
 import com.lanf.storage.model.dto.OutStockItemDTO;
+import com.lanf.storage.model.dto.OutStockSalesOutStockOrderDTO;
 import com.lanf.storage.model.entity.*;
+import com.lanf.storage.model.enums.StorageStatusEnum;
 import com.lanf.storage.model.query.SalesOutStockOrderPageQuery;
 import com.lanf.storage.model.vo.PurchaseInStockOrderItemDetailVO;
 import com.lanf.storage.model.vo.SalesOutStockOrderDetailVO;
@@ -33,7 +36,6 @@ import com.lanf.storage.service.stock.IStockService;
 import com.lanf.storage.service.storage.IInOutStockOrderItemService;
 import com.lanf.storage.service.storage.ISalesOutStockOrderService;
 import com.lanf.storage.service.warehous.IWarehouseService;
-import com.lanf.system.api.SystemService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,10 +77,8 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     private OrderApiService orderApiService;
     @Autowired
     private RocketMqClient rocketMqClient;
-    @Autowired
-    private SystemService systemService;
-    @Autowired
-    private ISendMqMessageService sendMqMessageService;
+
+
 
     @Transactional
     @Override
@@ -101,7 +101,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         salesOutStockOrderDO.setCode(CodeGenerateUtils.generaCode());
         salesOutStockOrderDO.setOrderId(message.getAfterSalesOrderId());
         // salesOutStockOrderDO.setExpectQuantity(message.getTotalQuantity());
-        salesOutStockOrderDO.setStorageStatus(0);
+        salesOutStockOrderDO.setStorageStatus(StorageStatusEnum.WAIT_OUTBOUND);
         // salesOutStockOrderDO.setShopId(message.getShopId());
         //  salesOutStockOrderDO.setWarehouseId(shopVO.getBusinessId());
         salesOutStockOrderDOList.add(salesOutStockOrderDO);
@@ -141,7 +141,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
 
     @Transactional
     @Override
-    public void outStock(OutStockDTO dto) {
+    public void outStockSalesOutStockOrder(OutStockSalesOutStockOrderDTO dto) {
 
         Long salesOutStockOrderId = dto.getSalesOutStockOrderId();
         List<OutStockItemDTO> outStockItemList = dto.getOutStockItemList();
@@ -225,10 +225,10 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         if (salesOutStockOrderDO == null) {
             throw new BizException("出库单不存在");
         }
-        if (salesOutStockOrderDO.getStorageStatus() == 1) {
-
-            throw new BizException("已完成出库");
-        }
+//        if (salesOutStockOrderDO.getStorageStatus() == 1) {
+//
+//            throw new BizException("已完成出库");
+//        }
 
         Set<Long> purchaseOrderItemIdSet = inStorageItemList.stream().map(OutStockItemDTO::getId).collect(Collectors.toSet());
         List<InOutStockOrderItemDO> storageOrderItemDetailList = iInOutStockOrderItemService.lambdaQuery().
@@ -337,7 +337,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     }
 
     @Override
-    public PageResult<SalesOutStockOrderPageVO> salesOutStockOrderPage(SalesOutStockOrderPageQuery query) {
+    public PageResult<SalesOutStockOrderPageVO> salesOutStockOrderPageQuery(SalesOutStockOrderPageQuery query) {
 
         IPage<SalesOutStockOrderDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<SalesOutStockOrderDO> purchaseStorageOrderPage = this.lambdaQuery().
@@ -346,12 +346,12 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
 
-        if (purchaseStorageOrderPage.getRecords().isEmpty()) {
-
-            return PageResult.emptyResult(SalesOutStockOrderPageVO.class);
-        }
-
-        PageResult<SalesOutStockOrderPageVO> pageResult = PageResult.toPageResult(page, SalesOutStockOrderPageVO.class);
+//        if (purchaseStorageOrderPage.getRecords().isEmpty()) {
+//
+//            return PageResult.emptyResult(SalesOutStockOrderPageVO.class);
+//        }
+//
+//        PageResult<SalesOutStockOrderPageVO> pageResult = PageResult.toPageResult(page, SalesOutStockOrderPageVO.class);
 
         List<SalesOutStockOrderDO> records = purchaseStorageOrderPage.getRecords();
         /**
@@ -372,7 +372,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
 //
 //        });
 
-        return pageResult;
+        return null;
     }
 
     @Override

@@ -6,7 +6,7 @@ import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 @Data
-public class WarehouseAddDTO implements Serializable {
+public class AddWarehouseDTO implements Serializable {
 
     @NotBlank(message = "仓库名称不能为空")
     /** 仓库名称 */
