@@ -738,7 +738,10 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
         List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getGoodsId, goodsId).list();
         //列表页展示的sku 默认取第一个 当然可以新增字段标记展示
-        GoodsSkuDO firstGoodsSku = goodsSkuDOList.get(0);
+        GoodsSkuDO firstGoodsSku = goodsSkuDOList.stream()
+                .filter(sku -> sku.getDefaultSelect() != null && sku.getDefaultSelect() == 1)
+                .findFirst()
+                .orElse(goodsSkuDOList.get(0));
         List<SyncGoodsInfoToEsMsg.Attribute> attributes = buildAttribute(goodsSkuDOList);
         List<String> promptWordLabel = JsonUtils.toList(goodsDO.getPromptWordLabel(), String.class);
 
@@ -767,10 +770,12 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         goodsInfoToEsMsg.setVersion(goodsDO.getVersion());
         goodsInfoToEsMsg.setSkuId(firstGoodsSku.getId());
         goodsInfoToEsMsg.setPrice(firstGoodsSku.getPrice().doubleValue());
-        goodsInfoToEsMsg.setAttributes(attributes);
+        goodsInfoToEsMsg.setAttributeList(attributes);
         goodsInfoToEsMsg.setPromptWordLabel(promptWordLabel);
         goodsInfoToEsMsg.setExtendedTags(extendedTags);
-
+        goodsInfoToEsMsg.setSkuName(firstGoodsSku.getAttributeDetail());
+        goodsInfoToEsMsg.setCreateTime(goodsDO.getCreateTime().getTime());
+        goodsInfoToEsMsg.setUpdateTime(goodsDO.getUpdateTime().getTime());
         return goodsInfoToEsMsg;
     }
 

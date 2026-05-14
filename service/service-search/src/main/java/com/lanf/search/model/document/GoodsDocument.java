@@ -82,6 +82,9 @@ public class GoodsDocument {
     private Long updateTime;
     //删除标记
     private Integer isDeleted;
+    /**
+     * 默认 首页展示的sku
+     */
     //skuid
     private Long skuId;
     //sku名称
@@ -102,6 +105,7 @@ public class GoodsDocument {
 
     public static class Attribute {
 
+        private Long skuId;
         private String attrName;
         private String attrValue;
 

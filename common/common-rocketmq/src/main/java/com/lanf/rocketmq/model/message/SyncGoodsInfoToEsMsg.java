@@ -58,7 +58,7 @@ public class SyncGoodsInfoToEsMsg implements Serializable {
     // sku价格
     private Double price;
     //商品属性 用于搜索
-    private List<Attribute> attributes;
+    private List<Attribute> attributeList;
     // 搜索提示词标签
     private List<String> promptWordLabel;
     //扩展标签 用于展示
