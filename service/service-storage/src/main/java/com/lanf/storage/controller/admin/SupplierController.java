@@ -49,7 +49,7 @@ public class SupplierController {
     }
 
    // @PreAuthorize("hasAuthority('bnt.supplier.supplierList')")
-    @GetMapping("/supplierList")
+    @GetMapping("/supplierListQuery")
     public Result<List<SupplierListVO>> supplierListQuery() {
 
         log.info("查询供应商列表");

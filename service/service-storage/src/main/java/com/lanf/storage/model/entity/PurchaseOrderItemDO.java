@@ -36,8 +36,8 @@ private static final long serialVersionUID=1L;
     /** 单位 */
     private String unit;
 
-    /** 销售单价 */
-    private BigDecimal salesUnitPrice;
+    /**采购单价 */
+    private BigDecimal buyUnitPrice;
 
     //total_money
     /** 总金额 */

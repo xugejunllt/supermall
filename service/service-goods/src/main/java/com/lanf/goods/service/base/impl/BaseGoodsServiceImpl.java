@@ -229,33 +229,24 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
     @Override
     public BaseGoodsBySkuCodeVO baseGoodsBySkuCodeQuery(String skuCode) {
 
-        List<BaseGoodsSkuDO> baseGoodsSkuDOList = baseGoodsSkuService.lambdaQuery().eq(BaseGoodsSkuDO::getSkuCode, skuCode).list();
-        if (baseGoodsSkuDOList.isEmpty()) {
+
+        BaseGoodsSkuDO goodsSkuDO = baseGoodsSkuService.lambdaQuery()
+                .eq(BaseGoodsSkuDO::getSkuCode, skuCode).one();
+
+
+        if (goodsSkuDO == null) {
 
             return null;
         }
-        Long goodsId = baseGoodsSkuDOList.get(0).getGoodsId();
+        Long goodsId = goodsSkuDO.getGoodsId();
         String goodsName = this.getById(goodsId).getName();
-        String skuName = buildSkuName(baseGoodsSkuDOList);
         BaseGoodsBySkuCodeVO vo = new BaseGoodsBySkuCodeVO();
-        vo.setSkuName(skuName);
+        vo.setSkuName(goodsSkuDO.getAttributeDetail());
         vo.setName(goodsName);
         return vo;
     }
 
-    private String buildSkuName(List<BaseGoodsSkuDO> baseGoodsSkuDOList) {
 
-        StringBuffer skuName = new StringBuffer();
-        baseGoodsSkuDOList.forEach(a -> {
-
-//            skuName.append(a.getAttribute())
-//                    .append(",").
-//                    append(a.getAttributeDesc()).
-//                    append(";");
-
-        });
-        return skuName.toString();
-    }
 
     @Override
     public List<BaseGoodsBySkuCodeVO> baseGoodsBySkuCodeBathQuery(List<String> skuCodeList) {
@@ -292,12 +283,12 @@ public class BaseGoodsServiceImpl extends ServiceImpl<BaseGoodsMapper, BaseGoods
 
             BaseGoodsBySkuCodeVO vo = new BaseGoodsBySkuCodeVO();
             List<BaseGoodsSkuDO> baseGoodsSkuDOS = baseGoodsSkuMap.get(a);
-            String skuName = buildSkuName(baseGoodsSkuDOS);
-            Long goodsId = baseGoodsSkuDOS.get(0).getGoodsId();
-            String goodsName = baseGoodsMap.get(goodsId).getName();
-            vo.setSkuName(skuName);
-            vo.setName(goodsName);
-            vo.setSkuCode(a);
+//            String skuName = buildSkuName(baseGoodsSkuDOS);
+//            Long goodsId = baseGoodsSkuDOS.get(0).getGoodsId();
+//            String goodsName = baseGoodsMap.get(goodsId).getName();
+//            vo.setSkuName(skuName);
+//            vo.setName(goodsName);
+//            vo.setSkuCode(a);
             baseGoodsBySkuCodeQueryVOList.add(vo);
         }
 

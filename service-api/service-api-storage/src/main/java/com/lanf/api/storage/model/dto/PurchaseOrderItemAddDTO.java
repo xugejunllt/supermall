@@ -20,10 +20,10 @@ public class PurchaseOrderItemAddDTO implements Serializable {
     /** 数量 */
     private Integer quantity;
 
-    @Max(value = 1000000,message = "销售单价超过最大值")
-    @Min(value = 1,message = "销售单价小于最小值")
-    /** 销售单价 */
-    private BigDecimal salesUnitPrice;
+    @Max(value = 1000000,message = "单价超过最大值")
+    @Min(value = 1,message = "单价小于最小值")
+    /**采购单价 */
+    private BigDecimal buyUnitPrice;
     //单位 就是sku
     private String unit;
 

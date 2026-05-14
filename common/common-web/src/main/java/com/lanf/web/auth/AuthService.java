@@ -40,7 +40,7 @@ public class AuthService {
         List<String> internalServicePaths = authPathConfig.getInternalServicePaths();
         List<String> adminPaths = authPathConfig.getAdminPaths();
         try {
-
+            log.info("请求路径:{}", requestURI);
             if ( adminPaths.contains(requestURI)) {
                 FeignRequestInfo authRequestInfo = RequestAuthExtractor.extractFeignAuthInfo(request);
                 log.info("接收到内部admin请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURI, authRequestInfo);

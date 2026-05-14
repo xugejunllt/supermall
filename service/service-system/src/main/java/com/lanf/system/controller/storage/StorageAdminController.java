@@ -23,13 +23,13 @@ public class StorageAdminController {
 
     // ==================== Warehouse 仓库管理 ====================
 
-    @GetMapping("/warehouse/warehousePageQuery")
+    @GetMapping("/warehousePageQuery")
     public Result<PageResult<WarehousePageVO>> warehousePageQuery(WarehousePageQuery query) {
         log.info("分页查询仓库列表:query{}", query);
         return storageApiService.warehousePageQuery(query);
     }
 
-    @PostMapping("/warehouse/addWarehouse")
+    @PostMapping("/addWarehouse")
     public Result<Void> addWarehouse(@Validated @RequestBody AddWarehouseDTO warehouse) {
         log.info("添加仓库:warehouse{}", warehouse);
         return storageApiService.addWarehouse(warehouse);
@@ -37,45 +37,45 @@ public class StorageAdminController {
 
     // ==================== Supplier 供应商管理 ====================
 
-    @GetMapping("/supplier/supplierPageQuery")
+    @GetMapping("/supplierPageQuery")
     public Result<PageResult<SupplierPageVO>> supplierPageQuery(SupplierPageQuery query) {
         log.info("分页查询供应商列表:query{}", query);
         return storageApiService.supplierPageQuery(query);
     }
 
-    @PostMapping("/supplier/addSupplier")
+    @PostMapping("/addSupplier")
     public Result<Void> addSupplier(@Validated @RequestBody AddSupplierDTO supplier) {
         log.info("添加供应商:supplier{}", supplier);
         return storageApiService.addSupplier(supplier);
     }
 
-    @GetMapping("/supplier/supplierList")
-    public Result<List<SupplierListVO>> supplierList() {
+    @GetMapping("/supplierListQuery")
+    public Result<List<SupplierListVO>> supplierListQuery() {
         log.info("查询供应商列表");
         return storageApiService.supplierList();
     }
 
     // ==================== PurchaseOrder 采购单管理 ====================
 
-    @PostMapping("/purchaseOrder/addPurchaseOrder")
+    @PostMapping("/addPurchaseOrder")
     public Result<Void> addPurchaseOrder(@Validated @RequestBody AddPurchaseOrderDTO purchaseOrderAdd) {
         log.info("添加采购单:purchaseOrderAdd{}", purchaseOrderAdd);
         return storageApiService.addPurchaseOrder(purchaseOrderAdd);
     }
 
-    @GetMapping("/purchaseOrder/purchaseOrderPageQuery")
+    @GetMapping("/purchaseOrderPageQuery")
     public Result<PageResult<PurchaseOrderPageVO>> purchaseOrderPageQuery(PurchaseOrderPageQuery query) {
         log.info("分页查询采购单列表:query{}", query);
         return storageApiService.purchaseOrderPageQuery(query);
     }
 
-    @GetMapping("/purchaseOrder/purchaseOrderDetailQuery")
+    @GetMapping("/purchaseOrderDetailQuery")
     public Result<PurchaseOrderDetailVO> purchaseOrderDetailQuery(Long id) {
         log.info("采购单详细:id{}", id);
         return storageApiService.purchaseOrderDetailQuery(id);
     }
 
-    @PostMapping("/purchaseOrder/auditApprove")
+    @PostMapping("/auditApprove")
     public Result<Void> auditApprove(@RequestBody ReviewDTO dto) {
         log.info("采购单审核:dto{}", dto);
         return storageApiService.auditApprove(dto);
@@ -83,19 +83,19 @@ public class StorageAdminController {
 
     // ==================== PurchaseInStockOrder 采购入库单管理 ====================
 
-    @PostMapping("/purchaseInStockOrder/inStockPurchaseInStockOrder")
+    @PostMapping("/inStockPurchaseInStockOrder")
     public Result<Void> inStockPurchaseInStockOrder(@Validated @RequestBody InStockPurchaseInStockOrderDTO inStock) {
         log.info("采购入库单入库:inStock{}", inStock);
         return storageApiService.inStockPurchaseInStockOrder(inStock);
     }
 
-    @GetMapping("/purchaseInStockOrder/purchaseInStockOrderPageQuery")
+    @GetMapping("/purchaseInStockOrderPageQuery")
     public Result<PageResult<PurchaseInStockOrderPageVO>> purchaseInStockOrderPageQuery(PurchaseInStockOrderPageQuery query) {
         log.info("分页查询采购入库单列表:query{}", query);
         return storageApiService.purchaseInStockOrderPageQuery(query);
     }
 
-    @GetMapping("/purchaseInStockOrder/purchaseInStockOrderDetailQuery")
+    @GetMapping("/purchaseInStockOrderDetailQuery")
     public Result<PurchaseInStockOrderDetailVO> purchaseInStockOrderDetailQuery(Long id) {
         log.info("采购入库单详细:id{}", id);
         return storageApiService.purchaseInStockOrderDetailQuery(id);
@@ -103,19 +103,19 @@ public class StorageAdminController {
 
     // ==================== SalesOutStockOrder 销售出库单管理 ====================
 
-    @PostMapping("/salesOutStockOrder/outStockSalesOutStockOrder")
+    @PostMapping("/outStockSalesOutStockOrder")
     public Result<Void> outStockSalesOutStockOrder(@Validated @RequestBody OutStockSalesOutStockOrderDTO dto) {
         log.info("销售出库单出库:dto{}", dto);
         return storageApiService.outStockSalesOutStockOrder(dto);
     }
 
-    @GetMapping("/salesOutStockOrder/salesOutStockOrderPageQuery")
+    @GetMapping("/salesOutStockOrderPageQuery")
     public Result<PageResult<SalesOutStockOrderPageVO>> salesOutStockOrderPageQuery(SalesOutStockOrderPageQuery query) {
         log.info("分页查询销售出库单列表:query{}", query);
         return storageApiService.salesOutStockOrderPageQuery(query);
     }
 
-    @GetMapping("/salesOutStockOrder/salesOutStockOrderDetail")
+    @GetMapping("/salesOutStockOrderDetail")
     public Result<SalesOutStockOrderDetailVO> salesOutStockOrderDetail(Long id) {
         log.info("销售出库单详细:id{}", id);
         return storageApiService.salesOutStockOrderDetail(id);
@@ -123,7 +123,7 @@ public class StorageAdminController {
 
     // ==================== Stock 库存管理 ====================
 
-    @GetMapping("/stock/stockPageQuery")
+    @GetMapping("/stockPageQuery")
     public Result<PageResult<StockPageQueryVO>> stockPageQuery(StockPageQuery query) {
         log.info("分页查询库存列表:query{}", query);
         return storageApiService.stockPageQuery(query);
@@ -131,7 +131,7 @@ public class StorageAdminController {
 
     // ==================== StockFlow 库存流水管理 ====================
 
-    @GetMapping("/stockFlow/stockFlowPageQuery")
+    @GetMapping("/stockFlowPageQuery")
     public Result<PageResult<StockFlowPageVO>> stockFlowPageQuery(StockFlowPageQuery query) {
         log.info("分页查询库存流水列表:query{}", query);
         return storageApiService.stockFlowPageQuery(query);
@@ -139,7 +139,7 @@ public class StorageAdminController {
 
     // ==================== StockPreorderPublishLog 预售发布日志管理 ====================
 
-    @PostMapping("/stockPreorderPublishLog/publishStock")
+    @PostMapping("/publishStock")
     public Result<Void> publishStock(@Validated @RequestBody PublishStockDTO publishStock) {
         log.info("发布预售库存:publishStock{}", publishStock);
         return storageApiService.publishStock(publishStock);

@@ -13,15 +13,11 @@ public class PurchaseOrderPageVO implements Serializable {
     private Long id;
 
     private Long supplierId;
+    private String supplierName;
 
-    @ApiModelProperty(value = "仓库id")
-    private Long warehouseId;
 
     @ApiModelProperty(value = "单据编码")
     private String code;
-
-    @ApiModelProperty(value = "供应商名称")
-    private String supplierName;
 
 
     @ApiModelProperty(value = "采购金额")
@@ -34,7 +30,7 @@ public class PurchaseOrderPageVO implements Serializable {
     @ApiModelProperty(value = "状态:0:审核中 1.审核通过 2:审核不通过,3.部分入库 4.已完成")
     private Integer status;
 
-    //提交时间
+
     private Date createTime;
 
 }

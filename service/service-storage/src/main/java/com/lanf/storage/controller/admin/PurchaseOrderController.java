@@ -1,20 +1,18 @@
 package com.lanf.storage.controller.admin;
 
 
-import com.lanf.constant.model.vo.PageResult;
-import com.lanf.constant.result.Result;
 import com.lanf.api.storage.model.dto.AddPurchaseOrderDTO;
 import com.lanf.api.storage.model.dto.ReviewDTO;
 import com.lanf.api.storage.model.query.PurchaseOrderPageQuery;
 import com.lanf.api.storage.model.vo.PurchaseOrderDetailVO;
 import com.lanf.api.storage.model.vo.PurchaseOrderPageVO;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
 import com.lanf.storage.service.purchase.IPurchaseOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 /**
  * <p>
@@ -33,7 +31,7 @@ public class PurchaseOrderController {
     private IPurchaseOrderService purchaseOrderService;
 
     @PostMapping("/addPurchaseOrder")
-    public Result<Valid> addPurchaseOrder(@Validated @RequestBody AddPurchaseOrderDTO purchaseOrderAdd) {
+    public Result<Void> addPurchaseOrder(@Validated @RequestBody AddPurchaseOrderDTO purchaseOrderAdd) {
 
         log.info("添加采购单:purchaseOrderAdd{}", purchaseOrderAdd);
         purchaseOrderService.addPurchaseOrder(purchaseOrderAdd);

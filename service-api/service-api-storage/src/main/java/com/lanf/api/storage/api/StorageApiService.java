@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -39,7 +40,7 @@ public interface StorageApiService {
     @PostMapping("/storage/admin/supplier/addSupplier")
     Result<Void> addSupplier(@RequestBody AddSupplierDTO supplier);
 
-    @GetMapping("/storage/admin/supplier/supplierList")
+    @GetMapping("/storage/admin/supplier/supplierListQuery")
     Result<List<SupplierListVO>> supplierList();
 
     // ==================== PurchaseOrder 采购单管理 ====================
@@ -51,7 +52,7 @@ public interface StorageApiService {
     Result<PageResult<PurchaseOrderPageVO>> purchaseOrderPageQuery(@SpringQueryMap PurchaseOrderPageQuery query);
 
     @GetMapping("/storage/admin/purchaseOrder/purchaseOrderDetailQuery")
-    Result<PurchaseOrderDetailVO> purchaseOrderDetailQuery(Long id);
+    Result<PurchaseOrderDetailVO> purchaseOrderDetailQuery(@RequestParam("id") Long id);
 
     @PostMapping("/storage/admin/purchaseOrder/auditApprove")
     Result<Void> auditApprove(@RequestBody ReviewDTO dto);
@@ -65,7 +66,7 @@ public interface StorageApiService {
     Result<PageResult<PurchaseInStockOrderPageVO>> purchaseInStockOrderPageQuery(@SpringQueryMap PurchaseInStockOrderPageQuery query);
 
     @GetMapping("/storage/admin/purchaseInStockOrder/purchaseInStockOrderDetailQuery")
-    Result<PurchaseInStockOrderDetailVO> purchaseInStockOrderDetailQuery(Long id);
+    Result<PurchaseInStockOrderDetailVO> purchaseInStockOrderDetailQuery(@RequestParam("id")Long id);
 
     // ==================== SalesOutStockOrder 销售出库单管理 ====================
 
@@ -76,7 +77,7 @@ public interface StorageApiService {
     Result<PageResult<SalesOutStockOrderPageVO>> salesOutStockOrderPageQuery(@SpringQueryMap SalesOutStockOrderPageQuery query);
 
     @GetMapping("/storage/admin/salesOutStockOrder/salesOutStockOrderDetail")
-    Result<SalesOutStockOrderDetailVO> salesOutStockOrderDetail(Long id);
+    Result<SalesOutStockOrderDetailVO> salesOutStockOrderDetail(@RequestParam("id")Long id);
 
     // ==================== Stock 库存管理 ====================
 

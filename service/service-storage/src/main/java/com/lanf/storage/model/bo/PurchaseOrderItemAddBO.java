@@ -30,4 +30,8 @@ public class PurchaseOrderItemAddBO implements Serializable {
 
     /** 总金额 */
     private BigDecimal totalMoney;
+
+
+    /**采购单价 */
+    private BigDecimal buyUnitPrice;
 }

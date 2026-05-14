@@ -14,13 +14,14 @@ public class AddPurchaseOrderDTO implements Serializable {
 
 
 
-    @NotNull(message = "供应商id不能为空")
     /** 供应商id */
     private Long supplierId;
 
+    private String supplierName;
+
+
     @Future(message = "期望到货日期不能小于当前时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    /** 期望到货日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")    /** 期望到货日期 */
     private Date expectTime;
 
     @Max(value = 1000000,message = "采购运费超过最大值")
@@ -42,7 +43,8 @@ public class AddPurchaseOrderDTO implements Serializable {
 
     /** 备注 */
     private String remarks;
-
+    /** 总计金额 */
+    private BigDecimal totalMoney;
     @NotEmpty
     private List<PurchaseOrderItemAddDTO> purchaseOrderItemAdd;
 }

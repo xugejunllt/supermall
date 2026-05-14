@@ -29,7 +29,7 @@ private static final long serialVersionUID=1L;
     /** 供应商id */
     private Long supplierId;
 
-
+    private String supplierName;
 
     /** 期望到货日期 */
     private Date expectTime;
