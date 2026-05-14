@@ -2,8 +2,8 @@ package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.order.model.entity.OrderItemDO;
-import com.lanf.order.model.query.ReconciliationOrderItemQuery;
-import com.lanf.order.model.vo.ReconciliationOrderItemVO;
+import com.lanf.api.order.model.query.ReconciliationOrderItemQuery;
+import com.lanf.api.order.model.vo.ReconciliationOrderItemVO;
 
 /**
  * <p>

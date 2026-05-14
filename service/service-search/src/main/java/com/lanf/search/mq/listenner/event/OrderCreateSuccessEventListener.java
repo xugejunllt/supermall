@@ -1,11 +1,11 @@
 package com.lanf.search.mq.listenner.event;
 
+import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.result.RpcResultParser;
-import com.lanf.order.api.OrderApiService;
-import com.lanf.order.model.query.OrderDocumentQuery;
-import com.lanf.order.model.vo.OrderDocumentVO;
-import com.lanf.order.mq.constant.OrderClientTopicName;
-import com.lanf.order.mq.message.OrderCreateSuccessMessage;
+import com.lanf.api.order.api.OrderApiService;
+import com.lanf.api.order.model.query.OrderDocumentQuery;
+import com.lanf.api.order.model.vo.OrderDocumentVO;
+import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.search.model.document.OrderDocument;
 import com.lanf.search.mq.constant.SearchMqGroupName;
 import com.lanf.search.repository.OrderRepository;
@@ -25,9 +25,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RocketMQMessageListener(
         consumerGroup = SearchMqGroupName.ORDER_CREATE_SUCCESS_EVENT_ADD_ORDER_INDEX_GROUP,
-        topic = OrderClientTopicName.ORDER_EVENT_TOPIC,
+        topic = OrderTopicWithTag.ORDER_EVENT_TOPIC,
         consumeMode = ConsumeMode.ORDERLY,
-        selectorExpression = OrderClientTopicName.TAG_WAIT_PAY)
+        selectorExpression = OrderTopicWithTag.TAG_WAIT_PAY)
 public class OrderCreateSuccessEventListener implements RocketMQListener<OrderCreateSuccessMessage> {
 
      @Autowired

@@ -1,7 +1,10 @@
 package com.lanf.search.service.impl;
 
+import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.IStringUtils;
-import com.lanf.constant.web.PageResult;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.search.model.bo.ScoredProduct;
 import com.lanf.search.model.document.GoodsDocument;
 import com.lanf.search.model.query.GoodsSearchQuery;
@@ -21,7 +24,6 @@ import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -36,7 +38,7 @@ public class AdvancedSearchService {
     private ElasticsearchRestTemplate esTemplate;
     
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedissonCacheService redissonCacheService;
     
     @Autowired
     private GoodsQualityService goodsQualityService; // 获取 fx2
@@ -73,7 +75,7 @@ public class AdvancedSearchService {
         
         // --- 2.3 精排阶段 (Fine Sort) ---
         // 使用 LR 模型或复杂逻辑对 Top 200 进行精细打分
-        List<ScoredProduct> fineSortedList = fineSort(roughSortedList, UserIdContext.getUserId());
+        List<ScoredProduct> fineSortedList = fineSort(roughSortedList, UserContext.getUserId());
 
         // --- 2.4 重排阶段 (Re-rank) ---
         // 插队：广告、新品、促销提权
@@ -205,14 +207,17 @@ public class AdvancedSearchService {
         
         return new PageResult<>(vos, vos.size(), rankedList.size());
     }
+    
     // 缓存整个排序后的 ID 列表
     private void cacheFinalIds(String key, List<Long> ids) {
-        redisTemplate.opsForValue().set(key, ids, 10, TimeUnit.MINUTES);
+        redissonCacheService.set(key, JsonUtils.toJsonString(ids), 10, TimeUnit.MINUTES);
     }
 
     // 获取分页数据
     private PageResult<HomePageVO> getCachedPageResult(String key, int page, int pageSize) {
-        List<Long> allIds = (List<Long>) redisTemplate.opsForValue().get(key);
+
+        String result = redissonCacheService.get(key);
+        List<Long> allIds = JsonUtils.toList(result, Long.class);
         if (allIds == null || allIds.isEmpty()) return null;
 
         int start = (page - 1) * pageSize;

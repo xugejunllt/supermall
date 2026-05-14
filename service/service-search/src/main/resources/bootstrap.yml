@@ -25,6 +25,8 @@ spring:
             data-id: tenant.yaml
           - group: common
             data-id: filterPath.yaml
+          - group: common
+            data-id: common.yaml
 server:
   port: 9014
   servlet:

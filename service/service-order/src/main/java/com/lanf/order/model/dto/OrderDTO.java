@@ -1,5 +1,6 @@
 package com.lanf.order.model.dto;
 
+import com.lanf.api.order.model.dto.OrderItemDTO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

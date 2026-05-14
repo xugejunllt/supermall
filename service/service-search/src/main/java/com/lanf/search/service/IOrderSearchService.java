@@ -1,6 +1,6 @@
 package com.lanf.search.service;
 
-import com.lanf.constant.web.PageResult;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.search.model.query.OrderSearchQuery;
 import com.lanf.search.model.vo.OrderSearchVO;
 

@@ -26,7 +26,7 @@ public class GoodsListener implements RocketMQListener<SyncGoodsInfoToEsMsg> {
     @Override
     public void onMessage(SyncGoodsInfoToEsMsg message) {
 
-        log.info("添加商品数据DB");
+        log.info("添加商品数据DB:{}", message);
         try {
             goodsInfoService.saveGoodsInfo(message);
         } catch (Exception e) {

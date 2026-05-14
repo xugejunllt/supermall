@@ -1,16 +1,15 @@
 package com.lanf.search.service.impl;
 
+import com.lanf.cache.service.RedissonCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserBehaviorService {
-
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedissonCacheService redissonCacheService;
 
     private static final String CLICK_COUNT_KEY = "search:stats:click:";
     private static final String TRANS_COUNT_KEY = "search:stats:trans:";
@@ -43,13 +42,14 @@ public class UserBehaviorService {
         // 逻辑：如果用户曾经点击或购买过该商品所属的类目/品牌，则给予加分
         // 实际应查询用户画像标签与商品标签的匹配度
         String userCategoryKey = "user:category:" + userId;
-        Boolean hasInteraction = redisTemplate.opsForSet().isMember(userCategoryKey, goodsId);
+//        Boolean hasInteraction = redissonCacheService.isMemberOfSet(userCategoryKey, goodsId);
         
-        return (hasInteraction != null && hasInteraction) ? 0.2 : 0.0;
+//        return (hasInteraction != null && hasInteraction) ? 0.2 : 0.0;
+        return 0.2;
     }
 
     private Long getRedisCount(String key) {
-        Integer count = (Integer) redisTemplate.opsForValue().get(key);
+        Long count = redissonCacheService.getAtomicLong(key);
         return count != null ? count.longValue() : 0L;
     }
 
@@ -57,7 +57,7 @@ public class UserBehaviorService {
      * 辅助方法：当用户点击商品时，调用此方法增加 Redis 计数
      */
     public void incrementClickCount(Long goodsId) {
-        redisTemplate.opsForValue().increment(CLICK_COUNT_KEY + goodsId);
-        redisTemplate.expire(CLICK_COUNT_KEY + goodsId, 7, TimeUnit.DAYS);
+        redissonCacheService.incrementGet(CLICK_COUNT_KEY + goodsId);
+        redissonCacheService.expire(CLICK_COUNT_KEY + goodsId, 7, TimeUnit.DAYS);
     }
 }

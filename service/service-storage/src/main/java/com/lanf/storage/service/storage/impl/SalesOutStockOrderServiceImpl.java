@@ -14,7 +14,7 @@ import com.lanf.constant.model.enums.LogisticsTrackStatusEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.order.api.OrderApiService;
+import com.lanf.api.order.api.OrderApiService;
 import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.model.message.OutStockFinishEventMessage;
 import com.lanf.rocketmq.util.MessageBuildAdapter;

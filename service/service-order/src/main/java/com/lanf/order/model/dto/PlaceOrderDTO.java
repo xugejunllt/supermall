@@ -1,5 +1,6 @@
 package com.lanf.order.model.dto;
 
+import com.lanf.api.order.model.dto.TakeAddressDTO;
 import lombok.Data;
 
 import java.util.List;

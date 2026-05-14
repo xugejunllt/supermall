@@ -2,7 +2,7 @@ package com.lanf.welfare.mq;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.order.mq.constant.OrderClientTopicName;
+import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.welfare.model.entity.CouponDO;

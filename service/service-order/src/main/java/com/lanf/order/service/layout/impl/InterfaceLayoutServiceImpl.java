@@ -1,6 +1,6 @@
 package com.lanf.order.service.layout.impl;
 
-import com.lanf.order.model.dto.OrderItemDTO;
+import com.lanf.api.order.model.dto.OrderItemDTO;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.mybatis.utils.IdUtils;

@@ -1,8 +1,8 @@
 package com.lanf.search.mq.listenner.event;
 
 import com.lanf.constant.exception.BizException;
-import com.lanf.order.model.enums.OrderStatusEnum;
-import com.lanf.order.mq.message.OrderPaySuccessMessage;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.api.order.mq.message.OrderPaySuccessMessage;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.search.model.document.OrderDocument;
 import com.lanf.search.mq.constant.SearchMqGroupName;
@@ -15,8 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Component;
 
-import static com.lanf.order.mq.constant.OrderClientTopicName.ORDER_EVENT_TOPIC;
-import static com.lanf.order.mq.constant.OrderClientTopicName.TAG_PAID;
+import static com.lanf.constant.mq.OrderTopicWithTag.ORDER_EVENT_TOPIC;
+import static com.lanf.constant.mq.OrderTopicWithTag.TAG_PAID;
 
 /**
  * 订单创建成功 同步订单索引到ES

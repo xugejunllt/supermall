@@ -4,7 +4,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
-import com.lanf.order.mq.message.OrderCreateSuccessMessage;
+import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.rocketmq.model.enums.DelayLevelEnum;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.api.storage.mq.constant.StorageClientTopicName;
