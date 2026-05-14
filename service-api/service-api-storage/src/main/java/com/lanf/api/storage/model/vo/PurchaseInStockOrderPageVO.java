@@ -1,5 +1,6 @@
 package com.lanf.api.storage.model.vo;
 
+import com.lanf.api.storage.model.enums.StorageStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -12,24 +13,14 @@ public class PurchaseInStockOrderPageVO implements Serializable {
     /** 单据编码 */
     private String code;
 
-    //供应商名称
-    private String supplierName;
-
     /** 预计入库数量 */
     private Integer expectStorageQuantity;
 
     /** 实际入库数量 */
     private Integer actualStorageQuantity;
 
-    /** 入库状态0:待入库,1:部分入库 2:已入库 */
-    private Integer storageStatus;
+    private StorageStatusEnum storageStatus;
 
-
-    /** 仓库名称 */
-    private String warehouseName;
-    /** 仓库id */
-    private Long warehouseId;
-    private Long supplierId;
     private Date createTime;
 
 

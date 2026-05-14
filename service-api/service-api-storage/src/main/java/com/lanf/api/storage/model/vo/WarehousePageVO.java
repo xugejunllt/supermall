@@ -7,6 +7,8 @@ import java.io.Serializable;
 @Data
 public class WarehousePageVO implements Serializable {
 
+    private Long id;
+
     /** 仓库编码 */
     private String code;
 

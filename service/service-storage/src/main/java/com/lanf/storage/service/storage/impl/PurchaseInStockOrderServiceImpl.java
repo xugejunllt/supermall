@@ -3,24 +3,25 @@ package com.lanf.storage.service.storage.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.storage.model.dto.InStockItemDTO;
+import com.lanf.api.storage.model.dto.InStockPurchaseInStockOrderDTO;
+import com.lanf.api.storage.model.enums.StorageStatusEnum;
+import com.lanf.api.storage.model.query.PurchaseInStockOrderPageQuery;
+import com.lanf.api.storage.model.vo.PurchaseInStockOrderDetailVO;
+import com.lanf.api.storage.model.vo.PurchaseInStockOrderItemDetailVO;
+import com.lanf.api.storage.model.vo.PurchaseInStockOrderPageVO;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.storage.mapper.PurchaseInStockOrderMapper;
-import com.lanf.storage.model.bo.StockSaveOrUpdateBO;
 import com.lanf.storage.model.bo.StockUpdateBO;
-import com.lanf.api.storage.model.dto.InStockItemDTO;
-import com.lanf.api.storage.model.dto.InStockPurchaseInStockOrderDTO;
 import com.lanf.storage.model.entity.*;
-import com.lanf.api.storage.model.query.PurchaseInStockOrderPageQuery;
-import com.lanf.api.storage.model.vo.PurchaseInStockOrderDetailVO;
-import com.lanf.api.storage.model.vo.PurchaseInStockOrderItemDetailVO;
-import com.lanf.api.storage.model.vo.PurchaseInStockOrderPageVO;
 import com.lanf.storage.service.purchase.IPurchaseOrderService;
 import com.lanf.storage.service.stock.IStockFlowService;
 import com.lanf.storage.service.stock.IStockService;
@@ -79,7 +80,7 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
 
 
         /**
-         * 准备数据
+         * 1. 准备数据
          */
         Long purchaseStorageOrderId = inStorageDTO.getPurchaseInStockOrderId();
         List<InStockItemDTO> inStorageItemList = inStorageDTO.getInStorageItemList();
@@ -94,110 +95,200 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         List<WarehouseDO> warehouseDOList = warehouseService.lambdaQuery().in(BaseEntity::getId, warehouseIdSet).list();
         Map<Long, WarehouseDO> warehouseDODOMap = warehouseDOList.stream()
                 .collect(Collectors.toMap(WarehouseDO::getId, Function.identity()));
-        //校验
+        
+        // 校验
         inStorageCheck(storageOrderDO, inStorageItemList, inStorageDTO);
+        
         /**
-         * 提前生成流水id
+         * 2. 提前生成流水id
          */
-        inStorageDTO.getInStorageItemList().forEach(a-> a.setStockFlowId(IdUtils.generateId()));
+        inStorageDTO.getInStorageItemList().forEach(a -> a.setStockFlowId(IdUtils.generateId()));
+        
         /**
-         * 计算DB数据
+         * 3. 计算入库总数量
          */
-        //入库总数量
-        Integer enterQuantity = 0;
-        for (InStockItemDTO is : inStorageItemList) {
-            enterQuantity += is.getActualQuantity();
-        }
-        //构建更新StorageOrderItemDetailsDO
+        Integer enterQuantity = inStorageItemList.stream()
+                .mapToInt(InStockItemDTO::getActualQuantity)
+                .sum();
+        
+        /**
+         * 4. 构建更新入库单明细
+         */
         List<InOutStockOrderItemDO> storageOrderItemDetailsDOUpdate = buildStorageOrderItemDetailsDO(inStorageItemList,
                 purchaseOrderItemDOMap);
-        //更新商品库存
-        StockSaveOrUpdateBO stockSaveOrUpdateBO = buildStockSaveOrUpdate(inStorageItemList, warehouseDODOMap);
-        //生成库存流水
+        
+        /**
+         * 5. 检查库存是否存在（skuCode + warehouseId 唯一），不存在则插入，存在则更新
+         */
+        List<StockDO> stockSaveList = new ArrayList<>();
+        List<StockUpdateBO> stockUpdateList = new ArrayList<>();
+        Map<String, Long> stockIdMap = new HashMap<>();
+        Map<String, Integer> beforeStockMap = new HashMap<>();
+        
+        processStock(inStorageItemList, warehouseDODOMap, stockSaveList, stockUpdateList, stockIdMap, beforeStockMap);
+        
+        /**
+         * 6. 生成库存流水
+         */
         List<StockFlowDO> stockFlowList = buildStockFlowDO(inStorageItemList, purchaseOrderItemDOMap,
-                storageOrderDO, warehouseDODOMap,stockSaveOrUpdateBO.getStockDOIdMap(), stockSaveOrUpdateBO);
-        //更新入库单实际库存和状态
-        PurchaseInStockOrderDO purchaseStorageOrderDOUpdate = buildPurchaseStorageOrderDO(storageOrderDO, enterQuantity);
-        List<StockDO> stockSave = stockSaveOrUpdateBO.getStockSave();
-        List<StockUpdateBO> stockUpdate = stockSaveOrUpdateBO.getStockUpdate();
-
-        if (!stockUpdate.isEmpty()) {
-            //乐观锁更新 更新商品库存
-            stockUpdate.forEach(a -> {
-                boolean update = stockService.lambdaUpdate().
-                        eq(StockDO::getId, a.getId()).
-                        eq(StockDO::getVersion, a.getVersion()).
-                        set(StockDO::getVersion, a.getVersion() + 1).
-                        update();
-                if (!update) {
-                    log.info("更新库存失败");
-                    throw new BizException("更新库存失败");
+                storageOrderDO, warehouseDODOMap, stockIdMap, beforeStockMap);
+        
+        /**
+         * 7. 计算入库后的实际数量和状态
+         */
+        Integer actualStorageQuantity = storageOrderDO.getActualStorageQuantity() + enterQuantity;
+        StorageStatusEnum storageStatus = actualStorageQuantity.equals(storageOrderDO.getExpectStorageQuantity())
+                ? StorageStatusEnum.COMPLETED
+                : StorageStatusEnum.PARTIAL_OUTBOUND;
+        
+        /**
+         * 8. 执行数据库操作
+         */
+        // 8.1 新增库存
+        if (!stockSaveList.isEmpty()) {
+            stockService.saveBatch(stockSaveList);
+        }
+        
+        // 8.2 乐观锁更新库存
+        if (!stockUpdateList.isEmpty()) {
+            stockUpdateList.forEach(stockUpdate -> {
+                boolean updateSuccess = stockService.lambdaUpdate()
+                        .eq(StockDO::getId, stockUpdate.getId())
+                        .eq(StockDO::getVersion, stockUpdate.getVersion())
+                        .set(StockDO::getUsableStock, stockUpdate.getUsableStock())
+                        .set(StockDO::getVersion, stockUpdate.getVersion() + 1)
+                        .update();
+                
+                if (!updateSuccess) {
+                    log.error("更新库存失败，库存ID: {}, 版本号: {}", stockUpdate.getId(), stockUpdate.getVersion());
+                    throw new BizException("更新库存失败，请重试");
                 }
-
             });
         }
-        //更新入库单
-        this.updateById(purchaseStorageOrderDOUpdate);
-        //更新入库单item数量
-        storageOrderItemDetailsService.updateBatchById(storageOrderItemDetailsDOUpdate);
-        if (!stockSave.isEmpty()) {
-            //保存库存
-            stockService.saveBatch(stockSave);
+        
+        // 8.3 乐观锁更新入库单（当全部入库时使用版本号控制）
+        if (storageStatus == StorageStatusEnum.COMPLETED) {
+            boolean updateSuccess = this.lambdaUpdate()
+                    .eq(PurchaseInStockOrderDO::getId, storageOrderDO.getId())
+                    .eq(PurchaseInStockOrderDO::getVersion, storageOrderDO.getVersion())
+                    .set(PurchaseInStockOrderDO::getActualStorageQuantity, actualStorageQuantity)
+                    .set(PurchaseInStockOrderDO::getStorageStatus, StorageStatusEnum.COMPLETED)
+                    .set(PurchaseInStockOrderDO::getVersion, storageOrderDO.getVersion() + 1)
+                    .update();
+            
+            if (!updateSuccess) {
+                log.error("更新入库单为已完成状态失败，入库单ID: {}", storageOrderDO.getId());
+                throw new BizException("更新入库单状态失败，请重试");
+            }
+        } else {
+            // 部分入库，普通更新
+            PurchaseInStockOrderDO updateDO = new PurchaseInStockOrderDO();
+            updateDO.setId(storageOrderDO.getId());
+            updateDO.setActualStorageQuantity(actualStorageQuantity);
+            updateDO.setStorageStatus(StorageStatusEnum.PARTIAL_OUTBOUND);
+            this.updateById(updateDO);
         }
-        //保存库存流水
+        
+        // 8.4 更新入库单明细数量
+        storageOrderItemDetailsService.updateBatchById(storageOrderItemDetailsDOUpdate);
+        
+        // 8.5 保存库存流水
         stockFlowService.saveBatch(stockFlowList);
 
     }
 
-
-
-
-
-    private PurchaseInStockOrderDO buildPurchaseStorageOrderDO(PurchaseInStockOrderDO storageOrderDO, Integer enterQuantity) {
-
-        Integer actualStorageQuantity = getActualStorageQuantity(storageOrderDO, enterQuantity);
-        Integer status = getInStorageStatus(storageOrderDO, enterQuantity);
-        PurchaseInStockOrderDO purchaseStorageOrderDOUpdate = new PurchaseInStockOrderDO();
-        purchaseStorageOrderDOUpdate.setId(storageOrderDO.getId());
-        purchaseStorageOrderDOUpdate.setStorageStatus(status);
-        purchaseStorageOrderDOUpdate.setActualStorageQuantity(actualStorageQuantity);
-
-        return purchaseStorageOrderDOUpdate;
-    }
-
-    private Integer getActualStorageQuantity(PurchaseInStockOrderDO storageOrderDO, Integer enterQuantity) {
-
-        return storageOrderDO.getActualStorageQuantity() + enterQuantity;
+    /**
+     * 处理库存：检查是否存在，不存在则插入，存在则准备更新
+     *
+     * @param inStorageItemList 入库商品列表
+     * @param warehouseDODOMap 仓库映射
+     * @param stockSaveList 待保存的库存列表
+     * @param stockUpdateList 待更新的库存列表
+     * @param stockIdMap 库存ID映射 (key: warehouseId+skuCode)
+     * @param beforeStockMap 变更前库存数量映射 (key: warehouseId+skuCode)
+     */
+    private void processStock(List<InStockItemDTO> inStorageItemList,
+                              Map<Long, WarehouseDO> warehouseDODOMap,
+                              List<StockDO> stockSaveList,
+                              List<StockUpdateBO> stockUpdateList,
+                              Map<String, Long> stockIdMap,
+                              Map<String, Integer> beforeStockMap) {
+        
+        // 收集所有需要处理的 skuCode
+        List<String> skuCodeList = inStorageItemList.stream()
+                .map(InStockItemDTO::getSkuCode)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        // 批量查询已存在的库存
+        List<StockDO> existingStockList = stockService.lambdaQuery()
+                .in(StockDO::getSkuCode, skuCodeList)
+                .list();
+        
+        // 构建库存映射 key: warehouseId + skuCode
+        Map<String, StockDO> stockMap = existingStockList.stream()
+                .collect(Collectors.toMap(
+                        stock -> stock.getWarehouseId() + stock.getSkuCode(),
+                        Function.identity()
+                ));
+        
+        // 遍历入库商品，处理库存
+        for (InStockItemDTO item : inStorageItemList) {
+            String key = item.getWarehouseId() + item.getSkuCode();
+            WarehouseDO warehouse = warehouseDODOMap.get(item.getWarehouseId());
+            StockDO existingStock = stockMap.get(key);
+            
+            if (existingStock == null) {
+                // 库存不存在，准备插入
+                StockDO newStock = new StockDO();
+                newStock.setId(IdUtils.generateId());
+                newStock.setSkuCode(item.getSkuCode());
+                newStock.setGoodsName(item.getGoodsName());
+                newStock.setWarehouseId(item.getWarehouseId());
+                newStock.setWarehouseName(warehouse.getName());
+                newStock.setUnit(item.getUnit());
+                newStock.setUsableStock(item.getActualQuantity());
+                newStock.setPreStock(0);
+                stockSaveList.add(newStock);
+                
+                // 记录库存ID和变更前数量
+                stockIdMap.put(key, newStock.getId());
+                beforeStockMap.put(key, 0);
+            } else {
+                // 库存存在，准备更新 usableStock
+                Integer currentUsableStock = existingStock.getUsableStock();
+                Integer newUsableStock = currentUsableStock + item.getActualQuantity();
+                
+                StockUpdateBO updateBO = new StockUpdateBO();
+                updateBO.setId(existingStock.getId());
+                updateBO.setVersion(existingStock.getVersion());
+                updateBO.setUsableStock(newUsableStock);
+                stockUpdateList.add(updateBO);
+                
+                // 记录库存ID和变更前数量
+                stockIdMap.put(key, existingStock.getId());
+                beforeStockMap.put(key, currentUsableStock);
+            }
+        }
     }
 
     /**
-     * 获取入库状态
-     * 1:部分入库
-     * 2:全部入库
+     * 入库校验
      */
-    private Integer getInStorageStatus(PurchaseInStockOrderDO storageOrderDO, Integer enterQuantity) {
-
-        Integer actualStorageQuantity = getActualStorageQuantity(storageOrderDO, enterQuantity);
-        Integer status = null;
-        if (actualStorageQuantity.equals(storageOrderDO.getExpectStorageQuantity())) {
-            status = 2;
-        } else {
-            status = 1;
-        }
-        return status;
-    }
-
     private void inStorageCheck(PurchaseInStockOrderDO storageOrderDO, List<InStockItemDTO> inStorageItemList, InStockPurchaseInStockOrderDTO inStorageDTO) {
 
         if (storageOrderDO == null) {
             throw new BizException("入库单不存在");
         }
+        
+        // 校验仓库是否存在
         Set<Long> warehouseIdSet = inStorageItemList.stream().map(InStockItemDTO::getWarehouseId).collect(Collectors.toSet());
-        int warehouseDOList = warehouseService.lambdaQuery().in(BaseEntity::getId, warehouseIdSet).count();
-        if (warehouseIdSet.size() != warehouseDOList) {
+        int warehouseCount = warehouseService.lambdaQuery().in(BaseEntity::getId, warehouseIdSet).count();
+        if (warehouseIdSet.size() != warehouseCount) {
             throw new BizException("仓库id不存在");
         }
 
+        // 校验入库单明细是否存在
         Set<Long> purchaseOrderItemIdSet = inStorageItemList.stream().map(InStockItemDTO::getId).collect(Collectors.toSet());
         List<InOutStockOrderItemDO> storageOrderItemDetailList = storageOrderItemDetailsService.lambdaQuery().
                 eq(InOutStockOrderItemDO::getInOutStockOrderId, inStorageDTO.getPurchaseInStockOrderId()).list();
@@ -205,17 +296,58 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         if (purchaseOrderItemIdSet.size() != storageOrderItemDetailList.size()) {
             throw new BizException("入库单部分商品数据不存在");
         }
+        
         Map<Long, InOutStockOrderItemDO> purchaseOrderItemDOMap = storageOrderItemDetailList.stream()
                 .collect(Collectors.toMap(InOutStockOrderItemDO::getId, Function.identity()));
 
-        //校验实际入库数量是否合法
-        inStorageItemList.forEach(a -> {
-            Integer actualQuantity = a.getActualQuantity();
-            Integer quantity = purchaseOrderItemDOMap.get(a.getId()).getSurplusQuantity();
-            if (actualQuantity > quantity) {
-                throw new BizException("入库商品" + a.getId() + "实际入库数量大于最大数量");
+        // 校验实际入库数量是否合法
+        inStorageItemList.forEach(item -> {
+            Integer actualQuantity = item.getActualQuantity();
+            Integer surplusQuantity = purchaseOrderItemDOMap.get(item.getId()).getSurplusQuantity();
+            if (actualQuantity > surplusQuantity) {
+                throw new BizException("入库商品" + item.getId() + "实际入库数量大于剩余数量");
             }
         });
+    }
+
+    /**
+     * 构建库存流水
+     */
+    private List<StockFlowDO> buildStockFlowDO(List<InStockItemDTO> inStorageItemList,
+                                                Map<Long, InOutStockOrderItemDO> purchaseOrderItemDOMap,
+                                                PurchaseInStockOrderDO storageOrderDO,
+                                                Map<Long, WarehouseDO> warehouseDODOMap,
+                                                Map<String, Long> stockIdMap,
+                                                Map<String, Integer> beforeStockMap) {
+        List<StockFlowDO> stockFlowList = new ArrayList<>();
+        
+        for (InStockItemDTO item : inStorageItemList) {
+            String key = item.getWarehouseId() + item.getSkuCode();
+            WarehouseDO warehouse = warehouseDODOMap.get(item.getWarehouseId());
+            InOutStockOrderItemDO orderItem = purchaseOrderItemDOMap.get(item.getId());
+            
+            Integer beforeQuantity = beforeStockMap.get(key);
+            Integer changeQuantity = item.getActualQuantity();
+            Integer afterQuantity = beforeQuantity + changeQuantity;
+            
+            StockFlowDO stockFlow = new StockFlowDO();
+            stockFlow.setId(item.getStockFlowId());
+            stockFlow.setFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.STOCK_FLOW,
+                    IdUtils.generateId()+""));
+            stockFlow.setStockId(stockIdMap.get(key));
+            stockFlow.setFlowType(StockFlowTypeEnum.PURCHASE_INBOUND);
+            stockFlow.setBizOrderId(storageOrderDO.getId());
+            stockFlow.setSkuCode(orderItem.getSkuCode());
+            stockFlow.setBeforeQuantity(beforeQuantity);
+            stockFlow.setChangeQuantity(changeQuantity);
+            stockFlow.setAfterQuantity(afterQuantity);
+            stockFlow.setWarehouseId(warehouse.getId());
+            stockFlow.setWarehouseName(warehouse.getName());
+            
+            stockFlowList.add(stockFlow);
+        }
+        
+        return stockFlowList;
     }
 
     private List<InOutStockOrderItemDO> buildStorageOrderItemDetailsDO(List<InStockItemDTO> inStorageItemList,
@@ -235,95 +367,6 @@ public class PurchaseInStockOrderServiceImpl extends ServiceImpl<PurchaseInStock
         return storageOrderItemDetailsDOUpdate;
     }
 
-
-    private List<StockFlowDO> buildStockFlowDO(List<InStockItemDTO> inStorageItemList, Map<Long,
-            InOutStockOrderItemDO> purchaseOrderItemDOMap, PurchaseInStockOrderDO storageOrderDO,
-                                               Map<Long, WarehouseDO> warehouseDODOMap,
-                                               Map<String,Long> stockDOIdMap, StockSaveOrUpdateBO stockSaveOrUpdateBO) {
-        Map<String, Integer> currentTotalStockMap = stockSaveOrUpdateBO.getCurrentTotalStockMap();
-        List<StockFlowDO> stockFlowList = new ArrayList<>();
-        for (InStockItemDTO is : inStorageItemList) {
-            String key = is.getWarehouseId() + is.getSkuCode();
-            WarehouseDO warehouseDO = warehouseDODOMap.get(is.getWarehouseId());
-            InOutStockOrderItemDO storageOrderItemDetailsDO = purchaseOrderItemDOMap.get(is.getId());
-            StockFlowDO stockFlowDO = new StockFlowDO();
-            stockFlowDO.setBizOrderId(storageOrderDO.getId());
-            stockFlowDO.setStockId(stockDOIdMap.get(key));
-            stockFlowDO.setFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.STOCK_FLOW,IdUtils.generateId()+""));
-            stockFlowDO.setSkuCode(storageOrderItemDetailsDO.getSkuCode());
-            stockFlowDO.setAfterQuantity(currentTotalStockMap.get( key)+is.getActualQuantity());
-            stockFlowDO.setWarehouseName(warehouseDO.getName());
-            stockFlowDO.setChangeQuantity(is.getActualQuantity());
-            stockFlowDO.setBeforeQuantity(currentTotalStockMap.get( key));
-            stockFlowDO.setWarehouseId(warehouseDO.getId());
-            stockFlowDO.setId(is.getStockFlowId());
-            stockFlowList.add(stockFlowDO);
-        }
-        return stockFlowList;
-    }
-
-    private StockSaveOrUpdateBO buildStockSaveOrUpdate(List<InStockItemDTO> inStorageItemList, Map<Long, WarehouseDO> warehouseDODOMap) {
-
-        List<String> skuCodeList = inStorageItemList.stream().map(
-                InStockItemDTO::getSkuCode).collect(Collectors.toList());
-
-        List<StockDO> stockDOlist = stockService.lambdaQuery().in(StockDO::getSkuCode, skuCodeList).list();
-
-        //key: WarehouseId+SkuCode
-        Map<String, StockDO> stockDOMap = stockDOlist.stream()
-                .collect(Collectors.toMap(a -> a.getWarehouseId() + a.getSkuCode(), Function.identity()));
-
-
-        List<StockDO> stockDOSave = new ArrayList<>();
-        List<StockUpdateBO> stockDOUpdate = new ArrayList<>();
-        //key: WarehouseId+SkuCode value: stockDOId
-        Map<String,Long> stockDOIdMap = new HashMap<>();
-        // key: WarehouseId+SkuCode value: totalStock
-        //当前总库存
-        Map<String, Integer> currentTotalStockMap = new HashMap<>();
-        for (InStockItemDTO st : inStorageItemList) {
-            String key = st.getWarehouseId() + st.getSkuCode();
-            StockDO stockDO = stockDOMap.get(key);
-            if (stockDO == null) {
-                WarehouseDO warehouseDO = warehouseDODOMap.get(st.getWarehouseId());
-                Long id = IdUtils.generateId();
-                //新增
-                StockDO stock = new StockDO();
-                stock.setId(id);
-                stock.setSkuCode(st.getSkuCode());
-                stock.setUsableStock(st.getActualQuantity());
-                stock.setPreStock(0);
-                stock.setWarehouseId(warehouseDO.getId());
-                stock.setGoodsName(st.getGoodsName());
-                stock.setUnit(st.getUnit());
-                stock.setWarehouseName(warehouseDO.getName());
-                stockDOSave.add(stock);
-                //
-                stockDOIdMap.put(key, id);
-                currentTotalStockMap.put(key, 0);
-            } else {
-                //更新
-                //总库存 = 可用库存 + 入库数量 + 锁住的库存
-                Integer totalStock = stockDO.getUsableStock()+ stockDO.getPreStock();
-                StockUpdateBO stockUpdateBO = getStockUpdateBO(st, stockDO);
-                stockDOUpdate.add(stockUpdateBO);
-                stockDOIdMap.put(key, stockDO.getId());
-                currentTotalStockMap.put(key, totalStock);
-            }
-
-        }
-        return new StockSaveOrUpdateBO(stockDOSave, stockDOUpdate,stockDOIdMap,currentTotalStockMap);
-
-    }
-
-    private static StockUpdateBO getStockUpdateBO(InStockItemDTO st, StockDO stockDO) {
-        Integer totalStock = stockDO.getUsableStock() + st.getActualQuantity();
-        StockUpdateBO stockUpdateBO = new StockUpdateBO();
-        stockUpdateBO.setId(stockDO.getId());
-        stockUpdateBO.setVersion(stockDO.getVersion());
-
-        return stockUpdateBO;
-    }
 
     @Override
     public PageResult<PurchaseInStockOrderPageVO> purchaseInStockOrderPageQuery(PurchaseInStockOrderPageQuery query) {

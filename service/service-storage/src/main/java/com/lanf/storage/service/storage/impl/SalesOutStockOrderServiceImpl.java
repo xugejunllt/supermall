@@ -185,7 +185,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             boolean update = stockService.lambdaUpdate().
                     eq(StockDO::getId, a.getId())
                     .eq(StockDO::getVersion, a.getVersion())
-                    .set(StockDO::getPreStock, a.getLockStock())
+                    .set(StockDO::getPreStock, a.getUsableStock())
                     .set(StockDO::getVersion, a.getVersion() + 1)
                     .update();
             if (!update) {
@@ -326,7 +326,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
             //更新
             Integer lockStock = stockDO.getPreStock() - st.getActualQuantity();
             StockUpdateBO stockUpdateBO = new StockUpdateBO();
-            stockUpdateBO.setLockStock(lockStock);
+            stockUpdateBO.setUsableStock(lockStock);
             stockUpdateBO.setId(stockDO.getId());
             stockUpdateBO.setVersion(stockDO.getVersion());
             stockDOUpdate.add(stockUpdateBO);

@@ -11,14 +11,13 @@ public class StockUpdateBO implements Serializable {
     private Long  id;
 
 
-    /**
-     * 锁住库存
-     */
-    private Integer lockStock;
 
     private Long version;
 
-
+    /**
+     * 可使用库存
+     */
+    private Integer usableStock;
 
 
 }

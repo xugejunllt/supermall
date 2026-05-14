@@ -8,6 +8,7 @@ import com.lanf.api.storage.model.dto.AddPurchaseOrderDTO;
 import com.lanf.api.storage.model.dto.CalculatePurchaseOrderItemMoneyDTO;
 import com.lanf.api.storage.model.dto.CalculatePurchaseOrderMoneyDTO;
 import com.lanf.api.storage.model.dto.PurchaseOrderItemAddDTO;
+import com.lanf.api.storage.model.enums.StorageStatusEnum;
 import com.lanf.api.storage.model.query.PurchaseOrderPageQuery;
 import com.lanf.api.storage.model.vo.PurchaseOrderDetailVO;
 import com.lanf.api.storage.model.vo.PurchaseOrderPageVO;
@@ -135,19 +136,7 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
 
     }
 
-    /**
-     * 根据sku编码编从商品基础数据服务查询出商品信息
-     *
-     * @param goodsCodes
-     * @return
-     */
 
-    private String queryByGoodsSkuCode(List<String> goodsCodes) {
-
-        //这里是远程调用 后续实现远程调用接口
-
-        return "";
-    }
 
 
 
@@ -229,7 +218,7 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         purchaseStorageOrderSave.setCode(CodeGenerateUtils.generaCode());
         purchaseStorageOrderSave.setPurchaseOrderId(id);
         purchaseStorageOrderSave.setExpectStorageQuantity(expectStorageQuantity);
-        purchaseStorageOrderSave.setStorageStatus(0);
+        purchaseStorageOrderSave.setStorageStatus(StorageStatusEnum.WAIT_OUTBOUND);
 
         return  purchaseStorageOrderSave;
     }
