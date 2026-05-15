@@ -92,10 +92,9 @@ public class AdvancedSearchService {
      * 2.1 召回：多路 Query 合并
      */
     private List<Long> recallPhase(GoodsSearchQuery query) {
-        Set<Long> allIds = new LinkedHashSet<>();
-        
+
         // 路数 1: 关键词倒排索引匹配 (ES Match Query)
-        allIds.addAll(searchByKeyword(query.getKeyword()));
+        Set<Long> allIds = new LinkedHashSet<>(searchByKeyword(query.getKeyword()));
         
         // 路数 2: 类目预测 (根据搜索词找到分类，再查该分类下的热门商品)
         Long predictedCategoryId = predictCategory(query.getKeyword());
@@ -291,17 +290,7 @@ public class AdvancedSearchService {
         return null;
     }
 
-    /**
-     * 辅助方法：获取扩展词/联想词 (实际项目中通常从 Redis 或字典表获取)
-     */
-    private List<String> getExpandWords(String keyword) {
-        // 简单实现：手动定义一些同义词
-        //通常管理系统里 给每个商品定义一些同义词
-        if ("手机".equals(keyword)) {
-            return Arrays.asList("智能手机", "移动电话");
-        }
-        return Collections.emptyList();
-    }
+
     /**
      * 从 ES 批量获取指定商品 ID 的文本匹配得分 (fx1)
      *

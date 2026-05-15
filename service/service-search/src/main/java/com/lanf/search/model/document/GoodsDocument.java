@@ -2,7 +2,9 @@ package com.lanf.search.model.document;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.CompletionField;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.core.suggest.Completion;
 
 import java.util.List;
 
@@ -38,6 +40,7 @@ public class GoodsDocument {
     public static final String ATTRIBUTES = "attributes";
     public static final String PROMPT_WORD_LABEL = "promptWordLabel";
     public static final String EXTENDED_TAGS = "extendedTags";
+    public static final String SUGGEST = "suggest";
 
     @Id
     //商品id
@@ -97,6 +100,13 @@ public class GoodsDocument {
     private List<String> promptWordLabel;
     //扩展标签 用于展示
     private List<String> extendedTags;
+    
+    /**
+     * 独立的 Completion 字段 - 用于搜索建议
+     * 聚合商品名称、提示词等多个输入源
+     */
+    @CompletionField(maxInputLength = 100)
+    private Completion suggest;
 
     /**
      * 嵌套属性类

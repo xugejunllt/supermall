@@ -11,6 +11,7 @@ import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.core.suggest.Completion;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -33,7 +34,6 @@ public class GoodsListener implements RocketMQListener<SyncGoodsInfoToEsMsg> {
 
         try {
             GoodsDocument goodsDocument = BeanCopyUtils.copyBean(message, GoodsDocument.class);
-            
 
             List<GoodsDocument.Attribute> attributeList = new ArrayList<>();
             message.getAttributeList().forEach(attr -> {
@@ -44,15 +44,37 @@ public class GoodsListener implements RocketMQListener<SyncGoodsInfoToEsMsg> {
                 attributeList.add(attribute);
             });
             goodsDocument.setAttributes(attributeList);
+            /**
+             * 构建suggest 字段
+             */
+            addSuggest(goodsDocument);
             log.info("同步到ES的数据是{}", goodsDocument);
             goodsRepository.save(goodsDocument);
 
         } catch (Exception e) {
             long totalCostTime = System.currentTimeMillis() - startTime;
-            log.error("商品数据同步到ES失败, goodsId: {}, skuId: {}, 耗时: {}ms, 错误信息: {}", 
+            log.error("商品数据同步到ES失败, goodsId: {}, skuId: {}, 耗时: {}ms, 错误信息: {}",
                     message.getGoodsId(), message.getSkuId(), totalCostTime, e.getMessage(), e);
             throw new MessageRetryConsumeException("商品数据同步到ES失败");
         }
+    }
+
+    private void addSuggest(GoodsDocument document) {
+
+        // ✅ 设置独立的 completion 字段
+        List<String> suggestInputs = new ArrayList<>();
+
+        // 1. 添加商品名称
+        suggestInputs.add(document.getGoodsName());
+
+        // 2. 添加提示词标签
+        suggestInputs.addAll(document.getPromptWordLabel());
+        Completion completion = new Completion();
+        completion.setInput(suggestInputs.toArray(new String[0]));  // String[]
+        // 设置权重（基于销量）
+        completion.setWeight(document.getSales() != null ? document.getSales().intValue() : 1);
+        document.setSuggest(completion);
+
     }
 
 

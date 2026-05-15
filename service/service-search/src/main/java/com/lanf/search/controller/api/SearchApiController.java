@@ -2,15 +2,16 @@ package com.lanf.search.controller.api;
 
 import com.alibaba.nacos.api.model.v2.Result;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.search.model.query.HomePageQuery;
 import com.lanf.search.model.query.OrderSearchQuery;
-import com.lanf.search.model.vo.HomePageVO;
 import com.lanf.search.model.vo.OrderSearchVO;
 import com.lanf.search.service.IGoodsDocumentService;
 import com.lanf.search.service.IOrderSearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
@@ -24,19 +25,6 @@ public class SearchApiController {
     private IOrderSearchService orderSearchService;
 
     /**
-     * 首页商品分页查询
-     * @param query 查询参数
-     * @return 分页结果
-     */
-    @GetMapping("/pageHomePage")
-    public Result<PageResult<HomePageVO>> pageHomePage(HomePageQuery query) {
-
-        log.info("首页查询{}",query);
-        PageResult<HomePageVO> result = goodsDocumentService.pageHomePage(query);
-        return Result.success(result);
-    }
-
-    /**
      * 订单搜索
      *
      *
@@ -47,5 +35,7 @@ public class SearchApiController {
         log.info("订单搜索{}",query);
         return Result.success(orderSearchService.searchOrders(query));
     }
+
+
 
 }
