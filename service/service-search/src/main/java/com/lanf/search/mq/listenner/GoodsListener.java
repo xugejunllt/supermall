@@ -70,8 +70,10 @@ public class GoodsListener implements RocketMQListener<SyncGoodsInfoToEsMsg> {
         // 2. 添加提示词标签
         suggestInputs.addAll(document.getPromptWordLabel());
         Completion completion = new Completion();
-        completion.setInput(suggestInputs.toArray(new String[0]));  // String[]
+        completion.setInput(suggestInputs.toArray(new String[0]));
 
+        //3. 添加纠错词
+        addPhraseSuggest( document);
         /**
          * 某个商品如果加了广告 那么插入时 他的搜索提示词权重更大
          *    应该排序在前面
@@ -84,5 +86,22 @@ public class GoodsListener implements RocketMQListener<SyncGoodsInfoToEsMsg> {
 
     }
 
+    private void addPhraseSuggest(GoodsDocument document) {
+        /**
+         * ✅ 设置独立的 phrase_suggest 字段（拼写纠正）
+         * 与suggest 字段内容相同
+         *
+         */
+        StringBuilder phraseText = new StringBuilder();
 
+        // 1. 添加商品名称
+        phraseText.append(document.getGoodsName()).append(" ");
+        // 2. 添加提示词标签
+        for (String prompt : document.getPromptWordLabel()) {
+            phraseText.append(prompt).append(" ");
+        }
+        document.setPhraseSuggest(phraseText.toString().trim());
+
+
+    }
 }

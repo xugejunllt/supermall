@@ -26,12 +26,10 @@ import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestionBuilder;
 import org.elasticsearch.search.suggest.phrase.PhraseSuggestion;
-import org.elasticsearch.search.suggest.phrase.PhraseSuggestionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
@@ -192,14 +190,18 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
 //        if (cachedSuggestions != null && !cachedSuggestions.isEmpty()) {
 //            return cachedSuggestions;
 //        }
-
+        /**
+         * ✅ 当前顺序是正确的：先 Completion，后 Phrase
+         * ✅ Completion 是主力：处理大部分正常输入
+         * ✅ Phrase 是备选：处理拼写错误的边界情况
+         */
         // 1. ✅ 先执行 Completion Suggester（自动补全）
         List<SuggestVO> suggestions = new ArrayList<>(getCompletionSuggestions(query));
 
-        // 2. ✅ 如果补全结果不足，再执行 Phrase Suggester（拼写纠正）
-        if (query.getSize() > suggestions.size()) {
-            suggestions.addAll(getPhraseSuggestions(query));
-        }
+//        // 2. ✅ 如果补全结果不足，再执行 Phrase Suggester（拼写纠正）
+//        if (query.getSize() > suggestions.size()) {
+//            suggestions.addAll(getPhraseSuggestions(query));
+//        }
 
         // 3. 去重：按文本内容去重，保留最高分
         Map<String, SuggestVO> uniqueSuggestions = new LinkedHashMap<>();
@@ -283,17 +285,11 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
             // ✅ 关键：必须将 sourceBuilder 设置到 searchRequest
             searchRequest.source(sourceBuilder);
 
-            // 打印生成的 DSL（用于调试）
-            log.info("Completion Suggest Query DSL: {}", sourceBuilder.toString());
+            log.debug("Completion Suggest Query DSL: {}", sourceBuilder.toString());
 
             // 5. 执行查询
             SearchResponse searchResponse = restHighLevelClient.search(
                     searchRequest, RequestOptions.DEFAULT);
-
-            // 6. 检查响应状态
-            log.info("Search Response Status: {}", searchResponse.status());
-            log.info("Total Hits: {}", searchResponse.getHits().getTotalHits());
-
             // 7. 解析结果
             Suggest suggest = searchResponse.getSuggest();
             if (suggest != null) {
@@ -351,72 +347,72 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
     /**
      * 使用 Phrase Suggester 获取短语纠正建议
      */
-    private List<SuggestVO> getPhraseSuggestions(SuggestQuery query) {
-        List<SuggestVO> suggestions = new ArrayList<>();
-
-        try {
-            // 方案1：使用商品名称的 phrase 子字段（推荐）
-            PhraseSuggestionBuilder goodsNamePhrase = SuggestBuilders
-                    .phraseSuggestion("goods_name.phrase")  // ✅ 使用 shingle analyzer 的子字段
-                    .text(query.getPrefix())
-                    .maxErrors(2)
-                    .confidence(1.0f)
-                    .size(query.getSize());
-
-            // 方案2：或者使用提示词的 phrase 子字段
-            PhraseSuggestionBuilder promptWordPhrase = SuggestBuilders
-                    .phraseSuggestion("prompt_word_label.phrase")  // ✅ 也可以
-                    .text(query.getPrefix())
-                    .maxErrors(2)
-                    .confidence(1.0f)
-                    .size(query.getSize());
-
-            SuggestBuilder suggestBuilder = new SuggestBuilder();
-            suggestBuilder.addSuggestion("goods_phrase", goodsNamePhrase);
-            // 或者
-            // suggestBuilder.addSuggestion("prompt_phrase", promptWordPhrase);
-
-            NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-                    .withSuggestBuilder(suggestBuilder)
-                    .build();
-
-            // 执行查询
-            SearchHits<GoodsDocument> searchHits = elasticsearchRestTemplate.search(
-                    searchQuery,
-                    GoodsDocument.class,
-                    IndexCoordinates.of("goods_index")
-            );
-
-            // 解析结果
-            if (searchHits.hasSuggests()) {
-                Suggest suggest = searchHits.getSuggest();
-                if (suggest != null) {
-                    PhraseSuggestion phraseSuggest = suggest.getSuggestion("goods_phrase");
-                    if (phraseSuggest != null) {
-                        for (PhraseSuggestion.Entry entry : phraseSuggest.getEntries()) {
-                            for (PhraseSuggestion.Entry.Option option : entry.getOptions()) {
-                                String text = option.getText().string();
-                                float score = option.getScore();
-
-                                log.info("✅ Phrase Suggestion: text={}, score={}", text, score);
-
-                                suggestions.add(SuggestVO.builder()
-                                        .text(text)
-                                        .type("phrase_correction")
-                                        .count(0L)
-                                        .score((double) score)
-                                        .build());
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("Phrase Suggester 获取建议词失败", e);
-        }
-
-        return suggestions;
-    }
+//    private List<SuggestVO> getPhraseSuggestions(SuggestQuery query) {
+//        List<SuggestVO> suggestions = new ArrayList<>();
+//
+//        try {
+//            // 方案1：使用商品名称的 phrase 子字段（推荐）
+//            PhraseSuggestionBuilder goodsNamePhrase = SuggestBuilders
+//                    .phraseSuggestion("goods_name.phrase")  // ✅ 使用 shingle analyzer 的子字段
+//                    .text(query.getPrefix())
+//                    .maxErrors(2)
+//                    .confidence(1.0f)
+//                    .size(query.getSize());
+//
+//            // 方案2：或者使用提示词的 phrase 子字段
+//            PhraseSuggestionBuilder promptWordPhrase = SuggestBuilders
+//                    .phraseSuggestion("prompt_word_label.phrase")  // ✅ 也可以
+//                    .text(query.getPrefix())
+//                    .maxErrors(2)
+//                    .confidence(1.0f)
+//                    .size(query.getSize());
+//
+//            SuggestBuilder suggestBuilder = new SuggestBuilder();
+//            suggestBuilder.addSuggestion("goods_phrase", goodsNamePhrase);
+//            // 或者
+//            // suggestBuilder.addSuggestion("prompt_phrase", promptWordPhrase);
+//
+//            NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+//                    .withSuggestBuilder(suggestBuilder)
+//                    .build();
+//
+//            // 执行查询
+//            SearchHits<GoodsDocument> searchHits = elasticsearchRestTemplate.search(
+//                    searchQuery,
+//                    GoodsDocument.class,
+//                    IndexCoordinates.of("goods_index")
+//            );
+//
+////            // 解析结果
+////            if (searchHits.hasSuggests()) {
+////                Suggest suggest = searchHits.getSuggest();
+////                if (suggest != null) {
+////                    PhraseSuggestion phraseSuggest = suggest.getSuggestion("goods_phrase");
+////                    if (phraseSuggest != null) {
+////                        for (PhraseSuggestion.Entry entry : phraseSuggest.getEntries()) {
+////                            for (PhraseSuggestion.Entry.Option option : entry.getOptions()) {
+////                                String text = option.getText().string();
+////                                float score = option.getScore();
+////
+////                                log.info("✅ Phrase Suggestion: text={}, score={}", text, score);
+////
+////                                suggestions.add(SuggestVO.builder()
+////                                        .text(text)
+////                                        .type("phrase_correction")
+////                                        .count(0L)
+////                                        .score((double) score)
+////                                        .build());
+////                            }
+////                        }
+////                    }
+////                }
+////            }
+////        } catch (Exception e) {
+////            log.error("Phrase Suggester 获取建议词失败", e);
+////        }
+//
+//        return suggestions;
+//    }
 
 
     /**

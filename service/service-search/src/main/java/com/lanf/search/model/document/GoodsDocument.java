@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.CompletionField;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.core.suggest.Completion;
 
 import java.util.List;
@@ -41,6 +43,7 @@ public class GoodsDocument {
     public static final String PROMPT_WORD_LABEL = "promptWordLabel";
     public static final String EXTENDED_TAGS = "extendedTags";
     public static final String SUGGEST = "suggest";
+    public static final String PHRASE_SUGGEST = "phraseSuggest";
 
     @Id
     //商品id
@@ -102,11 +105,17 @@ public class GoodsDocument {
     private List<String> extendedTags;
     
     /**
-     * 独立的 Completion 字段 - 用于搜索建议
-     * 聚合商品名称、提示词等多个输入源
+     * 独立的 Completion 字段 - 用于搜索建议（自动补全）
      */
     @CompletionField(maxInputLength = 100)
     private Completion suggest;
+    
+    /**
+     * 独立的 Text 字段 - 用于短语纠正（拼写纠错）
+     * 使用 my_shingle_analyzer 分词器
+     */
+    @Field(type = FieldType.Text, analyzer = "my_shingle_analyzer")
+    private String phraseSuggest;
 
     /**
      * 嵌套属性类
