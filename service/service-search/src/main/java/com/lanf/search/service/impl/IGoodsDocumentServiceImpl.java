@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
@@ -192,12 +193,10 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
 //            return cachedSuggestions;
 //        }
 
-        List<SuggestVO> suggestions = new ArrayList<>();
+        // 1. ✅ 先执行 Completion Suggester（自动补全）
+        List<SuggestVO> suggestions = new ArrayList<>(getCompletionSuggestions(query));
 
-        // 1. 使用 Completion Suggester 获取自动补全建议
-        suggestions.addAll(getCompletionSuggestions(query));
-
-        // 2. 使用 Phrase Suggester 获取短语纠正建议（针对拼写错误）
+        // 2. ✅ 如果补全结果不足，再执行 Phrase Suggester（拼写纠正）
         if (query.getSize() > suggestions.size()) {
             suggestions.addAll(getPhraseSuggestions(query));
         }
@@ -225,6 +224,11 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
         }
 
         // 4. 按得分降序排序并截取指定数量
+        /**
+         * 商户如果加了广告 那么插入时 他的搜索词权重更大
+         * 应该排序在前面
+         */
+
         List<SuggestVO> result = uniqueSuggestions.values().stream()
                 .sorted((a, b) -> {
                     int scoreCompare = Double.compare(b.getScore(), a.getScore());
@@ -344,38 +348,67 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
     /**
      * 使用 Phrase Suggester 获取短语纠正建议
      */
+    /**
+     * 使用 Phrase Suggester 获取短语纠正建议
+     */
     private List<SuggestVO> getPhraseSuggestions(SuggestQuery query) {
         List<SuggestVO> suggestions = new ArrayList<>();
 
         try {
-            // 构建 Phrase Suggestion 查询
-            PhraseSuggestionBuilder phraseSuggestion = SuggestBuilders
-                    .phraseSuggestion("goodsName")
+            // 方案1：使用商品名称的 phrase 子字段（推荐）
+            PhraseSuggestionBuilder goodsNamePhrase = SuggestBuilders
+                    .phraseSuggestion("goods_name.phrase")  // ✅ 使用 shingle analyzer 的子字段
+                    .text(query.getPrefix())
+                    .maxErrors(2)
+                    .confidence(1.0f)
+                    .size(query.getSize());
+
+            // 方案2：或者使用提示词的 phrase 子字段
+            PhraseSuggestionBuilder promptWordPhrase = SuggestBuilders
+                    .phraseSuggestion("prompt_word_label.phrase")  // ✅ 也可以
                     .text(query.getPrefix())
                     .maxErrors(2)
                     .confidence(1.0f)
                     .size(query.getSize());
 
             SuggestBuilder suggestBuilder = new SuggestBuilder();
-            suggestBuilder.addSuggestion("phrase_suggest", phraseSuggestion);
+            suggestBuilder.addSuggestion("goods_phrase", goodsNamePhrase);
+            // 或者
+            // suggestBuilder.addSuggestion("prompt_phrase", promptWordPhrase);
 
             NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
                     .withSuggestBuilder(suggestBuilder)
                     .build();
 
             // 执行查询
-            org.springframework.data.elasticsearch.core.SearchHits<GoodsDocument> searchHits =
-                    elasticsearchRestTemplate.search(searchQuery, GoodsDocument.class);
+            SearchHits<GoodsDocument> searchHits = elasticsearchRestTemplate.search(
+                    searchQuery,
+                    GoodsDocument.class,
+                    IndexCoordinates.of("goods_index")
+            );
 
-            if (searchHits != null && !searchHits.isEmpty()) {
-                try {
-                    Object suggestObj = searchHits.getSuggest();
-                    if (suggestObj != null) {
-                        PhraseSuggestion phraseSuggest = (PhraseSuggestion) suggestObj;
-                        processPhraseSuggestion(phraseSuggest, suggestions);
+            // 解析结果
+            if (searchHits.hasSuggests()) {
+                Suggest suggest = searchHits.getSuggest();
+                if (suggest != null) {
+                    PhraseSuggestion phraseSuggest = suggest.getSuggestion("goods_phrase");
+                    if (phraseSuggest != null) {
+                        for (PhraseSuggestion.Entry entry : phraseSuggest.getEntries()) {
+                            for (PhraseSuggestion.Entry.Option option : entry.getOptions()) {
+                                String text = option.getText().string();
+                                float score = option.getScore();
+
+                                log.info("✅ Phrase Suggestion: text={}, score={}", text, score);
+
+                                suggestions.add(SuggestVO.builder()
+                                        .text(text)
+                                        .type("phrase_correction")
+                                        .count(0L)
+                                        .score((double) score)
+                                        .build());
+                            }
+                        }
                     }
-                } catch (Exception e) {
-                    log.warn("无法直接获取 Phrase Suggest");
                 }
             }
         } catch (Exception e) {
@@ -384,6 +417,7 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
 
         return suggestions;
     }
+
 
     /**
      * 处理 Phrase Suggestion 结果

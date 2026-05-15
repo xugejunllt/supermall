@@ -71,6 +71,13 @@ public class GoodsListener implements RocketMQListener<SyncGoodsInfoToEsMsg> {
         suggestInputs.addAll(document.getPromptWordLabel());
         Completion completion = new Completion();
         completion.setInput(suggestInputs.toArray(new String[0]));  // String[]
+
+        /**
+         * 某个商品如果加了广告 那么插入时 他的搜索提示词权重更大
+         *    应该排序在前面
+         *
+         * 预留扩展
+         */
         // 设置权重（基于销量）
         completion.setWeight(document.getSales() != null ? document.getSales().intValue() : 1);
         document.setSuggest(completion);
