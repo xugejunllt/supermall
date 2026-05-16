@@ -381,7 +381,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             return buildFallbackData(id);
         }
         
-        if (cachedJson != null && !cachedJson.isEmpty()) {
+        if (cachedJson != null) {
             try {
                 GoodsDetailForUserVO cachedResult = JsonUtils.toObject(cachedJson, GoodsDetailForUserVO.class);
                 if (cachedResult != null) {
