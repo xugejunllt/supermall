@@ -1,8 +1,7 @@
 package com.lanf.cache.service.impl;
 
-import com.lanf.common.utils.StackTraceUtil;
-import com.lanf.constant.exception.IRedisException;
 import com.lanf.cache.service.DistributedLocker;
+import com.lanf.common.utils.StackTraceUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -31,7 +30,7 @@ public class RedissonDistributedLocker implements DistributedLocker {
 
         } catch (Exception e) {
             log.error("[{}]异常,key[{}],异常堆栈[{}]", "获取分布式锁", key, StackTraceUtil.getStackTrace(e));
-            throw new IRedisException();
+            return false;
 
         }
     }
@@ -45,7 +44,6 @@ public class RedissonDistributedLocker implements DistributedLocker {
         } catch (Exception e) {
 
             log.error("[{}]异常,key[{}],异常堆栈[{}]", "释放分布式锁", key, StackTraceUtil.getStackTrace(e));
-            throw new IRedisException();
         }
 
     }

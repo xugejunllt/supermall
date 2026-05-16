@@ -2,7 +2,6 @@ package com.lanf.web.auth;
 
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.constant.code.CommonCodeEnum;
-import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.utils.TenantContextHolder;
 import com.lanf.constant.utils.UserContext;
@@ -103,22 +102,22 @@ public class AuthService {
              * 校验缓存中
              *
              */
-            String key = String.format(RedisKeyConstants.USER_ACCESS_TOKEN, jwtTokenInfo.getUserId(),
-                    authRequestInfo.getChannel());
-            String accessTokenCache = redissonCacheService.get(key);
-            if (accessTokenCache == null ) {
-                log.warn("redis中 Token已过期");
-                throw new BizException(CommonCodeEnum.TOKEN_EXPIRED);
-            }
-            if ( !accessTokenCache.equals(accessToken)) {
-                /**
-                 * 已被踢出了
-                 */
-                log.warn("与缓存token不一致");
-                throw new BizException(CommonCodeEnum.KICKED_OUT);
-
-
-            }
+//            String key = String.format(RedisKeyConstants.USER_ACCESS_TOKEN, jwtTokenInfo.getUserId(),
+//                    authRequestInfo.getChannel());
+//            String accessTokenCache = redissonCacheService.get(key);
+//            if (accessTokenCache == null ) {
+//                log.warn("redis中 Token已过期");
+//                throw new BizException(CommonCodeEnum.TOKEN_EXPIRED);
+//            }
+//            if ( !accessTokenCache.equals(accessToken)) {
+//                /**
+//                 * 已被踢出了
+//                 */
+//                log.warn("与缓存token不一致");
+//                throw new BizException(CommonCodeEnum.KICKED_OUT);
+//
+//
+//            }
 
             UserContext.setUserId(jwtTokenInfo.getUserId());
             UserContext.setDeviceId(jwtTokenInfo.getDeviceId());

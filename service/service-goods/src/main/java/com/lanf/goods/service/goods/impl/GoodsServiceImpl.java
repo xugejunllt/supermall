@@ -23,6 +23,8 @@ import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
+import com.lanf.goods.constant.GoodsCodeEnum;
+import com.lanf.goods.constant.GoodsRedisKeyConstants;
 import com.lanf.goods.mapper.GoodsMapper;
 import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.vo.GoodsDetailForUserVO;
@@ -42,6 +44,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -358,35 +361,97 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         }
     }
     /**
-     * 能不用list就不用 丢掉了顺序
      *
-     * @param id
-     * @return
+     *
+     *
+     *
      */
     @Override
     public GoodsDetailForUserVO goodsDetailForUserQuery(Long id) {
-        // 1. 查询商品基本信息 (GoodsDO)
+        String cacheKey = GoodsRedisKeyConstants.getGoodsDetailUserKey(id);
+        
+        String cachedJson = redissonCacheService.get(cacheKey);
+        
+        if (RedissonCacheService.isRedisErrorValue(cachedJson)) {
+            log.warn("Redis 服务异常，直接查询数据库, goodsId={}", id);
+            return buildFallbackData(id);
+        }
+        if (RedissonCacheService.isCacheNullValue(cachedJson)) {
+            log.info("商品详情缓存为空值，返回降级数据, goodsId={}", id);
+            return buildFallbackData(id);
+        }
+        
+        if (cachedJson != null && !cachedJson.isEmpty()) {
+            try {
+                GoodsDetailForUserVO cachedResult = JsonUtils.toObject(cachedJson, GoodsDetailForUserVO.class);
+                if (cachedResult != null) {
+                    return cachedResult;
+                }
+            } catch (Exception e) {
+                log.error("解析商品详情缓存失败, goodsId={}", id, e);
+            }
+        }
+        
+        String lockKey = GoodsRedisKeyConstants.getGoodsDetailUserLockKey(id);
+        boolean locked = distributedLocker.getLock(lockKey);
+        
+        try {
+            if (!locked) {
+                log.warn("获取商品详情分布式锁失败, goodsId={}", id);
+                throw new BizException(GoodsCodeEnum.LOCK_FAIL.getCode(), GoodsCodeEnum.LOCK_FAIL.getMessage());
+            }
+
+            GoodsDetailForUserVO result = loadGoodsDetailFromDB(id);
+            if (result == null) {
+                redissonCacheService.set(cacheKey, RedissonCacheService.CACHE_NULL_VALUE, GoodsRedisKeyConstants.GOODS_DETAIL_USER_NULL_EXP_TIME, TimeUnit.SECONDS);
+                log.info("商品不存在，缓存空值并返回降级数据, goodsId={}", id);
+                return buildFallbackData(id);
+            }
+            redissonCacheService.set(cacheKey, JsonUtils.toJsonString(result), GoodsRedisKeyConstants.GOODS_DETAIL_USER_EXP_TIME, TimeUnit.SECONDS);
+            
+            return result;
+        } finally {
+            if (locked) {
+                distributedLocker.unlock(lockKey);
+            }
+        }
+    }
+    /**
+     * 构建降级数据
+     * 当商品不存在或查询失败时返回固定的降级数据
+     * @param goodsId 商品ID
+     * @return 降级数据
+     */
+    private GoodsDetailForUserVO buildFallbackData(Long goodsId) {
+        GoodsDetailForUserVO fallback = new GoodsDetailForUserVO();
+        fallback.setGoodsId(goodsId);
+        fallback.setGoodsName("苹果14");
+        fallback.setSubTitle("苹果14");
+        fallback.setPictureAddress(Collections.emptyList());
+        fallback.setSpecList(Collections.emptyList());
+        fallback.setSkuList(Collections.emptyList());
+        return fallback;
+    }
+    private GoodsDetailForUserVO loadGoodsDetailFromDB(Long id) {
+
+        log.info("从DB加载商品详情, goodsId={}", id);
         GoodsDO goodsDO = this.getById(id);
         if (goodsDO == null) {
-            throw new BizException("商品不存在");
+            return null;
         }
 
-        // 2. 查询该商品下的所有 SKU 列表 (GoodsSkuDO)
-        // 假设有一个 mapper 或 service 可以根据 goodsId 查询 sku 列表
         List<GoodsSkuDO> skuList = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getGoodsId, id).list();
 
         if (skuList == null || skuList.isEmpty()) {
-            throw new BizException("商品暂无可售规格");
+            return null;
         }
 
-        // 3. 组装返回对象
         GoodsDetailForUserVO vo = new GoodsDetailForUserVO();
         vo.setGoodsId(goodsDO.getId());
         vo.setGoodsName(goodsDO.getName());
         vo.setPictureAddress(JsonUtils.toList(goodsDO.getPictureAddress(), String.class));
         vo.setSubTitle(goodsDO.getTitle());
 
-        // 4. 处理规格和 SKU 数据
         processSkuAndSpec(skuList, vo);
 
         return vo;

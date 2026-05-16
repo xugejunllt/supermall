@@ -16,7 +16,44 @@ public class RedissonCacheService {
     @Autowired
     private RedissonClient redissonClient;
 
+    /**
+     * 缓存空值标识
+     * 用于防止缓存穿透，当数据库中不存在该数据时缓存此值
+     */
+    public static final String CACHE_NULL_VALUE = "__CACHE_NULL__";
 
+    /**
+     * Redis 服务异常标识
+     * 当 Redis 服务不可用或发生异常时返回此值
+     */
+    public static final String REDIS_ERROR_VALUE = "__REDIS_ERROR__";
+
+    /**
+     * 判断值是否为缓存空值标识
+     * @param value 待判断的值
+     * @return true-是缓存空值标识，false-不是缓存空值标识
+     */
+    public static boolean isCacheNullValue(String value) {
+        return CACHE_NULL_VALUE.equals(value);
+    }
+
+    /**
+     * 判断值是否为 Redis 异常标识
+     * @param value 待判断的值
+     * @return true-是 Redis 异常标识，false-不是 Redis 异常标识
+     */
+    public static boolean isRedisErrorValue(String value) {
+        return REDIS_ERROR_VALUE.equals(value);
+    }
+
+    /**
+     * 判断值是否为异常标识（包括缓存空值和 Redis 异常）
+     * @param value 待判断的值
+     * @return true-是异常标识，false-不是异常标识
+     */
+    public static boolean isErrorValue(String value) {
+        return isCacheNullValue(value) || isRedisErrorValue(value);
+    }
 
     public RBuckets getBuckets(){
 
@@ -55,17 +92,13 @@ public class RedissonCacheService {
         
         try {
             RBucket<String> bucket = redissonClient.getBucket(key);
-            String value = bucket.get();
-            
-            if (value != null) {
-                log.debug("缓存命中:key={}", key);
-            } else {
-                log.debug("缓存未命中:key={}", key);
-            }
-            return value;
+
+
+            return bucket.get();
+
         } catch (Exception e) {
             log.error("获取缓存异常:key={}", key, e);
-            return null;
+            return REDIS_ERROR_VALUE;
         }
     }
 
