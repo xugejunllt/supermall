@@ -12,15 +12,13 @@ import com.lanf.search.model.vo.SuggestVO;
 import com.lanf.search.repository.GoodsRepository;
 import com.lanf.search.service.IGoodsDocumentService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.Fuzziness;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -130,11 +128,21 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
             boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.SHOP_ID, query.getShopId()));
         }
 
-        // 3. 价格区间查询
-        if (query.getMinPrice() != null || query.getMaxPrice() != null) {
-            boolQuery.filter(QueryBuilders.rangeQuery(GoodsDocument.PRICE)
-                    .gte(query.getMinPrice() != null ? query.getMinPrice() : 0)
-                    .lte(query.getMaxPrice() != null ? query.getMaxPrice() : Double.MAX_VALUE));
+        // 3. 属性筛选 (Nested Query - 匹配 attributes 嵌套对象)
+        if (StringUtils.hasText(query.getAttrName()) && StringUtils.hasText(query.getAttrValue())) {
+            // 构建 nested query 匹配 attrName 和 attrValue
+            // ✅ 使用 .keyword 子字段进行精确匹配
+            BoolQueryBuilder attributeQuery = QueryBuilders.boolQuery()
+                    .must(QueryBuilders.termQuery("attributes.attrName.keyword", query.getAttrName()))
+                    .must(QueryBuilders.termQuery("attributes.attrValue.keyword", query.getAttrValue()));
+            
+            NestedQueryBuilder nestedQuery = QueryBuilders.nestedQuery(
+                    "attributes", 
+                    attributeQuery, 
+                    ScoreMode.None
+            );
+            
+            boolQuery.filter(nestedQuery);
         }
 
         // 4. 构建查询

@@ -416,11 +416,6 @@ public class AdvancedSearchService {
         sb.append("|shop:").append(query.getShopId() != null ? query.getShopId() : 0);
         sb.append("|");
 
-        // 3. 价格区间 (范围匹配项)
-        sb.append("price:").append(query.getMinPrice() != null ? query.getMinPrice() : 0);
-        sb.append("-").append(query.getMaxPrice() != null ? query.getMaxPrice() : "max");
-        sb.append("|");
-
         // 4. 排序规则 (不同排序结果不同，必须区分)
         sb.append("sort:").append(query.getSortField() != null ? query.getSortField() : "default");
         sb.append("_").append(query.getSortOrder() != null ? query.getSortOrder() : "desc");

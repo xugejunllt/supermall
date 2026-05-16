@@ -10,10 +10,12 @@ public class GoodsSearchQuery implements Serializable {
     private String keyword;           // 搜索关键词
     private Long categoryId;          // 分类ID
     private Long brandId;             // 品牌ID
-    private Long shopId;              // 店铺ID
-    private Double minPrice;          // 最低价格
-    private Double maxPrice;          // 最高价格
+    private Long shopId;
+    private String attrName;
+    private String attrValue;
+
+    // 店铺ID
     private Integer upDownStatus = 1; // 默认只查上架商品
-    private String sortField;         // 排序字段: sales, price, create_time
+    private String sortField;         // 排序字段: sales,create_time
     private String sortOrder;         // 排序方式: asc, desc
 }
