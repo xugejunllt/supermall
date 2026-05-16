@@ -15,8 +15,12 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -181,27 +185,13 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
             return Collections.emptyList();
         }
 
-        String cacheKey = SUGGEST_CACHE_KEY_PREFIX + query.getPrefix() 
-                + ":cat:" + (query.getCategoryId() != null ? query.getCategoryId() : "all")
-                + ":size:" + query.getSize();
-
-//        // 尝试从缓存获取
-//        List<SuggestVO> cachedSuggestions = redissonCacheService.get(cacheKey);
-//        if (cachedSuggestions != null && !cachedSuggestions.isEmpty()) {
-//            return cachedSuggestions;
-//        }
-        /**
-         * ✅ 当前顺序是正确的：先 Completion，后 Phrase
-         * ✅ Completion 是主力：处理大部分正常输入
-         * ✅ Phrase 是备选：处理拼写错误的边界情况
-         */
         // 1. ✅ 先执行 Completion Suggester（自动补全）
         List<SuggestVO> suggestions = new ArrayList<>(getCompletionSuggestions(query));
 
-//        // 2. ✅ 如果补全结果不足，再执行 Phrase Suggester（拼写纠正）
-//        if (query.getSize() > suggestions.size()) {
-//            suggestions.addAll(getPhraseSuggestions(query));
-//        }
+        // 2. ✅ 如果补全结果不足，再执行拼音搜索（支持拼音纠错）
+        if (query.getSize() > suggestions.size()) {
+            suggestions.addAll(getPinyinSuggestions(query, suggestions.size()));
+        }
 
         // 3. 去重：按文本内容去重，保留最高分
         Map<String, SuggestVO> uniqueSuggestions = new LinkedHashMap<>();
@@ -217,7 +207,7 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
                 if (suggest.getScore() > existing.getScore()) {
                     uniqueSuggestions.put(text, suggest);
                 } else if (Double.compare(suggest.getScore(), existing.getScore()) == 0) {
-                    // 得分相同时，优先级：completion > phrase
+                    // 得分相同时，优先级：completion > pinyin
                     if ("completion".equals(suggest.getType()) && !"completion".equals(existing.getType())) {
                         uniqueSuggestions.put(text, suggest);
                     }
@@ -226,11 +216,6 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
         }
 
         // 4. 按得分降序排序并截取指定数量
-        /**
-         * 商户如果加了广告 那么插入时 他的搜索词权重更大
-         * 应该排序在前面
-         */
-
         List<SuggestVO> result = uniqueSuggestions.values().stream()
                 .sorted((a, b) -> {
                     int scoreCompare = Double.compare(b.getScore(), a.getScore());
@@ -245,11 +230,6 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
                 })
                 .limit(query.getSize())
                 .collect(Collectors.toList());
-
-//        // 5. 缓存结果，有效期 5 分钟
-//        if (!result.isEmpty()) {
-//            redissonCacheService.set(cacheKey, result, 5, TimeUnit.MINUTES);
-//        }
 
         return result;
     }
@@ -342,78 +322,82 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
     }
 
     /**
-     * 使用 Phrase Suggester 获取短语纠正建议
+     * 使用拼音搜索获取建议（支持拼音纠错）
+     * 支持：
+     * 1. 完整拼音搜索：pingguo shouji → 苹果手机
+     * 2. 拼音模糊纠错：pinggo shouji → 苹果手机（少了一个u）
+     * 3. 拼音前缀搜索：pg sj → 苹果手机
      */
-    /**
-     * 使用 Phrase Suggester 获取短语纠正建议
-     */
-//    private List<SuggestVO> getPhraseSuggestions(SuggestQuery query) {
-//        List<SuggestVO> suggestions = new ArrayList<>();
-//
-//        try {
-//            // 方案1：使用商品名称的 phrase 子字段（推荐）
-//            PhraseSuggestionBuilder goodsNamePhrase = SuggestBuilders
-//                    .phraseSuggestion("goods_name.phrase")  // ✅ 使用 shingle analyzer 的子字段
-//                    .text(query.getPrefix())
-//                    .maxErrors(2)
-//                    .confidence(1.0f)
-//                    .size(query.getSize());
-//
-//            // 方案2：或者使用提示词的 phrase 子字段
-//            PhraseSuggestionBuilder promptWordPhrase = SuggestBuilders
-//                    .phraseSuggestion("prompt_word_label.phrase")  // ✅ 也可以
-//                    .text(query.getPrefix())
-//                    .maxErrors(2)
-//                    .confidence(1.0f)
-//                    .size(query.getSize());
-//
-//            SuggestBuilder suggestBuilder = new SuggestBuilder();
-//            suggestBuilder.addSuggestion("goods_phrase", goodsNamePhrase);
-//            // 或者
-//            // suggestBuilder.addSuggestion("prompt_phrase", promptWordPhrase);
-//
-//            NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-//                    .withSuggestBuilder(suggestBuilder)
-//                    .build();
-//
-//            // 执行查询
-//            SearchHits<GoodsDocument> searchHits = elasticsearchRestTemplate.search(
-//                    searchQuery,
-//                    GoodsDocument.class,
-//                    IndexCoordinates.of("goods_index")
-//            );
-//
-////            // 解析结果
-////            if (searchHits.hasSuggests()) {
-////                Suggest suggest = searchHits.getSuggest();
-////                if (suggest != null) {
-////                    PhraseSuggestion phraseSuggest = suggest.getSuggestion("goods_phrase");
-////                    if (phraseSuggest != null) {
-////                        for (PhraseSuggestion.Entry entry : phraseSuggest.getEntries()) {
-////                            for (PhraseSuggestion.Entry.Option option : entry.getOptions()) {
-////                                String text = option.getText().string();
-////                                float score = option.getScore();
-////
-////                                log.info("✅ Phrase Suggestion: text={}, score={}", text, score);
-////
-////                                suggestions.add(SuggestVO.builder()
-////                                        .text(text)
-////                                        .type("phrase_correction")
-////                                        .count(0L)
-////                                        .score((double) score)
-////                                        .build());
-////                            }
-////                        }
-////                    }
-////                }
-////            }
-////        } catch (Exception e) {
-////            log.error("Phrase Suggester 获取建议词失败", e);
-////        }
-//
-//        return suggestions;
-//    }
+    private List<SuggestVO> getPinyinSuggestions(SuggestQuery query, int currentSize) {
+        List<SuggestVO> suggestions = new ArrayList<>();
+        
+        try {
+            int remainingSize = query.getSize() - currentSize;
+            if (remainingSize <= 0) {
+                return suggestions;
+            }
 
+            // 构建搜索请求
+            SearchRequest searchRequest = new SearchRequest("goods_index");
+            SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+            
+            // 判断输入是否为拼音（简单判断：包含字母且不含中文）
+            boolean isPinyin = query.getPrefix().matches(".*[a-zA-Z].*") && 
+                              !query.getPrefix().matches(".*[\u4e00-\u9fa5].*");
+            
+            if (isPinyin) {
+                // 拼音搜索：使用 spellCheck 字段，支持模糊匹配
+                MatchQueryBuilder matchQuery = QueryBuilders.matchQuery(GoodsDocument.SPELL_CHECK, query.getPrefix())
+                        .fuzziness(Fuzziness.AUTO)  // 自动纠错
+                        .operator(Operator.OR);
+                
+                sourceBuilder.query(matchQuery);
+                log.debug("拼音搜索 Query DSL: {}", sourceBuilder.toString());
+            } else {
+                // 非拼音输入，不执行拼音搜索
+                return suggestions;
+            }
+            
+            // 限制返回数量
+            sourceBuilder.size(remainingSize);
+            
+            // 只返回需要的字段
+            sourceBuilder.fetchSource(new String[]{
+                GoodsDocument.GOODS_NAME,
+                GoodsDocument.SPELL_CHECK
+            }, null);
+            
+            searchRequest.source(sourceBuilder);
+            
+            // 执行查询
+            SearchResponse searchResponse = restHighLevelClient.search(
+                    searchRequest, RequestOptions.DEFAULT);
+            
+            // 解析结果
+            for (SearchHit hit : searchResponse.getHits().getHits()) {
+                Map<String, Object> sourceMap = hit.getSourceAsMap();
+                String goodsName = (String) sourceMap.get(GoodsDocument.GOODS_NAME);
+                
+                if (StringUtils.hasText(goodsName)) {
+                    float score = hit.getScore();
+                    
+                    suggestions.add(SuggestVO.builder()
+                            .text(goodsName)
+                            .type("pinyin")
+                            .count(0L)
+                            .score((double) score)
+                            .build());
+                }
+            }
+            
+            log.info("✅ 拼音搜索返回 {} 条建议", suggestions.size());
+            
+        } catch (Exception e) {
+            log.error("❌ 拼音搜索获取建议词失败, prefix: {}", query.getPrefix(), e);
+        }
+        
+        return suggestions;
+    }
 
     /**
      * 处理 Phrase Suggestion 结果
