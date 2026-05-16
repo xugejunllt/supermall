@@ -403,11 +403,11 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
             GoodsDetailForUserVO result = loadGoodsDetailFromDB(id);
             if (result == null) {
-                redissonCacheService.set(cacheKey, RedissonCacheService.CACHE_NULL_VALUE, GoodsRedisKeyConstants.GOODS_DETAIL_USER_NULL_EXP_TIME, TimeUnit.SECONDS);
+                redissonCacheService.set(cacheKey, RedissonCacheService.CACHE_NULL_VALUE, GoodsRedisKeyConstants.GOODS_DETAIL_USER_NULL_EXP_TIME, TimeUnit.MINUTES);
                 log.info("商品不存在，缓存空值并返回降级数据, goodsId={}", id);
                 return buildFallbackData(id);
             }
-            redissonCacheService.set(cacheKey, JsonUtils.toJsonString(result), GoodsRedisKeyConstants.GOODS_DETAIL_USER_EXP_TIME, TimeUnit.SECONDS);
+            redissonCacheService.set(cacheKey, JsonUtils.toJsonString(result), GoodsRedisKeyConstants.GOODS_DETAIL_USER_EXP_TIME, TimeUnit.MINUTES);
             
             return result;
         } finally {

@@ -24,16 +24,16 @@ public class GoodsRedisKeyConstants {
     public static final String GOODS_DETAIL_USER_LOCK = "lock:goods:detail:user:%s";
 
     /**
-     * 用户端商品详情缓存过期时间（秒）
+     * 用户端商品详情缓存过期时间
      * 7天
      */
-    public static final long GOODS_DETAIL_USER_EXP_TIME = 7 * 24 * 60 * 60L;
+    public static final long GOODS_DETAIL_USER_EXP_TIME = 7 * 24 * 60 ;
 
     /**
      * 用户端商品详情空值缓存过期时间（秒）
      * 5分钟，用于防止缓存穿透
      */
-    public static final long GOODS_DETAIL_USER_NULL_EXP_TIME = 5 * 60L;
+    public static final long GOODS_DETAIL_USER_NULL_EXP_TIME = 5 ;
 
     /**
      * 获取用户端商品详情缓存Key
