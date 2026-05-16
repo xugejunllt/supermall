@@ -43,7 +43,7 @@ public class GoodsDocument {
     public static final String PROMPT_WORD_LABEL = "promptWordLabel";
     public static final String EXTENDED_TAGS = "extendedTags";
     public static final String SUGGEST = "suggest";
-    public static final String PHRASE_SUGGEST = "phraseSuggest";
+    public static final String SPELL_CHECK = "spellCheck";
 
     @Id
     //商品id
@@ -111,11 +111,12 @@ public class GoodsDocument {
     private Completion suggest;
     
     /**
-     * 独立的 Text 字段 - 用于短语纠正（拼写纠错）
-     * 使用 my_shingle_analyzer 分词器
+     * 拼音纠错字段 - 支持拼音输入纠错和中文转换
+     * 主字段: pinyin_analyzer (用于拼音全文匹配和纠错)
+     * 子字段 pinyin_prefix: pinyin_edge_ngram_analyzer (用于拼音前缀搜索)
      */
-    @Field(type = FieldType.Text, analyzer = "my_shingle_analyzer")
-    private String phraseSuggest;
+    @Field(type = FieldType.Text, analyzer = "pinyin_analyzer")
+    private String spellCheck;
 
     /**
      * 嵌套属性类

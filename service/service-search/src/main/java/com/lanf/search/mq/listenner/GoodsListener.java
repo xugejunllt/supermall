@@ -100,7 +100,7 @@ public class GoodsListener implements RocketMQListener<SyncGoodsInfoToEsMsg> {
         for (String prompt : document.getPromptWordLabel()) {
             phraseText.append(prompt).append(" ");
         }
-        document.setPhraseSuggest(phraseText.toString().trim());
+        document.setSpellCheck(phraseText.toString().trim());
 
 
     }
