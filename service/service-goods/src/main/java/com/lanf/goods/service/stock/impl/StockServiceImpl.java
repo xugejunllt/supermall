@@ -10,17 +10,24 @@ import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.api.goods.model.query.UserStockPageQuery;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.StockPageVO;
+import com.lanf.api.user.api.UserCacheService;
+import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
+import com.lanf.constant.result.RpcResultParser;
+import com.lanf.goods.constant.GoodsCodeEnum;
 import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.dto.StockEnoughDTO;
+import com.lanf.goods.model.dto.StockQueryBySkuDTO;
 import com.lanf.goods.model.entity.GoodsDO;
 import com.lanf.goods.model.entity.GoodsSkuDO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
 import com.lanf.goods.model.vo.StockEnoughVO;
+import com.lanf.goods.model.vo.StockWithDistanceVO;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
 import com.lanf.goods.service.goods.IUserStockSyncRecordService;
@@ -37,9 +44,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.RoundingMode;
+import java.util.*;
 
 /**
  * <p>
@@ -65,6 +71,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @Lazy
     @Autowired
     private IGoodsService goodsService;
+
+    @Autowired
+    private UserCacheService userCacheService;
 
 
     /**
@@ -377,6 +386,132 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             throw new BizException("预占库存失败");
         }
     }
+    
+    @Override
+    public List<StockWithDistanceVO> queryStockBySkuCodes(StockQueryBySkuDTO dto) {
+        
+
+        String areaCode = dto.getAreaCode();
+        if (StringUtils.isEmpty(areaCode)) {
+            /**
+             * 1.优先取用户定位中的地理位置 的areaCode
+             * 2.取默认地址
+             * 3.如果没有默认地址，则抛出错误提示用户
+             */
+            AddressListVO address = getUserDefaultAddress();
+            areaCode = address.getAreaCode();
+        }
+        /**
+         * 根据areaCode 匹配仓储库存
+         */
+        final String finalAreaCode = areaCode;
+        List<String> skuCodes = dto.getSkuCodes();
+
+        List<StockDO> stockList = this.lambdaQuery()
+                .in(StockDO::getSkuCode, skuCodes)
+                .eq(StockDO::getAreaCode, finalAreaCode)
+                .list();
+        if (stockList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Map<String, StockDO> stockMap = new HashMap<>();
+        
+        for (StockDO stock : stockList) {
+
+            String key = buildStockDOMapKey( stock.getSkuCode(),  finalAreaCode);
+            
+            if (!stockMap.containsKey(key)) {
+                stockMap.put(key, stock);
+            } else {
+                StockDO existingStock = stockMap.get(key);
+                StockDO selectedStock = selectBetterStock(existingStock, stock);
+                stockMap.put(key, selectedStock);
+            }
+        }
+        
+        List<StockWithDistanceVO> result = new ArrayList<>();
+        
+        for (String skuCode : skuCodes) {
+            String key = buildStockDOMapKey( skuCode,  finalAreaCode);
+            StockDO stock = stockMap.get(key);
+            StockWithDistanceVO vo = new StockWithDistanceVO();
+            vo.setSkuCode(stock.getSkuCode());
+            vo.setWarehouseId(stock.getWarehouseId());
+            vo.setHasStock(stock.getUsableStock() != null && stock.getUsableStock() > 0);
+            vo.setUsableStock(stock.getUsableStock());
+            result.add(vo);
+        }
+
+        return result;
+    }
+
+    private String buildStockDOMapKey(String skuCode, String finalAreaCode){
+
+       return skuCode + "_" + finalAreaCode;
+    }
+
+    private StockDO selectBetterStock(StockDO stock1, StockDO stock2) {
+
+
+        /**
+         * 1.取有货的
+         * 2.都有货 取库存更多的
+         */
+        boolean hasStock1 = stock1.getUsableStock() != null && stock1.getUsableStock() > 0;
+        boolean hasStock2 = stock2.getUsableStock() != null && stock2.getUsableStock() > 0;
+        
+        if (hasStock1 && !hasStock2) {
+            return stock1;
+        }
+        
+        if (!hasStock1 && hasStock2) {
+            return stock2;
+        }
+
+        int usableStock1 = stock1.getUsableStock() != null ? stock1.getUsableStock() : 0;
+        int usableStock2 = stock2.getUsableStock() != null ? stock2.getUsableStock() : 0;
+
+        if (usableStock1 >= usableStock2) {
+            return stock1;
+        } else {
+            return stock2;
+        }
+    }
+    
+    private AddressListVO getUserDefaultAddress() {
+
+        Result<List<AddressListVO>> result = userCacheService.addressListQuery();
+
+        List<AddressListVO> addresses = RpcResultParser.parseResult(result);
+        /**
+         * 选取默认地址
+         */
+        Optional<AddressListVO> defaultAddress = addresses.stream()
+                .filter(addr -> addr.getDefaultAddress() != null && addr.getDefaultAddress() == 0)
+                .findFirst();
+        if (defaultAddress.isPresent()) {
+            return defaultAddress.get();
+        }
+        throw new BizException(GoodsCodeEnum.ADDRESS_EMPTY.getCode(), GoodsCodeEnum.ADDRESS_EMPTY.getMessage());
+    }
+    
+    private BigDecimal calculateDistance(BigDecimal lon1, BigDecimal lat1, 
+                                         BigDecimal lon2, BigDecimal lat2) {
+        double dLat = Math.toRadians(lat2.doubleValue() - lat1.doubleValue());
+        double dLon = Math.toRadians(lon2.doubleValue() - lon1.doubleValue());
+        
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                   Math.cos(Math.toRadians(lat1.doubleValue())) * 
+                   Math.cos(Math.toRadians(lat2.doubleValue())) *
+                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        
+        double distance = 6371 * c;
+        
+        return new BigDecimal(distance).setScale(2, RoundingMode.HALF_UP);
+    }
+    
     @Override
     public PageResult<StockPageVO> stockPageQuery(UserStockPageQuery query) {
         IPage<StockDO> page = new Page<>(query.getPage(), query.getPageSize());

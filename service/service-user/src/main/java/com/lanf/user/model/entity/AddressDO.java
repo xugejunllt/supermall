@@ -41,7 +41,9 @@ private static final long serialVersionUID=1L;
      * 地区
      */
     private String area;
-    
+
+    private String areaCode;
+
     /**
      * 详细地址
      */

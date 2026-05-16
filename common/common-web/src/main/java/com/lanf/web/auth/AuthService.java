@@ -58,7 +58,7 @@ public class AuthService {
                 return;
             }
             if (internalServicePaths.contains(requestURI)) {
-                FeignRequestInfo authRequestInfo = RequestAuthExtractor.extractFeignAuthInfo(request);
+                FeignRequestInfo authRequestInfo = RequestAuthExtractor.extractFeignAuthInfoWithoutTenant(request);
                 log.info("接收到内部请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURI, authRequestInfo);
 
                 UserContext.setDeviceId(authRequestInfo.getDeviceId());

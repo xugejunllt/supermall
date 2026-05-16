@@ -31,6 +31,9 @@ public class AddAddressDTO implements Serializable {
     @NotBlank(message = "区不能为空")
     private String area;
 
+    @NotNull(message = "地区编码不能为空")
+    private String areaCode;
+
     /**
      * 地址
      */

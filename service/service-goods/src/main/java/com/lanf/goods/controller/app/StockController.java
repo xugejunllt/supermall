@@ -1,8 +1,11 @@
 package com.lanf.goods.controller.app;
 
+import com.lanf.api.user.api.UserApiService;
 import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.StockEnoughDTO;
+import com.lanf.goods.model.dto.StockQueryBySkuDTO;
 import com.lanf.goods.model.vo.StockEnoughVO;
+import com.lanf.goods.model.vo.StockWithDistanceVO;
 import com.lanf.goods.service.stock.IStockService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -26,6 +31,11 @@ public class StockController {
         log.info("商品库存是否充足:{}", dto);
 
         return Result.ok(stockService.isStockEnough(dto));
+    }
+    @PostMapping("/queryStockBySkuCodes")
+    public Result<List<StockWithDistanceVO>> queryStockBySkuCodes(@RequestBody @Validated
+                                                                      StockQueryBySkuDTO dto) {
+            return Result.ok(stockService.queryStockBySkuCodes(dto));
     }
 
 }

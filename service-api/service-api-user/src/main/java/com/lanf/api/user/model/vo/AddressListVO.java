@@ -34,6 +34,8 @@ public class AddressListVO implements Serializable {
      */
     private String address;
 
+    private String areaCode;
+
     /**
      * 是否默认 0默认 1.不是
      */

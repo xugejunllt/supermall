@@ -8,8 +8,10 @@ import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.StockPageVO;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.model.dto.StockEnoughDTO;
+import com.lanf.goods.model.dto.StockQueryBySkuDTO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.vo.StockEnoughVO;
+import com.lanf.goods.model.vo.StockWithDistanceVO;
 
 import java.util.List;
 import java.util.Map;
@@ -51,5 +53,12 @@ public interface IStockService extends IService<StockDO> {
      * 分页查询库存
      */
     PageResult<StockPageVO> stockPageQuery(UserStockPageQuery query);
+
+    /**
+     * 根据 SKU 编码列表查询库存（带距离计算）
+     * @param dto 查询参数
+     * @return 库存信息列表
+     */
+    List<StockWithDistanceVO> queryStockBySkuCodes(StockQueryBySkuDTO dto);
 
 }

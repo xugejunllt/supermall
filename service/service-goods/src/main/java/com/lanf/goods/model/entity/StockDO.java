@@ -40,6 +40,8 @@ private static final long serialVersionUID=1L;
     /** 仓库名称 */
     private String warehouseName;
 
+    private String areaCode;
+
     /** 版本号 乐观锁控制 */
     private Long version;
     

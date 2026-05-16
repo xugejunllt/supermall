@@ -16,6 +16,9 @@ import static com.lanf.constant.constant.RedisKeyConstants.ADDRESS_CACHE_KEY_PRE
 @Slf4j
 @Service
 public class UserCacheService {
+    /**
+     * 懒加载 否则空指针
+     */
 
     @Autowired
     private UserApiService userApiService;
@@ -34,7 +37,6 @@ public class UserCacheService {
 
         // 2. 尝试从缓存获取
         String cachedList = redissonCacheService.get(cacheKey);
-
 
         if ( !IStringUtils.isEmpty(cachedList)) {
             // 如果缓存中有数据（即使是空列表），直接返回
