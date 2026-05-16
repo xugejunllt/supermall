@@ -267,7 +267,7 @@ public class AdvancedSearchService {
         NativeSearchQuery query = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
                         .must(QueryBuilders.termQuery(GoodsDocument.THREE_LEVEL_CATEGORY_ID, categoryId))
-                        .must(QueryBuilders.termQuery(GoodsDocument.UP_DOWN_STATUS, 0))) // 只查上架
+                        .must(QueryBuilders.termQuery(GoodsDocument.UP_DOWN_STATUS, 1))) // 只查上架
                 .withSort(SortBuilders.fieldSort(GoodsDocument.SALES).
                         order(SortOrder.DESC)) // 按销量排序
                 .withFields("_id")

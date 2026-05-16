@@ -2,9 +2,11 @@ package com.lanf.search.controller.app;
 
 import com.alibaba.nacos.api.model.v2.Result;
 import com.lanf.constant.model.vo.PageResult;
+import com.lanf.search.model.query.GoodsSearchQuery;
 import com.lanf.search.model.query.HomePageQuery;
 import com.lanf.search.model.query.SuggestQuery;
 import com.lanf.search.model.vo.HomePageVO;
+import com.lanf.search.model.vo.SearchPageVO;
 import com.lanf.search.model.vo.SuggestVO;
 import com.lanf.search.service.IGoodsDocumentService;
 import lombok.extern.slf4j.Slf4j;
@@ -47,5 +49,13 @@ public class SearchController {
         List<SuggestVO> suggestions = goodsDocumentService.getSuggestions(query);
         return Result.success(suggestions);
     }
+    @GetMapping("/searchGoods")
+    public Result< PageResult<SearchPageVO>> getSuggestions(GoodsSearchQuery query) {
+
+        log.info("搜索商品{}", query);
+        return Result.success(goodsDocumentService.searchGoods(query));
+    }
+
+
 
 }

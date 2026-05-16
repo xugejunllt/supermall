@@ -7,6 +7,7 @@ import com.lanf.search.model.query.GoodsSearchQuery;
 import com.lanf.search.model.query.HomePageQuery;
 import com.lanf.search.model.query.SuggestQuery;
 import com.lanf.search.model.vo.HomePageVO;
+import com.lanf.search.model.vo.SearchPageVO;
 import com.lanf.search.model.vo.SuggestVO;
 import com.lanf.search.repository.GoodsRepository;
 import com.lanf.search.service.IGoodsDocumentService;
@@ -105,7 +106,7 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
     }
 
     @Override
-    public PageResult<HomePageVO> searchGoods(GoodsSearchQuery query) {
+    public PageResult<SearchPageVO> searchGoods(GoodsSearchQuery query) {
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
@@ -171,8 +172,8 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
                 queryBuilder.build(), GoodsDocument.class);
 
         // 8. 结果转换
-        List<HomePageVO> content = searchHits.getSearchHits().stream()
-                .map(hit -> convertToVO(hit.getContent()))
+        List<SearchPageVO> content = searchHits.getSearchHits().stream()
+                .map(hit -> convertToSearchPageVO(hit.getContent()))
                 .collect(Collectors.toList());
 
         return new PageResult<>(content, content.size(), searchHits.getTotalHits());
@@ -424,6 +425,15 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
 
     private HomePageVO convertToVO(GoodsDocument document) {
         HomePageVO vo = new HomePageVO();
+        vo.setGoodsId(document.getGoodsId());
+        vo.setGoodsName(document.getGoodsName());
+        vo.setMainImage(document.getMainImage());
+        vo.setPrice(document.getPrice());
+        vo.setExtendedTags(document.getExtendedTags());
+        return vo;
+    }
+    private SearchPageVO convertToSearchPageVO(GoodsDocument document) {
+        SearchPageVO vo = new SearchPageVO();
         vo.setGoodsId(document.getGoodsId());
         vo.setGoodsName(document.getGoodsName());
         vo.setMainImage(document.getMainImage());

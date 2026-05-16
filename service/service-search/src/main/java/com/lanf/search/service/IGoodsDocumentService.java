@@ -5,6 +5,7 @@ import com.lanf.search.model.query.GoodsSearchQuery;
 import com.lanf.search.model.query.HomePageQuery;
 import com.lanf.search.model.query.SuggestQuery;
 import com.lanf.search.model.vo.HomePageVO;
+import com.lanf.search.model.vo.SearchPageVO;
 import com.lanf.search.model.vo.SuggestVO;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public interface IGoodsDocumentService {
     /**
      * 商品综合搜索
      */
-    PageResult<HomePageVO> searchGoods(GoodsSearchQuery query);
+    PageResult<SearchPageVO> searchGoods(GoodsSearchQuery query);
 
     /**
      * 查询词建议 - 输入前缀返回建议词列表
