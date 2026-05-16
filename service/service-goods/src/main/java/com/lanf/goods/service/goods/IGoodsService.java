@@ -31,7 +31,9 @@ public interface IGoodsService extends IService<GoodsDO> {
     GoodsDetailVO goodsDetailQuery(Long id);
 
 
-    UserGoodsDetailVO userGoodsDetail(Long id);
+    GoodsDetailForUserVO goodsDetailForUserQuery(Long id);
+
+
     SkuDetailVO  queryBySkuId(Long skuId);
     List<ApiGoodsSkuVO> queryBySkuCode(List<String> skuCode);
 

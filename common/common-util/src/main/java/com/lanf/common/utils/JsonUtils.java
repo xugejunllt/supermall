@@ -1,12 +1,15 @@
 package com.lanf.common.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lanf.constant.exception.UtilException;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class JsonUtils {
@@ -61,5 +64,22 @@ public class JsonUtils {
 
 
 
+    }
+    /**
+     * 【新增】将 JSON 字符串转换为 List<Map<String, String>>
+     * 专门用于处理复杂的嵌套结构或动态 Key-Value 场景
+     *
+     * @param json JSON 字符串
+     * @return List<Map<String, String>>
+     */
+    public static List<Map<String, String>> toMapList(String json) {
+
+        try {
+            // 使用 TypeReference 来处理泛型擦除问题
+            return objectMapper.readValue(json, new TypeReference<List<Map<String, String>>>() {});
+        } catch (Exception e) {
+            log.error("JSON 转 List<Map> 失败: {}", json, e);
+            return Collections.emptyList();
+        }
     }
 }

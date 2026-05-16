@@ -22,16 +22,12 @@ import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
-import com.lanf.goods.constant.GoodsCodeEnum;
-import com.lanf.goods.constant.GoodsRedisKeyConstants;
 import com.lanf.goods.mapper.GoodsMapper;
-import com.lanf.goods.model.bo.SkuAttributeBO;
-import com.lanf.goods.model.bo.SkuAttributeDetailBO;
-import com.lanf.goods.model.bo.UnitCodeSkuCodeBO;
 import com.lanf.goods.model.entity.*;
-import com.lanf.goods.model.vo.GoodsSkuVO;
+import com.lanf.goods.model.vo.GoodsDetailForUserVO;
 import com.lanf.goods.model.vo.SkuDetailVO;
-import com.lanf.goods.model.vo.UserGoodsDetailVO;
+import com.lanf.goods.model.vo.SkuInfo;
+import com.lanf.goods.model.vo.SpecItem;
 import com.lanf.goods.service.goods.*;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.mybatis.base.BaseEntity;
@@ -45,7 +41,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -367,157 +362,110 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
      * @return
      */
     @Override
-    public UserGoodsDetailVO userGoodsDetail(Long id) {
-
-        //从缓存获取
-        UserGoodsDetailVO detailVO = getCache(id);
-        if ( detailVO != null) {
-            log.info("从缓存获取商品详细");
+    public GoodsDetailForUserVO goodsDetailForUserQuery(Long id) {
+        // 1. 查询商品基本信息 (GoodsDO)
+        GoodsDO goodsDO = this.getById(id);
+        if (goodsDO == null) {
+            throw new BizException("商品不存在");
         }
 
-        if (detailVO == null) {
-            log.info("从DB获取商品详细");
-            //从DB加载
-            String key = "lock:userGoodsDetail:" + id;
-            try {
+        // 2. 查询该商品下的所有 SKU 列表 (GoodsSkuDO)
+        // 假设有一个 mapper 或 service 可以根据 goodsId 查询 sku 列表
+        List<GoodsSkuDO> skuList = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getGoodsId, id).list();
 
-                boolean lock = distributedLocker.getLock(key);
-                if (lock) {
-                    detailVO = buildUserGoodsDetailVO(id);
-                } else {
-                    GoodsCodeEnum codeEnum = GoodsCodeEnum.LOCK_FAIL;
-                    throw new BizException(codeEnum.getCode(), codeEnum.getMessage());
-                }
-                //加入缓存中
-                addCache(id, detailVO);
-            }  finally {
-                distributedLocker.unlock(key);
+        if (skuList == null || skuList.isEmpty()) {
+            throw new BizException("商品暂无可售规格");
+        }
+
+        // 3. 组装返回对象
+        GoodsDetailForUserVO vo = new GoodsDetailForUserVO();
+        vo.setGoodsId(goodsDO.getId());
+        vo.setGoodsName(goodsDO.getName());
+        vo.setPictureAddress(JsonUtils.toList(goodsDO.getPictureAddress(), String.class));
+        vo.setSubTitle(goodsDO.getTitle());
+
+        // 4. 处理规格和 SKU 数据
+        processSkuAndSpec(skuList, vo);
+
+        return vo;
+    }
+
+    /**
+     * 核心逻辑：从 SKU 列表中提取规格项，并组装 SKU 信息
+     */
+    private void processSkuAndSpec(List<GoodsSkuDO> skuList, GoodsDetailForUserVO vo) {
+        // 用于收集所有出现过的属性名和属性值
+        Map<String, LinkedHashSet<String>> specMap = new LinkedHashMap<>();
+        
+        List<SkuInfo> skuInfoList = new ArrayList<>();
+
+        for (GoodsSkuDO sku : skuList) {
+            // 4.1 组装单个 SKU 信息
+            SkuInfo skuInfo = new SkuInfo();
+            skuInfo.setSkuId(sku.getId());
+            skuInfo.setSkuCode(sku.getSkuCode());
+            skuInfo.setPrice(sku.getPrice());
+            skuInfo.setImage(sku.getSkuPictureAddress());
+            
+            // 解析 attributes JSON 字符串为 Map
+            Map<String, String> attrMap = parseAttributesToMap(sku.getAttributes());
+            skuInfo.setAttributes(attrMap);
+
+            skuInfoList.add(skuInfo);
+
+            // 4.2 提取规格数据
+            for (Map.Entry<String, String> entry : attrMap.entrySet()) {
+                String attrName = entry.getKey();
+                String attrValue = entry.getValue();
+
+                specMap.computeIfAbsent(attrName, k -> new LinkedHashSet<>());
+                specMap.get(attrName).add(attrValue);
             }
         }
-        UserGoodsDetailVO goodsDetailVO = getCache(id);
-        List<GoodsSkuVO> goodsSkuVOS = goodsDetailVO.getGoodsSkuVOList();
-//        //添加库存
-//        List<String> skuCodes = goodsSkuVOS.stream().map(GoodsSkuVO::getSkuCode).collect(Collectors.toList());
-//        Map<String, SkuCodeStockBO> stockBOMap = stockService.findBySkuCode(skuCodes);
-//        goodsSkuVOS.forEach(a -> {
-//            SkuCodeStockBO stockBO = stockBOMap.get(a.getSkuCode());
-//            a.setTotalStock(stockBO.getTotalStock());
-//        });
 
-        return goodsDetailVO;
-    }
-
-    private UserGoodsDetailVO buildUserGoodsDetailVO(Long id) {
-
-        GoodsDO goodsDO = this.getById(id);
-
-        List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().in(GoodsSkuDO::getGoodsId, id).list();
-
-        /**
-         * 准备数据
-         */
-        //获取默认选中的sku
-        GoodsSkuDO defaultGoodsSkuDO = getDefaultGoodsSkuDO(goodsSkuDOList);
-
-        List<GoodsSkuVO> goodsSkuVOS = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuVO.class);
-        /**
-         * 构建返回数据
-         */
-        UserGoodsDetailVO goodsDetailVO = new UserGoodsDetailVO();
-        goodsDetailVO.setId(goodsDO.getId());
-        goodsDetailVO.setShopId(goodsDO.getShopId());
-        goodsDetailVO.setPictureList(JsonUtils.toList(goodsDO.getPictureAddress(), String.class));
-        goodsDetailVO.setGoodsName(goodsDO.getName());
-        goodsDetailVO.setPrice(defaultGoodsSkuDO.getPrice());
-        goodsDetailVO.setGoodsSkuVOList(goodsSkuVOS);
-
-        return goodsDetailVO;
-    }
-
-    private void addCache(Long keyPrefix, UserGoodsDetailVO value) {
-        redissonCacheService.set(GoodsRedisKeyConstants.getGoodsDetailKey(keyPrefix),
-                JsonUtils.toJsonString(value), GoodsRedisKeyConstants.GOODS_DETAIL_EXP_TIME, TimeUnit.SECONDS);
-    }
-
-    private UserGoodsDetailVO getCache(Long keyPrefix) {
-        String cache = redissonCacheService.get(GoodsRedisKeyConstants.getGoodsDetailKey(keyPrefix));
-        if (cache == null) {
-            return null;
-        }
-        return JsonUtils.toObject(cache, UserGoodsDetailVO.class);
-    }
-
-
-
-
-    private List<UnitCodeSkuCodeBO> buildUnitCodeSkuCodeVOList(List<GoodsSkuDO> goodsSkuDOList) {
-
-
-        List<UnitCodeSkuCodeBO> unitCodeSkuCodeVOList = new ArrayList<>();
-        goodsSkuDOList.forEach(a -> {
-
-
-
-            UnitCodeSkuCodeBO unitCodeSkuCodeVO = new UnitCodeSkuCodeBO();
-            unitCodeSkuCodeVO.setSkuCode(a.getSkuCode());
-            unitCodeSkuCodeVOList.add(unitCodeSkuCodeVO);
-
-        });
-        return unitCodeSkuCodeVOList;
-    }
-
-    private String generateUnitCode(List<Long> unitIdList) {
-
-        //根据id值进行升序
-        Collections.sort(unitIdList);
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Long unitId : unitIdList) {
-            stringBuilder.append(unitId).append(",");
-        }
-        //移除了最后一个字符 即末尾不会有 ","
-        return stringBuilder.substring(0, stringBuilder.length() - 1);
-    }
-
-    private List<SkuAttributeBO> buildSkuAttributeVO(List<GoodsSkuDO> goodsSkuDOList) {
-
-
-        /**
-         * 解析所有 sku 的属性
-         */
-        List<SkuName> allSkuNameJsonBOList = new ArrayList<>();
-
-        //进行分组 key:属性名称 value:属性值
-        Map<String, List<SkuName>> groupByAttribute = groupByAttribute(allSkuNameJsonBOList);
-
-        /**
-         * 解析属性名称
-         */
-        List<String> attributeNameSet = new ArrayList<>();
-        //选取第一个sku属性进行解析
-        //按 sort进行降序 这样才能保证属性名称按顺序展示
-
-        attributeNameSet.forEach(a -> {
-            SkuAttributeBO skuAttributeVO = new SkuAttributeBO();
-            skuAttributeVO.setAttributeName(a);
-
-        });
-
-        /**
-         * 构建 SkuAttributeVO
-         */
-        List<SkuAttributeBO> skuAttributeVOList = new ArrayList<>();
-        for (String attributeName : attributeNameSet) {
-            SkuAttributeBO skuAttributeVO = new SkuAttributeBO();
-            List<SkuName> skuNameJsonBOS = groupByAttribute.get(attributeName);
-            //此时 SkuAttributeDetailVO 没有defaultSelect值
-            List<SkuAttributeDetailBO> skuAttributeDetailVOS = BeanCopyUtils.copyBeanList(skuNameJsonBOS, SkuAttributeDetailBO.class);
-            skuAttributeVO.setAttributeValue(skuAttributeDetailVOS);
-            skuAttributeVO.setAttributeName(attributeName);
-            skuAttributeVOList.add(skuAttributeVO);
+        // 5. 转换规格 Map 为 VO 列表
+        List<SpecItem> specItemList = new ArrayList<>();
+        for (Map.Entry<String, LinkedHashSet<String>> entry : specMap.entrySet()) {
+            SpecItem specItem = new SpecItem();
+            specItem.setName(entry.getKey());
+            specItem.setValues(new ArrayList<>(entry.getValue()));
+            specItemList.add(specItem);
         }
 
-        return skuAttributeVOList;
+        vo.setSpecList(specItemList);
+        vo.setSkuList(skuInfoList);
     }
+
+    /**
+     * 辅助方法：将 JSON 字符串或特定格式的属性数据转换为 Map
+     * 输入示例: [{"attribute": "颜色", "attributeValue": "白色"}, ...]
+     * 输出示例: {"颜色": "白色", ...}
+     */
+    private Map<String, String> parseAttributesToMap(String attributesJson) {
+
+        
+        try {
+            // ✅ 使用新添加的工具方法
+            List<Map<String, String>> attrList = JsonUtils.toMapList(attributesJson);
+            
+            Map<String, String> result = new HashMap<>();
+            for (Map<String, String> item : attrList) {
+                // 根据你提供的格式：key 是 "attribute", value 是 "attributeValue"
+                String key = item.get("attribute");
+                String value = item.get("attributeValue");
+                if (key != null && value != null) {
+                    result.put(key, value);
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            log.error("解析商品属性失败: {}", attributesJson, e);
+            return Collections.emptyMap();
+        }
+    }
+
+
+
 
     public Map<String, List<SkuName>> groupByAttribute(List<SkuName> skuList) {
 
