@@ -28,7 +28,6 @@ import com.lanf.goods.constant.GoodsRedisKeyConstants;
 import com.lanf.goods.mapper.GoodsMapper;
 import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.vo.GoodsDetailForUserVO;
-import com.lanf.goods.model.vo.SkuDetailVO;
 import com.lanf.goods.model.vo.SkuInfo;
 import com.lanf.goods.model.vo.SpecItem;
 import com.lanf.goods.service.goods.*;
@@ -619,34 +618,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         }
 
         return apiGoodsSkuVO;
-    }
-
-
-    @Override
-    public SkuDetailVO queryBySkuId(Long skuId) {
-
-        ThreadLocalUtils.addIgnoreTableName(true);
-        GoodsSkuDO goodsSkuDO = goodsSkuService.getById(skuId);
-        ThreadLocalUtils.addIgnoreTableName(true);
-        GoodsDO goodsDO = this.getById(goodsSkuDO.getGoodsId());
-//        Long shopId = goodsDO.getShopId();
-//        List<ShopVO> shopVOList = systemService.shopQuery(Arrays.asList(shopId)).getData();
-//        if (shopVOList.isEmpty()) {
-//            return null;
-//        }
-//        Map<Long, ShopVO> shopVOMap = shopVOList.stream()
-//                .collect(Collectors.toMap(ShopVO::getId, Function.identity()));
-//
-//        SkuDetailVO skuDetailVO = new SkuDetailVO();
-//        skuDetailVO.setShopId(shopId);
-//        skuDetailVO.setId(skuId);
-//        skuDetailVO.setShopName(shopVOMap.get(shopId).getName());
-//        skuDetailVO.setSkuPictureAddress(goodsSkuDO.getSkuPictureAddress());
-//        skuDetailVO.setGoodsName(goodsDO.getName());
-//        skuDetailVO.setSkuName(goodsSkuDO.getSkuName());
-//        skuDetailVO.setPrice(goodsSkuDO.getPrice());
-
-        return null;
     }
 
     @DistributedLock(key = "#dto.goodsId")

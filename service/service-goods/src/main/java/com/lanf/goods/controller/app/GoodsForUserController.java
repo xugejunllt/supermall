@@ -2,7 +2,6 @@ package com.lanf.goods.controller.app;
 
 
 import com.lanf.constant.result.Result;
-import com.lanf.goods.model.vo.SkuDetailVO;
 import com.lanf.goods.model.vo.GoodsDetailForUserVO;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
@@ -23,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequestMapping("/app/goods")
-public class GoodsAppController {
+public class GoodsForUserController {
 
     @Autowired
     private IGoodsService goodsService;
@@ -39,13 +38,6 @@ public class GoodsAppController {
         return Result.ok(goodsService.goodsDetailForUserQuery(id));
     }
 
-    @GetMapping("/queryBySkuId")
-    public Result<SkuDetailVO> queryBySkuId(Long skuId) {
-
-        log.info("查询sku详细:id{}", skuId);
-
-        return Result.ok(goodsService.queryBySkuId(skuId));
-    }
 
 
 }
