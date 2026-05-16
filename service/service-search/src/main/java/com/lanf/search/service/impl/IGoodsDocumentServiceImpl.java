@@ -158,9 +158,9 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
         } else if ("sales".equalsIgnoreCase(sortField)) {
             queryBuilder.withSort(SortBuilders.fieldSort(GoodsDocument.SALES).order(order));
         } else {
-            // 默认按更新时间或相关度排序
+            // 默认按创建时间排序
             queryBuilder.withSort(SortBuilders.scoreSort().order(SortOrder.DESC));
-            queryBuilder.withSort(SortBuilders.fieldSort(GoodsDocument.UPDATE_TIME).order(SortOrder.DESC));
+            queryBuilder.withSort(SortBuilders.fieldSort(GoodsDocument.CREATE_TIME).order(SortOrder.DESC));
         }
 
         // 6. 分页与字段裁剪
