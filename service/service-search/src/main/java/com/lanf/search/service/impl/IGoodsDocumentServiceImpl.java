@@ -131,8 +131,8 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
         // 3. 属性筛选 (Nested Query - 匹配 attributes 嵌套对象)
         if (StringUtils.hasText(query.getAttrName()) && StringUtils.hasText(query.getAttrValue())) {
             // 构建 nested query 匹配 attrName 和 attrValue
-            // ✅ 使用 .keyword 子字段进行精确匹配
             BoolQueryBuilder attributeQuery = QueryBuilders.boolQuery()
+                    //子字段名称
                     .must(QueryBuilders.termQuery("attributes.attrName.keyword", query.getAttrName()))
                     .must(QueryBuilders.termQuery("attributes.attrValue.keyword", query.getAttrValue()));
             
