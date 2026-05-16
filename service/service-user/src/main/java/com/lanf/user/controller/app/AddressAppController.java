@@ -4,7 +4,7 @@ package com.lanf.user.controller.app;
 import com.lanf.constant.result.Result;
 import com.lanf.user.model.dto.AddAddressDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
-import com.lanf.user.model.vo.AddressListVO;
+import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.user.service.IAddressService;
 import com.lanf.constant.utils.UserContext;
 import lombok.extern.slf4j.Slf4j;

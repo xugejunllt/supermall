@@ -1,4 +1,4 @@
-package com.lanf.user.mq.message;
+package com.lanf.api.user.mq.message;
 
 import lombok.Data;
 

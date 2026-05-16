@@ -20,6 +20,7 @@ public class RedisKeyConstants {
      */
     public static final String USER_REFRESH_TOKEN = "user:refresh:token:%s:%s";
 
-
+    // 定义缓存 Key 前缀常量
+    public static final String ADDRESS_CACHE_KEY_PREFIX = "user:address:list:%s";
 
 }

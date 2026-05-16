@@ -12,6 +12,7 @@ import com.lanf.api.goods.model.vo.ApiGoodsSkuVO;
 import com.lanf.api.goods.model.vo.GoodsDetailVO;
 import com.lanf.api.goods.model.vo.GoodsPageVO;
 import com.lanf.api.goods.model.vo.SkuNameVO;
+import com.lanf.api.user.api.UserCacheService;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.cache.service.DistributedLocker;
 import com.lanf.cache.service.RedissonCacheService;
@@ -62,7 +63,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     private IGoodsBrandService goodsBrandService;
     @Autowired
     private IGoodsSkuService goodsSkuService;
-
+    @Autowired
+    private UserCacheService userCacheService;
 
     @Autowired
     private IStockService stockService;

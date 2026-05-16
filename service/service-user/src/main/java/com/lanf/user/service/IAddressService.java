@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.user.model.dto.AddAddressDTO;
 import com.lanf.user.model.dto.SetDefaultAddressDTO;
 import com.lanf.user.model.entity.AddressDO;
-import com.lanf.user.model.vo.AddressListVO;
+import com.lanf.api.user.model.vo.AddressListVO;
 
 import java.util.List;
 

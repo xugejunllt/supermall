@@ -1,4 +1,4 @@
-package com.lanf.user.mq;
+package com.lanf.api.user.mq;
 
 public class UserClientTopicName {
 

@@ -1,4 +1,4 @@
-package com.lanf.user.model.vo;
+package com.lanf.api.user.model.vo;
 
 import lombok.Data;
 
