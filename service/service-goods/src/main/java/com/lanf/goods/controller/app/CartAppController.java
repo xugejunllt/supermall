@@ -8,7 +8,7 @@ import com.lanf.constant.utils.UserContext;
 import com.lanf.goods.model.dto.AddCartDTO;
 import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
 import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
-import com.lanf.goods.model.vo.CartListVO;
+import com.lanf.goods.model.vo.CartPageVO;
 import com.lanf.goods.service.goods.ICartService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,11 +57,11 @@ public class CartAppController {
         return Result.ok();
     }
 
-    @GetMapping("/listCart")
-    public Result<PageResult<CartListVO>> listCart(PageQuery query) {
+    @GetMapping("/cartPageQuery")
+    public Result<PageResult<CartPageVO>> cartPageQuery(PageQuery query) {
 
        log.info("分页查询购物车列表:query{}", query);
-        return Result.ok(cartService.listCart(query));
+        return Result.ok(cartService.cartPageQuery(query));
     }
 
 

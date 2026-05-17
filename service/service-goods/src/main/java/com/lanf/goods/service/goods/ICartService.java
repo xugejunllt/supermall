@@ -11,7 +11,7 @@ import com.lanf.goods.model.dto.AddCartDTO;
 import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
 import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
 import com.lanf.goods.model.entity.CartDO;
-import com.lanf.goods.model.vo.CartListVO;
+import com.lanf.goods.model.vo.CartPageVO;
 
 /**
  * <p>
@@ -46,7 +46,7 @@ public interface ICartService extends IService<CartDO> {
      * 购物车列表
      *
      */
-    PageResult<CartListVO> listCart(PageQuery query);
+    PageResult<CartPageVO> cartPageQuery(PageQuery query);
 
     /**
      * 校验购物车商品项目

@@ -9,7 +9,7 @@ import java.util.List;
  * 购物车列表VO
  */
 @Data
-public class CartListVO implements Serializable {
+public class CartPageVO implements Serializable {
 
 
 

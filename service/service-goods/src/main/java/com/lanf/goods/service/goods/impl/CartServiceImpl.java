@@ -23,7 +23,7 @@ import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
 import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
 import com.lanf.goods.model.vo.CartItemVO;
-import com.lanf.goods.model.vo.CartListVO;
+import com.lanf.goods.model.vo.CartPageVO;
 import com.lanf.goods.model.vo.StockWithDistanceVO;
 import com.lanf.goods.service.goods.ICartService;
 import com.lanf.goods.service.goods.IGoodsService;
@@ -309,7 +309,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
      *
      */
     @Override
-    public PageResult<CartListVO> listCart(PageQuery query) {
+    public PageResult<CartPageVO> cartPageQuery(PageQuery query) {
 
         Long userId = UserContext.getUserId();
         IPage<CartDO> page = new Page<>(query.getPage(), query.getPageSize());
@@ -357,7 +357,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
                 toMap(BaseEntity::getId, v -> v));
 
 
-        List<CartListVO> cartListVOList = new ArrayList<>(shopIdList.size());
+        List<CartPageVO> cartListVOList = new ArrayList<>(shopIdList.size());
         for (Long shopId : shopIdList){
 
             List<CartDO> cartDOList1 = cartDOMap.get(shopId);
@@ -368,14 +368,14 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
                 CartItemVO cartItemVO = getCartItemVO(cartDO, goodsSkuDO, goodsDO);
                 cartItemList.add(cartItemVO);
             }
-            CartListVO cartListVO = new CartListVO();
+            CartPageVO cartListVO = new CartPageVO();
             cartListVO.setShopId(shopId);
             cartListVO.setShopName(shopDOMap.get(shopId).getName());
             cartListVO.setCartItemList(cartItemList);
             cartListVOList.add(cartListVO);
 
         }
-        PageResult<CartListVO> resultVo = new PageResult<>();
+        PageResult<CartPageVO> resultVo = new PageResult<>();
         resultVo.setTotal(pageResult.getTotal());
         resultVo.setSize(query.getPageSize());
         resultVo.setRecords(cartListVOList);
