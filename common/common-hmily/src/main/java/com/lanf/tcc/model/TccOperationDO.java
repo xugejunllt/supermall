@@ -2,7 +2,6 @@ package com.lanf.tcc.model;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -30,7 +29,7 @@ private static final long serialVersionUID=1L;
      */
     private String bizKey;
 
-    @ApiModelProperty(value = "阶段 0: try  1:confirm, 2：cancel阶段")
+    // 阶段 0: try  1:confirm, 2：cancel阶段
     private Integer status;
 
     //try阶段参数，用于下一阶段
