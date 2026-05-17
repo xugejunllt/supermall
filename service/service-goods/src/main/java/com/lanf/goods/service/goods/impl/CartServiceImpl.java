@@ -303,6 +303,11 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
 
     }
 
+    /**
+     * 待性能优化
+     * 填充是否有库存
+     *
+     */
     @Override
     public PageResult<CartListVO> listCart(PageQuery query) {
 
@@ -388,6 +393,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         cartItemVO.setGoodsName(goodsDO.getName());
         cartItemVO.setQuantity(cartDO.getQuantity());
         cartItemVO.setPrice(goodsSkuDO.getPrice());
+        cartItemVO.setSkuName(goodsSkuDO.getAttributeDetail());
         return cartItemVO;
     }
     @Override
