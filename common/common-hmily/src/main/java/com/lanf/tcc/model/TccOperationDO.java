@@ -47,6 +47,11 @@ private static final long serialVersionUID=1L;
      */
     private String interruptedException;
 
+    /**
+     * 分片键 如果是分片表
+     */
+    private String shardingValue;
+
     private Long version;
 
 
