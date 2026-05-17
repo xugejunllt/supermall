@@ -76,7 +76,7 @@ public class ShardingSphereBeanConfig {
                 )
         );
         shardingRuleConfig.getTables().add(userStockRule);
-
+        
         ShardingTableRuleConfiguration userStockFlowRule = new ShardingTableRuleConfiguration(
                 "user_stock_flow",
                 "ds${0..2}.user_stock_flow"
@@ -88,79 +88,85 @@ public class ShardingSphereBeanConfig {
                 )
         );
         shardingRuleConfig.getTables().add(userStockFlowRule);
-
+        
         ShardingTableRuleConfiguration cartRule = new ShardingTableRuleConfiguration(
                 "cart",
-                "ds0.cart"
+                "ds${0..2}.cart"
+        );
+        cartRule.setDatabaseShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "cart-database-algorithm"
+                )
         );
         shardingRuleConfig.getTables().add(cartRule);
-
+        
         ShardingTableRuleConfiguration goodsRule = new ShardingTableRuleConfiguration(
                 "goods",
                 "ds0.goods"
         );
         shardingRuleConfig.getTables().add(goodsRule);
-
+        
         ShardingTableRuleConfiguration goodsSkuRule = new ShardingTableRuleConfiguration(
                 "goods_sku",
                 "ds0.goods_sku"
         );
         shardingRuleConfig.getTables().add(goodsSkuRule);
-
+        
         ShardingTableRuleConfiguration baseGoodsRule = new ShardingTableRuleConfiguration(
                 "base_goods",
                 "ds0.base_goods"
         );
         shardingRuleConfig.getTables().add(baseGoodsRule);
-
+        
         ShardingTableRuleConfiguration baseGoodsSkuRule = new ShardingTableRuleConfiguration(
                 "base_goods_sku",
                 "ds0.base_goods_sku"
         );
         shardingRuleConfig.getTables().add(baseGoodsSkuRule);
-
+        
         ShardingTableRuleConfiguration goodsAttributeRule = new ShardingTableRuleConfiguration(
                 "goods_attribute",
                 "ds0.goods_attribute"
         );
         shardingRuleConfig.getTables().add(goodsAttributeRule);
-
+        
         ShardingTableRuleConfiguration goodsBrandRule = new ShardingTableRuleConfiguration(
                 "goods_brand",
                 "ds0.goods_brand"
         );
         shardingRuleConfig.getTables().add(goodsBrandRule);
-
+        
         ShardingTableRuleConfiguration goodsCategoryRule = new ShardingTableRuleConfiguration(
                 "goods_category",
                 "ds0.goods_category"
         );
         shardingRuleConfig.getTables().add(goodsCategoryRule);
-
+        
         ShardingTableRuleConfiguration goodsHistoryVersionRule = new ShardingTableRuleConfiguration(
                 "goods_history_version",
                 "ds0.goods_history_version"
         );
         shardingRuleConfig.getTables().add(goodsHistoryVersionRule);
-
+        
         ShardingTableRuleConfiguration goodsSkuHistoryVersionRule = new ShardingTableRuleConfiguration(
                 "goods_sku_history_version",
                 "ds0.goods_sku_history_version"
         );
         shardingRuleConfig.getTables().add(goodsSkuHistoryVersionRule);
-
+        
         ShardingTableRuleConfiguration goodsSyncEsRecordRule = new ShardingTableRuleConfiguration(
                 "goods_sync_es_record",
                 "ds0.goods_sync_es_record"
         );
         shardingRuleConfig.getTables().add(goodsSyncEsRecordRule);
-
+        
         ShardingTableRuleConfiguration shopRule = new ShardingTableRuleConfiguration(
                 "shop",
                 "ds0.shop"
         );
         shardingRuleConfig.getTables().add(shopRule);
-
+        
         ShardingTableRuleConfiguration userStockPreorderPublishLogRule = new ShardingTableRuleConfiguration(
                 "user_stock_preorder_publish_log",
                 "ds0.user_stock_preorder_publish_log"
@@ -168,17 +174,22 @@ public class ShardingSphereBeanConfig {
         shardingRuleConfig.getTables().add(userStockPreorderPublishLogRule);
 
         Map<String, AlgorithmConfiguration> shardingAlgorithms = new LinkedHashMap<>();
-
+        
         Properties userStockAlgoProps = new Properties();
         userStockAlgoProps.setProperty("strategy", "standard");
         userStockAlgoProps.setProperty("algorithmClassName", "com.lanf.goods.config.GoodsDatabaseShardingAlgorithm");
         shardingAlgorithms.put("user-stock-database-algorithm", new AlgorithmConfiguration("CLASS_BASED", userStockAlgoProps));
-
+        
         Properties userStockFlowAlgoProps = new Properties();
         userStockFlowAlgoProps.setProperty("strategy", "standard");
         userStockFlowAlgoProps.setProperty("algorithmClassName", "com.lanf.goods.config.GoodsDatabaseShardingAlgorithm");
         shardingAlgorithms.put("user-stock-flow-database-algorithm", new AlgorithmConfiguration("CLASS_BASED", userStockFlowAlgoProps));
-
+        
+        Properties cartAlgoProps = new Properties();
+        cartAlgoProps.setProperty("strategy", "standard");
+        cartAlgoProps.setProperty("algorithmClassName", "com.lanf.goods.config.CartDatabaseShardingAlgorithm");
+        shardingAlgorithms.put("cart-database-algorithm", new AlgorithmConfiguration("CLASS_BASED", cartAlgoProps));
+        
         shardingRuleConfig.setShardingAlgorithms(shardingAlgorithms);
 
         return shardingRuleConfig;
