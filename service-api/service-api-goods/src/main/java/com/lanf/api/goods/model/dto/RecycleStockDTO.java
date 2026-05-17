@@ -27,4 +27,6 @@ public class RecycleStockDTO implements Serializable {
 
     private Long warehouseId;
 
+    private Long goodsId;
+
 }

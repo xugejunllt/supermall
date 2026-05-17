@@ -503,7 +503,6 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         LambdaQueryWrapper<StockDO> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(StringUtils.isNotBlank(query.getSkuCode()), StockDO::getSkuCode, query.getSkuCode())
                 .eq(query.getWarehouseId() != null, StockDO::getWarehouseId, query.getWarehouseId())
-                .like(StringUtils.isNotBlank(query.getGoodsName()), StockDO::getGoodsName, query.getGoodsName())
                 .orderByDesc(StockDO::getUpdateTime);
 
         IPage<StockDO> result = this.page(page, wrapper);

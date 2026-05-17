@@ -10,7 +10,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication(scanBasePackages="com.lanf")
 @EnableDiscoveryClient  //nacos注册
 @EnableFeignClients(basePackages = {"com.lanf.log.api",
-        "com.lanf.order.api","com.lanf.api.goods.api"})
+        "com.lanf.api.goods.api","com.lanf.api.order.api"})
 
 public class StorageApplication {
     public static void main(String[] args) {

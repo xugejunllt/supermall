@@ -51,6 +51,7 @@ public class UserStockPreorderPublishLogServiceImpl extends ServiceImpl<UserStoc
         Long warehouseId = recycleStockDTO.getWarehouseId();
 
         StockDO one = stockService.lambdaQuery()
+                .eq(StockDO::getGoodsId, recycleStockDTO.getGoodsId())
                 .eq(StockDO::getSkuCode, skuCode)
                 .eq(StockDO::getWarehouseId, warehouseId)
                 .one();

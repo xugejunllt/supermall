@@ -27,7 +27,6 @@ public class MerchantController {
     @Autowired
     private IMerchantService merchantService;
 
-    @ApiOperation(value = "公司注册")
     @PostMapping("/registerMerchant")
     public Result<Void> registerMerchant(@RequestBody MerchantRegisterDTO companyRegister) {
 

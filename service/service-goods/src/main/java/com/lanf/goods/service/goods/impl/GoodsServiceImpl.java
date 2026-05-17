@@ -334,7 +334,6 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         stockDetail.setSkuCode(stockDO.getSkuCode());
         stockDetail.setWarehouseId(stockDO.getWarehouseId());
         stockDetail.setWarehouseName(stockDO.getWarehouseName());
-        stockDetail.setUnit(stockDO.getUnit());
         stockDetail.setUsableStock(stockDO.getUsableStock());
         stockDetail.setLockStock(stockDO.getLockStock());
         return stockDetail;

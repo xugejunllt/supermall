@@ -4,6 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.storage.model.dto.PublishStockDTO;
+import com.lanf.api.storage.model.query.StockPreorderPublishLogPageQuery;
+import com.lanf.api.storage.model.vo.StockPreorderPublishLogPageVO;
+import com.lanf.api.storage.mq.constant.StorageClientTopicName;
+import com.lanf.api.storage.mq.message.PublishStockMessage;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.JsonUtils;
@@ -15,15 +20,12 @@ import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.mapper.StockPreorderPublishLogMapper;
-import com.lanf.api.storage.model.dto.PublishStockDTO;
-import com.lanf.api.storage.model.query.StockPreorderPublishLogPageQuery;
-import com.lanf.api.storage.model.vo.StockPreorderPublishLogPageVO;
 import com.lanf.storage.model.entity.StockDO;
 import com.lanf.storage.model.entity.StockPreorderPublishLogDO;
-import com.lanf.api.storage.mq.constant.StorageClientTopicName;
-import com.lanf.api.storage.mq.message.PublishStockMessage;
+import com.lanf.storage.model.entity.WarehouseDO;
 import com.lanf.storage.service.stock.IStockPreorderPublishLogService;
 import com.lanf.storage.service.stock.IStockService;
+import com.lanf.storage.service.warehous.IWarehouseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,8 @@ public class StockPreorderPublishLogServiceImpl extends ServiceImpl<StockPreorde
     private IStockService stockService;
     @Autowired
     private RocketMqClient rocketMqClient;
+    @Autowired
+    private IWarehouseService warehouseService;
 
     @Transactional
     @Override
@@ -128,19 +132,25 @@ public class StockPreorderPublishLogServiceImpl extends ServiceImpl<StockPreorde
         return stockPreorderPublishLogDO;
     }
 
-    private PublishStockMessage buuildPublishStockMessage(PublishStockDTO publishStock, StockDO one,String flowNo){
+    private PublishStockMessage buuildPublishStockMessage(PublishStockDTO publishStock, StockDO one,
+                                                          String flowNo){
+
+        WarehouseDO warehouseDO = warehouseService.getById(publishStock.getWarehouseId());
+
+
         PublishStockMessage publishStockMessage = new PublishStockMessage();
         publishStockMessage.setFlowNo(flowNo);
         publishStockMessage.setSkuCode(publishStock.getSkuCode());
         publishStockMessage.setChangeQuantity(publishStock.getChangeQuantity());
         publishStockMessage.setWarehouseId(publishStock.getWarehouseId());
         publishStockMessage.setTenantId(UserContext.getTenantId());
-        publishStockMessage.setGoodsName(one.getGoodsName());
-        publishStockMessage.setUnit(one.getUnit());
         publishStockMessage.setWarehouseName(one.getWarehouseName());
         publishStockMessage.setEventType(StockPreorderEventTypeEnum.PUBLISH);
         publishStockMessage.setPublishPlatform(publishStock.getPublishPlatform());
-
+        publishStockMessage.setGoodsId(publishStock.getGoodsId());
+        publishStockMessage.setAreaCode(warehouseDO.getAreaCode());
+        publishStockMessage.setLatitude(warehouseDO.getLatitude());
+        publishStockMessage.setLongitude(warehouseDO.getLongitude());
         return publishStockMessage;
     }
 }

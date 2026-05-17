@@ -1,16 +1,17 @@
 package com.lanf.goods.mq.listener;
 
+import com.lanf.api.storage.mq.constant.StorageClientTopicName;
+import com.lanf.api.storage.mq.message.PublishStockMessage;
+import com.lanf.constant.model.enums.storage.PublishStatusEnum;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockPreorderPublishLogDO;
 import com.lanf.goods.mq.constant.GoodsMqGroupName;
+import com.lanf.goods.service.goods.IGoodsSkuService;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockFlowService;
 import com.lanf.goods.service.stock.IUserStockPreorderPublishLogService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
-import com.lanf.constant.model.enums.storage.PublishStatusEnum;
-import com.lanf.api.storage.mq.constant.StorageClientTopicName;
-import com.lanf.api.storage.mq.message.PublishStockMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -36,6 +37,8 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
     private IUserStockFlowService userStockFlowService;
     @Autowired
     private IUserStockPreorderPublishLogService userStockPreorderPublishLogService;
+    @Autowired
+    private IGoodsSkuService goodsSkuService;
 
 
     @Transactional
@@ -43,7 +46,11 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
     public void onMessage(PublishStockMessage message) {
 
         log.info("收到预发售库存消息:{}",message);
+
+        Long goodsId = message.getGoodsId();
+
         StockDO one = stockService.lambdaQuery()
+                .eq(StockDO::getGoodsId, goodsId)
                 .eq(StockDO::getSkuCode, message.getSkuCode())
                 .eq(StockDO::getWarehouseId, message.getWarehouseId())
                 .one();
@@ -53,13 +60,15 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
             one = new StockDO();
             one.setId(IdUtils.generateId());
             one.setSkuCode(message.getSkuCode());
-            one.setGoodsName(message.getGoodsName());
-            one.setUnit(message.getUnit());
             one.setUsableStock(message.getChangeQuantity());
             one.setLockStock(0);
             one.setWarehouseId(message.getWarehouseId());
             one.setWarehouseName(message.getWarehouseName());
             one.setTenantId(message.getTenantId());
+            one.setAreaCode(message.getAreaCode());
+            one.setLatitude(message.getLatitude());
+            one.setLongitude(message.getLongitude());
+            one.setGoodsId(goodsId);
             one.setVersion(0L);
         }
         Integer usableStock = one.getUsableStock() + message.getChangeQuantity();
@@ -84,6 +93,8 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
                  * 重试 走更新库存流程
                  */
                 throw new MessageRetryConsumeException("重复发布库存");
+            } catch (Exception ignored){
+
             }
         } else {
 

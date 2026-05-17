@@ -5,6 +5,16 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
+import com.lanf.api.order.api.OrderApiService;
+import com.lanf.api.storage.model.dto.OutStockItemDTO;
+import com.lanf.api.storage.model.dto.OutStockSalesOutStockOrderDTO;
+import com.lanf.api.storage.model.enums.StorageStatusEnum;
+import com.lanf.api.storage.model.query.SalesOutStockOrderPageQuery;
+import com.lanf.api.storage.model.vo.PurchaseInStockOrderItemDetailVO;
+import com.lanf.api.storage.model.vo.SalesOutStockOrderDetailVO;
+import com.lanf.api.storage.model.vo.SalesOutStockOrderPageVO;
+import com.lanf.api.storage.mq.constant.StorageClientTopicName;
+import com.lanf.api.storage.mq.message.SalesOutStockOrderFinishMessage;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.JsonUtils;
@@ -14,23 +24,13 @@ import com.lanf.constant.model.enums.LogisticsTrackStatusEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.api.order.api.OrderApiService;
 import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.model.message.OutStockFinishEventMessage;
 import com.lanf.rocketmq.util.MessageBuildAdapter;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.mapper.SalesOutStockOrderMapper;
 import com.lanf.storage.model.bo.StockUpdateBO;
-import com.lanf.api.storage.model.dto.OutStockItemDTO;
-import com.lanf.api.storage.model.dto.OutStockSalesOutStockOrderDTO;
 import com.lanf.storage.model.entity.*;
-import com.lanf.api.storage.model.enums.StorageStatusEnum;
-import com.lanf.api.storage.model.query.SalesOutStockOrderPageQuery;
-import com.lanf.api.storage.model.vo.PurchaseInStockOrderItemDetailVO;
-import com.lanf.api.storage.model.vo.SalesOutStockOrderDetailVO;
-import com.lanf.api.storage.model.vo.SalesOutStockOrderPageVO;
-import com.lanf.api.storage.mq.constant.StorageClientTopicName;
-import com.lanf.api.storage.mq.message.SalesOutStockOrderFinishMessage;
 import com.lanf.storage.service.stock.IStockFlowService;
 import com.lanf.storage.service.stock.IStockService;
 import com.lanf.storage.service.storage.IInOutStockOrderItemService;
@@ -73,8 +73,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     private IStockFlowService stockFlowService;
     @Autowired
     private IInOutStockOrderItemService storageOrderItemDetailsService;
-    @Autowired
-    private OrderApiService orderApiService;
+
     @Autowired
     private RocketMqClient rocketMqClient;
 

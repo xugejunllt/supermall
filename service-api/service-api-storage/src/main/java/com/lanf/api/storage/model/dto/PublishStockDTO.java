@@ -20,5 +20,6 @@ public class PublishStockDTO implements Serializable {
 
     private Long warehouseId;
 
+    private Long goodsId;
 
 }

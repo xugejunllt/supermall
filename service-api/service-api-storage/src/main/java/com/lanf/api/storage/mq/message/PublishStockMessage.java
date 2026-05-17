@@ -2,10 +2,10 @@ package com.lanf.api.storage.mq.message;
 
 import com.lanf.constant.model.enums.storage.PublishPlatformEnum;
 import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 public class PublishStockMessage implements Serializable {
@@ -13,7 +13,6 @@ public class PublishStockMessage implements Serializable {
 
     private String flowNo;
 
-    @ApiModelProperty(value = "sku编码")
     private String skuCode;
 
     private Integer changeQuantity;
@@ -22,12 +21,17 @@ public class PublishStockMessage implements Serializable {
 
     private Long tenantId;
 
-    private String goodsName;
-
-    private String unit;
-
     private String warehouseName;
 
+    private Long goodsId;
+
+    private String areaCode;
+
+    private BigDecimal latitude;
+    /**
+     * 经度
+     */
+    private BigDecimal longitude;
     private StockPreorderEventTypeEnum eventType;
 
     private PublishPlatformEnum publishPlatform;

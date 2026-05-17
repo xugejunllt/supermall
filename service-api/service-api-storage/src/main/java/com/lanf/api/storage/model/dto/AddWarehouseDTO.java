@@ -3,7 +3,9 @@ package com.lanf.api.storage.model.dto;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 public class AddWarehouseDTO implements Serializable {
@@ -27,6 +29,20 @@ public class AddWarehouseDTO implements Serializable {
     @NotBlank(message = "区不能为空")
     /** 区 */
     private String area;
+
+    @NotBlank(message = "区域编码不能为空")
+    private String areaCode;
+
+    /**
+     * 纬度
+     */
+    @NotNull(message = "纬度不能为空")
+    private BigDecimal latitude;
+    /**
+     * 经度
+     */
+    @NotNull(message = "经度不能为空")
+    private BigDecimal longitude;
 
     @NotBlank(message = "详细地址不能为空")
     /** 详细地址 */

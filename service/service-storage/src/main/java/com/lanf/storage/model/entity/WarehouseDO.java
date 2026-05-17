@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+
 /**
  * <p>
  * 仓库
@@ -40,7 +43,11 @@ private static final long serialVersionUID=1L;
     private String area;
 
     private String areaCode;
-
+    private BigDecimal latitude;
+    /**
+     * 经度
+     */
+    private BigDecimal longitude;
     /** 详细地址 */
     private String detailAddress;
 

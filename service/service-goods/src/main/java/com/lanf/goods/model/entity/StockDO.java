@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * <p>
  * 库存
@@ -22,11 +24,7 @@ private static final long serialVersionUID=1L;
     /** sku编码 */
     private String skuCode;
 
-    /** 商品名称 */
-    private String goodsName;
-
-    /** 单位 */
-    private String unit;
+    private Long goodsId;
 
     /** 可使用库存 */
     private Integer usableStock;
@@ -41,6 +39,12 @@ private static final long serialVersionUID=1L;
     private String warehouseName;
 
     private String areaCode;
+
+    private BigDecimal latitude;
+    /**
+     * 经度
+     */
+    private BigDecimal longitude;
 
     /** 版本号 乐观锁控制 */
     private Long version;
