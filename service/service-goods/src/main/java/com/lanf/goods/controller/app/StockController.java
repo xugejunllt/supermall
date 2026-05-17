@@ -34,6 +34,8 @@ public class StockController {
     @PostMapping("/stockQueryByGoodsId")
     public Result<List<StockWithDistanceVO>> stockQueryByGoodsId(@RequestBody @Validated
                                                                  StockQueryByGoodsIdQuery dto) {
+
+                log.info("商品库存查询:{}", dto);
             return Result.ok(stockService.stockQueryByGoodsId(dto));
     }
 

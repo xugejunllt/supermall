@@ -21,11 +21,12 @@ import com.lanf.constant.result.RpcResultParser;
 import com.lanf.goods.constant.GoodsCodeEnum;
 import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.dto.StockEnoughDTO;
-import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
 import com.lanf.goods.model.entity.GoodsDO;
 import com.lanf.goods.model.entity.GoodsSkuDO;
 import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
+import com.lanf.goods.model.enums.WarehouseSelectionStrategyEnum;
+import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.model.vo.StockWithDistanceVO;
 import com.lanf.goods.service.goods.IGoodsService;
@@ -45,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -392,6 +394,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         String areaCode = dto.getAreaCode();
         Long goodsId = dto.getGoodsId();
+        BigDecimal latitude = dto.getLatitude();
+        BigDecimal longitude = dto.getLongitude();
+        WarehouseSelectionStrategyEnum strategy = dto.getWarehouseSelectionStrategy();
         /**
          * 查询该商品下的 skuCode 所有库存
          */
@@ -401,49 +406,157 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         if (stockList.isEmpty()) {
             return Collections.emptyList();
         }
+        
+        // 获取用户地址的经纬度
+        AddressListVO userAddress = null;
 
         /**
-         * 根据areaCode 匹配仓储库存
+         * 1.优先取用户定位中的地理位置 的areaCode  latitude  longitude
+         * 2.取默认地址
+         * 3.如果没有默认地址，则抛出错误提示用户
          */
-        final String finalAreaCode = areaCode;
-        if (StringUtils.isEmpty(areaCode)) {
-            /**
-             * 1.优先取用户定位中的地理位置 的areaCode
-             * 2.取默认地址
-             * 3.如果没有默认地址，则抛出错误提示用户
-             */
-            AddressListVO address = getUserDefaultAddress();
-            areaCode = address.getAreaCode();
-        }
-        Map<String, StockDO> stockMap = new HashMap<>();
-        
-        for (StockDO stock : stockList) {
+        if ( !StringUtils.isEmpty(areaCode) &&
+               latitude  != null
+             &&  longitude  != null) {
 
-            String key = buildStockDOMapKey( stock.getSkuCode(),  finalAreaCode);
-            
-            if (!stockMap.containsKey(key)) {
-                stockMap.put(key, stock);
-            } else {
-                StockDO existingStock = stockMap.get(key);
-                StockDO selectedStock = selectBetterStock(existingStock, stock);
-                stockMap.put(key, selectedStock);
+            userAddress = new AddressListVO();
+            userAddress.setAreaCode(areaCode);
+            userAddress.setLatitude(latitude);
+            userAddress.setLongitude(longitude);
+        } else {
+            /**
+             * 没有定位信息  取用户默认地址
+             */
+            userAddress = getUserDefaultAddress();
+        }
+        // 根据仓库选择策略匹配库存
+        List<StockDO> matchedStockList = matchStockByStrategy(stockList, userAddress, strategy);
+        
+        // 转换为 VO 对象
+        return convertToStockWithDistanceVO(matchedStockList);
+    }
+
+    /**
+     * 根据仓库选择策略匹配库存
+     * @param stockList 所有库存列表
+     * @param userAddress 用户地址信息（包含经纬度）
+     * @param strategy 仓库选择策略
+     * @return 匹配后的库存列表
+     */
+    private List<StockDO> matchStockByStrategy(List<StockDO> stockList, AddressListVO userAddress, WarehouseSelectionStrategyEnum strategy) {
+        if (strategy == null) {
+            // 默认使用同区域附近仓库策略
+            strategy = WarehouseSelectionStrategyEnum.SAME_REGION_NEARBY;
+        }
+
+        switch (strategy) {
+            case SAME_REGION_NEARBY:
+                // 同区域附近仓库：优先选择相同 areaCode 的仓库，然后按距离排序
+                List<StockDO> sameAreaStocks = stockList.stream()
+                        .filter(stock -> userAddress.getAreaCode().equals(stock.getAreaCode()))
+                        .collect(Collectors.toList());
+
+                // 如果同区域有仓库，按距离排序；否则返回所有仓库按距离排序
+                if (!sameAreaStocks.isEmpty()) {
+                    return sortStockByDistance(sameAreaStocks, userAddress);
+                } else {
+                    return new ArrayList<>();
+                }
+
+            case NATIONAL_MOST_STOCK:
+                // 全国范围内附近仓库：按距离排序，不依赖库存数量
+                return sortStockByDistance(stockList, userAddress);
+
+            default:
+              throw new BizException("不支持的库存选择策略");
+        }
+    }
+    
+    /**
+     * 根据距离对库存列表进行排序（从近到远），并对相同 skuCode 去重，只保留最近的
+     * @param stockList 库存列表
+     * @param userAddress 用户地址
+     * @return 按距离排序并去重后的库存列表
+     */
+    private List<StockDO> sortStockByDistance(List<StockDO> stockList, AddressListVO userAddress) {
+        // 先计算每个库存的距离
+        Map<StockDO, Double> stockDistanceMap = new HashMap<>();
+        for (StockDO stock : stockList) {
+            if (stock.getLatitude() != null && stock.getLongitude() != null) {
+                double distance = calculateDistance(
+                        userAddress.getLatitude().doubleValue(), userAddress.getLongitude().doubleValue(),
+                        stock.getLatitude().doubleValue(), stock.getLongitude().doubleValue()
+                );
+                stockDistanceMap.put(stock, distance);
             }
         }
         
-        List<StockWithDistanceVO> result = new ArrayList<>();
+        // 按 skuCode 分组，每组保留距离最近的
+        Map<String, StockDO> bestStockBySkuCode = new HashMap<>();
+        for (Map.Entry<StockDO, Double> entry : stockDistanceMap.entrySet()) {
+            StockDO stock = entry.getKey();
+            Double distance = entry.getValue();
+            String skuCode = stock.getSkuCode();
+            
+            if (!bestStockBySkuCode.containsKey(skuCode)) {
+                bestStockBySkuCode.put(skuCode, stock);
+            } else {
+                // 比较距离，保留更近的
+                StockDO existingStock = bestStockBySkuCode.get(skuCode);
+                Double existingDistance = stockDistanceMap.get(existingStock);
+                if (distance < existingDistance) {
+                    bestStockBySkuCode.put(skuCode, stock);
+                }
+            }
+        }
         
-//        for (String skuCode : skuCodes) {
-//            String key = buildStockDOMapKey( skuCode,  finalAreaCode);
-//            StockDO stock = stockMap.get(key);
-//            StockWithDistanceVO vo = new StockWithDistanceVO();
-//            vo.setSkuCode(stock.getSkuCode());
-//            vo.setWarehouseId(stock.getWarehouseId());
-//            vo.setHasStock(stock.getUsableStock() != null && stock.getUsableStock() > 0);
-//            vo.setUsableStock(stock.getUsableStock());
-//            result.add(vo);
-//        }
+        // 将去重后的库存按距离排序
+        return bestStockBySkuCode.values().stream()
+                .sorted((s1, s2) -> {
+                    Double distance1 = stockDistanceMap.get(s1);
+                    Double distance2 = stockDistanceMap.get(s2);
+                    return Double.compare(distance1, distance2); // 升序排列，近的在前
+                })
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * 使用 Haversine 公式计算两点之间的距离
+     * @param lat1 起点纬度
+     * @param lon1 起点经度
+     * @param lat2 终点纬度
+     * @param lon2 终点经度
+     * @return 距离（公里）
+     */
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // 地球半径（公里）
+        
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        
+        return R * c;
+    }
+    
+    /**
+     * 将 StockDO 列表转换为 StockWithDistanceVO 列表
+     * @param stockList 库存列表
+     * @return VO 列表
+     */
+    private List<StockWithDistanceVO> convertToStockWithDistanceVO(List<StockDO> stockList) {
 
-        return result;
+        return stockList.stream().map(stock -> {
+            StockWithDistanceVO vo = new StockWithDistanceVO();
+            vo.setSkuCode(stock.getSkuCode());
+            vo.setWarehouseId(stock.getWarehouseId());
+            vo.setUsableStock(stock.getUsableStock());
+            vo.setHasStock(stock.getUsableStock() != null && stock.getUsableStock() > 0);
+
+            return vo;
+        }).collect(Collectors.toList());
     }
 
     private String buildStockDOMapKey(String skuCode, String finalAreaCode){
