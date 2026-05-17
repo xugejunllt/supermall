@@ -97,6 +97,7 @@ public class UserStockPreorderPublishLogServiceImpl extends ServiceImpl<UserStoc
         stockPreorderPublishLogDO.setTenantId(UserContext.getTenantId());
         stockPreorderPublishLogDO.setStatus(PublishStatusEnum.SUCCESS);
         stockPreorderPublishLogDO.setWarehouseName(one.getWarehouseName());
+        stockPreorderPublishLogDO.setGoodsId(publishStock.getGoodsId());
         return stockPreorderPublishLogDO;
     }
 

@@ -40,7 +40,10 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
     @Autowired
     private IGoodsSkuService goodsSkuService;
 
-
+    /**
+     * 路由到同个库 支持事务注解
+     *
+     */
     @Transactional
     @Override
     public void onMessage(PublishStockMessage message) {
