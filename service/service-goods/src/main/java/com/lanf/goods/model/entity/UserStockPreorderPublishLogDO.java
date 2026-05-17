@@ -23,6 +23,8 @@ private static final long serialVersionUID=1L;
 
     private String flowNo;
 
+    private Long goodsId;
+
     /** 库存id */
     private Long stockId;
 

@@ -101,6 +101,18 @@ public class ShardingSphereBeanConfig {
         );
         shardingRuleConfig.getTables().add(cartRule);
         
+        ShardingTableRuleConfiguration userStockPreorderPublishLogRule = new ShardingTableRuleConfiguration(
+                "user_stock_preorder_publish_log",
+                "ds${0..2}.user_stock_preorder_publish_log"
+        );
+        userStockPreorderPublishLogRule.setDatabaseShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "goods_id",
+                        "user-stock-database-algorithm"
+                )
+        );
+        shardingRuleConfig.getTables().add(userStockPreorderPublishLogRule);
+        
         ShardingTableRuleConfiguration goodsRule = new ShardingTableRuleConfiguration(
                 "goods",
                 "ds0.goods"
@@ -166,12 +178,6 @@ public class ShardingSphereBeanConfig {
                 "ds0.shop"
         );
         shardingRuleConfig.getTables().add(shopRule);
-        
-        ShardingTableRuleConfiguration userStockPreorderPublishLogRule = new ShardingTableRuleConfiguration(
-                "user_stock_preorder_publish_log",
-                "ds0.user_stock_preorder_publish_log"
-        );
-        shardingRuleConfig.getTables().add(userStockPreorderPublishLogRule);
 
         Map<String, AlgorithmConfiguration> shardingAlgorithms = new LinkedHashMap<>();
         

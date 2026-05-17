@@ -129,6 +129,7 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
         userStockPreorderPublishLogDO.setTenantId(message.getTenantId());
         userStockPreorderPublishLogDO.setStatus(PublishStatusEnum.SUCCESS);
         userStockPreorderPublishLogDO.setWarehouseName(message.getWarehouseName());
+        userStockPreorderPublishLogDO.setGoodsId(message.getGoodsId());
         return userStockPreorderPublishLogDO;
     }
 
