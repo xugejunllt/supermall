@@ -23,6 +23,10 @@ public class StockQueryByGoodsIdQuery implements Serializable {
      */
     private BigDecimal longitude;
 
+
+    private String skuCode;
+
+
     private WarehouseSelectionStrategyEnum warehouseSelectionStrategy;
 
 }

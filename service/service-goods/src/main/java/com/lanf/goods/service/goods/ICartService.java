@@ -3,14 +3,15 @@ package com.lanf.goods.service.goods;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.api.goods.model.dto.ClearCartDTO;
 import com.lanf.api.goods.model.dto.ValidateCartDTO;
-import com.lanf.constant.model.query.PageQuery;
-import com.lanf.constant.model.vo.PageResult;
-import com.lanf.goods.model.dto.*;
-import com.lanf.goods.model.entity.CartDO;
-import com.lanf.goods.model.vo.CartAddVO;
-import com.lanf.goods.model.vo.CartListVO;
 import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.goods.model.dto.AddCartDTO;
+import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
+import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
+import com.lanf.goods.model.entity.CartDO;
+import com.lanf.goods.model.vo.CartListVO;
 
 /**
  * <p>
@@ -27,7 +28,7 @@ public interface ICartService extends IService<CartDO> {
      * 从商品详细页添加到购物车
      *
      */
-    CartAddVO cartAdd(CartAddDTO dto);
+    void addCart(AddCartDTO dto);
 
     /**
      * 从购物列表中增加商品数量

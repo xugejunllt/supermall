@@ -3,12 +3,13 @@ package com.lanf.goods.service.goods.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.goods.model.bo.GoodsItem;
+import com.lanf.api.goods.model.bo.ShopGoods;
 import com.lanf.api.goods.model.dto.ClearCartDTO;
 import com.lanf.api.goods.model.dto.ValidateCartDTO;
 import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
 import com.lanf.cache.aop.DistributedLock;
-import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.query.PageQuery;
@@ -16,21 +17,26 @@ import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.goods.mapper.CartMapper;
 import com.lanf.goods.model.bo.CartSortOrderBO;
-import com.lanf.api.goods.model.bo.GoodsItem;
-import com.lanf.api.goods.model.bo.ShopGoods;
-import com.lanf.goods.model.dto.*;
+import com.lanf.goods.model.dto.AddCartDTO;
+import com.lanf.goods.model.dto.DecrementCartItemQuantityDTO;
+import com.lanf.goods.model.dto.IncrementCartItemQuantityDTO;
 import com.lanf.goods.model.entity.*;
-import com.lanf.goods.model.vo.*;
+import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
+import com.lanf.goods.model.vo.CartItemVO;
+import com.lanf.goods.model.vo.CartListVO;
+import com.lanf.goods.model.vo.StockWithDistanceVO;
 import com.lanf.goods.service.goods.ICartService;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
 import com.lanf.goods.service.goods.IShopService;
+import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.utils.GoodsServiceUtils;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,42 +65,74 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
     private IShopService shopService;
     @Autowired
     private ITccOperationService tccOperationService;
+    @Autowired
+    private IStockService stockService;
 
     @DistributedLock(key = "#dto.userId")
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public CartAddVO cartAdd(CartAddDTO dto) {
+    public void addCart(AddCartDTO dto) {
+
+        /**
+         * 校验库存是否足够
+         */
+        StockQueryByGoodsIdQuery byGoodsIdQuery = new StockQueryByGoodsIdQuery();
+        byGoodsIdQuery.setGoodsId(dto.getGoodsId());
+        byGoodsIdQuery.setSkuCode(dto.getSkuCode());
+        byGoodsIdQuery.setAreaCode(dto.getAreaCode());
+        byGoodsIdQuery.setLongitude(dto.getLongitude());
+        byGoodsIdQuery.setLatitude(dto.getLatitude());
+        List<StockWithDistanceVO> distanceVOS = stockService.stockQueryByGoodsId(byGoodsIdQuery);
+        if (distanceVOS.isEmpty()) {
+            throw new BizException("商品无库存");
+        }
+        StockWithDistanceVO stock = distanceVOS.get(0);
 
         String skuCode = dto.getSkuCode();
-        // 验证库存和SKU信息
-        validateCartItem(dto, skuCode);
+        Long goodsId = dto.getGoodsId();
         // 查询是否已存在相同的购物车项
         Long userId = UserContext.getUserId();
         GoodsSkuDO goodsSkuDO = goodsSkuService.lambdaQuery()
-                .eq(GoodsSkuDO::getSkuCode, dto.getSkuCode()).one();
-        Long skuId = goodsSkuDO.getId();
+                .eq(GoodsSkuDO::getGoodsId, goodsId)
+                .eq(GoodsSkuDO::getSkuCode, dto.getSkuCode())
+                .one();
+
         GoodsDO goodsDO = goodsService.getById(goodsSkuDO.getGoodsId());
         Long shopId = goodsDO.getShopId();
         CartDO existingCartDO = this.lambdaQuery()
-                .eq(CartDO::getSkuId, skuId)
+                .eq(CartDO::getGoodsId, goodsId)
+                .eq(CartDO::getSkuCode, skuCode)
                 .eq(CartDO::getUserId, userId)
                 .one();
         CartDO cartDO = null;
         if (existingCartDO == null) {
              cartDO = buildCartDO(dto, goodsSkuDO, goodsDO);
-
+             if (cartDO.getQuantity() > stock.getUsableStock()) {
+                throw new BizException("商品库存不足");
+              }
         }
         //计算购物车项的排序码
         CartSortOrderBO cartSortOrderBO = calculateSortOrder( shopId,  userId);
 
         if (existingCartDO == null) {
-            this.save(cartDO);
+            try {
+                this.save(cartDO);
+            } catch (DuplicateKeyException e) {
+               throw new BizException("添加失败");
+            }
         } else {
+
+            int updateQuantity = dto.getQuantity() + existingCartDO.getQuantity();
+            if (updateQuantity > stock.getUsableStock()) {
+                throw new BizException("商品库存不足");
+            }
+
+
             Long version = existingCartDO.getVersion();
             boolean update = this.lambdaUpdate()
                     .eq(BaseEntity::getId, existingCartDO.getId())
                     .eq(CartDO::getVersion, version)
-                    .set(CartDO::getQuantity, dto.getQuantity() + existingCartDO.getQuantity())
+                    .set(CartDO::getQuantity, updateQuantity)
                     .set(CartDO::getVersion, version + 1)
                     .update();
             if (!update) {
@@ -103,7 +141,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
 
         }
         batchUpdateSortOrderByShopId( cartSortOrderBO);
-        return  BeanCopyUtils.copyBean(cartSortOrderBO, CartAddVO.class);
+
     }
     /**
      * 计算购物车项的排序码
@@ -130,7 +168,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         return cartSortOrderBO;
     }
 
-    private CartDO buildCartDO(CartAddDTO dto, GoodsSkuDO goodsSkuDO,GoodsDO goodsDO){
+    private CartDO buildCartDO(AddCartDTO dto, GoodsSkuDO goodsSkuDO, GoodsDO goodsDO){
 
 
         Long sortOrder = 1L;
@@ -148,7 +186,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
     /**
      * 验证商品库存和SKU信息
      */
-    private void validateCartItem(CartAddDTO dto, String skuCode) {
+    private void validateCartItem(AddCartDTO dto, String skuCode) {
         // 验证库存
         StockDO stockDO = GoodsServiceUtils.findStockDO(skuCode);
         if (stockDO == null) {
@@ -184,10 +222,23 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
             log.warn("购物车项不存在");
             throw new BizException("购物车项不存在");
         }
-        StockDO stockDO = GoodsServiceUtils.findStockDO(cartDO.getSkuCode());
+        StockQueryByGoodsIdQuery byGoodsIdQuery = new StockQueryByGoodsIdQuery();
+        byGoodsIdQuery.setGoodsId(cartDO.getGoodsId());
+        byGoodsIdQuery.setSkuCode(cartDO.getSkuCode());
+        byGoodsIdQuery.setAreaCode(dto.getAreaCode());
+        byGoodsIdQuery.setLongitude(dto.getLongitude());
+        byGoodsIdQuery.setLatitude(dto.getLatitude());
 
-        if (dto.getIncrementQuantity() > stockDO.getUsableStock()) {
-            log.warn("商品库存不足,剩余库存[{}]", stockDO.getUsableStock());
+        List<StockWithDistanceVO> distanceVOS = stockService.stockQueryByGoodsId(byGoodsIdQuery);
+        if (distanceVOS.isEmpty()) {
+            throw new BizException("商品无库存");
+        }
+        StockWithDistanceVO stock = distanceVOS.get(0);
+
+        int updateQuantity = dto.getIncrementQuantity() + cartDO.getQuantity();
+
+        if (updateQuantity  > stock.getUsableStock()) {
+            log.warn("商品库存不足,剩余库存[{}]", stock.getUsableStock());
             throw new BizException("商品库存不足");
         }
 
@@ -195,7 +246,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, cartDO.getId())
                 .eq(CartDO::getVersion, version)
-                .set(CartDO::getQuantity, dto.getIncrementQuantity() + cartDO.getQuantity())
+                .set(CartDO::getQuantity, updateQuantity)
                 .set(CartDO::getVersion, version + 1)
                 .update();
         if (!update) {

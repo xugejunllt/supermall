@@ -401,6 +401,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
          * 查询该商品下的 skuCode 所有库存
          */
         List<StockDO> stockList = this.lambdaQuery()
+                .eq(dto.getSkuCode()!=null, StockDO::getSkuCode, dto.getSkuCode())
                 .eq(StockDO::getGoodsId, goodsId)
                 .list();
         if (stockList.isEmpty()) {
@@ -414,6 +415,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
          * 1.优先取用户定位中的地理位置 的areaCode  latitude  longitude
          * 2.取默认地址
          * 3.如果没有默认地址，则抛出错误提示用户
+         *
+         * 对于客户端 如果没有默认地址 传定位
+         * 如果有默认地址 则不传定位
          */
         if ( !StringUtils.isEmpty(areaCode) &&
                latitude  != null
