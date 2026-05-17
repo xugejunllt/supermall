@@ -82,6 +82,14 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!-- SnakeYAML - 解决 ShardingSphere 兼容性问题 -->
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>1.33</version>
+            </dependency>
+
             <!--mybatis-plus 持久层-->
             <dependency>
                 <groupId>com.baomidou</groupId>

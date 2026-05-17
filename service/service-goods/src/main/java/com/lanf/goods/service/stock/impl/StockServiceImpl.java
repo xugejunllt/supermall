@@ -31,7 +31,6 @@ import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.model.vo.StockWithDistanceVO;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
-import com.lanf.goods.service.goods.IUserStockSyncRecordService;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockFlowService;
 import com.lanf.goods.utils.GoodsServiceUtils;
@@ -60,8 +59,7 @@ import java.util.stream.Collectors;
 @Service
 public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implements IStockService {
 
-    @Autowired
-    private IUserStockSyncRecordService userStockSyncRecordService;
+
 
     @Autowired
     private IUserStockFlowService userStockFlowService;
