@@ -287,9 +287,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getGoodsId, id).list();
         GoodsCategoryDO categoryDO = goodsCategoryService.lambdaQuery().eq(BaseEntity::getId, goodsDO.getCategoryId()).eq(GoodsCategoryDO::getLevel, 3).one();
         GoodsBrandDO brandDO = goodsBrandService.getById(goodsDO.getBrandId());
-        List<String> skuCodes = goodsSkuDOList.stream().map(GoodsSkuDO::getSkuCode).collect(Collectors.toList());
         List<StockDO> stockDOList = stockService.lambdaQuery()
-                .in(StockDO::getSkuCode, skuCodes)
+                .eq(StockDO::getGoodsId, id)
                 .list();
 
         List<GoodsSkuDetail> goodsSkuDetailVOList = BeanCopyUtils.copyBeanList(goodsSkuDOList, GoodsSkuDetail.class);

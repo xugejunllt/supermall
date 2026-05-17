@@ -3,6 +3,7 @@ package com.lanf.api.user.model.vo;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Data
 public class AddressListVO implements Serializable {
@@ -35,7 +36,14 @@ public class AddressListVO implements Serializable {
     private String address;
 
     private String areaCode;
-
+    /**
+     * 纬度
+     */
+    private BigDecimal latitude;
+    /**
+     * 经度
+     */
+    private BigDecimal longitude;
     /**
      * 是否默认 0默认 1.不是
      */

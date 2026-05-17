@@ -1,9 +1,8 @@
 package com.lanf.goods.controller.app;
 
-import com.lanf.api.user.api.UserApiService;
 import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.StockEnoughDTO;
-import com.lanf.goods.model.dto.StockQueryBySkuDTO;
+import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.model.vo.StockWithDistanceVO;
 import com.lanf.goods.service.stock.IStockService;
@@ -32,10 +31,10 @@ public class StockController {
 
         return Result.ok(stockService.isStockEnough(dto));
     }
-    @PostMapping("/queryStockBySkuCodes")
-    public Result<List<StockWithDistanceVO>> queryStockBySkuCodes(@RequestBody @Validated
-                                                                      StockQueryBySkuDTO dto) {
-            return Result.ok(stockService.queryStockBySkuCodes(dto));
+    @PostMapping("/stockQueryByGoodsId")
+    public Result<List<StockWithDistanceVO>> stockQueryByGoodsId(@RequestBody @Validated
+                                                                 StockQueryByGoodsIdQuery dto) {
+            return Result.ok(stockService.stockQueryByGoodsId(dto));
     }
 
 }

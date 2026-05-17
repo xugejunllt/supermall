@@ -21,7 +21,7 @@ import com.lanf.constant.result.RpcResultParser;
 import com.lanf.goods.constant.GoodsCodeEnum;
 import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.dto.StockEnoughDTO;
-import com.lanf.goods.model.dto.StockQueryBySkuDTO;
+import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
 import com.lanf.goods.model.entity.GoodsDO;
 import com.lanf.goods.model.entity.GoodsSkuDO;
 import com.lanf.goods.model.entity.StockDO;
@@ -387,10 +387,25 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     }
     
     @Override
-    public List<StockWithDistanceVO> queryStockBySkuCodes(StockQueryBySkuDTO dto) {
+    public List<StockWithDistanceVO> stockQueryByGoodsId(StockQueryByGoodsIdQuery dto) {
         
 
         String areaCode = dto.getAreaCode();
+        Long goodsId = dto.getGoodsId();
+        /**
+         * 查询该商品下的 skuCode 所有库存
+         */
+        List<StockDO> stockList = this.lambdaQuery()
+                .eq(StockDO::getGoodsId, goodsId)
+                .list();
+        if (stockList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        /**
+         * 根据areaCode 匹配仓储库存
+         */
+        final String finalAreaCode = areaCode;
         if (StringUtils.isEmpty(areaCode)) {
             /**
              * 1.优先取用户定位中的地理位置 的areaCode
@@ -399,19 +414,6 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
              */
             AddressListVO address = getUserDefaultAddress();
             areaCode = address.getAreaCode();
-        }
-        /**
-         * 根据areaCode 匹配仓储库存
-         */
-        final String finalAreaCode = areaCode;
-        List<String> skuCodes = dto.getSkuCodes();
-
-        List<StockDO> stockList = this.lambdaQuery()
-                .in(StockDO::getSkuCode, skuCodes)
-                .eq(StockDO::getAreaCode, finalAreaCode)
-                .list();
-        if (stockList.isEmpty()) {
-            return Collections.emptyList();
         }
         Map<String, StockDO> stockMap = new HashMap<>();
         
@@ -430,16 +432,16 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         
         List<StockWithDistanceVO> result = new ArrayList<>();
         
-        for (String skuCode : skuCodes) {
-            String key = buildStockDOMapKey( skuCode,  finalAreaCode);
-            StockDO stock = stockMap.get(key);
-            StockWithDistanceVO vo = new StockWithDistanceVO();
-            vo.setSkuCode(stock.getSkuCode());
-            vo.setWarehouseId(stock.getWarehouseId());
-            vo.setHasStock(stock.getUsableStock() != null && stock.getUsableStock() > 0);
-            vo.setUsableStock(stock.getUsableStock());
-            result.add(vo);
-        }
+//        for (String skuCode : skuCodes) {
+//            String key = buildStockDOMapKey( skuCode,  finalAreaCode);
+//            StockDO stock = stockMap.get(key);
+//            StockWithDistanceVO vo = new StockWithDistanceVO();
+//            vo.setSkuCode(stock.getSkuCode());
+//            vo.setWarehouseId(stock.getWarehouseId());
+//            vo.setHasStock(stock.getUsableStock() != null && stock.getUsableStock() > 0);
+//            vo.setUsableStock(stock.getUsableStock());
+//            result.add(vo);
+//        }
 
         return result;
     }
