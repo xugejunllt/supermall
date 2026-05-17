@@ -24,8 +24,7 @@ public class ShardingSphereBeanConfig {
 
         Properties props = new Properties();
         props.setProperty("sql-show", "true");
-        props.setProperty("show-process-list-enabled", "true");
-        
+
         return ShardingSphereDataSourceFactory.createDataSource(
                 dataSourceMap,
                 Collections.singleton(shardingRuleConfig),
