@@ -196,7 +196,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
 
         /**
-         * 校验库存
+         * 校验购物车
          */
         ValidateCartItemVO validateCartItemVO = RpcResultParser.parseResult(goodsApiService.validateCartItem(dto));
 

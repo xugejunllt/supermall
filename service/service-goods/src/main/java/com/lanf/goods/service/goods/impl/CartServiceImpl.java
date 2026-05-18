@@ -412,14 +412,6 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
             log.warn("部分购物车项不存在");
             throw  new BizException("部分购物车项不存在");
         }
-        for (CartDO cartDO : cartDOList){
-
-            StockDO stockDO = GoodsServiceUtils.findStockDO(cartDO.getSkuCode());
-            if (stockDO.getUsableStock() < cartDO.getQuantity()){
-                log.warn("库存不足");
-                throw new BizException("库存不足");
-            }
-        }
 
         /**
          * 构建返回数据
@@ -459,6 +451,13 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
                 goodsItemVO.setGoodsName(goodsDOMap.get(cartDO.getGoodsId()).getName());
                 goodsItemVO.setQuantity(cartDO.getQuantity());
                 goodsItemVO.setPrice(goodsSkuDO.getPrice());
+                goodsItemVO.setSkuCode(goodsSkuDO.getSkuCode());
+                goodsItemVO.setSkuName(goodsSkuDO.getAttributeDetail());
+                goodsItemVO.setGoodsId(cartDO.getGoodsId());
+                goodsItemVO.setGoodsTitle(goodsDOMap.get(cartDO.getGoodsId()).getTitle());
+                goodsItemVO.setSkuPictureAddress(goodsSkuDO.getSkuPictureAddress());
+                goodsItemVO.setGoodsVersion(goodsDOMap.get(cartDO.getGoodsId()).getVersion());
+                goodsItemVO.setSkuVersion(goodsSkuDO.getVersion());
                 cartItemList.add(goodsItemVO);
                 //累加总金额
                 totalPrice = BigDecimalUtil.add(totalPrice, GoodsServiceUtils.calculateTotalAmount(goodsSkuDO.getPrice(),
@@ -468,6 +467,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
             goodsVOList.add(shopGoodsVO);
         }
         ValidateCartItemVO validateCartItemVO = new ValidateCartItemVO();
+        validateCartItemVO.setTotalPrice(totalPrice);
         validateCartItemVO.setGoodsVOList(goodsVOList);
 
         return validateCartItemVO;
