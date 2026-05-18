@@ -39,6 +39,7 @@ public class GoodsItem implements Serializable {
     /** sku 版本 */
     private Long skuVersion;
     
-    private Long warehouseId;
+    private Long tenantId;
+
 
 }

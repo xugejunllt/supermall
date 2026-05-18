@@ -14,9 +14,7 @@ import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.order.model.dto.BathCreateOrderDTO;
-import com.lanf.order.model.dto.CreateOrderDTO;
-import com.lanf.order.model.dto.OrderItemDTO;
+import com.lanf.order.model.dto.*;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.api.pay.api.PayApiService;
@@ -37,10 +35,6 @@ import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
-import com.lanf.order.model.dto.CalculateOrderAmountDTO;
-import com.lanf.order.model.dto.CancelOrderDTO;
-import com.lanf.order.model.dto.PlaceOrderDTO;
-import com.lanf.order.model.dto.SubmitCartDTO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
@@ -67,6 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -421,8 +416,13 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         /**
          * 清空购物车
          */
+        List<CartInfoDTO> cartInfoList = dto.getCartInfoList();
+        List<Long> cartIdList =
+                cartInfoList.stream().map(CartInfoDTO::getCartId).collect(Collectors.toList());
+
         ClearCartDTO clearCartDTO = new ClearCartDTO();
-        clearCartDTO.setBizKeyPrx(dto.getMainOrderNumber());
+        clearCartDTO.setCartIds(cartIdList);
+        clearCartDTO.setUserId(UserContext.getUserId());
         ClearCartVO clearCartVO = RpcResultParser.parseResult(goodsApiService.clearCart(clearCartDTO));
 
         /**
@@ -498,7 +498,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         CreateMergeTradeOrderDTO createMergeTradeOrderDTO = new CreateMergeTradeOrderDTO();
         createMergeTradeOrderDTO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
         createMergeTradeOrderDTO.setUserId(submitCartOrderInitParamsBO.getUserId());
-        createMergeTradeOrderDTO.setPayType(dto.getPayType());
         createMergeTradeOrderDTO.setMainOrderNumber(dto.getMainOrderNumber());
         List<CreateMergeTradeOrderItemDTO> tradeOrderItemList = new ArrayList<>(goodsVOList.size());
         createMergeTradeOrderDTO.setTradeOrderItemList(tradeOrderItemList);

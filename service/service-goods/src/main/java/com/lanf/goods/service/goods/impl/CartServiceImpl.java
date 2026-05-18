@@ -400,10 +400,14 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
     public ValidateCartItemVO validateCartItem(ValidateCartDTO dto) {
 
         List<Long> cartIds = dto.getCartIds();
+        Long userId = dto.getUserId();
         /**
          * 校验库存
          */
-        List<CartDO> cartDOList = this.lambdaQuery().in(CartDO::getId, cartIds).list();
+        List<CartDO> cartDOList = this.lambdaQuery()
+                .eq(CartDO::getUserId, userId)
+                .in(CartDO::getId, cartIds)
+                .list();
         if (cartDOList.isEmpty()){
             log.warn("购物车项不存在");
            throw  new BizException("购物车项不存在");
@@ -458,6 +462,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
                 goodsItemVO.setSkuPictureAddress(goodsSkuDO.getSkuPictureAddress());
                 goodsItemVO.setGoodsVersion(goodsDOMap.get(cartDO.getGoodsId()).getVersion());
                 goodsItemVO.setSkuVersion(goodsSkuDO.getVersion());
+                goodsItemVO.setTenantId(goodsSkuDO.getTenantId());
                 cartItemList.add(goodsItemVO);
                 //累加总金额
                 totalPrice = BigDecimalUtil.add(totalPrice, GoodsServiceUtils.calculateTotalAmount(goodsSkuDO.getPrice(),
@@ -478,20 +483,25 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
 
         ValidateCartDTO dto1   = new ValidateCartDTO();
         dto1.setCartIds(dto.getCartIds());
+        dto1.setUserId(dto.getUserId());
         ValidateCartItemVO validateCartItemVO = validateCartItem(dto1);
         ClearCartVO clearCartVO = new ClearCartVO();
         clearCartVO.setGoodsVOList(validateCartItemVO.getGoodsVOList());
         clearCartVO.setTotalPrice(validateCartItemVO.getTotalPrice());
-
-
 
         return clearCartVO;
     }
 
 
     public void  confirmClearCart(ClearCartDTO dto){
-        log.info("confirmClearCart");
-        this.removeByIds(dto.getCartIds());
+
+        log.info("清空购物车数据:{}", dto);
+
+         this.lambdaUpdate()
+                .eq(CartDO::getUserId, dto.getUserId())
+                .in(CartDO::getId, dto.getCartIds())
+                .remove();
+
     }
 
     public void  cancelClearCart(ClearCartDTO dto){

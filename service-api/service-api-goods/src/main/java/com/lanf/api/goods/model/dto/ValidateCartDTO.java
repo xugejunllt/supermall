@@ -16,4 +16,6 @@ public class ValidateCartDTO implements Serializable {
     @NotEmpty(message = "购物车id不能为空")
     private List<Long> cartIds;
 
+    private Long userId;
+
 }

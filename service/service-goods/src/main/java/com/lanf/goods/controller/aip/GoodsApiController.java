@@ -4,6 +4,7 @@ import com.lanf.api.goods.model.dto.*;
 import com.lanf.api.goods.model.vo.*;
 import com.lanf.constant.result.Result;
 import com.lanf.api.goods.model.query.ReconciliationStockFlowQuery;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.goods.service.base.IBaseGoodsService;
 import com.lanf.goods.service.goods.ICartService;
 import com.lanf.goods.service.goods.IGoodsService;
@@ -72,6 +73,7 @@ public class GoodsApiController {
     public Result<ValidateCartItemVO>  validateCartItem(@RequestBody @Validated ValidateCartDTO dto)  {
 
         log.info("提交订单校验购物车项目[{}]", dto);
+        dto.setUserId(UserContext.getUserId());
 
         return Result.ok(cartService.validateCartItem(dto));
 
@@ -85,7 +87,7 @@ public class GoodsApiController {
     @PostMapping("/clearCart")
     public Result<ClearCartVO>  clearCart(@RequestBody @Validated ClearCartDTO dto)  {
 
-        log.info("清空购物车[{}]", dto);
+        log.info("清空购物车预执行[{}]", dto);
 
         return Result.ok(cartService.clearCart(dto));
 
