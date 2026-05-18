@@ -17,4 +17,11 @@ public class StockEnoughDTO {
     @Min(value = 1, message = "商品购买数量不能小于1")
     private Integer quantity;
 
+    @NotNull(message = "收货地址id不能为空")
+    private Long addressId;
+
+    @NotNull(message = "商品id不能为空")
+    private Long goodsId;
+
+
 }

@@ -7,7 +7,10 @@ import java.io.Serializable;
 public class StockEnoughVO implements Serializable {
 
 
-    private Boolean enough;
-    private Long skuId;
+    private String skuCode;
+
+    private Long goodsId;
+
+    private Long warehouseId;
 
 }

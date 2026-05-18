@@ -60,7 +60,6 @@ import java.util.stream.Collectors;
 public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implements IStockService {
 
 
-
     @Autowired
     private IUserStockFlowService userStockFlowService;
     @Autowired
@@ -78,7 +77,6 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     /**
      * 查找所有库存
      * 多仓库
-     *
      */
 
     @Override
@@ -279,17 +277,46 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @Override
     public StockEnoughVO isStockEnough(StockEnoughDTO dto) {
 
-        StockDO stockDO = GoodsServiceUtils.findStockDO(dto.getSkuCode());
-        boolean enough = true;
-        if (stockDO.getUsableStock() < dto.getQuantity()) {
-            log.info("库存不足");
-            enough = false;
-        }
-        StockEnoughVO stockEnoughVO = new StockEnoughVO();
-        stockEnoughVO.setSkuId(stockDO.getId());
-        stockEnoughVO.setEnough(enough);
+        //1.校验是否有地址
+        List<AddressListVO> addressListVOS = RpcResultParser.parseResult(userCacheService.addressListQuery());
+        AddressListVO addressListVO = null;
+        for (AddressListVO add : addressListVOS) {
+            if (add.getId().equals(dto.getAddressId())) {
+                addressListVO = add;
+            }
 
-        return stockEnoughVO;
+        }
+        if (addressListVO == null) {
+            log.warn("请先选择收货地址");
+            throw new BizException("请先选择收货地址");
+        }
+        //2.查询库存
+        StockQueryByGoodsIdQuery stockEnoughVO = new StockQueryByGoodsIdQuery();
+        stockEnoughVO.setAreaCode(addressListVO.getAreaCode());
+        stockEnoughVO.setGoodsId(dto.getGoodsId());
+        stockEnoughVO.setSkuCode(dto.getSkuCode());
+        stockEnoughVO.setLatitude(addressListVO.getLatitude());
+        stockEnoughVO.setLongitude(addressListVO.getLongitude());
+
+        List<StockWithDistanceVO> distanceVOS = this.stockQueryByGoodsId(stockEnoughVO);
+        if (distanceVOS.isEmpty()) {
+            log.warn("商品无库存");
+            throw new BizException("商品无库存");
+        }
+        //3.校验库存
+        StockWithDistanceVO stock = distanceVOS.get(0);
+        if (dto.getQuantity() > stock.getUsableStock()) {
+            log.warn("库存不足");
+            throw new BizException("库存不足");
+        }
+        //4.封装返回
+        StockEnoughVO vco = new StockEnoughVO();
+        vco.setSkuCode(stock.getSkuCode());
+        vco.setGoodsId(dto.getGoodsId());
+        vco.setWarehouseId(stock.getWarehouseId());
+
+
+        return vco;
     }
 
     /**
@@ -354,6 +381,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         }
 
     }
+
     @Transactional
     public void cancelSeckillStockPreoccupation(SeckillStockPreoccupationDTO dto) {
 
@@ -385,10 +413,10 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             throw new BizException("预占库存失败");
         }
     }
-    
+
     @Override
     public List<StockWithDistanceVO> stockQueryByGoodsId(StockQueryByGoodsIdQuery dto) {
-        
+
 
         String areaCode = dto.getAreaCode();
         Long goodsId = dto.getGoodsId();
@@ -399,13 +427,13 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
          * 查询该商品下的 skuCode 所有库存
          */
         List<StockDO> stockList = this.lambdaQuery()
-                .eq(dto.getSkuCode()!=null, StockDO::getSkuCode, dto.getSkuCode())
+                .eq(dto.getSkuCode() != null, StockDO::getSkuCode, dto.getSkuCode())
                 .eq(StockDO::getGoodsId, goodsId)
                 .list();
         if (stockList.isEmpty()) {
             return Collections.emptyList();
         }
-        
+
         // 获取用户地址的经纬度
         AddressListVO userAddress = null;
 
@@ -417,9 +445,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
          * 对于客户端 如果没有默认地址 传定位
          * 如果有默认地址 则不传定位
          */
-        if ( !StringUtils.isEmpty(areaCode) &&
-               latitude  != null
-             &&  longitude  != null) {
+        if (!StringUtils.isEmpty(areaCode) &&
+                latitude != null
+                && longitude != null) {
 
             userAddress = new AddressListVO();
             userAddress.setAreaCode(areaCode);
@@ -433,16 +461,17 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         }
         // 根据仓库选择策略匹配库存
         List<StockDO> matchedStockList = matchStockByStrategy(stockList, userAddress, strategy);
-        
+
         // 转换为 VO 对象
         return convertToStockWithDistanceVO(matchedStockList);
     }
 
     /**
      * 根据仓库选择策略匹配库存
-     * @param stockList 所有库存列表
+     *
+     * @param stockList   所有库存列表
      * @param userAddress 用户地址信息（包含经纬度）
-     * @param strategy 仓库选择策略
+     * @param strategy    仓库选择策略
      * @return 匹配后的库存列表
      */
     private List<StockDO> matchStockByStrategy(List<StockDO> stockList, AddressListVO userAddress, WarehouseSelectionStrategyEnum strategy) {
@@ -470,13 +499,14 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 return sortStockByDistance(stockList, userAddress);
 
             default:
-              throw new BizException("不支持的库存选择策略");
+                throw new BizException("不支持的库存选择策略");
         }
     }
-    
+
     /**
      * 根据距离对库存列表进行排序（从近到远），并对相同 skuCode 去重，只保留最近的
-     * @param stockList 库存列表
+     *
+     * @param stockList   库存列表
      * @param userAddress 用户地址
      * @return 按距离排序并去重后的库存列表
      */
@@ -492,14 +522,14 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 stockDistanceMap.put(stock, distance);
             }
         }
-        
+
         // 按 skuCode 分组，每组保留距离最近的
         Map<String, StockDO> bestStockBySkuCode = new HashMap<>();
         for (Map.Entry<StockDO, Double> entry : stockDistanceMap.entrySet()) {
             StockDO stock = entry.getKey();
             Double distance = entry.getValue();
             String skuCode = stock.getSkuCode();
-            
+
             if (!bestStockBySkuCode.containsKey(skuCode)) {
                 bestStockBySkuCode.put(skuCode, stock);
             } else {
@@ -511,7 +541,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 }
             }
         }
-        
+
         // 将去重后的库存按距离排序
         return bestStockBySkuCode.values().stream()
                 .sorted((s1, s2) -> {
@@ -521,9 +551,10 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 })
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * 使用 Haversine 公式计算两点之间的距离
+     *
      * @param lat1 起点纬度
      * @param lon1 起点经度
      * @param lat2 终点纬度
@@ -532,19 +563,20 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
      */
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // 地球半径（公里）
-        
+
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        
+
         return R * c;
     }
-    
+
     /**
      * 将 StockDO 列表转换为 StockWithDistanceVO 列表
+     *
      * @param stockList 库存列表
      * @return VO 列表
      */
@@ -561,9 +593,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         }).collect(Collectors.toList());
     }
 
-    private String buildStockDOMapKey(String skuCode, String finalAreaCode){
+    private String buildStockDOMapKey(String skuCode, String finalAreaCode) {
 
-       return skuCode + "_" + finalAreaCode;
+        return skuCode + "_" + finalAreaCode;
     }
 
     private StockDO selectBetterStock(StockDO stock1, StockDO stock2) {
@@ -575,11 +607,11 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
          */
         boolean hasStock1 = stock1.getUsableStock() != null && stock1.getUsableStock() > 0;
         boolean hasStock2 = stock2.getUsableStock() != null && stock2.getUsableStock() > 0;
-        
+
         if (hasStock1 && !hasStock2) {
             return stock1;
         }
-        
+
         if (!hasStock1 && hasStock2) {
             return stock2;
         }
@@ -593,7 +625,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             return stock2;
         }
     }
-    
+
     private AddressListVO getUserDefaultAddress() {
 
         Result<List<AddressListVO>> result = userCacheService.addressListQuery();
@@ -610,9 +642,8 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         }
         throw new BizException(GoodsCodeEnum.ADDRESS_EMPTY.getCode(), GoodsCodeEnum.ADDRESS_EMPTY.getMessage());
     }
-    
 
-    
+
     @Override
     public PageResult<StockPageVO> stockPageQuery(UserStockPageQuery query) {
         IPage<StockDO> page = new Page<>(query.getPage(), query.getPageSize());

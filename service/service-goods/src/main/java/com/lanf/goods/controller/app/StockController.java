@@ -24,6 +24,10 @@ public class StockController {
     @Autowired
     private IStockService stockService;
 
+    /**
+     * 单笔下单时 校验库存是否足够
+     *
+     */
     @PostMapping("/isStockEnough")
     public Result<StockEnoughVO> isStockEnough(@RequestBody @Validated StockEnoughDTO dto) {
 
