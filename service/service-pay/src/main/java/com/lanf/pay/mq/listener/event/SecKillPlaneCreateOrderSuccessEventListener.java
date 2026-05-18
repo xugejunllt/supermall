@@ -5,7 +5,6 @@ import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.SecKillOrderConfirmMessage;
 import com.lanf.api.order.mq.message.SecKillPlaneCreateOrderSuccessMessage;
 import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
-import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.constant.PayMqGroupName;
 import com.lanf.pay.service.trade.ITradeOrderService;
@@ -40,12 +39,10 @@ public class SecKillPlaneCreateOrderSuccessEventListener implements RocketMQList
 
 
         CreateTradeOrderDTO dto = new CreateTradeOrderDTO();
-        dto.setBusinessId(null);
         dto.setOrderNumber(message.getOrderNumber());
         dto.setUserId(message.getUserId());
         dto.setOrderId(message.getOrderId());
         dto.setTradeMoney(message.getTradeMoney());
-        dto.setPayType(PayChannelEnum.ALI_PAY.getCode());
         //
         SecKillOrderConfirmMessage message1 = new SecKillOrderConfirmMessage();
         message1.setOrderNumber(message.getOrderNumber());

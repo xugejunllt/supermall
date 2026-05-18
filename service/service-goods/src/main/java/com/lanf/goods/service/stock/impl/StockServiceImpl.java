@@ -41,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -179,7 +180,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         boolean update = this.lambdaUpdate().
                 eq(StockDO::getId, stockDO.getId()).
                 eq(StockDO::getVersion, stockDO.getVersion()).
+                eq(StockDO::getGoodsId, goodsId1).
                 set(StockDO::getUsableStock, updateTotalStock).
+
                 set(StockDO::getLockStock, updateLockStock).
                 set(StockDO::getVersion, updateVersion).
                 update();
@@ -210,14 +213,14 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         goodsSkuBO.setWarehouseId(stockDO.getWarehouseId());
         goodsSkuBO.setTenantId(goodsSkuDO.getTenantId());
         goodsSkuBO.setShopName(shopDO.getName());
-
+        goodsSkuBO.setSkuName(goodsSkuDO.getAttributeDetail());
         return goodsSkuBO;
     }
 
     @Transactional
     public void confirmDeductStock(DeductStockDTO deductStockDTO) {
 
-        log.info("confirmDeductStock[{}]", deductStockDTO);
+        log.info("单笔下单开始库存[{}]", deductStockDTO);
 
         Long goodsId = deductStockDTO.getGoodsId();
         try {
@@ -227,7 +230,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
             DeductStockParameterBO parameterBO = JsonUtils.toObject(parameter, DeductStockParameterBO.class);
             Long stockId = parameterBO.getStockId();
-            StockDO stockDO = this.getById(stockId);
+            StockDO stockDO = this.lambdaQuery().eq(StockDO::getId, stockId)
+                    .eq(StockDO::getGoodsId, goodsId)
+                    .one();
 
             Long updateVersion = stockDO.getVersion() + 1;
             //扣减冻结库存
@@ -241,10 +246,16 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 log.info("confirm已执行");
                 return;
             }
-            userStockFlowService.save(userStockFlowDO);
+            try {
+                userStockFlowService.save(userStockFlowDO);
+            } catch (DuplicateKeyException e) {
+                log.warn("库存已扣减");
+                return;
+            }
             boolean update = this.lambdaUpdate().
                     eq(StockDO::getId, stockDO.getId()).
                     eq(StockDO::getVersion, stockDO.getVersion()).
+                    eq(StockDO::getGoodsId, goodsId).
                     set(StockDO::getLockStock, lockStock).
                     set(StockDO::getVersion, updateVersion).
                     update();
@@ -286,13 +297,15 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         userStockFlowDO.setTenantId(parameterBO.getTenantId());
         userStockFlowDO.setFlowNo(flowNo);
         userStockFlowDO.setWarehouseId(stockDO.getWarehouseId());
+        userStockFlowDO.setGoodsId(stockDO.getGoodsId());
+        userStockFlowDO.setSkuCode(parameterBO.getSkuCode());
         return userStockFlowDO;
     }
 
     @Transactional
     public void cancelDeductStock(DeductStockDTO deductStockDTO) {
 
-        log.info("cancelDeductStock[{}]", deductStockDTO);
+        log.info("单笔下单,扣减库存回滚{}", deductStockDTO);
         try {
             String skuCode = deductStockDTO.getSkuCode();
             StockDO stockDO = GoodsServiceUtils.findStockDO(skuCode);
@@ -315,6 +328,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             boolean update = this.lambdaUpdate().
                     eq(StockDO::getId, stockDO.getId()).
                     eq(StockDO::getVersion, stockDO.getVersion()).
+                     eq(StockDO::getGoodsId, goodsId).
                     set(StockDO::getUsableStock, updateUsableStock).
                     set(StockDO::getLockStock, updateLockStock).
                     set(StockDO::getVersion, updateVersion).

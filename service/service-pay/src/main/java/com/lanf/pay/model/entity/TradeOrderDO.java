@@ -89,7 +89,7 @@ private static final long serialVersionUID=1L;
      */
     private Integer expireInterval;
 
-    private String passbackParams;
+    private String passBackParams;
 
     private Long version;
 

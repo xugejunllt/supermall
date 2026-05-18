@@ -1,6 +1,5 @@
 package com.lanf.api.pay.model.dto;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -11,7 +10,7 @@ import java.math.BigDecimal;
 @Data
 public class CreateTradeOrderDTO implements Serializable {
 
-    private Long businessId;
+
     /**
      *  订单编号
      */
@@ -28,8 +27,6 @@ public class CreateTradeOrderDTO implements Serializable {
     @NotNull(message = "交易金额不能为空")
     private BigDecimal tradeMoney;
 
-    @NotNull(message = "支付类型不能为空")
-    @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
-    private Integer payType;
+
 
 }

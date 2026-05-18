@@ -17,6 +17,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.finance.mq.message.AddMoneyFlowMessage;
@@ -93,7 +94,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private IPrepayPayTypeService prepayPayTypeService;
 
     @Autowired
-    private static PayConfig payConfig;
+    private  PayConfig payConfig;
 
     @Autowired
     private PayRetryPolicyCacheService payRetryPolicyCacheService;
@@ -116,17 +117,22 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Transactional
     public void confirmCreateTradeOrder(CreateTradeOrderDTO dto) {
 
-        log.info("confirmCreateTradeOrder:{}", dto);
-        TradeOrderDO tradeOrderDO1 = this.lambdaQuery().eq(TradeOrderDO::getOrderNumber, dto.getOrderNumber()).one();
-        if (tradeOrderDO1 != null) {
-            log.info("交易单已存在");
-            return;
-        }
-        TradeOrderDO tradeOrderDO = buildTradeOrderDO(dto);
         try {
-            this.save(tradeOrderDO);
-        } catch (DuplicateKeyException e) {
-            log.info("交易单已存在");
+            log.info("插入交易单:{}", dto);
+            TradeOrderDO tradeOrderDO1 = this.lambdaQuery().eq(TradeOrderDO::getOrderNumber, dto.getOrderNumber()).one();
+            if (tradeOrderDO1 != null) {
+                log.info("交易单已存在");
+                return;
+            }
+            TradeOrderDO tradeOrderDO = buildTradeOrderDO(dto);
+            try {
+                this.save(tradeOrderDO);
+            } catch (DuplicateKeyException e) {
+                log.info("交易单已存在");
+            }
+        } catch (Exception e) {
+           log.error("插入交易单异常", e);
+           throw e;
         }
 
     }
@@ -137,13 +143,14 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
     }
 
-    private static TradeOrderDO buildTradeOrderDO(CreateTradeOrderDTO dto) {
+    private  TradeOrderDO buildTradeOrderDO(CreateTradeOrderDTO dto) {
 
 
         String outTradeNo = CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.TRADE_ORDER,
                 dto.getOrderNumber());
+        log.info("过期时间是{}",payConfig.getExpireInterval());
         Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
-
+        Long id = IdUtils.generateId();
         TradeOrderDO tradeOrderDO = new TradeOrderDO();
         tradeOrderDO.setBathPayOrderId(-1L);
         tradeOrderDO.setUserId(dto.getUserId());
@@ -159,10 +166,11 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setTradePurpose(TradePurposeEnum.REALTIME_ORDER);
         PassbackParams passbackParams = new PassbackParams();
         passbackParams.setBathPay(false);
-        passbackParams.setTradeOrderId(tradeOrderDO.getId());
+        passbackParams.setTradeOrderId(id);
         passbackParams.setTradeType(TradePurposeEnum.REALTIME_ORDER);
         passbackParams.setSignValue(PayServiceUtils.generateSign(passbackParams));
-        tradeOrderDO.setPassbackParams(JsonUtils.toJsonString(passbackParams));
+        passbackParams.setTradeMoney(dto.getTradeMoney());
+        tradeOrderDO.setPassBackParams(JsonUtils.toJsonString(passbackParams));
         return tradeOrderDO;
     }
 
@@ -329,7 +337,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
 
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
-        PassbackParams passbackParams = JsonUtils.toObject(tradeOrderDO.getPassbackParams(),
+        PassbackParams passbackParams = JsonUtils.toObject(tradeOrderDO.getPassBackParams(),
                 PassbackParams.class);
         PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
         prepayOrderDTO.setOutTradeNo(tradeOrderDO.getOutTradeNo());
@@ -623,7 +631,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         String params = PayServiceUtils.buildPassbackParams(tradeOrderDO.getId(), false,
                 tradeOrderDO.getTradeMoney(),
                 TradePurposeEnum.REALTIME_ORDER);
-        tradeOrderDO.setPassbackParams(params);
+        tradeOrderDO.setPassBackParams(params);
 
         try {
             this.save(tradeOrderDO);

@@ -21,10 +21,6 @@ public enum TradePurposeEnum {
         this.name = name;
     }
 
-    @JsonValue
-    public Integer getCode() {
-        return code;
-    }
 
     @JsonCreator
     public static TradePurposeEnum getByCode(Integer code) {

@@ -19,10 +19,7 @@ import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.search.api.SearchApiService;
 import com.lanf.api.search.model.query.OrderSearchQuery;
 import com.lanf.api.search.model.vo.OrderSearchVO;
-import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.BigDecimalUtil;
-import com.lanf.common.utils.IStringUtils;
-import com.lanf.common.utils.JsonUtils;
+import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.model.vo.PageResult;
@@ -35,6 +32,7 @@ import com.lanf.order.model.bo.OrderIdAndUserId;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
+import com.lanf.order.model.entity.OrderStatusTraceDO;
 import com.lanf.order.model.query.AdminOrderSearchQuery;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
@@ -106,16 +104,26 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         //单笔下单时 只有一个商品
         OrderItemDTO orderItemDTO = dto.getOrderItems().get(0);
         OrderItemDO orderItemDO = BeanCopyUtils.copyBean(orderItemDTO, OrderItemDO.class);
+        Date date = new Date();
+        OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
+        orderStatusTraceDO.setOrderId(dto.getOrderId());
+        orderStatusTraceDO.setFromStatus(null);
+        orderStatusTraceDO.setToStatus(OrderStatusEnum.WAIT_PAY);
+        orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+        orderStatusTraceDO.setUserId(dto.getUserId());
+        orderStatusTraceDO.setTenantId(dto.getTenantId());
+        orderStatusTraceDO.setRemark("用户下单");
         try {
+            log.info("插入的订单信息{}",orderDO);
             //order_number 为唯一索引 作为兜底 避免重复下单
             this.save(orderDO);
         } catch (DuplicateKeyException e) {
             log.info("订单已存在");
             return;
         }
+        log.info("插入的订单商品信息{}",orderItemDO);
         orderItemService.save(orderItemDO);
-        orderStatusTraceService.addOrderStatusTrace(orderDO.getId(), null,
-                OrderStatusEnum.WAIT_PAY);
+        orderStatusTraceService.save(orderStatusTraceDO);
 
     }
 

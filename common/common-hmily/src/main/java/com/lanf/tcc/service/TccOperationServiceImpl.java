@@ -198,6 +198,7 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
         tccOperationDO.setBizKey(bizKey);
         tccOperationDO.setStatus(0);
         tccOperationDO.setVersion(1L);
+        tccOperationDO.setInterruptedFlag(1);
         tccOperationDO.setParticipantId(hmilyTransactionContext.getParticipantId());
         tccOperationDO.setShardingValue(shardingValue);
         try {

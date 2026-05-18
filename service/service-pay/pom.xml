@@ -65,11 +65,6 @@
 
         <dependency>
             <groupId>com.lanf</groupId>
-            <artifactId>common-fs</artifactId>
-            <version>${common.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
             <artifactId>common-hmily</artifactId>
             <version>${common.version}</version>
         </dependency>

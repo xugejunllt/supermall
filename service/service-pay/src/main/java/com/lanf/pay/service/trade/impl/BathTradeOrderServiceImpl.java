@@ -116,7 +116,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                     String params = PayServiceUtils.buildPassbackParams(tradeOrderDO.getId(), false,
                             tradeOrderDO.getTradeMoney(),
                             TradePurposeEnum.REALTIME_ORDER);
-                    tradeOrderDO.setPassbackParams(params);
+                    tradeOrderDO.setPassBackParams(params);
 
                     return tradeOrderDO;
                 })

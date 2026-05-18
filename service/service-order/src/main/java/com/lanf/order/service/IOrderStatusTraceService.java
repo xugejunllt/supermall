@@ -14,8 +14,8 @@ import com.lanf.order.model.entity.OrderStatusTraceDO;
  */
 public interface IOrderStatusTraceService extends IService<OrderStatusTraceDO> {
 
-
+    @Deprecated
     void addOrderStatusTrace(Long orderId, OrderStatusEnum fromStatus, OrderStatusEnum toStatus);
-
+    @Deprecated
     void addOrderStatusTrace(Long orderId, OrderStatusEnum fromStatus, OrderStatusEnum toStatus,String remark);
 }

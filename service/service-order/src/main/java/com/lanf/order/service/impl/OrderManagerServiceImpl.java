@@ -265,6 +265,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderItem.setSkuCode(goodsSkuBO.getSkuCode());
         orderItem.setWarehouseId(goodsSkuBO.getWarehouseId());
         orderItem.setTenantId(goodsSkuBO.getTenantId());
+        orderItem.setUserId(orderInitParamsBO.getUserId());
+        orderItem.setSkuName(goodsSkuBO.getSkuName());
         return orderItem;
     }
     /**
@@ -294,6 +296,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         createOrderDTO.setDiscountInfoBOS(discountInfoBOS);
         createOrderDTO.setAddressListVO(orderInitParamsBO.getAddressListVO());
         createOrderDTO.setOrderItems(orderItems);
+        createOrderDTO.setTenantId(deductStockVO.getGoodsSkuBO().getTenantId());
         orderService.createOrder(createOrderDTO);
     }
     /**

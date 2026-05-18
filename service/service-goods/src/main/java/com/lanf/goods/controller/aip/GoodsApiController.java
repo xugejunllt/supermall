@@ -43,7 +43,7 @@ public class GoodsApiController {
      */
     @PostMapping("/deductStock")
     public Result<DeductStockVO> deductStock(@RequestBody @Validated DeductStockDTO deductStockDTO) {
-        log.info("扣减库存开始[{}]", deductStockDTO);
+        log.info("下单冻结库存开始[{}]", deductStockDTO);
 
         return Result.ok(stockService.deductStock(deductStockDTO));
 

@@ -14,6 +14,7 @@ public class OrderItemDTO implements Serializable {
      */
     private Long orderId;
 
+    private Long userId;
     /**
      * 商品id
      */
