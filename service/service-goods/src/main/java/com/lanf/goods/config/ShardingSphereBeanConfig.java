@@ -179,6 +179,19 @@ public class ShardingSphereBeanConfig {
         );
         shardingRuleConfig.getTables().add(shopRule);
 
+        // 配置 tcc_operation 表的分片规则（每个库不分子表）
+        ShardingTableRuleConfiguration tccOperationRule = new ShardingTableRuleConfiguration(
+                "tcc_operation",
+                "ds${0..2}.tcc_operation"
+        );
+        tccOperationRule.setDatabaseShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "sharding_value",
+                        "tcc-operation-database-algorithm"
+                )
+        );
+        shardingRuleConfig.getTables().add(tccOperationRule);
+
         Map<String, AlgorithmConfiguration> shardingAlgorithms = new LinkedHashMap<>();
         
         Properties userStockAlgoProps = new Properties();
@@ -195,6 +208,12 @@ public class ShardingSphereBeanConfig {
         cartAlgoProps.setProperty("strategy", "standard");
         cartAlgoProps.setProperty("algorithmClassName", "com.lanf.goods.config.CartDatabaseShardingAlgorithm");
         shardingAlgorithms.put("cart-database-algorithm", new AlgorithmConfiguration("CLASS_BASED", cartAlgoProps));
+        
+        // 配置 tcc_operation 分库算法
+        Properties tccOperationAlgoProps = new Properties();
+        tccOperationAlgoProps.setProperty("strategy", "standard");
+        tccOperationAlgoProps.setProperty("algorithmClassName", "com.lanf.goods.config.TccOperationDatabaseShardingAlgorithm");
+        shardingAlgorithms.put("tcc-operation-database-algorithm", new AlgorithmConfiguration("CLASS_BASED", tccOperationAlgoProps));
         
         shardingRuleConfig.setShardingAlgorithms(shardingAlgorithms);
 

@@ -123,7 +123,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         if (stockDO == null) {
 
             log.warn("库存不存在");
-            tccOperationService.addInterruptedFlag(bizKey, "库存不存在");
+            tccOperationService.addInterruptedFlag(bizKey, "库存不存在",goodsId1.toString());
             throw new BizException("库存不存在");
 
         }
@@ -131,7 +131,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         if (totalStock < deductStockDTO.getQuantity()) {
 
             log.warn("库存不足");
-            tccOperationService.addInterruptedFlag(bizKey, "库存不足");
+            tccOperationService.addInterruptedFlag(bizKey, "库存不足",goodsId1.toString());
             throw new BizException("库存不足");
         }
         Long tenantId = stockDO.getTenantId();
@@ -175,7 +175,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         /**
          * DB操作
          */
-        tccOperationService.tryOperation(bizKey, JsonUtils.toJsonString(deductStockParameterBO));
+        tccOperationService.tryOperation(bizKey, JsonUtils.toJsonString(deductStockParameterBO),goodsId1.toString());
         boolean update = this.lambdaUpdate().
                 eq(StockDO::getId, stockDO.getId()).
                 eq(StockDO::getVersion, stockDO.getVersion()).
@@ -219,11 +219,11 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         log.info("confirmDeductStock[{}]", deductStockDTO);
 
-
+        Long goodsId = deductStockDTO.getGoodsId();
         try {
             String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
 
-            String parameter = tccOperationService.getParameter(bizKey);
+            String parameter = tccOperationService.getParameter(bizKey, goodsId.toString());
 
             DeductStockParameterBO parameterBO = JsonUtils.toObject(parameter, DeductStockParameterBO.class);
             Long stockId = parameterBO.getStockId();
@@ -236,7 +236,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
             UserStockFlowDO userStockFlowDO = buildUserStockFlowDO(deductStockDTO, stockDO, parameterBO);
 
-            boolean operation = tccOperationService.confirmOperation(bizKey);
+            boolean operation = tccOperationService.confirmOperation(bizKey,goodsId.toString());
             if (!operation) {
                 log.info("confirm已执行");
                 return;
@@ -303,11 +303,11 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             //冻结库存
             Integer updateLockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
             String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
-
+            Long goodsId = deductStockDTO.getGoodsId();
             /**
              * DB操作
              */
-            boolean operation = tccOperationService.cancelOperation(bizKey);
+            boolean operation = tccOperationService.cancelOperation(bizKey,goodsId.toString());
             if (!operation) {
 
                 return;
