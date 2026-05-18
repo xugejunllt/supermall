@@ -1,13 +1,11 @@
 package com.lanf.welfare.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.cache.aop.DistributedLock;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.enums.EventCodeEnum;
 import com.lanf.tcc.service.ITccOperationService;
 import com.lanf.welfare.mapper.CouponMapper;
 import com.lanf.welfare.model.bo.DeductShopCouponRemainCountCacheBO;
