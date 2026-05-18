@@ -15,10 +15,23 @@ public interface ITccOperationService extends IService<TccOperationDO> {
 
 
     void tryOperation(String bizKey,String  parameter);
+
+    void tryOperation(String bizKey,String  parameter,String shardingValue);
+
     boolean confirmOperation(String bizKey);
+
+    boolean confirmOperation(String bizKey,String shardingValue);
+
     boolean cancelOperation(String bizKey);
+
+    boolean cancelOperation(String bizKey,String shardingValue);
+
     void addInterruptedFlag(String bizKey,String interruptedException);
 
+    void addInterruptedFlag(String bizKey,String interruptedException,String shardingValue);
 
     String getParameter(String bizKey);
+
+    String getParameter(String bizKey,String shardingValue);
+
 }

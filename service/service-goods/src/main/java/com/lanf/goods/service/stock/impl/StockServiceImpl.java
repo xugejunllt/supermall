@@ -151,7 +151,10 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         /**
          * 查询返回需要的数据
          */
-        GoodsSkuDO goodsSkuDO = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getSkuCode, skuCode)
+        GoodsSkuDO goodsSkuDO = goodsSkuService
+                .lambdaQuery()
+                .eq(GoodsSkuDO::getSkuCode, skuCode)
+                .eq(GoodsSkuDO::getGoodsId, goodsId1)
                 .one();
 
         Long goodsId = goodsSkuDO.getGoodsId();
@@ -217,36 +220,41 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         log.info("confirmDeductStock[{}]", deductStockDTO);
 
 
-        String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
+        try {
+            String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
 
-        String parameter = tccOperationService.getParameter(bizKey);
+            String parameter = tccOperationService.getParameter(bizKey);
 
-        DeductStockParameterBO parameterBO = JsonUtils.toObject(parameter, DeductStockParameterBO.class);
-        Long stockId = parameterBO.getStockId();
-        StockDO stockDO = this.getById(stockId);
+            DeductStockParameterBO parameterBO = JsonUtils.toObject(parameter, DeductStockParameterBO.class);
+            Long stockId = parameterBO.getStockId();
+            StockDO stockDO = this.getById(stockId);
 
-        Long updateVersion = stockDO.getVersion() + 1;
-        //扣减冻结库存
-        Integer lockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
+            Long updateVersion = stockDO.getVersion() + 1;
+            //扣减冻结库存
+            Integer lockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
 
 
-        UserStockFlowDO userStockFlowDO = buildUserStockFlowDO(deductStockDTO, stockDO, parameterBO);
+            UserStockFlowDO userStockFlowDO = buildUserStockFlowDO(deductStockDTO, stockDO, parameterBO);
 
-        boolean operation = tccOperationService.confirmOperation(bizKey);
-        if (!operation) {
-            log.info("confirm已执行");
-            return;
-        }
-        userStockFlowService.save(userStockFlowDO);
-        boolean update = this.lambdaUpdate().
-                eq(StockDO::getId, stockDO.getId()).
-                eq(StockDO::getVersion, stockDO.getVersion()).
-                set(StockDO::getLockStock, lockStock).
-                set(StockDO::getVersion, updateVersion).
-                update();
-        if (!update) {
-            log.info("解冻失败");
-            throw new BizException("解冻失败");
+            boolean operation = tccOperationService.confirmOperation(bizKey);
+            if (!operation) {
+                log.info("confirm已执行");
+                return;
+            }
+            userStockFlowService.save(userStockFlowDO);
+            boolean update = this.lambdaUpdate().
+                    eq(StockDO::getId, stockDO.getId()).
+                    eq(StockDO::getVersion, stockDO.getVersion()).
+                    set(StockDO::getLockStock, lockStock).
+                    set(StockDO::getVersion, updateVersion).
+                    update();
+            if (!update) {
+                log.info("解冻失败");
+                throw new BizException("解冻失败");
+            }
+        } catch (Exception e) {
+            log.error("confirmDeductStock异常", e);
+            throw  e;
         }
     }
 
@@ -285,37 +293,39 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     public void cancelDeductStock(DeductStockDTO deductStockDTO) {
 
         log.info("cancelDeductStock[{}]", deductStockDTO);
-        String skuCode = deductStockDTO.getSkuCode();
-        StockDO stockDO = GoodsServiceUtils.findStockDO(skuCode);
-        Integer usableStock = stockDO.getUsableStock();
-        Long updateVersion = stockDO.getVersion() + 1;
-        //扣减后的剩余总库存
-        Integer updateUsableStock = usableStock + deductStockDTO.getQuantity();
-        //冻结库存
-        Integer updateLockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
-        String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
+        try {
+            String skuCode = deductStockDTO.getSkuCode();
+            StockDO stockDO = GoodsServiceUtils.findStockDO(skuCode);
+            Integer usableStock = stockDO.getUsableStock();
+            Long updateVersion = stockDO.getVersion() + 1;
+            //扣减后的剩余总库存
+            Integer updateUsableStock = usableStock + deductStockDTO.getQuantity();
+            //冻结库存
+            Integer updateLockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
+            String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
 
-        UserStockFlowDO userStockFlowDO = new UserStockFlowDO();
+            /**
+             * DB操作
+             */
+            boolean operation = tccOperationService.cancelOperation(bizKey);
+            if (!operation) {
 
-
-        /**
-         * DB操作
-         */
-        boolean operation = tccOperationService.cancelOperation(bizKey);
-        if (!operation) {
-
-            return;
-        }
-        boolean update = this.lambdaUpdate().
-                eq(StockDO::getId, stockDO.getId()).
-                eq(StockDO::getVersion, stockDO.getVersion()).
-                set(StockDO::getUsableStock, updateUsableStock).
-                set(StockDO::getLockStock, updateLockStock).
-                set(StockDO::getVersion, updateVersion).
-                update();
-        if (!update) {
-            log.info("cancelDeductStock失败");
-            throw new BizException("cancelDeductStock失败");
+                return;
+            }
+            boolean update = this.lambdaUpdate().
+                    eq(StockDO::getId, stockDO.getId()).
+                    eq(StockDO::getVersion, stockDO.getVersion()).
+                    set(StockDO::getUsableStock, updateUsableStock).
+                    set(StockDO::getLockStock, updateLockStock).
+                    set(StockDO::getVersion, updateVersion).
+                    update();
+            if (!update) {
+                log.info("cancelDeductStock失败");
+                throw new BizException("cancelDeductStock失败");
+            }
+        } catch (Exception e) {
+            log.error("cancelDeductStock失败", e);
+            throw e;
         }
 
 
