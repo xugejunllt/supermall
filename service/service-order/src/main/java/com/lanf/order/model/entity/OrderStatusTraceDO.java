@@ -38,13 +38,8 @@ private static final long serialVersionUID=1L;
 
     private String createDate;
 
-    /**
-     * 操作者 用户: user:123 管理员:admin:123 定时任务:system:123
-     */
-    private String operator;
-
     private String remark;
-
+    private Long tenantId;
 
 
 

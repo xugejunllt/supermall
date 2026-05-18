@@ -108,7 +108,7 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
         OrderDO orderDO = new OrderDO();
         orderDO.setId(orderId);
         orderDO.setShopId(message.getShopId());
-        orderDO.setMerchantId(message.getMerchantId());
+        orderDO.setTenantId(message.getMerchantId());
         orderDO.setUserId(message.getUserId());
         orderDO.setOrderNumber(message.getOrderNumber());
         orderDO.setTotalMoney(totalMoney);

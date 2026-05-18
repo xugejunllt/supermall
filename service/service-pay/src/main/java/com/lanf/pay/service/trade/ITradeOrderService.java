@@ -1,12 +1,13 @@
 package com.lanf.pay.service.trade;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.client.pay.model.dto.CancelTradeOrderDTO;
-import com.lanf.client.pay.model.dto.CreatePayOrderDTO;
-import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
-import com.lanf.client.pay.model.dto.TradeOrderQuantitySumDTO;
-import com.lanf.client.pay.model.query.TradeOrderBathQuery;
-import com.lanf.client.pay.model.query.TradeOrderQuery;
+import com.lanf.api.pay.model.dto.CancelTradeOrderDTO;
+import com.lanf.api.pay.model.dto.CreatePayOrderDTO;
+import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
+import com.lanf.api.pay.model.dto.TradeOrderQuantitySumDTO;
+import com.lanf.api.pay.model.query.TradeOrderBathQuery;
+import com.lanf.api.pay.model.query.TradeOrderQuery;
+import com.lanf.api.pay.model.vo.*;
 import com.lanf.pay.model.dto.BathCreatePrepayOrderDTO;
 import com.lanf.pay.model.dto.CreatePrepayOrderDTO;
 import com.lanf.pay.model.dto.RechargeDTO;

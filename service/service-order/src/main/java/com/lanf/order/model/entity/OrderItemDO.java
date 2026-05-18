@@ -70,6 +70,6 @@ private static final long serialVersionUID=1L;
     private Long skuVersion;
 
     private Long warehouseId;
-
+    private Long tenantId;
 
 }

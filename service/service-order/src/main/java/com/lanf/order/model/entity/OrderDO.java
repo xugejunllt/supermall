@@ -22,15 +22,14 @@ public class OrderDO extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-
     private Long mainOrderId;
 
     /**
      * 店铺id
      */
     private Long shopId;
-    //商家id
-    private Long merchantId;
+
+    private String shopName;
 
     /**
      * 用户id
@@ -83,13 +82,6 @@ public class OrderDO extends BaseEntity {
      */
     private String orderProcessSteps;
 
-
-
-    /**
-     * 0：正常,1: 冻结状态 用于分布式事务try阶段更新，
-     * 其他非分布式事务场景，状态是正常状态允许更新
-     */
-    private Integer frozen;
     /**
      * 售后有效期，如果多个商品不同售后期，那么取最大的
      */
@@ -100,5 +92,5 @@ public class OrderDO extends BaseEntity {
      */
     private Long version;
 
-
+    private Long tenantId;
 }
