@@ -11,10 +11,7 @@ import com.lanf.api.order.model.vo.OrderItemVO;
 import com.lanf.api.order.model.vo.OrderVO;
 import com.lanf.api.order.model.vo.OrderVO2;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
-import com.lanf.api.order.mq.message.AddSalesOutStockOrderMessage;
-import com.lanf.api.order.mq.message.InOutStockOrderItem;
-import com.lanf.api.order.mq.message.OrderOutBoundedMessage;
-import com.lanf.api.order.mq.message.SignOrderMessage;
+import com.lanf.api.order.mq.message.*;
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.search.api.SearchApiService;
 import com.lanf.api.search.model.query.OrderSearchQuery;
@@ -23,6 +20,7 @@ import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.logistics.api.LogisticsApiService;
@@ -127,11 +125,20 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
     }
 
-
-    @Transactional
     public void confirmCreateOrder(CreateOrderDTO dto) {
-
+        /**
+         * 发送MQ 订单创建成功消息
+         */
+        sendOrderCreateSuccessMessage(dto.getOrderId(),
+                dto.getUserId());
     }
+    private void sendOrderCreateSuccessMessage(Long orderId,Long userId) {
+        OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
+        message.setOrderId(orderId);
+        message.setUserId(userId);
+        rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+                OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message),
+                orderId.toString());    }
 
     public void cancelCreateOrder(CreateOrderDTO dto) {
 

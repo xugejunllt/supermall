@@ -178,11 +178,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          */
         createOrder(orderDTO, orderInitParamsBO, deductStockVO, tradeMoney, amountVO);
 
-        /**
-         * 发送MQ 订单创建成功消息
-         */
-        sendOrderCreateSuccessMessage(orderInitParamsBO.getOrderId(),
-                orderInitParamsBO.getUserId());
+
         
         /**
          * 构建返回结果
