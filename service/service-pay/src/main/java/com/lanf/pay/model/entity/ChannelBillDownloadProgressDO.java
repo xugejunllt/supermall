@@ -7,7 +7,6 @@ import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.pay.model.enums.BillTypeEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -25,12 +24,16 @@ public class ChannelBillDownloadProgressDO extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
 
-    @ApiModelProperty(value = "批次号，如 2026-04-29")
+    /**
+     * 批次号，如 2026-04-29
+     */
     private String batchId;
 
     private PayChannelEnum payChannel;
 
-    @ApiModelProperty(value = "1:下载中，1：下载完成")
+    /**
+     * 1:下载中，1：下载完成
+     */
     private BillDownloadStatusEnum status;
 
     @TableField(updateStrategy = FieldStrategy.IGNORED)

@@ -2,7 +2,6 @@ package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -22,26 +21,38 @@ public class BathTradeOrderDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
-    @ApiModelProperty(value = "商家id")
+    /**
+     * 商家id
+     */
     private Long businessId;
 
-    @ApiModelProperty(value = "用户id")
+    /**
+     * 用户id
+     */
     private Long userId;
 
-    @ApiModelProperty(value = "主订单id")
+    /**
+     * 主订单id
+     */
     private Long mainOrderId;
     /**
      * 唯一索引，避免重复插入
      */
     private  String mainOrderNumber;
 
-    @ApiModelProperty(value = "交易订单号，与三方支付单唯一关联号")
+    /**
+     * 交易订单号，与三方支付单唯一关联号
+     */
     private String outTradeNo;
 
-    @ApiModelProperty(value = "付款总笔数")
+    /**
+     * 付款总笔数
+     */
     private Integer batchNum;
 
-    @ApiModelProperty(value = "付款总金额")
+    /**
+     * 付款总金额
+     */
     private BigDecimal batchFee;
 
     /**
@@ -51,10 +62,14 @@ private static final long serialVersionUID=1L;
      *
      */
     private Integer payStatus;
-    @ApiModelProperty(value = "过期时间")
+    /**
+     * 过期时间
+     */
     private Date expireTime;
 
-    @ApiModelProperty(value = "过期时间间隔")
+    /**
+     * 过期时间间隔
+     */
     private Integer expireInterval;
 
     private String passbackParams;

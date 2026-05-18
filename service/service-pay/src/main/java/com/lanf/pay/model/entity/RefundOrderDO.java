@@ -5,7 +5,6 @@ import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.api.pay.model.enums.RefundEventTypeEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.model.enums.RefundStatusEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -26,26 +25,38 @@ public class RefundOrderDO extends BaseEntity {
 
 
 
-    @ApiModelProperty(value = "商户订单号")
+    /**
+     * 商户订单号
+     */
     private String outTradeNo;
 
-    @ApiModelProperty(value = "退款金额")
+    /**
+     * 退款金额
+     */
     private BigDecimal returnMoney;
     /**
      * 0:退款中 1：退款成功 2：退款失败
      */
     private RefundStatusEnum status;
 
-    @ApiModelProperty(value = " 退款事件类型")
+    /**
+     *  退款事件类型
+     */
     private RefundEventTypeEnum refundEventType;
 
-    @ApiModelProperty(value = "支付类型：0-支付宝，1-微信，2-银联")
+    /**
+     * 支付类型：0-支付宝，1-微信，2-银联
+     */
     private PayChannelEnum payChannel;
 
-    @ApiModelProperty(value = "业务单id")
+    /**
+     * 业务单id
+     */
     private Long bizOrderId;
 
-    @ApiModelProperty(value = "退款原因")
+    /**
+     * 退款原因
+     */
     private String refundReason;
 
     private Long version;

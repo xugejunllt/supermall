@@ -5,7 +5,6 @@ import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.model.enums.TransferStatusEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -26,34 +25,52 @@ private static final long serialVersionUID=1L;
 
 
 
-    @ApiModelProperty(value = "商家侧唯一订单号")
+    /**
+     * 商家侧唯一订单号
+     */
     private String outTradeNo;
 
-    @ApiModelProperty(value = "用户id")
+    /**
+     * 用户id
+     */
     private Long userId;
 
-    @ApiModelProperty(value = "商家id")
+    /**
+     * 商家id
+     */
     private Long merchantId;
 
-    @ApiModelProperty(value = "关联事件对应的业务单id")
+    /**
+     * 关联事件对应的业务单id
+     */
     private Long bizOrderId;
-    @ApiModelProperty(value = "转账来源账户")
+    /**
+     * 转账来源账户
+     */
     private String fromAccount;
 
-    @ApiModelProperty(value = "收款账号")
+    /**
+     * 收款账号
+     */
     private String incomeAccount;
 
-    @ApiModelProperty(value = "事件类型 0：订单结算给商家，1：用户钱包提现")
+    /**
+     * 事件类型 0：订单结算给商家，1：用户钱包提现
+     */
     private TransferEventTypeEnum eventType;
 
     private PayChannelEnum transferChannel;
 
-    @ApiModelProperty(value = "订单总金额，即发起转账时传入的金额")
+    /**
+     * 订单总金额，即发起转账时传入的金额
+     */
     private BigDecimal totalAmount;
 
 
 
-    @ApiModelProperty(value = "0:退款中 1：退款成功 2：退款失败")
+    /**
+     * 0:退款中 1：退款成功 2：退款失败
+     */
     private TransferStatusEnum status;
 
     private Long version;

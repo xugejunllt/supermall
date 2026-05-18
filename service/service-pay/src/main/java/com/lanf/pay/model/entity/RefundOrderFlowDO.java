@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.model.enums.RefundFlowStatusEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -25,22 +24,34 @@ public class RefundOrderFlowDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
-    @ApiModelProperty(value = "商户订单号")
+    /**
+     * 商户订单号
+     */
     private String outTradeNo;
 
-    @ApiModelProperty(value = "退款请求号， 标识一次退款请求")
+    /**
+     * 退款请求号， 标识一次退款请求
+     */
     private String outRequestNo;
 
-    @ApiModelProperty(value = "支付宝交易号")
+    /**
+     * 支付宝交易号
+     */
     private String tradeNo;
 
-    @ApiModelProperty(value = "实际支付的金额")
+    /**
+     * 实际支付的金额
+     */
     private BigDecimal payMoney;
 
-    @ApiModelProperty(value = "实际退款金额")
+    /**
+     * 实际退款金额
+     */
     private BigDecimal returnMoney;
 
-    @ApiModelProperty(value = "用户的登录id【示例值】159****5620")
+    /**
+     * 用户的登录id【示例值】159****5620
+     */
     private String buyerLogonId;
 
     /**
@@ -49,12 +60,16 @@ private static final long serialVersionUID=1L;
     private RefundFlowStatusEnum status;
 
 
-    @ApiModelProperty(value = "支付订单ID")
+    /**
+     * 支付订单ID
+     */
     private Long payOrderId;
 
     private PayChannelEnum payChannel;
 
-    @ApiModelProperty(value = "退款完成时间")
+    /**
+     * 退款完成时间
+     */
     private Date payFinishTime;
 
     private String payFinishDate;

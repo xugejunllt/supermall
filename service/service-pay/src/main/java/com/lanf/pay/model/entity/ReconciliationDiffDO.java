@@ -6,7 +6,6 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationTradeStatusEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -27,19 +26,29 @@ public class ReconciliationDiffDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
-    @ApiModelProperty(value = "批次号，如 2026-04-29")
+    /**
+     * 批次号，如 2026-04-29
+     */
     private String batchId;
 
-    @ApiModelProperty(value = "业务单号（商户订单号）")
+    /**
+     * 业务单号（商户订单号）
+     */
     private String businessOrderNo;
 
-    @ApiModelProperty(value = "支付渠道")
+    /**
+     * 支付渠道
+     */
     private PayChannelEnum payChannel;
 
-    @ApiModelProperty(value = "预期金额（我方金额）")
+    /**
+     * 预期金额（我方金额）
+     */
     private BigDecimal expectedAmount;
 
-    @ApiModelProperty(value = "实际金额（渠道金额）")
+    /**
+     * 实际金额（渠道金额）
+     */
     private BigDecimal actualAmount;
 
     /**
@@ -51,16 +60,24 @@ private static final long serialVersionUID=1L;
      */
     private ReconciliationTradeStatusEnum actualStatus;
 
-    @ApiModelProperty(value = "差异金额（实际金额 - 预期金额）")
+    /**
+     * 差异金额（实际金额 - 预期金额）
+     */
     private BigDecimal diffAmount;
 
-    @ApiModelProperty(value = "0：长款,1：短款，2：金额不符")
+    /**
+     * 0：长款,1：短款，2：金额不符
+     */
     private ReconciliationDiffTypeEnum diffType;
 
-    @ApiModelProperty(value = "交易发生时间")
+    /**
+     * 交易发生时间
+     */
     private Date occurTime;
 
-    @ApiModelProperty(value = "0：支付，2: 退款  3: 转账 ")
+    /**
+     * 0：支付，2: 退款  3: 转账 
+     */
     private ReconciliationBusinessTypeEnum businessType;
 
 

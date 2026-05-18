@@ -2,7 +2,6 @@ package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -25,10 +24,14 @@ private static final long serialVersionUID=1L;
 
     private Long userId;
 
-    @ApiModelProperty(value = "可用余额")
+    /**
+     * 可用余额
+     */
     private BigDecimal balance;
 
-    @ApiModelProperty(value = "冻结余额（提现中金额）")
+    /**
+     * 冻结余额（提现中金额）
+     */
     private BigDecimal frozenBalance;
 
     private Long version;
