@@ -1,6 +1,5 @@
 package com.lanf.api.order.model.vo;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -10,8 +9,12 @@ public class OrderVO2 implements Serializable {
 
 
     private Long id;
-    //收货地址
+    /**
+     * 收货地址
+     */
     private String takeAddress;
-    //用户id
+    /**
+     * 用户id
+     */
     private Long userId;
 }

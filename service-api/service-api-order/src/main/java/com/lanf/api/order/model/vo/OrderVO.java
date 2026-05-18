@@ -1,6 +1,5 @@
 package com.lanf.api.order.model.vo;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -12,15 +11,21 @@ public class OrderVO implements Serializable {
     //订单商品总数量
     private Integer totalQuantity;
 
-    @ApiModelProperty(value = "物流公司")
+    /**
+     * 物流公司
+     */
     private String expressCompany;
 
     private Long goodsId;
 
     private Long orderId;
-    @ApiModelProperty(value = "店铺id")
+    /**
+     * 店铺id
+     */
     private Long shopId;
-    @ApiModelProperty(value = "商家id")
+    /**
+     * 商家id
+     */
     private Long businessId;
     //订单状态
     private Integer orderStatus;
