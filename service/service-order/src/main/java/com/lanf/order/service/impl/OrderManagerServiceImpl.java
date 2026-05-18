@@ -13,9 +13,12 @@ import com.lanf.api.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
+import com.lanf.api.order.api.OrderApiService;
 import com.lanf.api.order.model.dto.BathCreateOrderDTO;
 import com.lanf.api.order.model.dto.CreateOrderDTO;
 import com.lanf.api.order.model.dto.OrderItemDTO;
+import com.lanf.api.order.mq.constant.OrderClientTopicName;
+import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.client.pay.api.PayApiService;
 import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
@@ -25,22 +28,24 @@ import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.constant.model.bo.DiscountInfoBO;
+import com.lanf.welfare.model.bo.DiscountInfoBO;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
+import com.lanf.constant.result.Result;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.constant.utils.IdUtils;
-import com.lanf.api.order.api.OrderApiService;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
-import com.lanf.order.model.dto.*;
+import com.lanf.order.model.dto.CalculateOrderAmountDTO;
+import com.lanf.order.model.dto.CancelOrderDTO;
+import com.lanf.order.model.dto.PlaceOrderDTO;
+import com.lanf.order.model.dto.SubmitCartDTO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;
-import com.lanf.api.order.mq.constant.OrderClientTopicName;
-import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IOrderStatusTraceService;
 import com.lanf.order.service.OrderManagerService;
@@ -48,6 +53,10 @@ import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.welfare.api.WelfareApiService;
+import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
+import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
+import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +81,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     @Autowired
     private WelfareApiService welfareApiService;
+
+
+
     @Autowired
     private OrderApiService orderApiService;
     @Autowired
@@ -91,7 +103,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         BigDecimal totalAmount = amountVO.getTotalAmount();
         //计算优惠金额
         CalculateDiscountAmountVO calculateDiscountAmountVO = calculateDiscountAmount(dto,
-                UserIdContext.getUserId(), totalAmount);
+                UserContext.getUserId(), totalAmount);
         /**
          * 构建返回结果
          */
@@ -266,7 +278,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         createOrderDTO.setTotalMoney(deductStockVO.getTotalAmount());
         createOrderDTO.setActualPayMoney(tradeMoney);
         createOrderDTO.setDiscountAmount(discountAmount);
-        createOrderDTO.setDiscountInfoBO(discountInfoBOS);
+        //createOrderDTO.setDiscountInfoBO(discountInfoBOS);
         createOrderDTO.setTakeAddressBO(orderDTO.getTakeAddress());
         createOrderDTO.setOrderItems(orderItems);
         RpcResultParser.parseResult(orderApiService.createOrder(createOrderDTO));
@@ -361,7 +373,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         OrderInitParamsBO  orderInitParamsBO = new OrderInitParamsBO();
         orderInitParamsBO.setTradeOrderId(IdUtils.generateId());
         orderInitParamsBO.setOrderId(IdUtils.generateId());
-        orderInitParamsBO.setUserId(UserIdContext.getUserId());
+        orderInitParamsBO.setUserId(UserContext.getUserId());
         orderInitParamsBO.setBizKeyPrx(orderNumber);
         orderInitParamsBO.setOrderNumber(orderNumber);
         return orderInitParamsBO;
@@ -414,8 +426,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         for (CreateOrderDTO createOrderDTO : createOrderDTOList) {
             OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
             message.setOrderId(createOrderDTO.getOrderId());
-            message.setUserId(UserIdContext.getUserId());
-            rocketMqClient.sendOrderlyMessageWithTags(OrderClientTopicName.ORDER_EVENT_TOPIC,
+            message.setUserId(UserContext.getUserId());
+            rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                     OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message),
                     createOrderDTO.getOrderId().toString());        }
 
@@ -444,7 +456,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private SubmitCartOrderInitParamsBO buildSubmitCartOrderInitParamsBO(){
         SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO = new SubmitCartOrderInitParamsBO();
         submitCartOrderInitParamsBO.setMainOrderId(IdUtils.generateId());
-        submitCartOrderInitParamsBO.setUserId(UserIdContext.getUserId());
+        submitCartOrderInitParamsBO.setUserId(UserContext.getUserId());
 
         return submitCartOrderInitParamsBO;
     }

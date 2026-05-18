@@ -1,9 +1,8 @@
 package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.order.model.enums.OrderStatusEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -21,14 +20,20 @@ public class OrderStatusTraceDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
-    @ApiModelProperty(value = "用户id")
+    /**
+     * 用户id
+     */
     private Long userId;
-    @ApiModelProperty(value = "订单ID")
+    /**
+     * 订单ID
+     */
     private Long orderId;
 
     private OrderStatusEnum fromStatus;
 
-    @ApiModelProperty(value = "变更后状态（同状态枚举）")
+    /**
+     * 变更后状态（同状态枚举）
+     */
     private OrderStatusEnum toStatus;
 
     private String createDate;

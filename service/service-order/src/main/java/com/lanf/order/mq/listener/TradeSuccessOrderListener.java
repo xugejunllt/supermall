@@ -1,16 +1,16 @@
 package com.lanf.order.mq.listener;
 
+import com.lanf.api.order.mq.message.OrderPaySuccessMessage;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.model.entity.MainOrderDO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
-import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.enums.PayStatusEnum;
-import com.lanf.api.order.mq.constant.OrderClientTopicName;
-import com.lanf.api.order.mq.message.OrderPaySuccessMessage;
 import com.lanf.order.service.IMainOrderService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IOrderStatusTraceService;
@@ -131,7 +131,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
 
             orderPaySuccessMessageList.forEach(a -> {
 
-                rocketMqClient.sendOrderlyMessageWithTags(OrderClientTopicName.ORDER_EVENT_TOPIC,
+                rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                         OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(message),
                         a.getOrderId().toString());
             });
@@ -167,7 +167,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                 throw new MessageRetryConsumeException("订单状态异常");
             }
             orderStatusTraceService.save(statusTraceDO);
-            rocketMqClient.sendOrderlyMessageWithTags(OrderClientTopicName.ORDER_EVENT_TOPIC,
+            rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                     OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(message),
                     orderDO.getId().toString());
 

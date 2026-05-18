@@ -2,7 +2,6 @@ package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -22,32 +21,48 @@ public class OrderItemDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
-    @ApiModelProperty(value = "订单id")
+    /**
+     * 订单id
+     */
     private Long orderId;
-    @ApiModelProperty(value = "用户id")
+    /**
+     * 用户id
+     */
     private Long userId;
-    @ApiModelProperty(value = "商品id")
+    /**
+     * 商品id
+     */
     private Long goodsId;
 
-    @ApiModelProperty(value = "商品名称")
+    /**
+     * 商品名称
+     */
     private String goodsName;
 
     private String goodsTitle;
 
-    @ApiModelProperty(value = "skuId")
+    /**
+     * skuId
+     */
     private Long skuId;
 
     private String skuCode;
 
-    @ApiModelProperty(value = "sku名称")
+    /**
+     * sku名称
+     */
     private String skuName;
 
     private String skuPictureAddress;
 
-    @ApiModelProperty(value = "数量")
+    /**
+     * 数量
+     */
     private Integer quantity;
 
-    @ApiModelProperty(value = "单价")
+    /**
+     * 单价
+     */
     private BigDecimal unitPrice;
     //商品版本
     private Long goodsVersion;

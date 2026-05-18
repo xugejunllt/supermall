@@ -1,20 +1,23 @@
 package com.lanf.order.service.layout.impl;
 
-import com.lanf.api.order.model.dto.OrderItemDTO;
-import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.BigDecimalUtil;
-import com.lanf.mybatis.utils.IdUtils;
-import com.lanf.constant.enums.LogisticsTrackStatusEnum;
-import com.lanf.constant.exception.BizException;
-import com.lanf.constant.result.Result;
 import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.api.goods.model.dto.CheckAndQueryGoodsDTO;
 import com.lanf.api.goods.model.vo.ApiGoodsSkuVO;
 import com.lanf.api.goods.model.vo.EmptyCartGoodsSkuVO;
 import com.lanf.api.goods.model.vo.EmptyCartVO;
+import com.lanf.api.order.model.dto.OrderItemDTO;
+import com.lanf.client.pay.api.PayApiService;
+import com.lanf.client.pay.model.dto.CreatePayOrderDTO;
+import com.lanf.client.pay.model.vo.CreatePayOrderVO;
+import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.LogisticsTrackStatusEnum;
+import com.lanf.constant.result.Result;
+import com.lanf.constant.utils.IdUtils;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.logistics.api.LogisticsApiService;
 import com.lanf.logistics.model.dto.LogisticsAddDTO;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.order.model.bo.OnePlaceAnOrderBO;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.OrderDO;
@@ -22,9 +25,6 @@ import com.lanf.order.model.vo.CreateOrderVO;
 import com.lanf.order.service.IMainOrderService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.layout.InterfaceLayoutService;
-import com.lanf.client.pay.api.PayApiService;
-import com.lanf.client.pay.model.dto.CreatePayOrderDTO;
-import com.lanf.client.pay.model.vo.CreatePayOrderVO;
 import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.model.message.PrePayMsg;
 import com.lanf.rocketmq.util.MessageBuildAdapter;
@@ -55,8 +55,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
     private RocketMqClient rocketMqClient;
     @Autowired
     private WelfareApiService welfareApiService;
-    @Autowired
-    private ISendMqMessageService sendMqMessageService;
+
 
     @Override
     public CreateOrderVO submitOrderDTO(SubmitOrderDTO dto) {
@@ -173,7 +172,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
             orderDTO.setId(bizOrderIdMap.get(a));
             orderDTO.setShopId(a);
             orderDTO.setBusinessId(businessIdMap.get(a));
-            orderDTO.setUserId(UserUtils.getUserId());
+            orderDTO.setUserId(UserContext.getUserId());
             //待远程调用查询
             orderDTO.setTakeAddress(dto.getTakeAddress());
             //
@@ -223,7 +222,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
             createPayOrderDTO.setShopId(a);
             createPayOrderDTO.setBizOrderId(bizOrderIdMap.get(a));
             createPayOrderDTO.setSource(0);
-            createPayOrderDTO.setUserId(UserUtils.getUserId());
+            createPayOrderDTO.setUserId(UserContext.getUserId());
             createPayOrderDTO.setBusinessId(businessIdMap.get(a));
             createPayOrderDTO.setMainOrderId(mainOrderId);
             createPayOrderDTO.setOrderMoney(orderMoney);
@@ -306,7 +305,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
         OnePlaceAnOrderBO bo = new OnePlaceAnOrderBO();
         bo.setMainOrderId(mainOrderId);
         bo.setBizOrderId(bizOrderId);
-        bo.setUserId(UserUtils.getUserId());
+        bo.setUserId(UserContext.getUserId());
 
         return bo;
     }

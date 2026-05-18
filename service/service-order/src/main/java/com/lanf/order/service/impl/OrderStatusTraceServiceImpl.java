@@ -2,9 +2,9 @@ package com.lanf.order.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.DateUtils;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.order.mapper.OrderStatusTraceMapper;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
-import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.service.IOrderStatusTraceService;
 import org.springframework.stereotype.Service;
 

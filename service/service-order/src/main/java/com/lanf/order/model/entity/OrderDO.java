@@ -1,10 +1,9 @@
 package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.enums.OrderTypeEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -26,31 +25,49 @@ public class OrderDO extends BaseEntity {
 
     private Long mainOrderId;
 
-    @ApiModelProperty(value = "店铺id")
+    /**
+     * 店铺id
+     */
     private Long shopId;
     //商家id
     private Long merchantId;
 
-    @ApiModelProperty(value = "用户id")
+    /**
+     * 用户id
+     */
     private Long userId;
 
-    @ApiModelProperty(value = "订单编号")
+    /**
+     * 订单编号
+     */
     private String orderNumber;
 
-    @ApiModelProperty(value = "订单金额")
+    /**
+     * 订单金额
+     */
     private BigDecimal totalMoney;
 
-    @ApiModelProperty(value = "实付金额")
+    /**
+     * 实付金额
+     */
     private BigDecimal actualPayMoney;
 
-    @ApiModelProperty(value = "优惠金额")
+    /**
+     * 优惠金额
+     */
     private BigDecimal discountAmount;
 
-    @ApiModelProperty(value = "优惠信息")
+    /**
+     * 优惠信息
+     */
     private String discountInfo;
-    @ApiModelProperty(value = "收货地址")
+    /**
+     * 收货地址
+     */
     private String takeAddress;
-    @ApiModelProperty(value = "0:待付款, 1:待出库 2：已出库 3：已发货，4：已完成，5：已取消 6.已关闭")
+    /**
+     * 0:待付款, 1:待出库 2：已出库 3：已发货，4：已完成，5：已取消 6.已关闭
+     */
     private OrderStatusEnum status;
 
     /**
@@ -78,7 +95,9 @@ public class OrderDO extends BaseEntity {
      */
     private Integer afterSaleDays;
 
-    @ApiModelProperty(value = "版本号")
+    /**
+     * 版本号
+     */
     private Long version;
 
 

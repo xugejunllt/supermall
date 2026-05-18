@@ -1,20 +1,20 @@
 package com.lanf.order.mq.listener;
 
+import com.lanf.api.order.model.enums.OrderProcessStepEnum;
+import com.lanf.api.order.mq.constant.OrderClientTopicName;
+import com.lanf.api.order.mq.message.SecKillPlaneCreateOrderSuccessMessage;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.enums.FlowNoPrefixEnum;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
-import com.lanf.api.order.model.enums.OrderProcessStepEnum;
-import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.model.enums.OrderTypeEnum;
-import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.mq.constant.OrderMqTopicName;
 import com.lanf.order.mq.message.SecKillOrderCancelMessage;
-import com.lanf.api.order.mq.message.SecKillPlaneCreateOrderSuccessMessage;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IOrderStatusTraceService;
@@ -94,7 +94,7 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
              return;
         }
         orderItemService.save(orderItemDO);
-        orderStatusTraceService.addOrderStatusTrace(orderDO.getId(), null,OrderStatusEnum.WAIT_CONFIRM);
+        orderStatusTraceService.addOrderStatusTrace(orderDO.getId(), null, OrderStatusEnum.WAIT_CONFIRM);
         rocketMqClient.sendMessage(OrderClientTopicName.SEC_KILL_PLANE_CREATE_ORDER_SUCCESS_EVENT_TOPIC,
                 JsonUtils.toJsonString(successMessage));
         /**

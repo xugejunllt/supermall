@@ -1,6 +1,6 @@
 package com.lanf.welfare.model.vo;
 
-import com.lanf.constant.model.bo.DiscountInfoBO;
+import com.lanf.welfare.model.bo.DiscountInfoBO;
 import lombok.Data;
 
 import java.io.Serializable;

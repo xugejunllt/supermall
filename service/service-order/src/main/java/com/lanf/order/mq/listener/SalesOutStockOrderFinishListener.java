@@ -1,9 +1,9 @@
 package com.lanf.order.mq.listener;
 
+import com.lanf.api.storage.mq.constant.StorageClientTopicName;
+import com.lanf.api.storage.mq.message.SalesOutStockOrderFinishMessage;
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.service.IOrderService;
-import com.lanf.storage.mq.constant.StorageClientTopicName;
-import com.lanf.storage.mq.message.SalesOutStockOrderFinishMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;

@@ -13,11 +13,6 @@
     <version>${service.version}</version>
     <dependencies>
 
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>admin-auth</artifactId>
-            <version>${common.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -56,11 +51,7 @@
             <artifactId>common-constant</artifactId>
             <version>${common.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-log</artifactId>
-            <version>${common.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -71,11 +62,6 @@
             <version>${common.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-fs</artifactId>
-            <version>${common.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>service-api-goods</artifactId>
@@ -122,6 +108,21 @@
             <groupId>com.lanf</groupId>
             <artifactId>service-api-search</artifactId>
             <version>${common.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-hmily</artifactId>
+            <version>${common.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>service-api-storage</artifactId>
+            <version>${service.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>service-api-welfare</artifactId>
+            <version>${service.version}</version>
         </dependency>
     </dependencies>
 

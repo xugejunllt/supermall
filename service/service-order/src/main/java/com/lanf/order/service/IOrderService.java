@@ -1,18 +1,21 @@
 package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.api.order.model.dto.CreateOrderDTO;
 import com.lanf.api.order.model.query.ContrastBillOrderQuery;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
 import com.lanf.api.order.model.vo.OrderVO;
 import com.lanf.api.order.model.vo.OrderVO2;
-import com.lanf.constant.web.PageResult;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.order.model.dto.AllowOutboundDTO;
-import com.lanf.api.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.OrderDO;
-import com.lanf.order.model.query.*;
+import com.lanf.order.model.query.AdminOrderSearchQuery;
+import com.lanf.order.model.query.AppOrderSearchQuery;
+import com.lanf.order.model.query.OrderPageQuery;
+import com.lanf.order.model.query.OrderPageQuery2;
 import com.lanf.order.model.vo.*;
 
 import java.util.List;
@@ -56,7 +59,7 @@ public interface IOrderService extends IService<OrderDO> {
      * C端 搜索订单列表
      *
      */
-    PageResult<OrderListVO>  orderSearchQuery(AppOrderSearchQuery query);
+    PageResult<OrderListVO> orderSearchQuery(AppOrderSearchQuery query);
     /**
      * admin 搜索订单列表
      *

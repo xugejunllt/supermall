@@ -1,6 +1,5 @@
 package com.lanf.api.order.model.dto;
 
-import com.lanf.constant.model.bo.DiscountInfoBO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -30,9 +29,9 @@ public class CreateOrderDTO implements Serializable {
 
     @ApiModelProperty(value = "优惠金额")
     private BigDecimal discountAmount;
-
-    @ApiModelProperty(value = "优惠信息")
-    private List<DiscountInfoBO> discountInfoBO;
+//
+//    @ApiModelProperty(value = "优惠信息")
+//    private List<DiscountInfoBO> discountInfoBO;
 
     @ApiModelProperty(value = "收货地址")
     private TakeAddressDTO takeAddressBO;

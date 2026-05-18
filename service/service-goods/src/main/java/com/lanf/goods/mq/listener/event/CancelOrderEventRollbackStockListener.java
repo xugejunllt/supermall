@@ -1,5 +1,6 @@
 package com.lanf.goods.mq.listener.event;
 
+import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
@@ -8,7 +9,6 @@ import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockFlowDO;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockFlowService;
-import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import lombok.extern.slf4j.Slf4j;

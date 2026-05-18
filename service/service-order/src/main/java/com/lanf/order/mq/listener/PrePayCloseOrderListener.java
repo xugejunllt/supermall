@@ -1,6 +1,5 @@
 package com.lanf.order.mq.listener;
 
-import com.lanf.messagemanager.client.annotation.ConsumeMessage;
 import com.lanf.order.service.IOrderService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.PrePayMsg;
@@ -19,7 +18,6 @@ public class PrePayCloseOrderListener implements RocketMQListener<PrePayMsg> {
     @Autowired
     private IOrderService orderService;
 
-    @ConsumeMessage
     @Override
     public void onMessage(PrePayMsg message) {
 

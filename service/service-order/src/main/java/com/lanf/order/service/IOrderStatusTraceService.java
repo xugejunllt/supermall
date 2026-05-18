@@ -1,8 +1,8 @@
 package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
-import com.lanf.order.model.enums.OrderStatusEnum;
 
 /**
  * <p>

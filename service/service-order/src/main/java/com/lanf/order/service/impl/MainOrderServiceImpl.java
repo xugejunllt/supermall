@@ -7,6 +7,7 @@ import com.lanf.api.order.model.dto.OrderItemDTO;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.mapper.MainOrderMapper;
 import com.lanf.order.model.dto.*;
@@ -110,8 +111,7 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
         List<OrderDO> orderDOList = BeanCopyUtils.copyBeanList(orderDTOList, OrderDO.class);
         List<OrderItemDO> orderItemDOList = new ArrayList<>();
         for (OrderDO a : orderDOList) {
-           // a.setCreateTimeFormat(DateUtils.format(new Date(),DateUtils.DATE));
-            a.setStatus(0);
+            a.setStatus(OrderStatusEnum.WAIT_PAY);
             a.setOrderNumber(CodeGenerateUtils.generateOrderNumber());
             //
 

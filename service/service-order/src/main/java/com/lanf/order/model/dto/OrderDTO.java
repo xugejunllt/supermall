@@ -1,7 +1,6 @@
 package com.lanf.order.model.dto;
 
 import com.lanf.api.order.model.dto.OrderItemDTO;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -14,13 +13,19 @@ public class OrderDTO implements Serializable {
 
     private Long shopId;
 
-    @ApiModelProperty(value = "商家id")
+    /**
+     * 商家id
+     */
     private Long businessId;
 
-    @ApiModelProperty(value = "用户id")
+    /**
+     * 用户id
+     */
     private Long userId;
 
-    @ApiModelProperty(value = "收货地址,json串")
+    /**
+     * 收货地址,json串
+     */
     private String takeAddress;
 
     private List<OrderItemDTO> orderItemDTOList;

@@ -2,10 +2,11 @@ package com.lanf.order.mq.listener;
 
 import com.lanf.aftersales.mq.AftersalesClientTopicName;
 import com.lanf.aftersales.mq.message.CloseOrderMessage;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.order.model.entity.OrderDO;
-import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.service.IOrderService;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -28,13 +29,13 @@ public class CloseOrderListener implements RocketMQListener<CloseOrderMessage> {
 
         Long orderId = message.getOrderId();
         OrderDO orderDO = orderService.getById(orderId);
-        if (orderDO == null){
+        if (orderDO == null) {
             log.error("订单不存在:{}", orderId);
             return;
         }
-        Integer status = orderDO.getStatus();
-        if ( !(OrderStatusEnum.WAIT_COMMENT.getCode().equals(status)
-           || OrderStatusEnum.COMPLETED.getCode().equals(status))){
+        OrderStatusEnum status = orderDO.getStatus();
+        if (!(OrderStatusEnum.WAIT_COMMENT.equals(status)
+                || OrderStatusEnum.COMPLETED.equals(status))) {
 
             log.error("订单状态错误:{}", status);
             return;
@@ -46,26 +47,11 @@ public class CloseOrderListener implements RocketMQListener<CloseOrderMessage> {
                 .set(OrderDO::getVersion, orderDO.getVersion() + 1)
                 .update();
         if (!update) {
-            log.error("订单更新失败:{}", orderId);
-
+            log.warn("订单更新失败:{}", orderId);
+            throw new MessageRetryConsumeException("订单更新失败");
         }
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }

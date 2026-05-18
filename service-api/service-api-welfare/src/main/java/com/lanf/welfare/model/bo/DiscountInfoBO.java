@@ -1,4 +1,4 @@
-package com.lanf.constant.model.bo;
+package com.lanf.welfare.model.bo;
 
 import lombok.Data;
 

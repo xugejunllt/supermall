@@ -1,8 +1,8 @@
 package com.lanf.order.controller.admin;
 
 
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.constant.web.PageResult;
 import com.lanf.order.model.dto.AllowOutboundDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.query.AdminOrderSearchQuery;

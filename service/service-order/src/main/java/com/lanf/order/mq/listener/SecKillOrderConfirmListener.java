@@ -1,17 +1,18 @@
 package com.lanf.order.mq.listener;
 
-import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.exception.BizException;
-import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.order.model.dto.CancelOrderDTO;
-import com.lanf.order.model.entity.OrderDO;
 import com.lanf.api.order.model.enums.OrderProcessStepEnum;
-import com.lanf.order.model.enums.OrderStatusEnum;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
-import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.api.order.mq.message.SecKillOrderConfirmMessage;
 import com.lanf.api.order.mq.message.SecKillOrderCreatedMessage;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.constant.mq.OrderTopicWithTag;
+import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.order.model.dto.CancelOrderDTO;
+import com.lanf.order.model.entity.OrderDO;
+import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IOrderStatusTraceService;
 import com.lanf.order.service.OrderManagerService;
@@ -119,7 +120,7 @@ public class SecKillOrderConfirmListener implements RocketMQListener<SecKillOrde
             /**
              * 发送订单创建成功事件
              */
-            rocketMqClient.sendOrderlyMessageWithTags(OrderClientTopicName.ORDER_EVENT_TOPIC,
+            rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                     OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message),
                     one.getId().toString());
 

@@ -12,36 +12,35 @@ import com.lanf.api.order.model.vo.OrderDocumentVO;
 import com.lanf.api.order.model.vo.OrderItemVO;
 import com.lanf.api.order.model.vo.OrderVO;
 import com.lanf.api.order.model.vo.OrderVO2;
-import com.lanf.client.pay.api.PayApiService;
-import com.lanf.client.pay.model.query.TradeOrderBathQuery;
-import com.lanf.client.pay.model.vo.OrderTradeVO;
-import com.lanf.client.pay.model.vo.TradeOrderBathVO;
-import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.BigDecimalUtil;
-import com.lanf.common.utils.IStringUtils;
-import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.exception.BizException;
-import com.lanf.constant.result.RpcResultParser;
-import com.lanf.logistics.api.LogisticsApiService;
-import com.lanf.logistics.model.vo.LogisticsTrackStatusVO;
-import com.lanf.logistics.model.vo.LogisticsTrackVO;
-import com.lanf.logistics.model.vo.LogisticsVO;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
-import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
-import com.lanf.order.mapper.OrderMapper;
-import com.lanf.order.model.bo.OrderIdAndUserId;
-import com.lanf.order.model.dto.*;
-import com.lanf.order.model.entity.OrderDO;
-import com.lanf.order.model.entity.OrderItemDO;
-import com.lanf.order.model.enums.OrderStatusEnum;
-import com.lanf.order.model.query.*;
-import com.lanf.order.model.vo.*;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.AddSalesOutStockOrderMessage;
 import com.lanf.api.order.mq.message.InOutStockOrderItem;
 import com.lanf.api.order.mq.message.OrderOutBoundedMessage;
 import com.lanf.api.order.mq.message.SignOrderMessage;
+import com.lanf.client.pay.api.PayApiService;
+import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.common.utils.IStringUtils;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.RpcResultParser;
+import com.lanf.constant.utils.UserContext;
+import com.lanf.logistics.api.LogisticsApiService;
+import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.order.mapper.OrderMapper;
+import com.lanf.order.model.bo.OrderIdAndUserId;
+import com.lanf.order.model.dto.AllowOutboundDTO;
+import com.lanf.order.model.dto.DeliveryDTO;
+import com.lanf.order.model.dto.SignForDTO;
+import com.lanf.order.model.entity.OrderDO;
+import com.lanf.order.model.entity.OrderItemDO;
+import com.lanf.order.model.query.AdminOrderSearchQuery;
+import com.lanf.order.model.query.AppOrderSearchQuery;
+import com.lanf.order.model.query.OrderPageQuery;
+import com.lanf.order.model.query.OrderPageQuery2;
+import com.lanf.order.model.vo.*;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IOrderStatusTraceService;
@@ -51,8 +50,6 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.search.api.SearchApiService;
 import com.lanf.search.model.query.OrderSearchQuery;
 import com.lanf.search.model.vo.OrderSearchVO;
-import com.lanf.system.api.SystemService;
-import com.lanf.system.model.vo.ShopVO;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
@@ -68,7 +65,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -88,15 +84,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
     @Autowired
     private RocketMqClient rocketMqClient;
-    @Autowired
-    private SystemService systemService;
+
     @Autowired
     private PayApiService payApiService;
     @Autowired
     private LogisticsApiService logisticsApiService;
 
-    @Autowired
-    private ISendMqMessageService sendMqMessageService;
+
     @Autowired
     private ITccOperationService tccOperationService;
     @Autowired
@@ -284,7 +278,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
         OrderSearchQuery searchQuery = new OrderSearchQuery();
         searchQuery.setSearchWord(query.getSearchWord());
-        searchQuery.setUserId(UserIdContext.getUserId());
+        searchQuery.setUserId(UserContext.getUserId());
         searchQuery.setPage(query.getPage());
         searchQuery.setPageSize(query.getPageSize());
         //1.从es获取订单id
@@ -300,7 +294,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         List<Long> orderIdList = records.stream().map(OrderSearchVO::getOrderId).collect(Collectors.toList());
 
         List<OrderDO> orderDOList = this.lambdaQuery()
-                .eq(OrderDO::getUserId, UserIdContext.getUserId())
+                .eq(OrderDO::getUserId, UserContext.getUserId())
                 .in(BaseEntity::getId, orderIdList)
                 .list();
         //TODO: 2021/7/27 订单列表VO
@@ -485,8 +479,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
         Long orderId = dto.getOrderId();
         OrderDO orderDO = this.getById(orderId);
-        Integer status = orderDO.getStatus();
-        if (!OrderStatusEnum.SHIPPED.getCode().equals(status)) {
+        OrderStatusEnum status = orderDO.getStatus();
+        if (!OrderStatusEnum.SHIPPED.equals(status)) {
             log.warn("订单状态异常");
             throw new BizException("订单状态异常");
         }
@@ -555,173 +549,178 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         IPage<OrderDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<OrderDO> pageResult = this.lambdaQuery().
                 eq(query.getStatus() != null, OrderDO::getStatus, query.getStatus()).
-                eq(OrderDO::getUserId, UserUtils.getUserId()).
+                eq(OrderDO::getUserId, UserContext.getUserId()).
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
 
         List<OrderDO> records = pageResult.getRecords();
 
-        if (records.isEmpty()) {
-
-            return PageResult.emptyResult(OrderPageVO.class);
-        }
-        List<Long> shopIdList = records.stream().map(OrderDO::getShopId).collect(Collectors.toList());
-        List<ShopVO> shopVOList = systemService.shopQuery(shopIdList).getData();
-
-        Map<Long, ShopVO> shopVOMap = shopVOList.stream()
-                .collect(Collectors.toMap(ShopVO::getId, Function.identity()));
-
-        List<Long> idList = records.stream().map(BaseEntity::getId).collect(Collectors.toList());
-        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery().in(OrderItemDO::getOrderId, idList).list();
-        Map<Long, List<OrderItemDO>> orderMap = new HashMap<>();
-        for (OrderItemDO it : orderItemDOList) {
-
-            Long orderId = it.getOrderId();
-            List<OrderItemDO> orderItemDOList1 = orderMap.get(orderId);
-            if (orderItemDOList1 == null) {
-                orderItemDOList1 = new ArrayList<>();
-                orderMap.put(orderId, orderItemDOList1);
-            }
-            orderItemDOList1.add(it);
-
-        }
-        //构建返回信息
-        List<OrderPageVO> orderPageVOList = new ArrayList<>();
-        records.forEach(a -> {
-
-            Long id = a.getId();
-            List<OrderItemDO> orderItemDOList1 = orderMap.get(id);
-            List<OrderPageVO> v2 = new ArrayList<>();
-            Long shopId1 = a.getShopId();
-            Long shopId = null;
-            String shopName = null;
-            String statusDesc = null;
-            Integer status = a.getStatus();
-            String payMoneyDesc = null;
-
-            //第一个项目
-            ShopVO shopVO = shopVOMap.get(shopId1);
-            shopId = shopId1;
-            shopName = shopVO.getName();
-            if (status == 0) {
-                statusDesc = "等待买家付款";
-
-            }
-            if (status == 1 || status == 2) {
-                statusDesc = "买家已付款";
-
-            }
-            if (status == 3) {
-                statusDesc = "卖家已发货";
-
-            }
-            if (status == 4 || status == 5) {
-                statusDesc = "交易成功";
-
-            }
-
-            if (status == 6) {
-                statusDesc = "交易已关闭";
-
-            }
-            payMoneyDesc = "实付款￥" + a.getActualPayMoney();
-
-            List<OrderItemPageVO> orderItemPageVOList = new ArrayList<>();
-            OrderPageVO orderPageVO = new OrderPageVO();
-
-            for (OrderItemDO b : orderItemDOList1) {
-
-                OrderItemPageVO orderItemPageVO = new OrderItemPageVO();
-                orderItemPageVO.setGoodsTitle(b.getGoodsTitle());
-                orderItemPageVO.setSkuName(b.getSkuName());
-                orderItemPageVO.setQuantity(b.getQuantity());
-                orderItemPageVO.setUnitPrice(b.getUnitPrice());
-                orderItemPageVO.setSkuPictureAddress(b.getSkuPictureAddress());
-                orderItemPageVOList.add(orderItemPageVO);
-
-            }
-            orderPageVO.setItemPageVOList(orderItemPageVOList);
-            orderPageVO.setOrderId(id);
-            orderPageVO.setShopId(shopId);
-            orderPageVO.setShopName(shopName);
-            orderPageVO.setStatus(status);
-            orderPageVO.setStatusDesc(statusDesc);
-            orderPageVO.setPayMoneyDesc(payMoneyDesc);
-            v2.add(orderPageVO);
-            orderPageVOList.addAll(v2);
-        });
-        PageResult<OrderPageVO> result = new PageResult<>();
-        result.setRecords(orderPageVOList);
-        result.setSize(pageResult.getSize());
-        result.setTotal(pageResult.getTotal());
-        return result;
+//        if (records.isEmpty()) {
+//
+//            return PageResult.emptyResult(OrderPageVO.class);
+//        }
+//        List<Long> shopIdList = records.stream().map(OrderDO::getShopId).collect(Collectors.toList());
+//        List<ShopVO> shopVOList = systemService.shopQuery(shopIdList).getData();
+//
+//        Map<Long, ShopVO> shopVOMap = shopVOList.stream()
+//                .collect(Collectors.toMap(ShopVO::getId, Function.identity()));
+//
+//        List<Long> idList = records.stream().map(BaseEntity::getId).collect(Collectors.toList());
+//        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery().in(OrderItemDO::getOrderId, idList).list();
+//        Map<Long, List<OrderItemDO>> orderMap = new HashMap<>();
+//        for (OrderItemDO it : orderItemDOList) {
+//
+//            Long orderId = it.getOrderId();
+//            List<OrderItemDO> orderItemDOList1 = orderMap.get(orderId);
+//            if (orderItemDOList1 == null) {
+//                orderItemDOList1 = new ArrayList<>();
+//                orderMap.put(orderId, orderItemDOList1);
+//            }
+//            orderItemDOList1.add(it);
+//
+//        }
+//        //构建返回信息
+//        List<OrderPageVO> orderPageVOList = new ArrayList<>();
+//        records.forEach(a -> {
+//
+//            Long id = a.getId();
+//            List<OrderItemDO> orderItemDOList1 = orderMap.get(id);
+//            List<OrderPageVO> v2 = new ArrayList<>();
+//            Long shopId1 = a.getShopId();
+//            Long shopId = null;
+//            String shopName = null;
+//            String statusDesc = null;
+//            Integer status = a.getStatus();
+//            String payMoneyDesc = null;
+//
+//            //第一个项目
+//            ShopVO shopVO = shopVOMap.get(shopId1);
+//            shopId = shopId1;
+//            shopName = shopVO.getName();
+//            if (status == 0) {
+//                statusDesc = "等待买家付款";
+//
+//            }
+//            if (status == 1 || status == 2) {
+//                statusDesc = "买家已付款";
+//
+//            }
+//            if (status == 3) {
+//                statusDesc = "卖家已发货";
+//
+//            }
+//            if (status == 4 || status == 5) {
+//                statusDesc = "交易成功";
+//
+//            }
+//
+//            if (status == 6) {
+//                statusDesc = "交易已关闭";
+//
+//            }
+//            payMoneyDesc = "实付款￥" + a.getActualPayMoney();
+//
+//            List<OrderItemPageVO> orderItemPageVOList = new ArrayList<>();
+//            OrderPageVO orderPageVO = new OrderPageVO();
+//
+//            for (OrderItemDO b : orderItemDOList1) {
+//
+//                OrderItemPageVO orderItemPageVO = new OrderItemPageVO();
+//                orderItemPageVO.setGoodsTitle(b.getGoodsTitle());
+//                orderItemPageVO.setSkuName(b.getSkuName());
+//                orderItemPageVO.setQuantity(b.getQuantity());
+//                orderItemPageVO.setUnitPrice(b.getUnitPrice());
+//                orderItemPageVO.setSkuPictureAddress(b.getSkuPictureAddress());
+//                orderItemPageVOList.add(orderItemPageVO);
+//
+//            }
+//            orderPageVO.setItemPageVOList(orderItemPageVOList);
+//            orderPageVO.setOrderId(id);
+//            orderPageVO.setShopId(shopId);
+//            orderPageVO.setShopName(shopName);
+//            orderPageVO.setStatus(status);
+//            orderPageVO.setStatusDesc(statusDesc);
+//            orderPageVO.setPayMoneyDesc(payMoneyDesc);
+//            v2.add(orderPageVO);
+//            orderPageVOList.addAll(v2);
+//        });
+//        PageResult<OrderPageVO> result = new PageResult<>();
+//        result.setRecords(orderPageVOList);
+//        result.setSize(pageResult.getSize());
+//        result.setTotal(pageResult.getTotal());
+//        return result;
+//    }
+//
+//
+//    @Override
+//    public OrderDetailVO orderDetail(Long id) {
+//
+//        OrderDO orderDO = this.getById(id);
+//        if (orderDO == null) {
+//
+//            throw new BizException("订单不存在");
+//        }
+//        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery().eq(OrderItemDO::getOrderId, id).list();
+//
+//        OrderTradeVO orderTradeVO = payApiService.queryOrderTradeByOrderId(id).getData();
+//
+//        Long shopId = orderDO.getShopId();
+//        List<Long> shopIdList = new ArrayList<>();
+//        shopIdList.add(shopId);
+//        List<ShopVO> shopVOList = systemService.shopQuery(shopIdList).getData();
+//        Map<Long, ShopVO> shopVOMap = shopVOList.stream()
+//                .collect(Collectors.toMap(ShopVO::getId, Function.identity()));
+//
+//        /**
+//         * 构建 orderItemPageVOList
+//         */
+//        List<OrderItemPageVO> orderItemPageVOList = new ArrayList<>();
+//        for (OrderItemDO b : orderItemDOList) {
+//
+//            OrderItemPageVO orderItemPageVO = new OrderItemPageVO();
+//            orderItemPageVO.setGoodsTitle(b.getGoodsTitle());
+//            orderItemPageVO.setSkuName(b.getSkuName());
+//            orderItemPageVO.setQuantity(b.getQuantity());
+//            orderItemPageVO.setUnitPrice(b.getUnitPrice());
+//            orderItemPageVO.setSkuPictureAddress(b.getSkuPictureAddress());
+//            orderItemPageVOList.add(orderItemPageVO);
+//
+//        }
+//        /**
+//         * 构建orderDetailVO
+//         */
+//
+//        BigDecimal payMoney = null;
+//        String payTypeName = null;
+//        Date payFinishTime = null;
+//
+//        OrderDetailVO orderDetailVO = new OrderDetailVO();
+//
+//        if (orderTradeVO != null) {
+//            payMoney = orderTradeVO.getPayMoney();
+//            payFinishTime = orderTradeVO.getPayFinishTime();
+//            if (orderTradeVO.getPayType() == 0) {
+//                payTypeName = "支付宝";
+//            }
+//        }
+//        orderDetailVO.setId(id);
+//        orderDetailVO.setPayMoney(payMoney);
+//        orderDetailVO.setOrderNumber(orderDO.getOrderNumber());
+//        orderDetailVO.setPayTypeName(payTypeName);
+//        orderDetailVO.setPayFinishTime(payFinishTime);
+//        orderDetailVO.setOrderCreateTime(orderDO.getCreateTime());
+//        orderDetailVO.setTakeAddress(orderDO.getTakeAddress());
+//        orderDetailVO.setShopId(shopId);
+//        orderDetailVO.setShopName(shopVOMap.get(shopId).getName());
+//        //
+//        orderDetailVO.setOrderStatusName("已完成");
+//        orderDetailVO.setItemPageVOList(orderItemPageVOList);
+        return null;
     }
-
 
     @Override
     public OrderDetailVO orderDetail(Long id) {
-
-        OrderDO orderDO = this.getById(id);
-        if (orderDO == null) {
-
-            throw new BizException("订单不存在");
-        }
-        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery().eq(OrderItemDO::getOrderId, id).list();
-
-        OrderTradeVO orderTradeVO = payApiService.queryOrderTradeByOrderId(id).getData();
-
-        Long shopId = orderDO.getShopId();
-        List<Long> shopIdList = new ArrayList<>();
-        shopIdList.add(shopId);
-        List<ShopVO> shopVOList = systemService.shopQuery(shopIdList).getData();
-        Map<Long, ShopVO> shopVOMap = shopVOList.stream()
-                .collect(Collectors.toMap(ShopVO::getId, Function.identity()));
-
-        /**
-         * 构建 orderItemPageVOList
-         */
-        List<OrderItemPageVO> orderItemPageVOList = new ArrayList<>();
-        for (OrderItemDO b : orderItemDOList) {
-
-            OrderItemPageVO orderItemPageVO = new OrderItemPageVO();
-            orderItemPageVO.setGoodsTitle(b.getGoodsTitle());
-            orderItemPageVO.setSkuName(b.getSkuName());
-            orderItemPageVO.setQuantity(b.getQuantity());
-            orderItemPageVO.setUnitPrice(b.getUnitPrice());
-            orderItemPageVO.setSkuPictureAddress(b.getSkuPictureAddress());
-            orderItemPageVOList.add(orderItemPageVO);
-
-        }
-        /**
-         * 构建orderDetailVO
-         */
-
-        BigDecimal payMoney = null;
-        String payTypeName = null;
-        Date payFinishTime = null;
-
-        OrderDetailVO orderDetailVO = new OrderDetailVO();
-
-        if (orderTradeVO != null) {
-            payMoney = orderTradeVO.getPayMoney();
-            payFinishTime = orderTradeVO.getPayFinishTime();
-            if (orderTradeVO.getPayType() == 0) {
-                payTypeName = "支付宝";
-            }
-        }
-        orderDetailVO.setId(id);
-        orderDetailVO.setPayMoney(payMoney);
-        orderDetailVO.setOrderNumber(orderDO.getOrderNumber());
-        orderDetailVO.setPayTypeName(payTypeName);
-        orderDetailVO.setPayFinishTime(payFinishTime);
-        orderDetailVO.setOrderCreateTime(orderDO.getCreateTime());
-        orderDetailVO.setTakeAddress(orderDO.getTakeAddress());
-        orderDetailVO.setShopId(shopId);
-        orderDetailVO.setShopName(shopVOMap.get(shopId).getName());
-        //
-        orderDetailVO.setOrderStatusName("已完成");
-        orderDetailVO.setItemPageVOList(orderItemPageVOList);
-        return orderDetailVO;
+        return null;
     }
 
 
@@ -746,8 +745,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
             throw new BizException("订单不存在");
         }
-        Integer status = orderDO.getStatus();
-        if (status != 0) {
+        OrderStatusEnum status = orderDO.getStatus();
+        if (status.equals(OrderStatusEnum.PAID)) {
             //已付款，忽略
             log.info("订单已支付");
         } else {
@@ -763,113 +762,115 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Override
     public PageResult<OrderPageVO2> orderPageVO2(OrderPageQuery2 query2) {
 
-        /**
-         * 查询订单信息
-         */
-        IPage<OrderDO> page = new Page<>(query2.getPage(), query2.getPageSize());
-        IPage<OrderDO> pageResult = this.lambdaQuery().
-                eq(OrderDO::getShopId, UserUtils.getShopId()).
-                eq(query2.getStatus() != null, OrderDO::getStatus, query2.getStatus()).
-                orderByDesc(BaseEntity::getId)
-                .page(page);
+//        /**
+//         * 查询订单信息
+//         */
+//        IPage<OrderDO> page = new Page<>(query2.getPage(), query2.getPageSize());
+//        IPage<OrderDO> pageResult = this.lambdaQuery().
+//                eq(OrderDO::getShopId, UserUtils.getShopId()).
+//                eq(query2.getStatus() != null, OrderDO::getStatus, query2.getStatus()).
+//                orderByDesc(BaseEntity::getId)
+//                .page(page);
+//
+//        List<OrderDO> records = pageResult.getRecords();
+//
+//        if (records.isEmpty()) {
+//
+//            return PageResult.emptyResult(OrderPageVO2.class);
+//        }
+//        List<Long> orderIdList = records.stream().map(BaseEntity::getId).collect(Collectors.toList());
+//
+//        /**
+//         * 查询支付信息
+//         */
+//        TradeOrderBathQuery query = new TradeOrderBathQuery();
+//        query.setOrderIdList(orderIdList);
+//        List<TradeOrderBathVO> tradeOrderBathVOList = payApiService.tradeOrderBathQuery(query).getData();
+//        Map<Long, TradeOrderBathVO> tradeOrderMap = tradeOrderBathVOList.stream()
+//                .collect(Collectors.toMap(TradeOrderBathVO::getOrderId, Function.identity()));
+//        /**
+//         * 构建返回信息
+//         */
+//        List<OrderPageVO2> orderPageVO2List = new ArrayList<>();
+//
+//        for (OrderDO a : records) {
+//
+//            String takeAddress = a.getTakeAddress();
+//            String[] takeAddressSplit = takeAddress.split(",");
+//            String consignee = takeAddressSplit[0];
+//            //收货人联系电话
+//            String phone = takeAddressSplit[1];
+//            //收货地址
+//            String takeAddress2 = takeAddressSplit[2];
+//            TradeOrderBathVO tradeOrderBathVO = tradeOrderMap.get(a.getId());
+//            OrderPageVO2 orderPageVO2 = new OrderPageVO2();
+//            orderPageVO2.setId(a.getId());
+//            orderPageVO2.setPayType(tradeOrderBathVO.getPayType());
+//            orderPageVO2.setPayMoney(tradeOrderBathVO.getPayMoney());
+//            orderPageVO2.setCreateTime(a.getCreateTime());
+//            orderPageVO2.setStatus(a.getStatus());
+//            orderPageVO2.setOrderNumber(a.getOrderNumber());
+//            orderPageVO2.setConsignee(consignee);
+//            orderPageVO2.setPhone(phone);
+//            orderPageVO2.setTakeAddress(takeAddress2);
+//            orderPageVO2List.add(orderPageVO2);
+//        }
+//
+//        return PageResult.toPageResult(pageResult, orderPageVO2List);
 
-        List<OrderDO> records = pageResult.getRecords();
-
-        if (records.isEmpty()) {
-
-            return PageResult.emptyResult(OrderPageVO2.class);
-        }
-        List<Long> orderIdList = records.stream().map(BaseEntity::getId).collect(Collectors.toList());
-
-        /**
-         * 查询支付信息
-         */
-        TradeOrderBathQuery query = new TradeOrderBathQuery();
-        query.setOrderIdList(orderIdList);
-        List<TradeOrderBathVO> tradeOrderBathVOList = payApiService.tradeOrderBathQuery(query).getData();
-        Map<Long, TradeOrderBathVO> tradeOrderMap = tradeOrderBathVOList.stream()
-                .collect(Collectors.toMap(TradeOrderBathVO::getOrderId, Function.identity()));
-        /**
-         * 构建返回信息
-         */
-        List<OrderPageVO2> orderPageVO2List = new ArrayList<>();
-
-        for (OrderDO a : records) {
-
-            String takeAddress = a.getTakeAddress();
-            String[] takeAddressSplit = takeAddress.split(",");
-            String consignee = takeAddressSplit[0];
-            //收货人联系电话
-            String phone = takeAddressSplit[1];
-            //收货地址
-            String takeAddress2 = takeAddressSplit[2];
-            TradeOrderBathVO tradeOrderBathVO = tradeOrderMap.get(a.getId());
-            OrderPageVO2 orderPageVO2 = new OrderPageVO2();
-            orderPageVO2.setId(a.getId());
-            orderPageVO2.setPayType(tradeOrderBathVO.getPayType());
-            orderPageVO2.setPayMoney(tradeOrderBathVO.getPayMoney());
-            orderPageVO2.setCreateTime(a.getCreateTime());
-            orderPageVO2.setStatus(a.getStatus());
-            orderPageVO2.setOrderNumber(a.getOrderNumber());
-            orderPageVO2.setConsignee(consignee);
-            orderPageVO2.setPhone(phone);
-            orderPageVO2.setTakeAddress(takeAddress2);
-            orderPageVO2List.add(orderPageVO2);
-        }
-
-        return PageResult.toPageResult(pageResult, orderPageVO2List);
+        return null;
     }
 
     @Override
     public OrderDetailVO2 orderDetailVO2(Long orderId) {
 
-        OrderTradeVO orderTradeVO = payApiService.queryOrderTradeByOrderId(orderId).getData();
-        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery().eq(OrderItemDO::getOrderId, orderId).list();
+//        OrderTradeVO orderTradeVO = payApiService.queryOrderTradeByOrderId(orderId).getData();
+//        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery().eq(OrderItemDO::getOrderId, orderId).list();
+//
+//        /**
+//         * 构建返回信息
+//         */
+//        OrderDO orderDO = this.getById(orderId);
+//        String takeAddress = orderDO.getTakeAddress();
+//        String[] takeAddressSplit = takeAddress.split(",");
+//        String consignee = takeAddressSplit[0];
+//        String phone = takeAddressSplit[1];
+//        String takeAddress2 = takeAddressSplit[2];
+//        List<OrderItemDetailVO> orderItemDetailVOS = BeanCopyUtils.copyBeanList(orderItemDOList, OrderItemDetailVO.class);
+//        //构建OrderDetailVO2
+//        OrderDetailVO2 vo2 = new OrderDetailVO2();
+//        vo2.setOrderNumber(orderDO.getOrderNumber());
+//        vo2.setCreateTime(orderDO.getCreateTime());
+//        vo2.setStatus(orderDO.getStatus());
+//        vo2.setStatusName(getStatusName(orderDO.getStatus()));
+//        vo2.setConsignee(consignee);
+//        vo2.setPhone(phone);
+//        vo2.setTakeAddress(takeAddress2);
+//        vo2.setOrderItemDetailVOList(orderItemDetailVOS);
+//        //填充支付信息
+//        if (orderTradeVO != null) {
+//            vo2.setOrderMoney(orderTradeVO.getOrderMoney());
+//            vo2.setPayMoney(orderTradeVO.getPayMoney());
+//            vo2.setDiscountMoney(orderTradeVO.getDiscountMoney());
+//            vo2.setDiscountType(orderTradeVO.getDiscountType());
+//            vo2.setDiscountTypeName(orderTradeVO.getDiscountTypeName());
+//            vo2.setPayType(orderTradeVO.getPayType());
+//            vo2.setPayTypeName(orderTradeVO.getPayTypeName());
+//            vo2.setPayFinishTime(orderTradeVO.getPayFinishTime());
+//        }
+//        //填充物流信息
+//        LogisticsVO logisticsVO = logisticsApiService.logisticsDetail(orderId).getData();
+//        List<LogisticsTrackVO> allLogisticsTrack = new ArrayList<>();
+//        List<LogisticsTrackStatusVO> trackStatusVOList = logisticsVO.getLogisticsTrackStatusVOList();
+//        trackStatusVOList.forEach(a -> {
+//            allLogisticsTrack.addAll(a.getLogisticsTrackVOList());
+//        });
+//
+//        vo2.setExpressCompany(logisticsVO.getExpressCompany());
+//        vo2.setExpressNumber(logisticsVO.getNumber());
+//        vo2.setLogisticsTrackVOList(allLogisticsTrack);
 
-        /**
-         * 构建返回信息
-         */
-        OrderDO orderDO = this.getById(orderId);
-        String takeAddress = orderDO.getTakeAddress();
-        String[] takeAddressSplit = takeAddress.split(",");
-        String consignee = takeAddressSplit[0];
-        String phone = takeAddressSplit[1];
-        String takeAddress2 = takeAddressSplit[2];
-        List<OrderItemDetailVO> orderItemDetailVOS = BeanCopyUtils.copyBeanList(orderItemDOList, OrderItemDetailVO.class);
-        //构建OrderDetailVO2
-        OrderDetailVO2 vo2 = new OrderDetailVO2();
-        vo2.setOrderNumber(orderDO.getOrderNumber());
-        vo2.setCreateTime(orderDO.getCreateTime());
-        vo2.setStatus(orderDO.getStatus());
-        vo2.setStatusName(getStatusName(orderDO.getStatus()));
-        vo2.setConsignee(consignee);
-        vo2.setPhone(phone);
-        vo2.setTakeAddress(takeAddress2);
-        vo2.setOrderItemDetailVOList(orderItemDetailVOS);
-        //填充支付信息
-        if (orderTradeVO != null) {
-            vo2.setOrderMoney(orderTradeVO.getOrderMoney());
-            vo2.setPayMoney(orderTradeVO.getPayMoney());
-            vo2.setDiscountMoney(orderTradeVO.getDiscountMoney());
-            vo2.setDiscountType(orderTradeVO.getDiscountType());
-            vo2.setDiscountTypeName(orderTradeVO.getDiscountTypeName());
-            vo2.setPayType(orderTradeVO.getPayType());
-            vo2.setPayTypeName(orderTradeVO.getPayTypeName());
-            vo2.setPayFinishTime(orderTradeVO.getPayFinishTime());
-        }
-        //填充物流信息
-        LogisticsVO logisticsVO = logisticsApiService.logisticsDetail(orderId).getData();
-        List<LogisticsTrackVO> allLogisticsTrack = new ArrayList<>();
-        List<LogisticsTrackStatusVO> trackStatusVOList = logisticsVO.getLogisticsTrackStatusVOList();
-        trackStatusVOList.forEach(a -> {
-            allLogisticsTrack.addAll(a.getLogisticsTrackVOList());
-        });
-
-        vo2.setExpressCompany(logisticsVO.getExpressCompany());
-        vo2.setExpressNumber(logisticsVO.getNumber());
-        vo2.setLogisticsTrackVOList(allLogisticsTrack);
-
-        return vo2;
+        return null;
     }
 
 

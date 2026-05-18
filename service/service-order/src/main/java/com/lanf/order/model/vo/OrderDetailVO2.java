@@ -1,7 +1,6 @@
 package com.lanf.order.model.vo;
 
 import com.lanf.logistics.model.vo.LogisticsTrackVO;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
