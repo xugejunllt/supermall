@@ -8,8 +8,7 @@ import java.io.Serializable;
 @Data
 public class CalculateOrderAmountDTO implements Serializable {
 
-    @NotNull(message = "店铺ID不能为空")
-    private Long shopId;
+
     @NotNull(message = "商品ID不能为空")
     private Long skuId;
     //购买数量

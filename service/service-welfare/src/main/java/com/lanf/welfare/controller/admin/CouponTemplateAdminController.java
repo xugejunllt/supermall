@@ -2,7 +2,6 @@ package com.lanf.welfare.controller.admin;
 
 
 import com.lanf.constant.result.Result;
-import com.lanf.constant.web.PageResult;
 import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
 import com.lanf.welfare.model.dto.CouponTemplateRevokeDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;

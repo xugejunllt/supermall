@@ -29,7 +29,6 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
-import com.lanf.constant.result.Result;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
@@ -135,10 +134,16 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         discountAmountDTO.setUserId(userId);
         discountAmountDTO.setShopId(dto.getSkuId());
         discountAmountDTO.setTotalAmount(totalAmount);
+        /**
+         * 暂时不加入优惠卷
+         */
 
-        Result<CalculateDiscountAmountVO> calculateDiscountAmountVOResult = welfareApiService.calculateDiscountAmount(discountAmountDTO);
+//        Result<CalculateDiscountAmountVO> calculateDiscountAmountVOResult = welfareApiService.calculateDiscountAmount(discountAmountDTO);
 
-        return RpcResultParser.parseResult(calculateDiscountAmountVOResult);
+//        return RpcResultParser.parseResult(calculateDiscountAmountVOResult);
+        CalculateDiscountAmountVO vo = new CalculateDiscountAmountVO();
+        vo.setTotalDiscountAmount(BigDecimal.ZERO);
+        return  vo;
     }
     /**
      *立即下单
