@@ -21,6 +21,7 @@ import com.lanf.constant.result.RpcResultParser;
 import com.lanf.goods.constant.GoodsCodeEnum;
 import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.dto.StockEnoughDTO;
+import com.lanf.goods.model.dto.SubmitCartStockEnoughDTO;
 import com.lanf.goods.model.entity.GoodsDO;
 import com.lanf.goods.model.entity.GoodsSkuDO;
 import com.lanf.goods.model.entity.StockDO;
@@ -299,15 +300,16 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         stockEnoughVO.setLongitude(addressListVO.getLongitude());
 
         List<StockWithDistanceVO> distanceVOS = this.stockQueryByGoodsId(stockEnoughVO);
+        String alertKey = dto.getGoodsId()+"_"+dto.getSkuCode();
         if (distanceVOS.isEmpty()) {
-            log.warn("商品无库存");
-            throw new BizException("商品无库存");
+            log.warn(alertKey+"商品无库存");
+            throw new BizException(alertKey+"商品无库存");
         }
         //3.校验库存
         StockWithDistanceVO stock = distanceVOS.get(0);
         if (dto.getQuantity() > stock.getUsableStock()) {
-            log.warn("库存不足");
-            throw new BizException("库存不足");
+            log.warn(alertKey+"库存不足");
+            throw new BizException(alertKey+"库存不足");
         }
         //4.封装返回
         StockEnoughVO vco = new StockEnoughVO();
@@ -317,6 +319,23 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
 
         return vco;
+    }
+
+    /**
+     * 待优化 成多线程 并行join
+     *
+     */
+    @Override
+    public List<StockEnoughVO> submitCartStockEnough(SubmitCartStockEnoughDTO dto) {
+
+        List<StockEnoughDTO> stockEnoughDTOS = dto.getStockEnoughDTOS();
+        List<StockEnoughVO> result = new ArrayList<>(stockEnoughDTOS.size());
+        for (StockEnoughDTO stockEnoughDTO : stockEnoughDTOS) {
+            StockEnoughVO stockEnough = this.isStockEnough(stockEnoughDTO);
+            result.add(stockEnough);
+        }
+
+        return result;
     }
 
     /**

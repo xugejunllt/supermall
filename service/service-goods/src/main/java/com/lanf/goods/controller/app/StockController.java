@@ -2,6 +2,7 @@ package com.lanf.goods.controller.app;
 
 import com.lanf.constant.result.Result;
 import com.lanf.goods.model.dto.StockEnoughDTO;
+import com.lanf.goods.model.dto.SubmitCartStockEnoughDTO;
 import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.model.vo.StockWithDistanceVO;
@@ -34,6 +35,13 @@ public class StockController {
         log.info("商品库存是否充足:{}", dto);
 
         return Result.ok(stockService.isStockEnough(dto));
+    }
+    @PostMapping("/submitCartStockEnough")
+    public Result<List<StockEnoughVO>> submitCartStockEnough(@RequestBody @Validated SubmitCartStockEnoughDTO dto) {
+
+        log.info("提交购物车前,检查商品库存是否足够:{}", dto);
+
+        return Result.ok(stockService.submitCartStockEnough(dto));
     }
     @PostMapping("/stockQueryByGoodsId")
     public Result<List<StockWithDistanceVO>> stockQueryByGoodsId(@RequestBody @Validated

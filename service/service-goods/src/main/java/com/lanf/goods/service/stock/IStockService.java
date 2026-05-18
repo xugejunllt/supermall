@@ -8,8 +8,9 @@ import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.StockPageVO;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.model.dto.StockEnoughDTO;
-import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
+import com.lanf.goods.model.dto.SubmitCartStockEnoughDTO;
 import com.lanf.goods.model.entity.StockDO;
+import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.model.vo.StockWithDistanceVO;
 
@@ -42,6 +43,12 @@ public interface IStockService extends IService<StockDO> {
      *
      */
     StockEnoughVO isStockEnough(StockEnoughDTO dto);
+
+    /**
+     * 提交购物车时 检查库存是否足够
+     *
+     */
+    List<StockEnoughVO> submitCartStockEnough(SubmitCartStockEnoughDTO dto);
 
     /**
      * 添加秒杀商品预占库存
