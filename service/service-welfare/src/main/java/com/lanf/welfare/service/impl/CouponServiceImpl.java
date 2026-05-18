@@ -5,12 +5,9 @@ import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.cache.aop.DistributedLock;
-import com.lanf.messagemanager.client.model.dto.SendMqMessageDTO;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.enums.EventCodeEnum;
-import com.lanf.rocketmq.model.message.DeductCouponTemplateCountMsg;
 import com.lanf.tcc.service.ITccOperationService;
 import com.lanf.welfare.mapper.CouponMapper;
 import com.lanf.welfare.model.bo.DeductShopCouponRemainCountCacheBO;
@@ -60,8 +57,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
     private  CouponCacheService couponCacheService;
     @Autowired
     private TransactionTemplate transactionTemplate;
-    @Autowired
-    private ISendMqMessageService sendMqMessageService;
+
     @Autowired
     private ITccOperationService tccOperationService;
     @Autowired
@@ -78,24 +74,24 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         //插入优惠卷
         CouponDO couponDO = buildCouponDO(dto);
 
-        //保存
-        SendMqMessageDTO sendMqMessageDTO = buildSendMqMessageDTO(dto);
-
-        transactionTemplate.execute(status -> {
-            try {
-                this.save(couponDO);
-                sendMqMessageService.createSendMqMessage(sendMqMessageDTO);
-                // 如果一切正常，事务会自动提交
-                return null;
-            } catch (Exception e) {
-                // 发生异常时手动回滚
-                status.setRollbackOnly();
-                throw e;
-
-            }
-        });
-        //发送mq 扣減DB优惠卷模板数量
-        sendMqMessageService.sendMqMessage(sendMqMessageDTO);
+//        //保存
+//        SendMqMessageDTO sendMqMessageDTO = buildSendMqMessageDTO(dto);
+//
+//        transactionTemplate.execute(status -> {
+//            try {
+//                this.save(couponDO);
+//                sendMqMessageService.createSendMqMessage(sendMqMessageDTO);
+//                // 如果一切正常，事务会自动提交
+//                return null;
+//            } catch (Exception e) {
+//                // 发生异常时手动回滚
+//                status.setRollbackOnly();
+//                throw e;
+//
+//            }
+//        });
+//        //发送mq 扣減DB优惠卷模板数量
+//        sendMqMessageService.sendMqMessage(sendMqMessageDTO);
     }
 
 
@@ -123,17 +119,17 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         return couponDO;
     }
 
-    private SendMqMessageDTO buildSendMqMessageDTO(ReceiveShopCouponDTO dto){
-
-        String key = dto.getUserId()+":"+dto.getCouponTemplateId();
-        String bizKeyValue = EventCodeEnum.buildBizKey(key, EventCodeEnum.DEDUCT_COUPON_TEMPLATE_COUNT.getCode());
-        DeductCouponTemplateCountMsg msg = new DeductCouponTemplateCountMsg();
-        msg.setBizKeyValue(bizKeyValue);
-        msg.setCouponTemplateId(dto.getCouponTemplateId());
-        msg.setDeductCount(1);
-
-        return new SendMqMessageDTO(TopicName.DEDUCT_COUPON_TEMPLATE_COUNT_TOPIC,msg);
-    }
+//    private SendMqMessageDTO buildSendMqMessageDTO(ReceiveShopCouponDTO dto){
+//
+//        String key = dto.getUserId()+":"+dto.getCouponTemplateId();
+//        String bizKeyValue = EventCodeEnum.buildBizKey(key, EventCodeEnum.DEDUCT_COUPON_TEMPLATE_COUNT.getCode());
+//        DeductCouponTemplateCountMsg msg = new DeductCouponTemplateCountMsg();
+//        msg.setBizKeyValue(bizKeyValue);
+//        msg.setCouponTemplateId(dto.getCouponTemplateId());
+//        msg.setDeductCount(1);
+//
+//        return new SendMqMessageDTO(TopicName.DEDUCT_COUPON_TEMPLATE_COUNT_TOPIC,msg);
+//    }
 
 
 

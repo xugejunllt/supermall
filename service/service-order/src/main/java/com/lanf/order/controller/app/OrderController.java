@@ -1,20 +1,17 @@
 package com.lanf.order.controller.app;
 
 
+import com.lanf.api.goods.model.dto.ValidateCartDTO;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.model.enums.CancelSourceEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.order.model.dto.CalculateOrderAmountDTO;
-import com.lanf.order.model.dto.CancelOrderDTO;
-import com.lanf.order.model.dto.PlaceOrderDTO;
-import com.lanf.order.model.dto.SignForDTO;
+import com.lanf.order.model.dto.*;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.vo.*;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.OrderManagerService;
-import com.lanf.order.service.layout.InterfaceLayoutService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -35,13 +32,9 @@ public class OrderController {
 
     @Autowired
     private IOrderService orderService;
-    @Autowired
-    private InterfaceLayoutService interfaceLayoutService;
-
 
     @Autowired
     private OrderManagerService orderManagerService;
-
 
     /**
      * 下单前计算订单金额
@@ -70,6 +63,22 @@ public class OrderController {
 
         return Result.ok(orderManagerService.placeOrder(orderDTO));
 
+    }
+
+    @PostMapping("/validateCart")
+    public Result<ValidateCartVO> validateCart(@Validated @RequestBody ValidateCartDTO dto) {
+
+        log.info("购物车结算,进行校验:dto{}", dto);
+
+        return Result.ok(orderManagerService.validateCart(dto));
+    }
+
+    @PostMapping("/submitCart")
+    public Result<SubmitCartVO> submitCart(@Validated @RequestBody SubmitCartDTO dto) {
+
+        log.info("购物车结算:dto{}", dto);
+
+        return Result.ok(orderManagerService.submitCart(dto));
     }
 
     @PostMapping("/cancelOrder")
