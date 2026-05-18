@@ -1,8 +1,6 @@
 package com.lanf.order.controller.aip;
 
 import com.lanf.constant.result.Result;
-import com.lanf.api.order.model.dto.BathCreateOrderDTO;
-import com.lanf.api.order.model.dto.CreateOrderDTO;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.query.ReconciliationOrderItemQuery;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
@@ -32,21 +30,9 @@ public class OrderApiController {
     private IOrderItemService orderItemService;
 
 
-    @PostMapping("/createOrder")
-    public Result<Void> createOrder(@Validated @RequestBody CreateOrderDTO dto) {
 
-        log.info("创建一笔订单:dto{}", dto);
-        orderService.createOrder(dto);
-        return Result.ok();
-    }
 
-    @PostMapping("/bathCreateOrder")
-    public Result<Void> bathCreateOrder(@Validated @RequestBody BathCreateOrderDTO dto) {
 
-        log.info("批量创建订单:dto{}", dto);
-        mainOrderService.bathCreateOrder(dto);
-        return Result.ok();
-    }
     @PostMapping("/reconciliationOrderItemQuery")
     public Result<ReconciliationOrderItemVO> cancelOrder(@Validated @RequestBody ReconciliationOrderItemQuery query) {
 

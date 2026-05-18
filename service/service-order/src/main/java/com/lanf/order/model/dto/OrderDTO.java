@@ -1,6 +1,5 @@
 package com.lanf.order.model.dto;
 
-import com.lanf.api.order.model.dto.OrderItemDTO;
 import lombok.Data;
 
 import java.io.Serializable;

@@ -13,15 +13,18 @@ import com.lanf.api.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
-import com.lanf.api.order.model.dto.BathCreateOrderDTO;
-import com.lanf.api.order.model.dto.CreateOrderDTO;
-import com.lanf.api.order.model.dto.OrderItemDTO;
+import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.order.model.dto.BathCreateOrderDTO;
+import com.lanf.order.model.dto.CreateOrderDTO;
+import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.api.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
+import com.lanf.api.user.api.UserCacheService;
+import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IStringUtils;
@@ -79,11 +82,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     @Autowired
     private WelfareApiService welfareApiService;
+    @Autowired
+    private UserCacheService userCacheService;
 
-
-
-//    @Autowired
-//    private OrderApiService orderApiService;
     @Autowired
     private RocketMqClient rocketMqClient;
     @Autowired
@@ -155,11 +156,12 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     @Override
     public PlaceOrderVO placeOrder(PlaceOrderDTO orderDTO) {
 
-        OrderInitParamsBO orderInitParamsBO = initParams( orderDTO.getOrderNumber());
+        OrderInitParamsBO orderInitParamsBO = initParams( orderDTO);
         /**
          * 扣减库存
          */
         DeductStockVO deductStockVO = deductStock(orderDTO, orderInitParamsBO);
+
         /**
          * 使用优惠卷
          */
@@ -186,7 +188,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          * 构建返回结果
          */
         PlaceOrderVO vo = new PlaceOrderVO();
-        vo.setOrderId(orderInitParamsBO.getOrderId());
+        vo.setOrderNumber(orderInitParamsBO.getOrderNumber());
 
         return vo;
     }
@@ -230,6 +232,11 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      */
     public  void  cancelPlaceOrder(PlaceOrderDTO orderDTO){
 
+        orderService.lambdaUpdate().
+                eq(OrderDO::getOrderNumber, orderDTO.getOrderNumber())
+                .set(BaseEntity::getIsDeleted, 1)
+                .update();
+
     }
 
 
@@ -257,6 +264,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderItem.setSkuVersion(goodsSkuBO.getSkuVersion());
         orderItem.setSkuCode(goodsSkuBO.getSkuCode());
         orderItem.setWarehouseId(goodsSkuBO.getWarehouseId());
+        orderItem.setTenantId(goodsSkuBO.getTenantId());
         return orderItem;
     }
     /**
@@ -277,16 +285,16 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         CreateOrderDTO createOrderDTO = new CreateOrderDTO();
         createOrderDTO.setOrderId(orderInitParamsBO.getOrderId());
         createOrderDTO.setShopId(orderDTO.getShopId());
+        createOrderDTO.setShopName(deductStockVO.getGoodsSkuBO().getShopName());
         createOrderDTO.setUserId(orderInitParamsBO.getUserId());
         createOrderDTO.setOrderNumber(orderDTO.getOrderNumber());
         createOrderDTO.setTotalMoney(deductStockVO.getTotalAmount());
         createOrderDTO.setActualPayMoney(tradeMoney);
         createOrderDTO.setDiscountAmount(discountAmount);
-        //createOrderDTO.setDiscountInfoBO(discountInfoBOS);
-        createOrderDTO.setTakeAddressBO(orderDTO.getTakeAddress());
+        createOrderDTO.setDiscountInfoBOS(discountInfoBOS);
+        createOrderDTO.setAddressListVO(orderInitParamsBO.getAddressListVO());
         createOrderDTO.setOrderItems(orderItems);
-       // RpcResultParser.parseResult(orderApiService.createOrder(createOrderDTO));
-
+        orderService.createOrder(createOrderDTO);
     }
     /**
      * 创建支付订单
@@ -299,7 +307,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         dto.setUserId(orderInitParamsBO.getUserId());
         dto.setOrderId(orderInitParamsBO.getOrderId());
         dto.setTradeMoney(tradeMoney);
-        dto.setPayType(orderDTO.getPayType());
         dto.setOrderNumber(orderDTO.getOrderNumber());
         RpcResultParser.parseResult(payApiService.createPayOrder(dto));
 
@@ -356,8 +363,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         dto.setTotalAmount(totalAmount);
         dto.setCouponIds(orderDTO.getCouponIds());
         dto.setBizKeyPrx(orderInitParamsBO.getBizKeyPrx() );
+       // RpcResultParser.parseResult(welfareApiService.useMultipleCoupon(dto));
 
-        return RpcResultParser.parseResult(welfareApiService.useMultipleCoupon(dto));
+        return new CalculateDiscountAmountVO( );
     }
     private DeductStockVO  deductStock( PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO){
 
@@ -367,19 +375,33 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         deductStockDTO.setSkuCode(orderDTO.getSkuCode());
         deductStockDTO.setQuantity(orderDTO.getQuantity());
         deductStockDTO.setBizKeyPrx(orderInitParamsBO.getBizKeyPrx() );
+        deductStockDTO.setGoodsId(orderDTO.getGoodsId());
+        deductStockDTO.setWarehouseId(orderDTO.getWarehouseId());
+        deductStockDTO.setOrderNumber(orderDTO.getOrderNumber());
         return RpcResultParser.parseResult(goodsApiService.deductStock(deductStockDTO));
 
 
     }
 
-    private OrderInitParamsBO initParams(String orderNumber){
+    private OrderInitParamsBO initParams(PlaceOrderDTO orderDTO){
+
 
         OrderInitParamsBO  orderInitParamsBO = new OrderInitParamsBO();
-        orderInitParamsBO.setTradeOrderId(IdUtils.generateId());
         orderInitParamsBO.setOrderId(IdUtils.generateId());
         orderInitParamsBO.setUserId(UserContext.getUserId());
-        orderInitParamsBO.setBizKeyPrx(orderNumber);
-        orderInitParamsBO.setOrderNumber(orderNumber);
+        orderInitParamsBO.setBizKeyPrx(orderDTO.getOrderNumber()+"_"+orderDTO.getSkuCode());
+        orderInitParamsBO.setOrderNumber(orderDTO.getOrderNumber());
+
+        List<AddressListVO> addressListVOS = RpcResultParser.parseResult(userCacheService.addressListQuery());
+        Long addressId = orderDTO.getAddressId();
+        AddressListVO addressListVO1 = addressListVOS.stream()
+                .filter(addressListVO -> addressListVO.getId().equals(addressId)).
+                findFirst().orElse(null);
+        if (addressListVO1 == null){
+            throw new BizException("收货地址不存在");
+        }
+        orderInitParamsBO.setAddressListVO(addressListVO1);
+
         return orderInitParamsBO;
     }
 
@@ -426,14 +448,14 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          * 发布订单创建成功事件
          *
          */
-        List<CreateOrderDTO> createOrderDTOList = bathCreateOrderDTO1.getCreateOrderDTOList();
-        for (CreateOrderDTO createOrderDTO : createOrderDTOList) {
-            OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
-            message.setOrderId(createOrderDTO.getOrderId());
-            message.setUserId(UserContext.getUserId());
-            rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
-                    OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message),
-                    createOrderDTO.getOrderId().toString());        }
+//        List<CreateOrderDTO> createOrderDTOList = bathCreateOrderDTO1.getCreateOrderDTOList();
+//        for (CreateOrderDTO createOrderDTO : createOrderDTOList) {
+//            OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
+//            message.setOrderId(createOrderDTO.getOrderId());
+//            message.setUserId(UserContext.getUserId());
+//            rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+//                    OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message),
+//                    createOrderDTO.getOrderId().toString());        }
 
         /**
          * 构建返回值
@@ -550,7 +572,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         createOrderDTO.setTotalMoney(orderAmount);
         createOrderDTO.setActualPayMoney(orderAmount);
         createOrderDTO.setDiscountAmount(BigDecimal.ZERO);
-        createOrderDTO.setTakeAddressBO(dto.getTakeAddress());
+        //createOrderDTO.setAddressListVO(dto.getTakeAddress());
         createOrderDTO.setOrderItems(orderItems);
 
         return createOrderDTO;

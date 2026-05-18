@@ -1,15 +1,13 @@
 package com.lanf.api.order.api;
 
-import com.lanf.api.order.model.dto.BathCreateOrderDTO;
 import com.lanf.api.order.model.dto.CancelOrderApiDTO;
-import com.lanf.api.order.model.dto.CreateOrderDTO;
 import com.lanf.api.order.model.query.ContrastBillOrderQuery;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.query.ReconciliationOrderItemQuery;
+import com.lanf.api.order.model.vo.OrderDocumentVO;
 import com.lanf.api.order.model.vo.OrderVO;
 import com.lanf.api.order.model.vo.OrderVO2;
 import com.lanf.api.order.model.vo.ReconciliationOrderItemVO;
-import com.lanf.api.order.model.vo.OrderDocumentVO;
 import com.lanf.constant.result.Result;
 import org.dromara.hmily.annotation.Hmily;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -26,13 +24,8 @@ import java.util.List;
 @FeignClient(name = "service-order", url = "localhost:9007") //调用的服务名称
 public interface OrderApiService {
 
-    @Hmily
-    @PostMapping("/order/api/createOrder")
-    public Result<Void> createOrder(@Validated @RequestBody CreateOrderDTO dto);
 
-    @Hmily
-    @PostMapping("/order/api/bathCreateOrder")
-    public Result<Void> bathCreateOrder(@RequestBody BathCreateOrderDTO dto);
+
 
     @Hmily
     @PostMapping("/order/api/cancelOrder")

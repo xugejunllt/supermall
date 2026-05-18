@@ -14,7 +14,9 @@ public class DeductStockVO implements Serializable {
 
     /** 订单总金额 */
     private  BigDecimal totalAmount;
-    
+
+
+
     /** 商品信息 */
     private GoodsSku goodsSkuBO;
 

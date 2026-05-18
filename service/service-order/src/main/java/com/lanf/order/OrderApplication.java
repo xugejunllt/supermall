@@ -15,7 +15,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
         exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 @EnableDiscoveryClient  //nacos注册
 @EnableFeignClients(basePackages = {"com.lanf.api.goods","com.lanf.api.pay",
-        "com.lanf.system.api","com.lanf.logistics.api","com.lanf.welfare.api","com.lanf.api.search"
+        "com.lanf.system.api","com.lanf.logistics.api","com.lanf.welfare.api","com.lanf.api.search","com.lanf.api.user"
 
 }
 

@@ -152,13 +152,12 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
 
     @Override
     public void addInterruptedFlag(String bizKey, String interruptedException) {
-        tccInterruptedFlagExecutor.execute(() -> {
+
             try {
                 doAddInterruptedFlag(bizKey, interruptedException);
             } catch (Exception e) {
                 log.error("设置中断标志失败[bizKey:{}]", bizKey, e);
             }
-        });
     }
 
     public void doAddInterruptedFlag(String bizKey, String interruptedException) {

@@ -15,6 +15,8 @@ public class GoodsSku implements Serializable {
 
     private Long goodsId;
 
+    private String shopName;
+
     private String goodsName;
 
     private String goodsTitle;
@@ -35,4 +37,6 @@ public class GoodsSku implements Serializable {
     private Long goodsVersion;
 
     private Long warehouseId;
+
+    private Long tenantId;
 }

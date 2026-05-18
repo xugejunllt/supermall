@@ -168,23 +168,17 @@ public class RequestAuthExtractor {
 
         String userIdStr = request.getHeader(FEIGN_HEADER_USER_ID);
         String deviceId = request.getHeader(FEIGN_HEADER_DEVICE_ID);
+        Long userId = null;
+        if (StringUtils.hasText(userIdStr)){
 
-        if (!StringUtils.hasText(userIdStr)) {
-            log.warn("Feign请求头中缺少userId参数");
-            throw new BizException("Feign请求头中缺少userId参数");
-        }
-        if (!StringUtils.hasText(deviceId)) {
-            log.warn("Feign请求头中缺少deviceId参数");
-            throw new BizException("Feign请求头中缺少deviceId参数");
+            try {
+                userId = Long.parseLong(userIdStr);
+            } catch (NumberFormatException e) {
+                log.warn("userId格式错误: {}", userIdStr);
+                throw new BizException("userId格式错误");
+            }
         }
 
-        Long userId;
-        try {
-            userId = Long.parseLong(userIdStr);
-        } catch (NumberFormatException e) {
-            log.warn("userId格式错误: {}", userIdStr);
-            throw new BizException("userId格式错误");
-        }
 
         FeignRequestInfo feignRequestInfo = new FeignRequestInfo();
         feignRequestInfo.setUserId(userId);

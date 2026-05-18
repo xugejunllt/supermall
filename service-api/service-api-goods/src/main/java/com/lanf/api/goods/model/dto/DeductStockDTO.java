@@ -24,4 +24,12 @@ public class DeductStockDTO implements Serializable {
     @Min(value = 1, message = "数量不能小于1")
     private Integer quantity;
 
+    @NotNull(message = "商品id不能为空")
+    private Long goodsId;
+
+    @NotNull(message = "仓库id不能为空")
+    private Long warehouseId;
+
+    @NotBlank(message = "订单编号不能为空")
+    private String orderNumber;
 }

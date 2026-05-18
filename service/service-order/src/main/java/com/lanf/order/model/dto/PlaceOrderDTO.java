@@ -1,6 +1,5 @@
 package com.lanf.order.model.dto;
 
-import com.lanf.api.order.model.dto.TakeAddressDTO;
 import lombok.Data;
 
 import java.util.List;
@@ -8,7 +7,13 @@ import java.util.List;
 @Data
 public class PlaceOrderDTO implements java.io.Serializable{
 
+
+    private Long goodsId;
+
     private String skuCode;
+
+    private Long warehouseId;
+
     //收货地址id
     private Long addressId;
     //店铺id
@@ -19,16 +24,6 @@ public class PlaceOrderDTO implements java.io.Serializable{
     private List<Long> couponIds;
     //订单编号
     private  String orderNumber;
-
-    //支付类型 0支付宝 1微信 2银联
-    private Integer payType;
-    //收货地址
-    private TakeAddressDTO takeAddress;
-
-
-
-
-
 
 
 }

@@ -128,6 +128,11 @@
             <artifactId>service-api-welfare</artifactId>
             <version>${service.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>service-api-user</artifactId>
+            <version>${service.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

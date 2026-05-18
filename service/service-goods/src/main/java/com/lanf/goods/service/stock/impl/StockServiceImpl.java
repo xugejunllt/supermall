@@ -13,6 +13,7 @@ import com.lanf.api.goods.model.vo.StockPageVO;
 import com.lanf.api.user.api.UserCacheService;
 import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.constant.model.vo.PageResult;
@@ -20,18 +21,17 @@ import com.lanf.constant.result.Result;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.goods.constant.GoodsCodeEnum;
 import com.lanf.goods.mapper.StockMapper;
+import com.lanf.goods.model.bo.DeductStockParameterBO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.dto.SubmitCartStockEnoughDTO;
-import com.lanf.goods.model.entity.GoodsDO;
-import com.lanf.goods.model.entity.GoodsSkuDO;
-import com.lanf.goods.model.entity.StockDO;
-import com.lanf.goods.model.entity.UserStockFlowDO;
+import com.lanf.goods.model.entity.*;
 import com.lanf.goods.model.enums.WarehouseSelectionStrategyEnum;
 import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.model.vo.StockWithDistanceVO;
 import com.lanf.goods.service.goods.IGoodsService;
 import com.lanf.goods.service.goods.IGoodsSkuService;
+import com.lanf.goods.service.goods.IShopService;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockFlowService;
 import com.lanf.goods.utils.GoodsServiceUtils;
@@ -74,6 +74,8 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @Autowired
     private UserCacheService userCacheService;
 
+    @Autowired
+    private IShopService shopService;
 
     /**
      * 查找所有库存
@@ -103,24 +105,41 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     public DeductStockVO deductStock(DeductStockDTO deductStockDTO) {
 
         String skuCode = deductStockDTO.getSkuCode();
-
-        List<StockDO> stockDOList = this.lambdaQuery().eq(StockDO::getSkuCode, skuCode).list();
-        if (stockDOList.isEmpty()) {
-            log.info("库存不存在");
-            throw new BizException("库存不存在");
-        }
+        Long warehouseId = deductStockDTO.getWarehouseId();
+        Long goodsId1 = deductStockDTO.getGoodsId();
 
         /**
          *
          * 可能多个仓库 skucode 暂时取其中一个
          *
          */
-        StockDO stockDO = GoodsServiceUtils.findStockDO(skuCode);
+        StockDO stockDO = this.lambdaQuery()
+                .eq(StockDO::getSkuCode, skuCode)
+                .eq(StockDO::getWarehouseId, warehouseId)
+                .eq(StockDO::getGoodsId, goodsId1)
+                .one();
+
+        String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
+        if (stockDO == null) {
+
+            log.warn("库存不存在");
+            tccOperationService.addInterruptedFlag(bizKey, "库存不存在");
+            throw new BizException("库存不存在");
+
+        }
         Integer totalStock = stockDO.getUsableStock();
         if (totalStock < deductStockDTO.getQuantity()) {
-            log.info("库存不足");
+
+            log.warn("库存不足");
+            tccOperationService.addInterruptedFlag(bizKey, "库存不足");
             throw new BizException("库存不足");
         }
+        Long tenantId = stockDO.getTenantId();
+        DeductStockParameterBO deductStockParameterBO = new DeductStockParameterBO();
+        deductStockParameterBO.setTenantId(tenantId);
+        deductStockParameterBO.setOrderNumber(deductStockDTO.getOrderNumber());
+        deductStockParameterBO.setSkuCode(skuCode);
+        deductStockParameterBO.setStockId(stockDO.getId());
 
         Long updateVersion = stockDO.getVersion() + 1;
         //扣减后的剩余总库存
@@ -128,7 +147,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         //冻结库存
         Integer updateLockStock = stockDO.getLockStock() + deductStockDTO.getQuantity();
 
-        String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
+
         /**
          * 查询返回需要的数据
          */
@@ -137,11 +156,23 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         Long goodsId = goodsSkuDO.getGoodsId();
         GoodsDO goodsDO = goodsService.getById(goodsId);
+        /**
+         * 提前准备返回的数据
+         *
+         */
+        //订单总金额
+        BigDecimal totalAmount = GoodsServiceUtils.calculateTotalAmount(goodsSkuDO.getPrice(),
+                deductStockDTO.getQuantity());
+
+        GoodsSku goodsSkuBO = buildGoodsSkuBO(goodsSkuDO, goodsDO, stockDO);
+        DeductStockVO deductStockVO = new DeductStockVO();
+        deductStockVO.setTotalAmount(totalAmount);
+        deductStockVO.setGoodsSkuBO(goodsSkuBO);
 
         /**
          * DB操作
          */
-        tccOperationService.tryOperation(bizKey, null);
+        tccOperationService.tryOperation(bizKey, JsonUtils.toJsonString(deductStockParameterBO));
         boolean update = this.lambdaUpdate().
                 eq(StockDO::getId, stockDO.getId()).
                 eq(StockDO::getVersion, stockDO.getVersion()).
@@ -153,24 +184,16 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             log.info("扣减库存失败");
             throw new BizException("扣减库存失败");
         }
-        return buildDeductStockVO(deductStockDTO.getQuantity(), goodsSkuDO, goodsDO, stockDO);
-    }
 
-
-    private DeductStockVO buildDeductStockVO(Integer quantity,
-                                             GoodsSkuDO goodsSkuDO, GoodsDO goodsDO, StockDO stockDO) {
-
-
-        //订单总金额
-        BigDecimal totalAmount = GoodsServiceUtils.calculateTotalAmount(goodsSkuDO.getPrice(), quantity);
-        GoodsSku goodsSkuBO = buildGoodsSkuBO(goodsSkuDO, goodsDO, stockDO);
-        DeductStockVO deductStockVO = new DeductStockVO();
-        deductStockVO.setTotalAmount(totalAmount);
-        deductStockVO.setGoodsSkuBO(goodsSkuBO);
         return deductStockVO;
     }
 
+
+
     private GoodsSku buildGoodsSkuBO(GoodsSkuDO goodsSkuDO, GoodsDO goodsDO, StockDO stockDO) {
+
+        ShopDO shopDO = shopService.getById(goodsDO.getShopId());
+
         GoodsSku goodsSkuBO = new GoodsSku();
         goodsSkuBO.setSkuId(goodsSkuDO.getId());
         goodsSkuBO.setGoodsId(goodsSkuDO.getGoodsId());
@@ -182,6 +205,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         goodsSkuBO.setGoodsVersion(goodsDO.getVersion());
         goodsSkuBO.setGoodsTitle(goodsDO.getTitle());
         goodsSkuBO.setWarehouseId(stockDO.getWarehouseId());
+        goodsSkuBO.setTenantId(goodsSkuDO.getTenantId());
+        goodsSkuBO.setShopName(shopDO.getName());
+
         return goodsSkuBO;
     }
 
@@ -190,13 +216,22 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         log.info("confirmDeductStock[{}]", deductStockDTO);
 
-        String skuCode = deductStockDTO.getSkuCode();
-        StockDO stockDO = GoodsServiceUtils.findStockDO(skuCode);
+
+        String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
+
+        String parameter = tccOperationService.getParameter(bizKey);
+
+        DeductStockParameterBO parameterBO = JsonUtils.toObject(parameter, DeductStockParameterBO.class);
+        Long stockId = parameterBO.getStockId();
+        StockDO stockDO = this.getById(stockId);
+
         Long updateVersion = stockDO.getVersion() + 1;
         //扣减冻结库存
         Integer lockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
-        UserStockFlowDO userStockFlowDO = buildUserStockFlowDO(deductStockDTO, stockDO);
-        String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
+
+
+        UserStockFlowDO userStockFlowDO = buildUserStockFlowDO(deductStockDTO, stockDO, parameterBO);
+
         boolean operation = tccOperationService.confirmOperation(bizKey);
         if (!operation) {
             log.info("confirm已执行");
@@ -223,7 +258,12 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         return bizKeyPrx + ":" + "deductStockBizKey";
     }
 
-    private UserStockFlowDO buildUserStockFlowDO(DeductStockDTO deductStockDTO, StockDO stockDO) {
+    private UserStockFlowDO buildUserStockFlowDO(DeductStockDTO deductStockDTO,StockDO stockDO,
+                                                 DeductStockParameterBO parameterBO) {
+
+
+        String flowNo = parameterBO.getSkuCode() + ":" + deductStockDTO.getOrderNumber()+":" +
+                UserStockFlowEventTypeEnum.ORDER_OUTBOUND.getCode();
 
         //总库存 = 可使用+已冻结
         Integer totalStock = stockDO.getUsableStock() + deductStockDTO.getQuantity();
@@ -235,6 +275,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         userStockFlowDO.setBeforeQuantity(totalStock);
         userStockFlowDO.setAfterQuantity(totalStock - deductStockDTO.getQuantity());
         userStockFlowDO.setChangeQuantity(deductStockDTO.getQuantity());
+        userStockFlowDO.setTenantId(parameterBO.getTenantId());
+        userStockFlowDO.setFlowNo(flowNo);
+        userStockFlowDO.setWarehouseId(stockDO.getWarehouseId());
         return userStockFlowDO;
     }
 
@@ -251,6 +294,10 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         //冻结库存
         Integer updateLockStock = stockDO.getLockStock() - deductStockDTO.getQuantity();
         String bizKey = generateDeductStockBizKey(deductStockDTO.getBizKeyPrx());
+
+        UserStockFlowDO userStockFlowDO = new UserStockFlowDO();
+
+
         /**
          * DB操作
          */

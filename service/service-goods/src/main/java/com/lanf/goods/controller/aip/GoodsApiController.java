@@ -39,7 +39,7 @@ public class GoodsApiController {
     private IUserStockFlowService userStockFlowService;
 
     /**
-     * 扣减库存
+     * 单笔下单扣减库存
      */
     @PostMapping("/deductStock")
     public Result<DeductStockVO> deductStock(@RequestBody @Validated DeductStockDTO deductStockDTO) {

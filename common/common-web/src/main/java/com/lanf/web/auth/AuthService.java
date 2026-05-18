@@ -52,14 +52,16 @@ public class AuthService {
             }
 
             if (excludeAuthPaths.contains(requestURI)) {
+                log.info("接收到不需要鉴权请求,请求类型[{}],请求路径[{}]", request.getMethod(), requestURI);
+
                 AuthRequestInfo authRequestInfo = RequestAuthExtractor.extractBasicInfo(request);
-                log.info("接收到不需要鉴权请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURI, authRequestInfo);
                 UserContext.setDeviceId(authRequestInfo.getDeviceId());
                 return;
             }
             if (internalServicePaths.contains(requestURI)) {
+                log.info("接收到内部请求,请求类型[{}],请求路径[{}]", request.getMethod(), requestURI);
+
                 FeignRequestInfo authRequestInfo = RequestAuthExtractor.extractFeignAuthInfoWithoutTenant(request);
-                log.info("接收到内部请求,请求类型[{}],请求路径[{}],请求头[{}]", request.getMethod(), requestURI, authRequestInfo);
 
                 UserContext.setDeviceId(authRequestInfo.getDeviceId());
                 UserContext.setTenantId(authRequestInfo.getTenantId());

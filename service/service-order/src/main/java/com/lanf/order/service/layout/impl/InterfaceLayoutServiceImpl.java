@@ -5,7 +5,7 @@ import com.lanf.api.goods.model.dto.CheckAndQueryGoodsDTO;
 import com.lanf.api.goods.model.vo.ApiGoodsSkuVO;
 import com.lanf.api.goods.model.vo.EmptyCartGoodsSkuVO;
 import com.lanf.api.goods.model.vo.EmptyCartVO;
-import com.lanf.api.order.model.dto.OrderItemDTO;
+import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.pay.model.dto.CreatePayOrderDTO;
 import com.lanf.api.pay.model.vo.CreatePayOrderVO;

@@ -1,7 +1,7 @@
 package com.lanf.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.api.order.model.dto.BathCreateOrderDTO;
+import com.lanf.order.model.dto.BathCreateOrderDTO;
 import com.lanf.order.model.dto.CreateOrderDTO2;
 import com.lanf.order.model.entity.MainOrderDO;
 import com.lanf.order.model.vo.CreateOrderVO;

@@ -6,6 +6,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.model.enums.CancelSourceEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
@@ -36,6 +37,17 @@ public class OrderController {
     @Autowired
     private OrderManagerService orderManagerService;
 
+
+    /**
+     * 生成订单编号
+     *
+     */
+    @PostMapping("/generateOrderNumber")
+    public Result<String> generateOrderNumber() {
+
+        log.info("生成订单编号");
+        return Result.ok(IdUtils.generateId()+"");
+    }
     /**
      * 下单前计算订单金额
      */
