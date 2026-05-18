@@ -8,12 +8,14 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@MapperScan(basePackages = {"com.lanf.order.mapper"})
+@MapperScan(basePackages = {"com.lanf.order.mapper","com.lanf.tcc.mapper"})
 
-@SpringBootApplication(scanBasePackages="com.lanf",exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
+@SpringBootApplication(scanBasePackages="com.lanf",
+
+        exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 @EnableDiscoveryClient  //nacos注册
-@EnableFeignClients(basePackages = {"com.lanf.log.api","com.lanf.goods.api","com.lanf.pay.api",
-        "com.lanf.system.api","com.lanf.logistics.api","com.lanf.welfare.api","com.lanf.order.api"
+@EnableFeignClients(basePackages = {"com.lanf.api.goods","com.lanf.api.pay",
+        "com.lanf.system.api","com.lanf.logistics.api","com.lanf.welfare.api","com.lanf.api.search"
 
 }
 

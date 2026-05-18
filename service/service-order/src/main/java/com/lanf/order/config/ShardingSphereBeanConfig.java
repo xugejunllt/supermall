@@ -6,7 +6,6 @@ import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.StandardShardingStrategyConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,21 +24,11 @@ import java.util.*;
  *   <li>使用自定义分片算法类实现灵活的分片逻辑</li>
  * </ul>
  * 
- * <p>配置外部化：所有配置参数从 yml 中读取，
- * 便于不同环境使用不同的配置，无需修改代码。
- * 
  *
  *
  */
 @Configuration
 public class ShardingSphereBeanConfig {
-
-    /**
-     * 注入 ShardingSphere 配置属性
-     * 从 yml 配置文件中读取：sharding.sphere.*
-     */
-    @Autowired
-    private ShardingSphereProperties shardingSphereProperties;
 
     /**
      * 创建 ShardingSphere 数据源 Bean
@@ -68,7 +57,7 @@ public class ShardingSphereBeanConfig {
         // 3. 配置 ShardingSphere 全局属性
         Properties props = new Properties();
         // 开启 SQL 日志打印，便于调试和监控实际执行的 SQL
-        props.setProperty("sql-show", String.valueOf(shardingSphereProperties.getSqlShow()));
+        props.setProperty("sql-show", "true");
 
         // 4. 创建 ShardingSphere 数据源工厂
         // ShardingSphereDataSourceFactory 会根据配置创建代理数据源
@@ -83,7 +72,7 @@ public class ShardingSphereBeanConfig {
     /**
      * 创建物理数据源映射
      * 
-     * <p>从配置文件中读取所有数据源配置，创建对应的 HikariCP 连接池。
+     * <p>创建对应的 HikariCP 连接池。
      * 例如：ds0 -> order_db_0, ds1 -> order_db_1
      * 
      * <p>HikariCP 是高性能的 JDBC 连接池，Spring Boot 默认使用。
@@ -93,19 +82,23 @@ public class ShardingSphereBeanConfig {
     private Map<String, DataSource> createDataSources() {
         Map<String, DataSource> map = new HashMap<>();
         
-        // 遍历配置文件中定义的所有数据源
-        shardingSphereProperties.getDatasource().forEach((name, dsProps) -> {
-            // 为每个数据源创建 HikariCP 连接池
-            HikariDataSource ds = new HikariDataSource();
-            ds.setDriverClassName(dsProps.getDriverClassName());      // MySQL 驱动类名
-            ds.setJdbcUrl(dsProps.getJdbcUrl());                      // 数据库连接 URL
-            ds.setUsername(dsProps.getUsername());                    // 数据库用户名
-            ds.setPassword(dsProps.getPassword());                    // 数据库密码
-            ds.setMaximumPoolSize(dsProps.getMaximumPoolSize());      // 连接池最大连接数
-            
-            // 将数据源放入映射，key 为数据源名称（如 ds0, ds1）
-            map.put(name, ds);
-        });
+        // 创建数据源 ds0
+        HikariDataSource ds0 = new HikariDataSource();
+        ds0.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        ds0.setJdbcUrl("jdbc:mysql://localhost:3306/order_db_0?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai");
+        ds0.setUsername("root");
+        ds0.setPassword("123456");
+        ds0.setMaximumPoolSize(10);
+        map.put("ds0", ds0);
+        
+        // 创建数据源 ds1
+        HikariDataSource ds1 = new HikariDataSource();
+        ds1.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        ds1.setJdbcUrl("jdbc:mysql://localhost:3306/order_db_1?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai");
+        ds1.setUsername("root");
+        ds1.setPassword("123456");
+        ds1.setMaximumPoolSize(10);
+        map.put("ds1", ds1);
         
         return map;
     }
@@ -121,11 +114,17 @@ public class ShardingSphereBeanConfig {
      *   <li>注册所有分片算法的具体实现</li>
      * </ol>
      * 
+     * <p>分片策略说明：
+     * <ul>
+     *   <li>分库：user_id % 2，均匀分布到 2 个数据库</li>
+     *   <li>分表：user_id % 2，均匀分布到 2 张表</li>
+     * </ul>
+     * 
      * <p>示例：user_id=12345 的路由过程
      * <pre>
      * 1. 分库：12345 % 2 = 1 → 路由到 ds1
-     * 2. 分表：12345 % 8 = 1 → 路由到 t_order_1
-     * 3. 最终路由结果：ds1.t_order_1
+     * 2. 分表：12345 % 2 = 1 → 路由到 main_order_1
+     * 3. 最终路由结果：ds1.main_order_1
      * </pre>
      *
      * @return 完整的分片规则配置对象
@@ -133,56 +132,98 @@ public class ShardingSphereBeanConfig {
     private ShardingRuleConfiguration createShardingRuleConfiguration() {
         ShardingRuleConfiguration shardingRuleConfig = new ShardingRuleConfiguration();
 
-        // 遍历配置文件中定义的所有分片表
-        shardingSphereProperties.getSharding().getTables().forEach((tableName, tableProps) -> {
-            // 创建表级分片规则配置
-            // tableName: 逻辑表名（如 t_order）
-            // actualDataNodes: 实际数据节点表达式（如 ds${0..1}.t_order_${0..7}）
-            ShardingTableRuleConfiguration tableRule = new ShardingTableRuleConfiguration(
-                    tableName,
-                    tableProps.getActualDataNodes()
-            );
+        // 1. 配置 main_order 表的分片规则（每个库 2 张表）
+        ShardingTableRuleConfiguration mainOrderRule = new ShardingTableRuleConfiguration(
+                "main_order",
+                "ds${0..1}.main_order_${0..1}"
+        );
+        mainOrderRule.setDatabaseShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "database-sharding-algorithm"
+                )
+        );
+        mainOrderRule.setTableShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "table-sharding-algorithm"
+                )
+        );
+        shardingRuleConfig.getTables().add(mainOrderRule);
 
-            // 配置分库策略
-            // databaseShardingColumn: 分库字段（如 user_id）
-            // databaseAlgorithmName: 分库算法名称（关联到下方注册的算法）
-            tableRule.setDatabaseShardingStrategy(
-                    new StandardShardingStrategyConfiguration(
-                            tableProps.getDatabaseShardingColumn(),      // 分片键：user_id
-                            tableProps.getDatabaseAlgorithmName()        // 算法名：database-sharding-algorithm
-                    )
-            );
+        // 2. 配置 orders 表的分片规则（每个库 2 张表）
+        ShardingTableRuleConfiguration orderRule = new ShardingTableRuleConfiguration(
+                "orders",
+                "ds${0..1}.orders_${0..1}"
+        );
+        orderRule.setDatabaseShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "database-sharding-algorithm"
+                )
+        );
+        orderRule.setTableShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "table-sharding-algorithm"
+                )
+        );
+        shardingRuleConfig.getTables().add(orderRule);
 
-            // 配置分表策略
-            // tableShardingColumn: 分表字段（如 user_id）
-            // tableAlgorithmName: 分表算法名称（关联到下方注册的算法）
-            tableRule.setTableShardingStrategy(
-                    new StandardShardingStrategyConfiguration(
-                            tableProps.getTableShardingColumn(),         // 分片键：user_id
-                            tableProps.getTableAlgorithmName()           // 算法名：table-sharding-algorithm
-                    )
-            );
+        // 3. 配置 order_item 表的分片规则（每个库 2 张表）
+        ShardingTableRuleConfiguration orderItemRule = new ShardingTableRuleConfiguration(
+                "order_item",
+                "ds${0..1}.order_item_${0..1}"
+        );
+        orderItemRule.setDatabaseShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "database-sharding-algorithm"
+                )
+        );
+        orderItemRule.setTableShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "table-sharding-algorithm"
+                )
+        );
+        shardingRuleConfig.getTables().add(orderItemRule);
 
-            // 将此表的分片规则添加到总配置中
-            shardingRuleConfig.getTables().add(tableRule);
-        });
+        // 4. 配置 order_status_trace 表的分片规则（每个库 2 张表）
+        ShardingTableRuleConfiguration orderStatusTraceRule = new ShardingTableRuleConfiguration(
+                "order_status_trace",
+                "ds${0..1}.order_status_trace_${0..1}"
+        );
+        orderStatusTraceRule.setDatabaseShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "database-sharding-algorithm"
+                )
+        );
+        orderStatusTraceRule.setTableShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "table-sharding-algorithm"
+                )
+        );
+        shardingRuleConfig.getTables().add(orderStatusTraceRule);
 
-        // 注册所有分片算法的实现
-        // key: 算法名称（与上方策略配置中的算法名对应）
-        // value: 算法配置（指定算法类型和实现类）
+        // 注册分片算法
         Map<String, AlgorithmConfiguration> shardingAlgorithms = new LinkedHashMap<>();
-        shardingSphereProperties.getSharding().getAlgorithms().forEach((algoName, algoProps) -> {
-            // 创建算法配置
-            Properties props = new Properties();
-            // 指定自定义算法类的全路径名
-            // ShardingSphere 会通过反射创建此类的实例
-            props.setProperty("algorithm-class-name", algoProps.getAlgorithmClassName());
-            
-            // 创建算法配置对象
-            // type: CLASS_BASED 表示使用自定义类实现
-            // props: 包含算法类名的属性对象
-            shardingAlgorithms.put(algoName, new AlgorithmConfiguration(algoProps.getType(), props));
-        });
+        
+        // 配置分库算法：database-sharding-algorithm
+        Properties dbAlgorithmProps = new Properties();
+        dbAlgorithmProps.put("strategy", "standard");
+        dbAlgorithmProps.put("algorithmClassName", "com.lanf.order.config.DatabaseShardingAlgorithm");
+        shardingAlgorithms.put("database-sharding-algorithm", 
+                new AlgorithmConfiguration("CLASS_BASED", dbAlgorithmProps));
+        
+        // 配置分表算法：table-sharding-algorithm
+        Properties tableAlgorithmProps = new Properties();
+        tableAlgorithmProps.put("strategy", "standard");
+        tableAlgorithmProps.put("algorithmClassName", "com.lanf.order.config.TableShardingAlgorithm");
+        shardingAlgorithms.put("table-sharding-algorithm", 
+                new AlgorithmConfiguration("CLASS_BASED", tableAlgorithmProps));
         
         // 将所有算法配置设置到分片规则中
         shardingRuleConfig.setShardingAlgorithms(shardingAlgorithms);

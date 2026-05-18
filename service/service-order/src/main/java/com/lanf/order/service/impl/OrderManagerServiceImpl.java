@@ -13,22 +13,20 @@ import com.lanf.api.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
-import com.lanf.api.order.api.OrderApiService;
 import com.lanf.api.order.model.dto.BathCreateOrderDTO;
 import com.lanf.api.order.model.dto.CreateOrderDTO;
 import com.lanf.api.order.model.dto.OrderItemDTO;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
+import com.lanf.api.pay.api.PayApiService;
+import com.lanf.api.pay.model.dto.CreateMergeTradeOrderDTO;
+import com.lanf.api.pay.model.dto.CreateMergeTradeOrderItemDTO;
+import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.cache.aop.DistributedLock;
-import com.lanf.client.pay.api.PayApiService;
-import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
-import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
-import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.welfare.model.bo.DiscountInfoBO;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.result.Result;
@@ -54,6 +52,7 @@ import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.welfare.api.WelfareApiService;
+import com.lanf.welfare.model.bo.DiscountInfoBO;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
 import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
 import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
@@ -84,8 +83,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
 
 
-    @Autowired
-    private OrderApiService orderApiService;
+//    @Autowired
+//    private OrderApiService orderApiService;
     @Autowired
     private RocketMqClient rocketMqClient;
     @Autowired
@@ -281,7 +280,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         //createOrderDTO.setDiscountInfoBO(discountInfoBOS);
         createOrderDTO.setTakeAddressBO(orderDTO.getTakeAddress());
         createOrderDTO.setOrderItems(orderItems);
-        RpcResultParser.parseResult(orderApiService.createOrder(createOrderDTO));
+       // RpcResultParser.parseResult(orderApiService.createOrder(createOrderDTO));
 
     }
     /**
@@ -416,7 +415,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          * 创建订单 创建交易单 以ClearCartVO 信息进行构建
          */
         BathCreateOrderDTO bathCreateOrderDTO1 = buildBathCreateOrderDTO(submitCartOrderInitParamsBO, dto, clearCartVO);
-        RpcResultParser.parseResult(orderApiService.bathCreateOrder(bathCreateOrderDTO1));
+//        RpcResultParser.parseResult(orderApiService.bathCreateOrder(bathCreateOrderDTO1));
 
         /**
          * 发布订单创建成功事件
