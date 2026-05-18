@@ -1,24 +1,23 @@
 package com.lanf.pay.service.trade.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.client.pay.model.dto.CancelTradeOrderDTO;
-import com.lanf.client.pay.model.dto.CreatePayOrderDTO;
-import com.lanf.client.pay.model.dto.CreateTradeOrderDTO;
-import com.lanf.client.pay.model.dto.TradeOrderQuantitySumDTO;
-import com.lanf.client.pay.model.enums.PayMethodEnum;
-import com.lanf.client.pay.model.enums.TradePurposeEnum;
-import com.lanf.client.pay.model.query.TradeOrderBathQuery;
-import com.lanf.client.pay.model.query.TradeOrderQuery;
-import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
-import com.lanf.common.utils.BigDecimalUtil;
+import com.lanf.api.pay.model.dto.CancelTradeOrderDTO;
+import com.lanf.api.pay.model.dto.CreatePayOrderDTO;
+import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
+import com.lanf.api.pay.model.dto.TradeOrderQuantitySumDTO;
+import com.lanf.api.pay.model.enums.PayMethodEnum;
+import com.lanf.api.pay.model.enums.TradePurposeEnum;
+import com.lanf.api.pay.model.query.TradeOrderBathQuery;
+import com.lanf.api.pay.model.query.TradeOrderQuery;
+import com.lanf.api.pay.model.vo.*;
+import com.lanf.api.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
-import com.lanf.constant.enums.FlowNoPrefixEnum;
-import com.lanf.constant.enums.FrozenStatusEnum;
 import com.lanf.constant.exception.BizException;
-import com.lanf.constant.result.Result;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.mybatis.base.BaseEntity;
@@ -52,9 +51,6 @@ import com.lanf.rocketmq.model.message.CompensatePaymentOrderMessage;
 import com.lanf.rocketmq.model.message.RefundDTO;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.tcc.service.ITccOperationService;
-import com.lanf.welfare.api.WelfareApiService;
-import com.lanf.welfare.model.dto.UseCouponDTO;
-import com.lanf.welfare.model.vo.UseCouponVO;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +59,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -84,8 +82,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
     @Autowired
     private ITradeOrderItemService tradeOrderItemService;
-    @Autowired
-    private WelfareApiService welfareApiService;
+
     @Autowired
     private ITccOperationService tccOperationService;
     @Autowired
@@ -159,7 +156,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setOrderNumber(dto.getOrderNumber());
         tradeOrderDO.setExpireInterval(payConfig.getExpireInterval());
         tradeOrderDO.setExpireTime(expireTime);
-        tradeOrderDO.setBusinessId(dto.getBusinessId());
         tradeOrderDO.setTradePurpose(TradePurposeEnum.REALTIME_ORDER);
         PassbackParams passbackParams = new PassbackParams();
         passbackParams.setBathPay(false);
@@ -178,47 +174,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         return null;
     }
 
-    private BigDecimal getActualPayMoney(List<BigDecimal> discountMoneyList, BigDecimal orderMoney) {
 
-        BigDecimal actualPayMoney = orderMoney;
-        for (BigDecimal a : discountMoneyList) {
-            actualPayMoney = BigDecimalUtil.subtract(orderMoney, a);
-        }
 
-        return actualPayMoney;
-    }
 
-    private Map<Long, UseCouponVO> useCoupon(List<CreatePayOrderDTO> dto) {
-
-        List<UseCouponDTO> dtoList = new ArrayList<>();
-        Map<Long, UseCouponVO> useCouponVOMap = new HashMap<>();
-        dto.forEach(a -> {
-            BigDecimal orderMoney = a.getOrderMoney();
-            Long couponId = a.getCouponId();
-            if (couponId != null) {
-                UseCouponDTO useCouponDTO = new UseCouponDTO();
-                useCouponDTO.setUserId(a.getUserId());
-                useCouponDTO.setCouponId(a.getCouponId());
-                useCouponDTO.setOrderMoney(orderMoney);
-                dtoList.add(useCouponDTO);
-
-            }
-
-        });
-        if (dtoList.isEmpty()) {
-
-            return useCouponVOMap;
-        }
-        Result<List<UseCouponVO>> listResult = welfareApiService.bathUseCoupon(dtoList);
-        Integer code = listResult.getCode();
-        if (code == 200 && !listResult.getData().isEmpty()) {
-            listResult.getData().forEach(a -> useCouponVOMap.put(a.getShopId(), a));
-
-        } else {
-            throw new BizException(listResult.getCode(), listResult.getMessage());
-        }
-        return useCouponVOMap;
-    }
 
     /**
      * 查询订单交易信息
@@ -547,10 +505,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BizException("交易单已取消");
 
         }
-        if (FrozenStatusEnum.FROZEN.getCode().equals(tradeOrderDO.getFrozen())) {
-            log.warn("交易单已冻结");
-            throw new BizException("交易单已冻结");
-        }
+
         /**
          * DB 操作
          */
@@ -564,11 +519,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, tradeOrderDO.getId())
                 .eq(TradeOrderDO::getPayStatus, tradeOrderDO.getPayStatus())
-                .eq(TradeOrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
                 .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
                 .set(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.CANCELLED.getCode())
                 .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
-                .set(TradeOrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
                 .update();
         if (!update) {
             log.info("交易单更新失败");
@@ -607,10 +560,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, tradeOrderDO.getId())
                 .eq(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.CANCELLED.getCode())
-                .eq(TradeOrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
                 .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
                 .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
-                .set(TradeOrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
                 .update();
         if (!update) {
             log.info("交易单更新失败");
@@ -642,11 +593,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, tradeOrderDO.getId())
                 .eq(TradeOrderDO::getPayStatus, TradeOrderStatusEnum.CANCELLED.getCode())
-                .eq(TradeOrderDO::getFrozen, FrozenStatusEnum.FROZEN.getCode())
                 .eq(TradeOrderDO::getVersion, tradeOrderDO.getVersion())
                 .set(TradeOrderDO::getPayStatus, cancelTradeOrderBO.getCurrentPayStatus())
                 .set(TradeOrderDO::getVersion, tradeOrderDO.getVersion() + 1)
-                .set(TradeOrderDO::getFrozen, FrozenStatusEnum.NORMAL.getCode())
                 .update();
         if (!update) {
             log.info("交易单更新失败");
@@ -661,7 +610,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
         String outTradeNo = CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.TRADE_ORDER, dto.getOrderNumber());
         TradeOrderDO tradeOrderDO = new TradeOrderDO();
-        tradeOrderDO.setUserId(UserIdContext.getUserId());
+        tradeOrderDO.setUserId(UserContext.getUserId());
         tradeOrderDO.setOrderNumber(dto.getOrderNumber());
         tradeOrderDO.setOutTradeNo(PayServiceUtils.generateOutTradeNo(dto.getOrderNumber()));
         tradeOrderDO.setTradeMoney(dto.getAmount());

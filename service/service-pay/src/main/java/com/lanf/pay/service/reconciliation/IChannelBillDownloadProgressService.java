@@ -1,7 +1,7 @@
 package com.lanf.pay.service.reconciliation;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 
 /**

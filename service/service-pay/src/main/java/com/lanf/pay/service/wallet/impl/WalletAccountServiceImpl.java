@@ -1,19 +1,20 @@
 package com.lanf.pay.service.wallet.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.client.pay.model.enums.PayMethodEnum;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
-import com.lanf.client.pay.model.enums.TradePurposeEnum;
-import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
-import com.lanf.client.pay.mq.constant.PayClientTopicName;
-import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
-import com.lanf.client.pay.mq.message.TransferMessage;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.PayMethodEnum;
+import com.lanf.api.pay.model.enums.TradePurposeEnum;
+import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
+import com.lanf.api.pay.mq.constant.PayClientTopicName;
+import com.lanf.api.pay.mq.message.PayOrderFlowInsertSuccessMessage;
+import com.lanf.api.pay.mq.message.TransferMessage;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.enums.FlowNoPrefixEnum;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.utils.IdUtils;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.pay.mapper.WalletAccountMapper;
 import com.lanf.pay.model.bo.AddWalletAccount;
 import com.lanf.pay.model.dto.BalanceOrderDTO;
@@ -33,6 +34,7 @@ import com.lanf.pay.utils.PayServiceUtils;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +45,7 @@ import java.math.BigDecimal;
 @Service
 public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, WalletAccountDO> implements IWalletAccountService {
 
+    @Lazy
     @Autowired
     private ITradeOrderService tradeOrderService;
 
@@ -71,7 +74,7 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
     @Override
     public void balanceOrder(BalanceOrderDTO dto) {
 
-        Long userId = UserIdContext.getUserId();
+        Long userId = UserContext.getUserId();
         String orderNumber = dto.getOrderNumber();
         TradeOrderDO tradeOrderDO = tradeOrderService.lambdaQuery()
                 .eq(TradeOrderDO::getOrderNumber, orderNumber)
@@ -198,7 +201,7 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
     @Override
     public void applyWithdraw(WithdrawApplyDTO dto) {
 
-        Long userId = UserIdContext.getUserId();
+        Long userId = UserContext.getUserId();
         WalletAccountDO accountDO = this.lambdaQuery()
                 .eq(WalletAccountDO::getUserId, userId)
                 .one();
@@ -247,7 +250,7 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
                 FlowNoPrefixEnum.WALLET_FLOW , withdrawId.toString());
         WalletWithdrawDO withdraw = new WalletWithdrawDO();
         withdraw.setId(withdrawId);
-        withdraw.setUserId(UserIdContext.getUserId());
+        withdraw.setUserId(UserContext.getUserId());
         withdraw.setWalletAccountId(accountDO.getId());
         withdraw.setWithdrawNo(withdrawNo);
         withdraw.setAmount(dto.getAmount());

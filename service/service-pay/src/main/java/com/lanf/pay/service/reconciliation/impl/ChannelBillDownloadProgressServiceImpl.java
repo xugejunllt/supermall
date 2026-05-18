@@ -1,9 +1,9 @@
 package com.lanf.pay.service.reconciliation.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
-import com.lanf.mybatis.utils.IdUtils;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.pay.mapper.ChannelBillDownloadProgressMapper;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 import com.lanf.pay.model.enums.BillDownloadStatusEnum;

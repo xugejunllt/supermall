@@ -1,8 +1,8 @@
 package com.lanf.pay.service.pay.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
-import com.lanf.client.pay.model.enums.RefundEventTypeEnum;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.RefundEventTypeEnum;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.mapper.RefundOrderMapper;
 import com.lanf.pay.model.bo.CancelPaidOrderResultBO;

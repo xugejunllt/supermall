@@ -63,7 +63,7 @@ public class WalletAccountController {
     /**
      * 申请提现
      */
-    @PostMapping("/createRechargeTradeOrder")
+    @PostMapping("/applyWithdraw")
     public Result<Void> applyWithdraw(@RequestBody @Validated WithdrawApplyDTO dto) {
 
         log.info("申请提现:dto{}", dto);

@@ -1,14 +1,13 @@
 package com.lanf.pay.service.trade.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
-import com.lanf.client.pay.model.dto.CreateMergeTradeOrderItemDTO;
-import com.lanf.client.pay.model.enums.TradePurposeEnum;
+import com.lanf.api.pay.model.dto.CreateMergeTradeOrderDTO;
+import com.lanf.api.pay.model.enums.TradePurposeEnum;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
-import com.lanf.mybatis.utils.IdUtils;
-import com.lanf.constant.enums.FlowNoPrefixEnum;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.pay.config.PayConfig;
 import com.lanf.pay.mapper.BathTradeOrderMapper;
 import com.lanf.pay.model.entity.BathTradeOrderDO;
@@ -19,10 +18,11 @@ import com.lanf.pay.utils.PayServiceUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.lanf.api.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @Service
 public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper, BathTradeOrderDO> implements IBathTradeOrderService {
 
-
+    @Lazy
     @Autowired
     private ITradeOrderService tradeOrderService;
     @Autowired
@@ -111,7 +111,6 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                     tradeOrderDO.setPayStatus(0);
                     tradeOrderDO.setBathPay(1);
                     tradeOrderDO.setExpireTime(expireTime);
-                    tradeOrderDO.setBusinessId(dto.getBusinessId());
                     tradeOrderDO.setTradePurpose(TradePurposeEnum.REALTIME_ORDER);
                     //
                     String params = PayServiceUtils.buildPassbackParams(tradeOrderDO.getId(), false,
@@ -139,7 +138,7 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
          *
          */
         BigDecimal batchFee = dto.getTradeOrderItemList().stream().
-                map(CreateMergeTradeOrderItemDTO::getTradeMoney).
+                map( CreateMergeTradeOrderItemDTO:: getTradeMoney).
                 reduce(BigDecimal.ZERO, BigDecimalUtil::add);
 
         BathTradeOrderDO bathTradeOrderDO1 = new BathTradeOrderDO();

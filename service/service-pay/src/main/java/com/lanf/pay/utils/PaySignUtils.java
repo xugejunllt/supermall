@@ -17,7 +17,7 @@ import java.util.Base64;
 
 @Slf4j
 @Component
-public class SignUtils {
+public class PaySignUtils {
 
     private static final String HMAC_SHA256 = "HmacSHA256";
 

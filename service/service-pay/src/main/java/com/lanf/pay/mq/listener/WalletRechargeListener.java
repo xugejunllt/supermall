@@ -1,7 +1,7 @@
 package com.lanf.pay.mq.listener;
 
-import com.lanf.client.pay.mq.constant.PayClientTopicName;
-import com.lanf.client.pay.mq.message.WalletRechargeMessage;
+import com.lanf.api.pay.mq.constant.PayClientTopicName;
+import com.lanf.api.pay.mq.message.WalletRechargeMessage;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.pay.constant.PayMqGroupName;
 import com.lanf.pay.model.entity.WalletAccountDO;

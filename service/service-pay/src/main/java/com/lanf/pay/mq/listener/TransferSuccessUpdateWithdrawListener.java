@@ -1,9 +1,10 @@
 package com.lanf.pay.mq.listener;
 
-import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
-import com.lanf.client.pay.mq.constant.PayClientTopicName;
-import com.lanf.client.pay.mq.constant.TransferEventTagConstant;
-import com.lanf.client.pay.mq.message.TransferSuccessMessage;
+
+import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
+import com.lanf.api.pay.mq.constant.PayClientTopicName;
+import com.lanf.api.pay.mq.constant.TransferEventTagConstant;
+import com.lanf.api.pay.mq.message.TransferSuccessMessage;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.entity.WalletAccountDO;

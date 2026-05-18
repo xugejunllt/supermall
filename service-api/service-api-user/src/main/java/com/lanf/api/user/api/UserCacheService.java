@@ -20,8 +20,7 @@ public class UserCacheService {
      * 懒加载 否则空指针
      */
 
-    @Autowired
-    private UserApiService userApiService;
+    @Autowired(required = false)    private UserApiService userApiService;
 
     @Autowired
     private RedissonCacheService redissonCacheService;

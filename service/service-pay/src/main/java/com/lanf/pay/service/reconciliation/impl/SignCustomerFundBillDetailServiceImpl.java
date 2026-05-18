@@ -3,7 +3,7 @@ package com.lanf.pay.service.reconciliation.impl;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.read.listener.ReadListener;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
@@ -32,7 +32,7 @@ public class SignCustomerFundBillDetailServiceImpl extends ServiceImpl<SignCusto
 
 
     @Override
-    public void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel, File excelFile,String billType) {
+    public void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel, File excelFile, String billType) {
 
         log.info("开始导入对账单 Excel: batchId={}, payChannel={}", batchId, payChannel);
 

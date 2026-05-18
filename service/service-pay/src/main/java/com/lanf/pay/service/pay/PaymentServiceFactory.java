@@ -1,7 +1,7 @@
 package com.lanf.pay.service.pay;
 
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.constant.exception.BizException;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.pay.service.pay.impl.AliPayPaymentServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 

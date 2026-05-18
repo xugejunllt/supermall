@@ -1,7 +1,7 @@
 package com.lanf.pay.mq.listener.event;
 
-import com.lanf.aftersales.mq.UserClientTopicName;
-import com.lanf.aftersales.mq.message.UserRegisterMessage;
+import com.lanf.api.user.mq.UserClientTopicName;
+import com.lanf.api.user.mq.message.UserRegisterMessage;
 import com.lanf.pay.constant.PayMqGroupName;
 import com.lanf.pay.model.bo.AddWalletAccount;
 import com.lanf.pay.service.wallet.IWalletAccountService;

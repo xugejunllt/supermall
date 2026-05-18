@@ -1,7 +1,7 @@
 package com.lanf.pay.mq.listener;
 
-import com.lanf.client.pay.mq.constant.PayClientTopicName;
-import com.lanf.client.pay.mq.message.TransferMessage;
+import com.lanf.api.pay.mq.constant.PayClientTopicName;
+import com.lanf.api.pay.mq.message.TransferMessage;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.TransferResult;
 import com.lanf.pay.model.entity.TransferOrderDO;
@@ -70,15 +70,6 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
     private static QueryTransferResultMessage getQueryTransferResultMessage(TransferMessage message) {
         QueryTransferResultMessage queryTransferResultMessage = new QueryTransferResultMessage();
         queryTransferResultMessage.setOutBizNo(message.getOutBizNo());
-        queryTransferResultMessage.setUserId(message.getUserId());
-        queryTransferResultMessage.setMerchantId(message.getMerchantId());
-        queryTransferResultMessage.setBizOrderId(message.getBizOrderId());
-        queryTransferResultMessage.setEventType(message.getEventType());
-        queryTransferResultMessage.setTransferChannel(message.getTransferChannel());
-        queryTransferResultMessage.setFromAccount(message.getFromAccount());
-        queryTransferResultMessage.setIncomeAccount(message.getIncomeAccount());
-        queryTransferResultMessage.setTransAmount(message.getTransAmount());
-        queryTransferResultMessage.setOrderTitle(message.getOrderTitle());
         return queryTransferResultMessage;
     }
 

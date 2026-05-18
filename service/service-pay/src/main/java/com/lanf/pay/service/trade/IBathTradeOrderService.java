@@ -1,7 +1,7 @@
 package com.lanf.pay.service.trade;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.client.pay.model.dto.CreateMergeTradeOrderDTO;
+import com.lanf.api.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.pay.model.entity.BathTradeOrderDO;
 
 /**

@@ -2,7 +2,7 @@ package com.lanf.pay.service.reconciliation.excel.impl;
 
 
 import com.alibaba.excel.annotation.ExcelProperty;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.BeanUtil;
 import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;

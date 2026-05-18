@@ -1,13 +1,12 @@
 package com.lanf.pay.service.reconciliation;
 
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.cache.service.RedissonCacheService;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.IStringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -23,7 +22,7 @@ public class ReconciliationCalculator {
     /**
      * 参与对账的支付渠道
      */
-    private List<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
+    private Set<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
 
 
     private static final String BILL_DOWNLOAD_PROGRESS_KEY = "bill:download:progress:%s";

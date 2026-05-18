@@ -1,7 +1,7 @@
 package com.lanf.pay.mq.listener.event;
 
+import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.order.mq.constant.OrderClientTopicName;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.service.pay.IPaymentCancelRecordService;

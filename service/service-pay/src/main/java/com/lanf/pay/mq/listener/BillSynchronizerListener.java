@@ -1,6 +1,6 @@
 package com.lanf.pay.mq.listener;
 
-import com.lanf.client.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.BillDownloadUrlResultBO;
@@ -22,7 +22,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -43,7 +46,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
 
     @Autowired
     private SignCustomerIFundBillDetailService fundBillDetailService;
-    @Qualifier("taskScheduler")
+    @Qualifier("threadPoolTaskScheduler")
     @Autowired
     private ThreadPoolTaskScheduler taskScheduler;
 

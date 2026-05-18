@@ -1,9 +1,10 @@
 package com.lanf.pay.service.pay;
 
-import com.lanf.client.pay.model.enums.PayMethodEnum;
-import com.lanf.client.pay.model.enums.TradePurposeEnum;
-import com.lanf.client.pay.mq.constant.PayClientTopicName;
-import com.lanf.client.pay.mq.message.PayOrderFlowInsertSuccessMessage;
+
+import com.lanf.api.pay.model.enums.PayMethodEnum;
+import com.lanf.api.pay.model.enums.TradePurposeEnum;
+import com.lanf.api.pay.mq.constant.PayClientTopicName;
+import com.lanf.api.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IStringUtils;

@@ -1,7 +1,7 @@
 package com.lanf.pay.service.reconciliation;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 
 import java.io.File;
@@ -25,5 +25,5 @@ public interface SignCustomerIFundBillDetailService extends IService<SignCustome
      * @param payChannel 支付渠道
      */
     void importFromExcel(InputStream inputStream, String batchId,
-                         PayChannelEnum payChannel, File excelFile,String billType);
+                         PayChannelEnum payChannel, File excelFile, String billType);
 }

@@ -12,6 +12,7 @@ import com.lanf.pay.service.reconciliation.IReconciliationJobLogService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,7 @@ public class ReconciliationJobLogServiceImpl extends ServiceImpl<ReconciliationJ
 
     @Autowired
     private RocketMqClient rocketMqClient;
+    @Lazy
     @Autowired
     private IReconciliationJobLogService reconciliationJobLogService;
 

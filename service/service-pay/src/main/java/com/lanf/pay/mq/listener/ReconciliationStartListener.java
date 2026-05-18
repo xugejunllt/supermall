@@ -36,8 +36,6 @@ public class ReconciliationStartListener implements RocketMQListener<Reconciliat
     @Autowired
     private IReconciliationDiffMarkerService reconciliationDiffMarkerService;
 
-    @Autowired
-    private ReconciliationStrategy reconciliationStrategy;
 
     @Autowired
     private ReconciliationStrategyFactory reconciliationStrategyFactory;

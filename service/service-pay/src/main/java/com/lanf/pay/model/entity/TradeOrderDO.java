@@ -1,10 +1,10 @@
 package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.PayMethodEnum;
+import com.lanf.api.pay.model.enums.TradePurposeEnum;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.client.pay.model.enums.PayMethodEnum;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
-import com.lanf.client.pay.model.enums.TradePurposeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -25,8 +25,7 @@ public class TradeOrderDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
-    @ApiModelProperty(value = "商家id")
-    private Long businessId;
+
 
     @ApiModelProperty(value = "批量支付单id")
     private Long bathPayOrderId;
@@ -72,9 +71,6 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "过期时间间隔（秒）")
     private Integer expireInterval;
-    
-    @ApiModelProperty(value = "冻结状态 0：正常 1: 冻结状态")
-    private Integer frozen;
 
     private String passbackParams;
 

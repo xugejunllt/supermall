@@ -21,7 +21,6 @@ import com.lanf.pay.service.pay.AbstractPaymentCallbackService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,8 +32,8 @@ import java.util.*;
 @Service
 public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
-    @Value("${pay.ali.notifyUrl}")
-    private String notifyUrl;
+
+
     @Autowired
     private AliPayConfig aliPayConfig;
     private static final Set<String> TRADE_NOT_EXIST_CODES = new HashSet<>(Arrays.asList(
@@ -232,7 +231,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
         model.setTotalAmount(dto.getTotalAmount().toString());
         model.setPassbackParams(JsonUtils.toJsonString(dto.getPassbackParams()));
         request.setBizModel(model);
-        request.setNotifyUrl(notifyUrl);
+        request.setNotifyUrl(aliPayConfig.getNotifyUrl());
         AlipayTradeAppPayResponse response = null;
         try {
             //这里和普通的接口调用不同，使用的是sdkExecute

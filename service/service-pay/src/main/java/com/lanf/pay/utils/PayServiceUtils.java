@@ -1,13 +1,16 @@
 package com.lanf.pay.utils;
 
-import com.lanf.client.pay.model.enums.TradePurposeEnum;
+import com.lanf.api.pay.model.enums.TradePurposeEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.PassbackParams;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Slf4j
 public class PayServiceUtils {
@@ -35,7 +38,7 @@ public class PayServiceUtils {
 
     public static String generateSign(PassbackParams params) {
         String p = toStr(params);
-        return SignUtils.generateHmacSha256Sign(p);
+        return PaySignUtils.generateHmacSha256Sign(p);
     }
 
     private static String toStr(PassbackParams params) {
@@ -177,7 +180,7 @@ public class PayServiceUtils {
     }
 
     public static boolean verifySign(String params, String sign) {
-        return SignUtils.verifySign(params, sign);
+        return PaySignUtils.verifySign(params, sign);
     }
 
 }

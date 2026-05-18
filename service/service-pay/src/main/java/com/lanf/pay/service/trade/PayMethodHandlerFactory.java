@@ -1,6 +1,6 @@
 package com.lanf.pay.service.trade;
 
-import com.lanf.client.pay.model.enums.PayMethodEnum;
+import com.lanf.api.pay.model.enums.PayMethodEnum;
 import com.lanf.common.utils.BeanUtil;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.service.trade.impl.ThirdPartyPayMethodHandler;

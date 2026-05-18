@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "pay.ali")
+@ConfigurationProperties(prefix = "pay.channel.ali")
 
 public class AliPayConfig implements Serializable {
 

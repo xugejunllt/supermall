@@ -1,6 +1,6 @@
 package com.lanf.pay.controller.aip;
 
-import com.lanf.client.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.pay.model.dto.PayCallbackDTO;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;

@@ -1,6 +1,6 @@
 package com.lanf.pay.mq.message;
 
-import com.lanf.client.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import lombok.Data;
 
 import java.io.Serializable;

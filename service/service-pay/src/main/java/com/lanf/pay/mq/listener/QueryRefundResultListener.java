@@ -4,13 +4,13 @@ package com.lanf.pay.mq.listener;
  * 查询退款结果
  */
 
-import com.lanf.client.pay.model.enums.PayChannelEnum;
-import com.lanf.client.pay.model.enums.RefundEventTypeEnum;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.RefundEventTypeEnum;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.enums.FlowNoPrefixEnum;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.finance.model.enums.RecordTypeEnum;
 import com.lanf.finance.mq.constant.FinanceClientTopicName;
 import com.lanf.finance.mq.message.AddMoneyFlowMessage;

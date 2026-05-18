@@ -3,7 +3,7 @@ package com.lanf.pay.model.entity;
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.pay.model.enums.BillTypeEnum;

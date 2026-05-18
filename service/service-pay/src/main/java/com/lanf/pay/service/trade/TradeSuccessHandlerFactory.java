@@ -1,6 +1,6 @@
 package com.lanf.pay.service.trade;
 
-import com.lanf.client.pay.model.enums.TradePurposeEnum;
+import com.lanf.api.pay.model.enums.TradePurposeEnum;
 import com.lanf.common.utils.BeanUtil;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.service.trade.impl.RealtimeOrderTradesSuccessHandler;

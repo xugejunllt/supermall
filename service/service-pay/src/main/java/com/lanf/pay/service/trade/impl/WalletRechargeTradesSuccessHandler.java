@@ -1,7 +1,7 @@
 package com.lanf.pay.service.trade.impl;
 
-import com.lanf.client.pay.mq.constant.PayClientTopicName;
-import com.lanf.client.pay.mq.message.WalletRechargeMessage;
+import com.lanf.api.pay.mq.constant.PayClientTopicName;
+import com.lanf.api.pay.mq.message.WalletRechargeMessage;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.PostTradeSuccessHandlerContext;
 import com.lanf.pay.model.entity.TradeOrderDO;
