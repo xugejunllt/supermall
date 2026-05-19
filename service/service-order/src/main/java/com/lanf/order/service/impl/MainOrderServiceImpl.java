@@ -1,9 +1,6 @@
 package com.lanf.order.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.order.model.dto.BathCreateOrderDTO;
-import com.lanf.order.model.dto.CreateOrderDTO;
-import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.constant.exception.BizException;
@@ -20,11 +17,9 @@ import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.utils.OrderServiceUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -52,17 +47,7 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
 
 
     @Override
-    @HmilyTCC(confirmMethod = "confirmBathCreateOrder", cancelMethod = "cancelBathCreateOrder")
     public void bathCreateOrder(BathCreateOrderDTO dto) {
-
-
-
-
-
-
-    }
-    @Transactional
-    public void confirmBathCreateOrder(BathCreateOrderDTO dto) {
         log.info("批量创建订单开始:dto{}", dto);
         /**
          * 构建MainOrderDO
@@ -88,6 +73,7 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
         orderItemService.saveBatch(orderItemDOList);
 
     }
+
 
     public void cancelBathCreateOrder(BathCreateOrderDTO dto) {
 

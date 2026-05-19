@@ -125,13 +125,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
     }
 
-    public void confirmCreateOrder(CreateOrderDTO dto) {
-        /**
-         * 发送MQ 订单创建成功消息
-         */
-        sendOrderCreateSuccessMessage(dto.getOrderId(),
-                dto.getUserId());
-    }
+
+
     private void sendOrderCreateSuccessMessage(Long orderId,Long userId) {
         OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
         message.setOrderId(orderId);

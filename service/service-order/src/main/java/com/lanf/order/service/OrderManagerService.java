@@ -26,6 +26,7 @@ public interface OrderManagerService {
      */
     PlaceOrderVO placeOrder(PlaceOrderDTO orderDTO);
 
+    PlaceOrderVO startPlaceOrder(PlaceOrderDTO orderDTO);
     /**
      * 校验购物车
      *

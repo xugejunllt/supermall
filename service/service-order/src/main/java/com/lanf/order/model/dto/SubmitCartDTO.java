@@ -17,8 +17,6 @@ public class SubmitCartDTO implements Serializable {
     @NotNull(message = "收货地址id不能为空")
     private Long addressId;
 
-
-
     //购物车id
     @NotNull(message = "购物车信息不能为空")
     private List<CartInfoDTO> cartInfoList;

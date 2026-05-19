@@ -497,10 +497,10 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
 
         log.info("清空购物车数据:{}", dto);
 
-         this.lambdaUpdate()
-                .eq(CartDO::getUserId, dto.getUserId())
-                .in(CartDO::getId, dto.getCartIds())
-                .remove();
+//         this.lambdaUpdate()
+//                .eq(CartDO::getUserId, dto.getUserId())
+//                .in(CartDO::getId, dto.getCartIds())
+//                .remove();
 
     }
 

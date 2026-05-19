@@ -1,5 +1,6 @@
 package com.lanf.order.model.dto;
 
+import com.lanf.order.model.bo.OrderInitParamsBO;
 import lombok.Data;
 
 import java.util.List;
@@ -25,5 +26,8 @@ public class PlaceOrderDTO implements java.io.Serializable{
     //订单编号
     private  String orderNumber;
 
-
+    /**
+     * 方法里面填充订单初始化参数
+     */
+    private OrderInitParamsBO orderInitParamsBO;
 }

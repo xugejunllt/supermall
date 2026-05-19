@@ -13,8 +13,6 @@ import com.lanf.api.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
-import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.order.model.dto.*;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.api.pay.api.PayApiService;
@@ -24,6 +22,7 @@ import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.api.user.api.UserCacheService;
 import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.cache.aop.DistributedLock;
+import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
@@ -35,11 +34,15 @@ import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
+import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.OrderDO;
+import com.lanf.order.model.entity.OrderItemDO;
+import com.lanf.order.model.entity.OrderStatusTraceDO;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;
+import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IOrderStatusTraceService;
 import com.lanf.order.service.OrderManagerService;
@@ -61,6 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -86,6 +90,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private IOrderService orderService;
     @Autowired
     private IOrderStatusTraceService orderStatusTraceService;
+    @Autowired
+    private IOrderItemService orderItemService;
 
 
     @Override
@@ -146,12 +152,24 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      *
      *
      */
-    @HmilyTCC(confirmMethod = "confirmPlaceOrder", cancelMethod = "cancelPlaceOrder")
     @DistributedLock(key = "#orderDTO.orderNumber")
     @Override
     public PlaceOrderVO placeOrder(PlaceOrderDTO orderDTO) {
 
         OrderInitParamsBO orderInitParamsBO = initParams( orderDTO);
+        orderDTO.setOrderInitParamsBO(orderInitParamsBO);
+        /**
+         * 获取代理对象
+         */
+        OrderManagerService managerService = BeanUtil.getBean(OrderManagerService.class);
+
+        return managerService.startPlaceOrder( orderDTO);
+    }
+    @HmilyTCC(confirmMethod = "confirmPlaceOrder", cancelMethod = "cancelPlaceOrder")
+    @Override
+    public PlaceOrderVO startPlaceOrder(PlaceOrderDTO orderDTO) {
+
+        OrderInitParamsBO orderInitParamsBO = orderDTO.getOrderInitParamsBO();
         /**
          * 扣减库存
          */
@@ -173,8 +191,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          */
         createOrder(orderDTO, orderInitParamsBO, deductStockVO, tradeMoney, amountVO);
 
-
-        
         /**
          * 构建返回结果
          */
@@ -209,27 +225,44 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
 
-
     /**
-     * 空方法 让tcc框架调用
+     *
      *
      */
     public  void  confirmPlaceOrder(PlaceOrderDTO orderDTO){
-
+        /**
+         * 发送MQ 订单创建成功消息
+         */
+        OrderInitParamsBO initParamsBO = orderDTO.getOrderInitParamsBO();
+        sendOrderCreateSuccessMessage(initParamsBO.getOrderId(),
+                initParamsBO.getUserId());
     }
+
     /**
-     * 空方法 让tcc框架调用
+     *
      *
      */
+    @Transactional
     public  void  cancelPlaceOrder(PlaceOrderDTO orderDTO){
-
-        orderService.lambdaUpdate().
-                eq(OrderDO::getOrderNumber, orderDTO.getOrderNumber())
-                .set(BaseEntity::getIsDeleted, 1)
-                .update();
+        /**
+         * 如果数据不存在 那么执行删除操作也没有影响
+         * 如果数据库异常 那么会抛出异常进行重试
+         */
+        OrderInitParamsBO orderInitParamsBO = orderDTO.getOrderInitParamsBO();
+        orderService.lambdaUpdate()
+                .eq(OrderDO::getUserId, orderInitParamsBO.getUserId())
+                .eq(OrderDO::getId, orderInitParamsBO.getOrderId())
+                .remove();
+        orderItemService.lambdaUpdate()
+                .eq(OrderItemDO::getUserId, orderInitParamsBO.getUserId())
+                .eq(OrderItemDO::getOrderId, orderInitParamsBO.getOrderId())
+                .remove();
+       orderStatusTraceService.lambdaUpdate()
+                .eq(OrderStatusTraceDO::getOrderId, orderInitParamsBO.getOrderId())
+                .eq(OrderStatusTraceDO::getUserId, orderInitParamsBO.getUserId())
+                .remove();
 
     }
-
 
     /**
      * 创建订单项
@@ -288,6 +321,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         createOrderDTO.setAddressListVO(orderInitParamsBO.getAddressListVO());
         createOrderDTO.setOrderItems(orderItems);
         createOrderDTO.setTenantId(deductStockVO.getGoodsSkuBO().getTenantId());
+
         orderService.createOrder(createOrderDTO);
     }
     /**
@@ -399,11 +433,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return orderInitParamsBO;
     }
 
-    /**
-     * 构建属性 特别小心 容易出bug
-     * @param dto
-     * @return
-     */
+    @HmilyTCC(confirmMethod = "confirmSubmitCart", cancelMethod = "cancelSubmitCart")
     @DistributedLock(key = "#dto.mainOrderNumber")
     @Override
     public SubmitCartVO submitCart(SubmitCartDTO dto) {
@@ -412,11 +442,11 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         /**
          * 初始化一些参数
          */
-        SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO = buildSubmitCartOrderInitParamsBO();
+        SubmitCartOrderInitParamsBO initParamsBO = buildSubmitCartOrderInitParamsBO(dto);
         /**
          * 清空购物车
          */
-        List<CartInfoDTO> cartInfoList = dto.getCartInfoList();
+        List<CartInfoDTO> cartInfoList = initParamsBO.getCartInfoList();
         List<Long> cartIdList =
                 cartInfoList.stream().map(CartInfoDTO::getCartId).collect(Collectors.toList());
 
@@ -424,23 +454,26 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         clearCartDTO.setCartIds(cartIdList);
         clearCartDTO.setUserId(UserContext.getUserId());
         ClearCartVO clearCartVO = RpcResultParser.parseResult(goodsApiService.clearCart(clearCartDTO));
-
         /**
          * 添加一些字段
          */
         addField( clearCartVO.getGoodsVOList());
         /**
+         * 创建订单 创建交易单 以ClearCartVO 信息进行构建
+         */
+        BathCreateOrderDTO bathCreateOrderDTO1 = buildBathCreateOrderDTO(initParamsBO, dto, clearCartVO);
+        log.info("构建的订单信息是{}", bathCreateOrderDTO1);
+
+
+        /**
          * 创建交易单 以ClearCartVO 信息进行构建
          *
          */
         CreateMergeTradeOrderDTO createMergeTradeOrderDTO =
-                buildCreateMergeTradeOrderDTO( submitCartOrderInitParamsBO, dto,clearCartVO.getGoodsVOList()) ;
-        RpcResultParser.parseResult( payApiService.createMergeTradeOrder(createMergeTradeOrderDTO));
+                buildCreateMergeTradeOrderDTO( initParamsBO, dto,clearCartVO.getGoodsVOList()) ;
+      //  RpcResultParser.parseResult( payApiService.createMergeTradeOrder(createMergeTradeOrderDTO));
 
-        /**
-         * 创建订单 创建交易单 以ClearCartVO 信息进行构建
-         */
-        BathCreateOrderDTO bathCreateOrderDTO1 = buildBathCreateOrderDTO(submitCartOrderInitParamsBO, dto, clearCartVO);
+
 //        RpcResultParser.parseResult(orderApiService.bathCreateOrder(bathCreateOrderDTO1));
 
         /**
@@ -460,7 +493,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          * 构建返回值
          */
         SubmitCartVO submitCartVO = new SubmitCartVO();
-        submitCartVO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
+//        submitCartVO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
         return submitCartVO;
     }
 
@@ -478,11 +511,24 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
 
-    private SubmitCartOrderInitParamsBO buildSubmitCartOrderInitParamsBO(){
+    private SubmitCartOrderInitParamsBO buildSubmitCartOrderInitParamsBO(SubmitCartDTO dto){
+
+        List<AddressListVO> listVOList = RpcResultParser.parseResult(userCacheService.addressListQuery());
+        AddressListVO addressListVO = listVOList.stream()
+                .filter(a -> a.getId().equals(dto.getAddressId()))
+                .findFirst().orElse(null);
+        if (addressListVO == null){
+            log.warn("收货地址不存在");
+            throw new BizException("收货地址不存在");
+        }
+        Map<Long,Long> warehouseIdMap = dto.getCartInfoList().stream()
+                .collect(Collectors.toMap(CartInfoDTO::getCartId, CartInfoDTO::getWarehouseId));
         SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO = new SubmitCartOrderInitParamsBO();
         submitCartOrderInitParamsBO.setMainOrderId(IdUtils.generateId());
         submitCartOrderInitParamsBO.setUserId(UserContext.getUserId());
-
+        submitCartOrderInitParamsBO.setAddressListVO(addressListVO);
+        submitCartOrderInitParamsBO.setCartInfoList(dto.getCartInfoList());
+        submitCartOrderInitParamsBO.setWarehouseIdMap(warehouseIdMap);
         return submitCartOrderInitParamsBO;
     }
 
@@ -529,7 +575,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         List<CreateOrderDTO> createOrderDTOList = new ArrayList<>(goodsVOList.size());
 
         for (ShopGoods shopGoodsBO : goodsVOList) {
-            CreateOrderDTO createOrderDTO = buildCreateOrderDTO(shopGoodsBO, submitCartOrderInitParamsBO, dto);
+            CreateOrderDTO createOrderDTO = buildCreateOrderDTO(shopGoodsBO, submitCartOrderInitParamsBO);
             createOrderDTOList.add(createOrderDTO);
         }
 
@@ -546,33 +592,33 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     /**
      * 构建单个订单的 DTO
      * @param shopGoodsBO 店铺商品信息
-     * @param submitCartOrderInitParamsBO 购物车订单初始化参数
-     * @param dto 提交购物车请求参数
      * @return 创建订单的 DTO
      */
     private CreateOrderDTO buildCreateOrderDTO(ShopGoods shopGoodsBO,
-                                               SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO,
-                                               SubmitCartDTO dto) {
+                                               SubmitCartOrderInitParamsBO initParamsBO) {
         BigDecimal orderAmount = calculateOrderAmount(shopGoodsBO.getCartItemList());
         List<GoodsItem> cartItemList = shopGoodsBO.getCartItemList();
         List<OrderItemDTO> orderItems = new ArrayList<>(cartItemList.size());
-
+        Map<Long, Long> warehouseIdMap = initParamsBO.getWarehouseIdMap();
         for (GoodsItem cartItem : cartItemList) {
             OrderItemDTO orderItemDTO = buildOrderItemDTO(shopGoodsBO.getOrderId(), cartItem);
+            orderItemDTO.setWarehouseId(warehouseIdMap.get(cartItem.getCartId()));
+            orderItemDTO.setUserId(initParamsBO.getUserId());
             orderItems.add(orderItemDTO);
         }
-
+        OrderItemDTO orderItemDTO = orderItems.get(0);
         CreateOrderDTO createOrderDTO = new CreateOrderDTO();
         createOrderDTO.setOrderId(shopGoodsBO.getOrderId());
         createOrderDTO.setShopId(shopGoodsBO.getShopId());
-        createOrderDTO.setUserId(submitCartOrderInitParamsBO.getUserId());
+        createOrderDTO.setUserId(initParamsBO.getUserId());
         createOrderDTO.setOrderNumber(OrderServiceUtils.generateOrderNumber());
         createOrderDTO.setTotalMoney(orderAmount);
         createOrderDTO.setActualPayMoney(orderAmount);
         createOrderDTO.setDiscountAmount(BigDecimal.ZERO);
-        //createOrderDTO.setAddressListVO(dto.getTakeAddress());
         createOrderDTO.setOrderItems(orderItems);
-
+        createOrderDTO.setShopName(shopGoodsBO.getShopName());
+        createOrderDTO.setAddressListVO(initParamsBO.getAddressListVO());
+        createOrderDTO.setTenantId(orderItemDTO.getTenantId());
         return createOrderDTO;
     }
 
@@ -596,6 +642,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderItemDTO.setGoodsVersion(cartItem.getGoodsVersion());
         orderItemDTO.setSkuVersion(cartItem.getSkuVersion());
         orderItemDTO.setSkuCode(cartItem.getSkuCode());
+        orderItemDTO.setTenantId(cartItem.getTenantId());
         return orderItemDTO;
     }
 
