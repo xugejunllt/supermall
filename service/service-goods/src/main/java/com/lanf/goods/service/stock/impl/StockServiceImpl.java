@@ -91,11 +91,18 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @Override
     public void bathDeductStock(BathDeductStockDTO deductStockDTO) {
         log.info("批量冻结库存");
+        /**
+         * 只能使用 同步调用
+         */
         for (DeductStockDTO dto : deductStockDTO.getDeductStockDTOList()) {
             deductStock(dto, false);
         }
     }
 
+    /**
+     * 可以发送给消息队列 异步处理
+     *
+     */
     @Override
     public void confirmBathDeductStock(BathDeductStockDTO deductStockDTO) {
         log.info("批量扣减库存");
@@ -104,7 +111,10 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         }
 
     }
-
+    /**
+     * 可以发送给消息队列 异步处理
+     *
+     */
     @Override
     public void cancelBathDeductStock(BathDeductStockDTO deductStockDTO) {
         log.info("批量回滚库存");
