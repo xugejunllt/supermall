@@ -85,14 +85,21 @@ public class GoodsApiController {
      *
      */
     @PostMapping("/clearCart")
-    public Result<ClearCartVO>  clearCart(@RequestBody @Validated ClearCartDTO dto)  {
+    public Result<Void>  clearCart(@RequestBody @Validated ClearCartDTO dto)  {
 
         log.info("清空购物车预执行[{}]", dto);
-
-        return Result.ok(cartService.clearCart(dto));
+        cartService.clearCart(dto);
+        return Result.ok();
 
     }
+    @PostMapping("/queryCartGoodsInfo")
+    public Result<ClearCartVO>  queryCartGoodsInfo(@RequestBody @Validated ClearCartDTO dto)  {
 
+        log.info("查询购物车商品信息{}", dto);
+
+        return Result.ok(cartService.queryCartGoodsInfo(dto));
+
+    }
     /**
      * 查询库存对账单 库存流水
      *

@@ -42,10 +42,7 @@ import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;
-import com.lanf.order.service.IOrderItemService;
-import com.lanf.order.service.IOrderService;
-import com.lanf.order.service.IOrderStatusTraceService;
-import com.lanf.order.service.OrderManagerService;
+import com.lanf.order.service.*;
 import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
@@ -92,7 +89,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private IOrderStatusTraceService orderStatusTraceService;
     @Autowired
     private IOrderItemService orderItemService;
-
+    @Autowired
+    private IMainOrderService mainOrderService;
 
     @Override
     public CalculateOrderAmountVO calculateOrderAmount(CalculateOrderAmountDTO dto) {
@@ -433,37 +431,33 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return orderInitParamsBO;
     }
 
-    @HmilyTCC(confirmMethod = "confirmSubmitCart", cancelMethod = "cancelSubmitCart")
     @DistributedLock(key = "#dto.mainOrderNumber")
     @Override
     public SubmitCartVO submitCart(SubmitCartDTO dto) {
 
+        SubmitCartOrderInitParamsBO initParamsBO = buildSubmitCartOrderInitParamsBO(dto);
+        dto.setInitParamsBO(initParamsBO);
+        OrderManagerService managerService = BeanUtil.getBean(OrderManagerService.class);
+
+        return managerService.startSubmitCart(dto);
+    }
+    @HmilyTCC(confirmMethod = "confirmSubmitCart", cancelMethod = "cancelSubmitCart")
+    @Override
+    public SubmitCartVO startSubmitCart(SubmitCartDTO dto) {
 
         /**
          * 初始化一些参数
          */
-        SubmitCartOrderInitParamsBO initParamsBO = buildSubmitCartOrderInitParamsBO(dto);
-        /**
-         * 清空购物车
-         */
-        List<CartInfoDTO> cartInfoList = initParamsBO.getCartInfoList();
-        List<Long> cartIdList =
-                cartInfoList.stream().map(CartInfoDTO::getCartId).collect(Collectors.toList());
+        SubmitCartOrderInitParamsBO initParamsBO = dto.getInitParamsBO();
 
-        ClearCartDTO clearCartDTO = new ClearCartDTO();
-        clearCartDTO.setCartIds(cartIdList);
-        clearCartDTO.setUserId(UserContext.getUserId());
-        ClearCartVO clearCartVO = RpcResultParser.parseResult(goodsApiService.clearCart(clearCartDTO));
-        /**
-         * 添加一些字段
-         */
-        addField( clearCartVO.getGoodsVOList());
+        goodsApiService.clearCart(initParamsBO.getClearCartDTO());
+        ClearCartVO clearCartVO = initParamsBO.getClearCartVO();
+
         /**
          * 创建订单 创建交易单 以ClearCartVO 信息进行构建
          */
         BathCreateOrderDTO bathCreateOrderDTO1 = buildBathCreateOrderDTO(initParamsBO, dto, clearCartVO);
         log.info("构建的订单信息是{}", bathCreateOrderDTO1);
-
 
         /**
          * 创建交易单 以ClearCartVO 信息进行构建
@@ -471,10 +465,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          */
         CreateMergeTradeOrderDTO createMergeTradeOrderDTO =
                 buildCreateMergeTradeOrderDTO( initParamsBO, dto,clearCartVO.getGoodsVOList()) ;
-      //  RpcResultParser.parseResult( payApiService.createMergeTradeOrder(createMergeTradeOrderDTO));
 
-
-//        RpcResultParser.parseResult(orderApiService.bathCreateOrder(bathCreateOrderDTO1));
+        mainOrderService.bathCreateOrder(bathCreateOrderDTO1);
 
         /**
          * 发布订单创建成功事件
@@ -497,8 +489,15 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return submitCartVO;
     }
 
+    public void confirmSubmitCart(SubmitCartDTO dto){
 
 
+    }
+
+    public void cancelSubmitCart(SubmitCartDTO dto){
+
+
+    }
     /**
      * 计算订单金额
      * @param cartItemList 购物车商品项列表
@@ -521,6 +520,19 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             log.warn("收货地址不存在");
             throw new BizException("收货地址不存在");
         }
+        List<CartInfoDTO> cartInfoList = dto.getCartInfoList();
+        List<Long> cartIdList =
+                cartInfoList.stream().map(CartInfoDTO::getCartId).collect(Collectors.toList());
+        ClearCartDTO clearCartDTO = new ClearCartDTO();
+        clearCartDTO.setCartIds(cartIdList);
+        clearCartDTO.setUserId(UserContext.getUserId());
+
+        ClearCartVO clearCartVO = RpcResultParser.parseResult(goodsApiService.queryCartGoodsInfo(clearCartDTO));
+        /**
+         * 添加一些字段
+         */
+        addField( clearCartVO.getGoodsVOList());
+
         Map<Long,Long> warehouseIdMap = dto.getCartInfoList().stream()
                 .collect(Collectors.toMap(CartInfoDTO::getCartId, CartInfoDTO::getWarehouseId));
         SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO = new SubmitCartOrderInitParamsBO();
@@ -529,6 +541,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         submitCartOrderInitParamsBO.setAddressListVO(addressListVO);
         submitCartOrderInitParamsBO.setCartInfoList(dto.getCartInfoList());
         submitCartOrderInitParamsBO.setWarehouseIdMap(warehouseIdMap);
+        submitCartOrderInitParamsBO.setClearCartDTO(clearCartDTO);
+        submitCartOrderInitParamsBO.setClearCartVO(clearCartVO);
         return submitCartOrderInitParamsBO;
     }
 

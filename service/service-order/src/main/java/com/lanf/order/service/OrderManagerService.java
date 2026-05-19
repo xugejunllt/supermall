@@ -41,6 +41,7 @@ public interface OrderManagerService {
      */
     SubmitCartVO submitCart(SubmitCartDTO dto);
 
+    SubmitCartVO startSubmitCart(SubmitCartDTO dto);
     /**
      * 取消订单
      *

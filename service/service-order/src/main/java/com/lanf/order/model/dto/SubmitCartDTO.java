@@ -1,5 +1,6 @@
 package com.lanf.order.model.dto;
 
+import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -21,4 +22,6 @@ public class SubmitCartDTO implements Serializable {
     @NotNull(message = "购物车信息不能为空")
     private List<CartInfoDTO> cartInfoList;
 
+
+    private SubmitCartOrderInitParamsBO initParamsBO;
 }

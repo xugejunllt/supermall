@@ -42,7 +42,10 @@ public interface GoodsApiService {
 
     @Hmily
     @PostMapping("/goods/api/clearCart")
-    public Result<ClearCartVO>  clearCart(@RequestBody @Validated ClearCartDTO dto);
+    public Result<Void>  clearCart(@RequestBody @Validated ClearCartDTO dto);
+
+    @PostMapping("/goods/api/queryCartGoodsInfo")
+    public Result<ClearCartVO>  queryCartGoodsInfo(@RequestBody @Validated ClearCartDTO dto);
 
     @PostMapping("/goods/api/reconciliationStockFlowQuery")
     public Result<ReconciliationStockFlowVO> reconciliationStockFlowQuery(@RequestBody  ReconciliationStockFlowQuery query);

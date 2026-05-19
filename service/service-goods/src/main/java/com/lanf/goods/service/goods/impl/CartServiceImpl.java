@@ -401,9 +401,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
 
         List<Long> cartIds = dto.getCartIds();
         Long userId = dto.getUserId();
-        /**
-         * 校验库存
-         */
+
         List<CartDO> cartDOList = this.lambdaQuery()
                 .eq(CartDO::getUserId, userId)
                 .in(CartDO::getId, cartIds)
@@ -477,9 +475,9 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
 
         return validateCartItemVO;
     }
-    @HmilyTCC(confirmMethod = "confirmClearCart", cancelMethod = "cancelClearCart")
+
     @Override
-    public ClearCartVO clearCart(ClearCartDTO dto) {
+    public ClearCartVO queryCartGoodsInfo(ClearCartDTO dto) {
 
         ValidateCartDTO dto1   = new ValidateCartDTO();
         dto1.setCartIds(dto.getCartIds());
@@ -490,6 +488,30 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         clearCartVO.setTotalPrice(validateCartItemVO.getTotalPrice());
 
         return clearCartVO;
+    }
+
+
+    @HmilyTCC(confirmMethod = "confirmClearCart", cancelMethod = "cancelClearCart")
+    @Override
+    public void clearCart(ClearCartDTO dto) {
+
+        List<Long> cartIds = dto.getCartIds();
+        Long userId = dto.getUserId();
+
+        List<CartDO> cartDOList = this.lambdaQuery()
+                .eq(CartDO::getUserId, userId)
+                .in(CartDO::getId, cartIds)
+                .list();
+        if (cartDOList.isEmpty()){
+            log.warn("购物车项不存在");
+            throw  new BizException("购物车项不存在");
+        }
+        if (cartIds.size() != cartDOList.size()){
+            log.warn("部分购物车项不存在");
+            throw  new BizException("部分购物车项不存在");
+        }
+
+
     }
 
 

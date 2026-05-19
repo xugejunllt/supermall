@@ -55,11 +55,17 @@ public interface ICartService extends IService<CartDO> {
     ValidateCartItemVO validateCartItem(ValidateCartDTO dto);
 
     /**
+     * 查询购物车商品信息
+     *
+     */
+    ClearCartVO queryCartGoodsInfo(ClearCartDTO dto);
+
+    /**
      * 清空购物车
      *
      *
      */
-    ClearCartVO clearCart(ClearCartDTO dto);
+    void clearCart(ClearCartDTO dto);
 
 
 }

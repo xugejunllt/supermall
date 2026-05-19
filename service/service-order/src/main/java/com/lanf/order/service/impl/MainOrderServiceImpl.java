@@ -3,6 +3,7 @@ package com.lanf.order.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
+import com.lanf.common.utils.DateUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.mybatis.base.BaseEntity;
@@ -11,18 +12,22 @@ import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.MainOrderDO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
+import com.lanf.order.model.entity.OrderStatusTraceDO;
 import com.lanf.order.model.vo.CreateOrderVO;
 import com.lanf.order.service.IMainOrderService;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
+import com.lanf.order.service.IOrderStatusTraceService;
 import com.lanf.order.utils.OrderServiceUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,11 +48,13 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
     private IOrderItemService orderItemService;
     @Autowired
     private IOrderService orderService;
+    @Autowired
+    private IOrderStatusTraceService orderStatusTraceService;
 
-
-
+    @Transactional
     @Override
     public void bathCreateOrder(BathCreateOrderDTO dto) {
+
         log.info("批量创建订单开始:dto{}", dto);
         /**
          * 构建MainOrderDO
@@ -58,6 +65,11 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
          */
         List<OrderDO> orderDOList = buildOrderDOList(dto.getCreateOrderDTOList());
         orderDOList.forEach(a -> a.setMainOrderId(mainOrderDO.getId()));
+        /**
+         * 构建订单轨迹
+         */
+        List<OrderStatusTraceDO> orderStatusTraceDOList = buildOrderStatusTraceDOList(orderDOList);
+
         /**
          * 构建OrderItemDO
          */
@@ -70,10 +82,29 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
             log.info("订单已存在");
             return;
         }
+        orderStatusTraceService.saveBatch(orderStatusTraceDOList);
         orderItemService.saveBatch(orderItemDOList);
 
     }
 
+    private List<OrderStatusTraceDO> buildOrderStatusTraceDOList(List<OrderDO> orderDOList ) {
+
+        List<OrderStatusTraceDO> orderStatusTraceDOList = new ArrayList<>();
+        Date date = new Date();
+
+        orderDOList.forEach(a -> {
+            OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
+            orderStatusTraceDO.setOrderId(a.getId());
+            orderStatusTraceDO.setFromStatus(null);
+            orderStatusTraceDO.setToStatus(OrderStatusEnum.WAIT_PAY);
+            orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+            orderStatusTraceDO.setUserId(a.getUserId());
+            orderStatusTraceDO.setTenantId(a.getTenantId());
+            orderStatusTraceDO.setRemark("用户下单");
+            orderStatusTraceDOList.add(orderStatusTraceDO);
+        });
+        return orderStatusTraceDOList;
+    }
 
     public void cancelBathCreateOrder(BathCreateOrderDTO dto) {
 
