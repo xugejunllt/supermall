@@ -27,9 +27,7 @@ public interface PayApiService {
     @PostMapping("/pay/api/createMergeTradeOrder")
     public Result<CreateMergeTradeOrderVO> createMergeTradeOrder(@RequestBody CreateMergeTradeOrderDTO dto);
 
-    @Hmily
-    @PostMapping("/pay/api/cancelTradeOrder")
-    public Result<CancelTradeOrderVO> cancelTradeOrder(@RequestBody CancelTradeOrderDTO dto);
+
 
     @Deprecated
     @Hmily

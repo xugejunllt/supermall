@@ -49,6 +49,14 @@ public class GoodsApiController {
         return Result.ok(stockService.deductStock(deductStockDTO));
 
     }
+    @PostMapping("/bathDeductStock")
+    public Result<Void> bathDeductStock(@RequestBody @Validated BathDeductStockDTO deductStockDTO) {
+        log.info("购物车结算,批量冻结库存开始[{}]", deductStockDTO);
+        stockService.bathDeductStock(deductStockDTO);
+        return Result.ok();
+
+    }
+
 
     /**
      * 金额订单总金额

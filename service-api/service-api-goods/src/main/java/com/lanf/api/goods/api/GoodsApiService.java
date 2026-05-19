@@ -31,6 +31,9 @@ public interface GoodsApiService {
     @Hmily
     @PostMapping("/goods/api/deductStock")
     public Result<DeductStockVO> deductStock(@RequestBody DeductStockDTO deductStockDTO);
+    @Hmily
+    @PostMapping("/goods/api/bathDeductStock")
+    public Result<Void> bathDeductStock(@RequestBody @Validated BathDeductStockDTO deductStockDTO);
 
 
     @PostMapping("/goods/api/calculateOrderTotalAmount")

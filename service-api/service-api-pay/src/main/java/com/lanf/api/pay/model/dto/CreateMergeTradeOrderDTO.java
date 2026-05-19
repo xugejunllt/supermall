@@ -1,6 +1,5 @@
 package com.lanf.api.pay.model.dto;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -22,11 +21,6 @@ public class CreateMergeTradeOrderDTO implements Serializable {
     @NotNull( message = "用户id不能为空")
     private Long userId;
 
-    @NotNull(message = "支付类型不能为空")
-    @ApiModelProperty(value = "支付类型 0支付宝 1微信 2银联 ")
-    private Integer payType;
-    @NotNull(message = "商家id不能为空")
-    private Long businessId;
     @NotEmpty
     private List<CreateMergeTradeOrderItemDTO> tradeOrderItemList;
 

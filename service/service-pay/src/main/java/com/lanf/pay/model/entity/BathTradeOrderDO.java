@@ -21,10 +21,6 @@ public class BathTradeOrderDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
-    /**
-     * 商家id
-     */
-    private Long businessId;
 
     /**
      * 用户id

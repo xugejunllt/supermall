@@ -168,8 +168,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         passbackParams.setBathPay(false);
         passbackParams.setTradeOrderId(id);
         passbackParams.setTradeType(TradePurposeEnum.REALTIME_ORDER);
-        passbackParams.setSignValue(PayServiceUtils.generateSign(passbackParams));
         passbackParams.setTradeMoney(dto.getTradeMoney());
+        passbackParams.setSignValue(PayServiceUtils.generateSign(passbackParams));
         tradeOrderDO.setPassBackParams(JsonUtils.toJsonString(passbackParams));
         return tradeOrderDO;
     }

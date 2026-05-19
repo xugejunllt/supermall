@@ -13,6 +13,8 @@ import com.lanf.api.goods.model.vo.ValidateCartItemVO;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.api.pay.api.PayApiService;
+import com.lanf.api.pay.model.dto.CreateMergeTradeOrderDTO;
+import com.lanf.api.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.api.user.api.UserCacheService;
 import com.lanf.api.user.model.vo.AddressListVO;
@@ -443,24 +445,26 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
 
 
+        /**
+         * 扣减库存
+         */
 
-//        /**
-//         * 创建订单 创建交易单 以ClearCartVO 信息进行构建
-//         */
-//        BathCreateOrderDTO bathCreateOrderDTO1 = buildBathCreateOrderDTO(initParamsBO, dto, clearCartVO);
-//        log.info("构建的订单信息是{}", bathCreateOrderDTO1);
 
-//        /**
-//         * 创建交易单 以ClearCartVO 信息进行构建
-//         *
-//         */
-//        CreateMergeTradeOrderDTO createMergeTradeOrderDTO =
-//                buildCreateMergeTradeOrderDTO( initParamsBO, dto,clearCartVO.getGoodsVOList()) ;
+        /**
+         * 清空购物车
+         */
+        RpcResultParser.parseResult(goodsApiService.clearCart(dto.getClearCartDTO()));
+
+        /**
+         * 创建交易单
+         */
+        CreateMergeTradeOrderDTO createMergeTradeOrderDTO = buildCreateMergeTradeOrderDTO(dto.getBathCreateOrderDTO());
+        RpcResultParser.parseResult(payApiService.createMergeTradeOrder(createMergeTradeOrderDTO));
+
         /**
          * 创建订单
          */
         mainOrderService.bathCreateOrder(dto.getBathCreateOrderDTO());
-        goodsApiService.clearCart(dto.getClearCartDTO());
 
 
         /**
@@ -482,6 +486,35 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         SubmitCartVO submitCartVO = new SubmitCartVO();
 //        submitCartVO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
         return submitCartVO;
+    }
+
+    private CreateMergeTradeOrderDTO buildCreateMergeTradeOrderDTO(BathCreateOrderDTO bathCreateOrderDTO){
+
+        List<CreateOrderDTO> createOrderDTOList = bathCreateOrderDTO.getCreateOrderDTOList();
+
+        CreateMergeTradeOrderDTO createMergeTradeOrderDTO = new CreateMergeTradeOrderDTO();
+        createMergeTradeOrderDTO.setMainOrderId(bathCreateOrderDTO.getMainOrderId());
+        createMergeTradeOrderDTO.setMainOrderNumber(bathCreateOrderDTO.getMainOrderNumber());
+        createMergeTradeOrderDTO.setUserId(bathCreateOrderDTO.getUserId());
+
+        List<CreateMergeTradeOrderItemDTO> tradeOrderItemList = getCreateMergeTradeOrderItemDTOS(createOrderDTOList);
+        createMergeTradeOrderDTO.setTradeOrderItemList(tradeOrderItemList);
+
+        return createMergeTradeOrderDTO;
+
+    }
+
+    private  List<CreateMergeTradeOrderItemDTO> getCreateMergeTradeOrderItemDTOS(List<CreateOrderDTO> createOrderDTOList) {
+        List<CreateMergeTradeOrderItemDTO> tradeOrderItemList = new ArrayList<>(createOrderDTOList.size());
+
+        for (CreateOrderDTO createOrderDTO : createOrderDTOList) {
+            CreateMergeTradeOrderItemDTO tradeOrderItemDTO = new CreateMergeTradeOrderItemDTO();
+            tradeOrderItemDTO.setOrderNumber(createOrderDTO.getOrderNumber());
+            tradeOrderItemDTO.setOrderId(createOrderDTO.getOrderId());
+            tradeOrderItemDTO.setTradeMoney(createOrderDTO.getActualPayMoney());
+            tradeOrderItemList.add(tradeOrderItemDTO);
+        }
+        return tradeOrderItemList;
     }
 
     private BathDeductStockDTO buildBathDeductStockDTO(BathCreateOrderDTO bathCreateOrderDTO){

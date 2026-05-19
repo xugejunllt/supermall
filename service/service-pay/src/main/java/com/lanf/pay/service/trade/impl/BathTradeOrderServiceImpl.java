@@ -62,34 +62,39 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
     public void confirmCreateMergeTradeOrder(CreateMergeTradeOrderDTO dto) {
         log.info("confirmCreateMergeTradeOrder:{}",dto);
 
-        Long mainOrderId = dto.getMainOrderId();
-        BathTradeOrderDO bathTradeOrderDO = this.lambdaQuery().eq(BathTradeOrderDO::getMainOrderId, mainOrderId).one();
-
-        if (bathTradeOrderDO != null) {
-            log.info("批量交易单已存在");
-            return;
-        }
-
-        /**
-         * 构建BathTradeOrderDO
-         */
-        Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
-        BathTradeOrderDO bathTradeOrderDO1 = buildBathTradeOrderDO(dto, expireTime);
-
-        /**
-         *
-         * 创建交易单
-         */
-        List<TradeOrderDO> tradeOrderDOList = buildTradeOrderDOList(dto,bathTradeOrderDO,expireTime);
         try {
-            this.save(bathTradeOrderDO1);
-        } catch (DuplicateKeyException e) {
-            log.info("批量交易单已存在");
-            return;
+            BathTradeOrderDO bathTradeOrderDO = this.lambdaQuery()
+                    .eq(BathTradeOrderDO::getMainOrderNumber, dto.getMainOrderNumber())
+                    .one();
+
+            if (bathTradeOrderDO != null) {
+                log.info("批量交易单已存在");
+                return;
+            }
+
+            /**
+             * 构建BathTradeOrderDO
+             */
+            Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
+            BathTradeOrderDO bathTradeOrderDO1 = buildBathTradeOrderDO(dto, expireTime);
+
+            /**
+             *
+             * 创建交易单
+             */
+            List<TradeOrderDO> tradeOrderDOList = buildTradeOrderDOList(dto,bathTradeOrderDO1,expireTime);
+            try {
+                this.save(bathTradeOrderDO1);
+            } catch (DuplicateKeyException e) {
+                log.info("批量交易单已存在");
+                return;
+            }
+
+            tradeOrderService.saveBatch(tradeOrderDOList);
+        } catch (Exception e) {
+            log.error("创建批量交易订单失败", e);
+            throw e;
         }
-
-        tradeOrderService.saveBatch(tradeOrderDOList);
-
 
 
     }
@@ -111,7 +116,9 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
                     tradeOrderDO.setPayStatus(0);
                     tradeOrderDO.setBathPay(1);
                     tradeOrderDO.setExpireTime(expireTime);
+                    tradeOrderDO.setExpireInterval(payConfig.getExpireInterval());
                     tradeOrderDO.setTradePurpose(TradePurposeEnum.REALTIME_ORDER);
+                    tradeOrderDO.setOrderNumber(item.getOrderNumber());
                     //
                     String params = PayServiceUtils.buildPassbackParams(tradeOrderDO.getId(), false,
                             tradeOrderDO.getTradeMoney(),
@@ -151,10 +158,12 @@ public class BathTradeOrderServiceImpl extends ServiceImpl<BathTradeOrderMapper,
         bathTradeOrderDO1.setMainOrderNumber(dto.getMainOrderNumber());
         bathTradeOrderDO1.setExpireInterval(payConfig.getExpireInterval());
         bathTradeOrderDO1.setExpireTime(expireTime);
-        bathTradeOrderDO1.setBusinessId(dto.getBusinessId());
+        bathTradeOrderDO1.setPayStatus(0);
         //
         String params = PayServiceUtils.buildPassbackParams(bathTradeOrderDO1.getId(), true, bathTradeOrderDO1.getBatchFee(),
                 TradePurposeEnum.REALTIME_ORDER);
+
+
         bathTradeOrderDO1.setPassbackParams(params);
         return bathTradeOrderDO1;
     }

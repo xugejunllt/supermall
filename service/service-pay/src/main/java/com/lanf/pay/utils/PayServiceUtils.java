@@ -1,6 +1,7 @@
 package com.lanf.pay.utils;
 
 import com.lanf.api.pay.model.enums.TradePurposeEnum;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.PassbackParams;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,7 @@ public class PayServiceUtils {
         passbackParams.setTradeMoney(tradeMoney);
         passbackParams.setSignValue(PayServiceUtils.generateSign(passbackParams));
 
-        return toStrPSign(passbackParams);
+        return JsonUtils.toJsonString(passbackParams);
     }
 
     public static String generateSign(PassbackParams params) {
