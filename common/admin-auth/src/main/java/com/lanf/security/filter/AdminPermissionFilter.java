@@ -80,6 +80,8 @@ public class AdminPermissionFilter extends OncePerRequestFilter implements Order
              * 菜单前权限 添加spring security上下文汇总
              */
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            //添加admin请求标记
+            UserContext.setAdmin(true);
             filterChain.doFilter(request, response);
             log.info("执行菜单权限过滤器结束");
         } catch (BizException e) {

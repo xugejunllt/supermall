@@ -17,8 +17,7 @@ public class MybatisPlusConfig {
 
     @Autowired
     private TenantProperties properties;
-    @Autowired
-    private TenantEnableConfig tenantEnableConfig;
+
 
 
     /**

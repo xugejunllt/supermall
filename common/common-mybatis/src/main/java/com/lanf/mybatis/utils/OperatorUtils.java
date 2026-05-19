@@ -1,27 +1,14 @@
 package com.lanf.mybatis.utils;
 
 import com.lanf.constant.utils.UserContext;
-import com.lanf.mybatis.config.TenantEnableConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 @Component
 public class OperatorUtils {
 
 
-   @Autowired
-   private  TenantEnableConfig tenantEnableConfig;
-    /*
-     * 是否启用租户 如果启用 那么就是后台系统用户
-     */
-    private static Boolean tenantEnable;
 
-    @PostConstruct
-    public void  init(){
-        tenantEnable = tenantEnableConfig.getEnable();
-    }
+
 
     /**
      * 系统默认操作人（用于定时任务、系统初始化等无法获取真实用户场景）
@@ -40,10 +27,11 @@ public class OperatorUtils {
 
 
         Long userId = UserContext.getUserId();
-        if (userId == null) {
+        Boolean admin = UserContext.getAdmin();
+        if (userId == null && admin == null) {
             return SYSTEM_OPERATOR;
         }
-        if (tenantEnable){
+        if (userId !=null && Boolean.TRUE.equals( admin)){
             return ADMIN_OPERATOR + userId;
         }
         return USER_OPERATOR + userId;

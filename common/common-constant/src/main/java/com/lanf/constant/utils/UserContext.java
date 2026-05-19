@@ -5,6 +5,7 @@ public class UserContext {
     private static final ThreadLocal<Long> USER_ID_HOLDER = new ThreadLocal<>();
     private static final ThreadLocal<String> DEVICE_ID_HOLDER = new ThreadLocal<>();
     private static final ThreadLocal<Long> TENANT_ID_HOLDER = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> ADMIN_HOLDER = new ThreadLocal<>();
 
     /**
      * 设置用户ID
@@ -59,6 +60,13 @@ public class UserContext {
     public static Long getTenantId() {
         return TENANT_ID_HOLDER.get();
     }
+    public static void setAdmin(Boolean admin) {
+        ADMIN_HOLDER.set(admin);
+    }
+
+    public static Boolean getAdmin() {
+        return ADMIN_HOLDER.get();
+    }
 
     /**
      * 清除所有上下文信息
@@ -67,5 +75,6 @@ public class UserContext {
         USER_ID_HOLDER.remove();
         DEVICE_ID_HOLDER.remove();
         TENANT_ID_HOLDER.remove();
+        ADMIN_HOLDER.remove();
     }
 }
