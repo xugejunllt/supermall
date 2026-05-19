@@ -55,7 +55,7 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
     @Override
     public void bathCreateOrder(BathCreateOrderDTO dto) {
 
-        log.info("批量创建订单开始:dto{}", dto);
+        log.info("批量创建订单开始:dto{}", dto.getMainOrderId());
         /**
          * 构建MainOrderDO
          */
@@ -77,11 +77,11 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
 
         try {
             this.save(mainOrderDO);
-            orderService.saveBatch(orderDOList);
         } catch (DuplicateKeyException e) {
             log.info("订单已存在");
             return;
         }
+        orderService.saveBatch(orderDOList);
         orderStatusTraceService.saveBatch(orderStatusTraceDOList);
         orderItemService.saveBatch(orderItemDOList);
 

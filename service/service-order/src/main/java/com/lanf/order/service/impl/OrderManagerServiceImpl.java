@@ -35,6 +35,7 @@ import com.lanf.constant.utils.UserContext;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
 import com.lanf.order.model.dto.*;
+import com.lanf.order.model.entity.MainOrderDO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
@@ -468,6 +469,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
         mainOrderService.bathCreateOrder(bathCreateOrderDTO1);
 
+
         /**
          * 发布订单创建成功事件
          *
@@ -496,6 +498,25 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     public void cancelSubmitCart(SubmitCartDTO dto){
 
+        SubmitCartOrderInitParamsBO initParamsBO = dto.getInitParamsBO();
+        Long mainOrderId = initParamsBO.getMainOrderId();
+        Long userId = initParamsBO.getUserId();
+        List<Long> orderIdList = new ArrayList<>();
+        initParamsBO.getClearCartVO().getGoodsVOList().forEach(goodsVO -> {
+            orderIdList.add(goodsVO.getOrderId());
+        });
+        mainOrderService.lambdaUpdate()
+                .eq(MainOrderDO::getId, mainOrderId)
+                .eq(MainOrderDO::getUserId, userId)
+                .remove();
+        orderService.lambdaUpdate()
+                .in(OrderDO::getId, orderIdList)
+                .eq(OrderDO::getUserId, userId)
+                .remove();
+        orderStatusTraceService.lambdaUpdate()
+                .in(OrderStatusTraceDO::getOrderId, orderIdList)
+                .eq(OrderStatusTraceDO::getUserId, userId)
+                .remove();
 
     }
     /**
