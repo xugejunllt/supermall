@@ -16,8 +16,7 @@ public class OrderSearchVO implements Serializable {
 
     private String orderNumber;
 
-    // 租户id
-    private Long tenantId;
+
 
     private Integer orderStatus;
 

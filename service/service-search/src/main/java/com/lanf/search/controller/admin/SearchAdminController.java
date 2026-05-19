@@ -1,4 +1,4 @@
-package com.lanf.search.controller.api;
+package com.lanf.search.controller.admin;
 
 import com.lanf.api.search.model.query.OrderSearchQuery;
 import com.lanf.api.search.model.vo.OrderSearchVO;
@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/search")
-public class SearchApiController {
+@RequestMapping("/admin/search")
+public class SearchAdminController {
 
     @Autowired
     private IGoodsDocumentService goodsDocumentService;
@@ -30,11 +30,10 @@ public class SearchApiController {
      *
      */
     @PostMapping("/searchOrders")
-    public Result<PageResult<OrderSearchVO>> searchOrders(@RequestBody OrderSearchQuery query) {
+    public Result<PageResult<OrderSearchVO>> searchOrdersForAdmin(@RequestBody OrderSearchQuery query) {
 
         log.info("订单搜索{}",query);
-        PageResult<OrderSearchVO> orderSearchVOPageResult = orderSearchService.searchOrders(query);
-        return Result.ok(orderSearchVOPageResult);
+        return Result.ok(orderSearchService.searchOrders(query));
     }
 
 

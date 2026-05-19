@@ -92,7 +92,6 @@ public class OrderSearchServiceImpl implements IOrderSearchService {
                     OrderSearchVO vo = new OrderSearchVO();
                     vo.setOrderId(doc.getOrderId());
                     vo.setOrderNumber(doc.getOrderNumber());
-                    vo.setTenantId(doc.getTenantId());
                     vo.setOrderStatus(doc.getOrderStatus());
                     vo.setUserId(doc.getUserId());
                     vo.setCreateTime(new Date(doc.getCreateTime()));
