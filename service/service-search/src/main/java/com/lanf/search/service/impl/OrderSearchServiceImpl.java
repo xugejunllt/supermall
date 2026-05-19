@@ -1,9 +1,9 @@
 package com.lanf.search.service.impl;
 
+import com.lanf.api.search.model.query.OrderSearchQuery;
+import com.lanf.api.search.model.vo.OrderSearchVO;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.search.model.document.OrderDocument;
-import com.lanf.search.model.query.OrderSearchQuery;
-import com.lanf.search.model.vo.OrderSearchVO;
 import com.lanf.search.repository.OrderRepository;
 import com.lanf.search.service.IOrderSearchService;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +19,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -90,7 +91,12 @@ public class OrderSearchServiceImpl implements IOrderSearchService {
                 .map(doc -> {
                     OrderSearchVO vo = new OrderSearchVO();
                     vo.setOrderId(doc.getOrderId());
+                    vo.setOrderNumber(doc.getOrderNumber());
+                    vo.setTenantId(doc.getTenantId());
+                    vo.setOrderStatus(doc.getOrderStatus());
                     vo.setUserId(doc.getUserId());
+                    vo.setCreateTime(new Date(doc.getCreateTime()));
+                    vo.setGoodsName(doc.getGoodsName());
                     vo.setGoodsName(doc.getGoodsName());
                     return vo;
                 })

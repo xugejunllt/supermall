@@ -37,11 +37,11 @@ public interface OrderApiService {
     /**
      * 查询订单轨迹
      */
-    @PostMapping("/order/orderApi/reconciliationOrderItemQuery")
+    @PostMapping("/order/api/reconciliationOrderItemQuery")
     Result<ReconciliationOrderItemVO> reconciliationOrderItemQuery(@RequestBody ReconciliationOrderItemQuery query);
 
 
-    @PostMapping("/order/orderApi/orderDocumentQuery")
+    @PostMapping("/order/api/orderDocumentQuery")
     public Result<OrderDocumentVO> orderDocumentQuery( @RequestBody OrderDocumentQuery query);
 
 

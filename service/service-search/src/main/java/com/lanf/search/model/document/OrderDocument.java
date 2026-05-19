@@ -2,10 +2,8 @@ package com.lanf.search.model.document;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.annotation.Version;
+import org.springframework.data.elasticsearch.annotations.Document;
 
 import java.util.List;
 
@@ -29,8 +27,6 @@ public class OrderDocument {
     // 用户id (通常作为分片键或关联查询键)
     private Long userId;
 
-    // 订单编号 (业务唯一标识，通常使用 keyword 类型精确匹配)
-    @Field(type = FieldType.Keyword)
     private String orderNumber;
 
     // 租户id
@@ -42,7 +38,6 @@ public class OrderDocument {
      * 订单创建时间（毫秒级时间戳）
      * 使用 Long 类型存储，便于范围查询和排序
      */
-    @Field(type = FieldType.Long)
     private Long createTime;
     /**
      * 一笔订单 对应多个商品

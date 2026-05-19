@@ -26,7 +26,7 @@ import static com.lanf.constant.mq.OrderTopicWithTag.TAG_PAID;
 @Slf4j
 @Component
 @RocketMQMessageListener(
-        consumerGroup = SearchMqGroupName.ORDER_CREATE_SUCCESS_EVENT_ADD_ORDER_INDEX_GROUP,
+        consumerGroup = SearchMqGroupName.ORDER_PAY_SUCCESS_EVENT_UPDATE_ORDER_INDEX_GROUP,
         topic = ORDER_EVENT_TOPIC,
         consumeMode = ConsumeMode.ORDERLY,
         selectorExpression = TAG_PAID)
@@ -39,6 +39,7 @@ public class OrderPaySuccessEventListener implements RocketMQListener<OrderPaySu
      @Override
      public void onMessage(OrderPaySuccessMessage message) {
 
+          log.info("订单支付成功，更新ES订单状态：{}", message);
           // 1. 查询现有订单（包含当前 version）
           OrderDocument order = orderRepository.findById(message.getOrderId())
                   .orElseThrow(() -> new BizException("订单不存在"));

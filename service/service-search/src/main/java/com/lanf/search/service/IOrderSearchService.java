@@ -1,8 +1,8 @@
 package com.lanf.search.service;
 
+import com.lanf.api.search.model.query.OrderSearchQuery;
+import com.lanf.api.search.model.vo.OrderSearchVO;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.search.model.query.OrderSearchQuery;
-import com.lanf.search.model.vo.OrderSearchVO;
 
 public interface IOrderSearchService {
 

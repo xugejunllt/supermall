@@ -231,6 +231,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         /**
          * 发送MQ 订单创建成功消息
          */
+
         OrderInitParamsBO initParamsBO = orderDTO.getOrderInitParamsBO();
         sendOrderCreateSuccessMessage(initParamsBO.getOrderId(),
                 initParamsBO.getUserId());

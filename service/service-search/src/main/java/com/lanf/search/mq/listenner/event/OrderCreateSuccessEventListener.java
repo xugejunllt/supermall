@@ -27,7 +27,8 @@ import org.springframework.stereotype.Component;
         consumerGroup = SearchMqGroupName.ORDER_CREATE_SUCCESS_EVENT_ADD_ORDER_INDEX_GROUP,
         topic = OrderTopicWithTag.ORDER_EVENT_TOPIC,
         consumeMode = ConsumeMode.ORDERLY,
-        selectorExpression = OrderTopicWithTag.TAG_WAIT_PAY)
+        selectorExpression = OrderTopicWithTag.TAG_WAIT_PAY
+)
 public class OrderCreateSuccessEventListener implements RocketMQListener<OrderCreateSuccessMessage> {
 
      @Autowired
@@ -38,15 +39,19 @@ public class OrderCreateSuccessEventListener implements RocketMQListener<OrderCr
      @Override
      public void onMessage(OrderCreateSuccessMessage message) {
 
-          OrderDocumentQuery query = new OrderDocumentQuery();
-          query.setOrderId(message.getOrderId());
-          query.setUserId(message.getUserId());
+          log.info("订单创建成功，同步订单索引到ES：{}", message);
+          try {
+               OrderDocumentQuery query = new OrderDocumentQuery();
+               query.setOrderId(message.getOrderId());
+               query.setUserId(message.getUserId());
 
-          OrderDocumentVO orderDocumentVO = RpcResultParser.parseResult(orderApiService.orderDocumentQuery(query));
-          OrderDocument orderDocument = getOrderDocument(orderDocumentVO);
-          //存入 ES（默认覆盖模式，确保数据最新）
-          orderRepository.save(orderDocument);
-
+               OrderDocumentVO orderDocumentVO = RpcResultParser.parseResult(orderApiService.orderDocumentQuery(query));
+               OrderDocument orderDocument = getOrderDocument(orderDocumentVO);
+               //存入 ES（默认覆盖模式，确保数据最新）
+               orderRepository.save(orderDocument);
+          } catch (Exception e) {
+               log.error("订单创建成功，同步订单索引到ES失", e);
+          }
 
 
      }
