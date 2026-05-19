@@ -24,7 +24,16 @@ public interface OrderManagerService {
      */
     PlaceOrderVO placeOrder(PlaceOrderDTO orderDTO);
 
+
+
     PlaceOrderVO startPlaceOrder(PlaceOrderDTO orderDTO);
+
+    void  confirmPlaceOrder(PlaceOrderDTO orderDTO);
+
+    void  cancelPlaceOrder(PlaceOrderDTO orderDTO);
+
+
+
     /**
      * 校验购物车
      *
@@ -40,6 +49,10 @@ public interface OrderManagerService {
     SubmitCartVO submitCart(SubmitCartDTO dto);
 
     SubmitCartVO startSubmitCart(StartSubmitCartBO dto);
+
+    void confirmSubmitCart(StartSubmitCartBO dto);
+
+    void cancelSubmitCart(StartSubmitCartBO dto);
     /**
      * 取消订单
      *

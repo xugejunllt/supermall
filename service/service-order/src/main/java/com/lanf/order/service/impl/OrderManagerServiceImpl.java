@@ -226,6 +226,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      *
      *
      */
+    @Override
     public  void  confirmPlaceOrder(PlaceOrderDTO orderDTO){
         /**
          * 发送MQ 订单创建成功消息
@@ -240,6 +241,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      *
      */
     @Transactional
+    @Override
     public  void  cancelPlaceOrder(PlaceOrderDTO orderDTO){
         /**
          * 如果数据不存在 那么执行删除操作也没有影响
@@ -448,7 +450,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         /**
          * 扣减库存
          */
-
+        BathDeductStockDTO bathDeductStockDTO = buildBathDeductStockDTO(dto.getBathCreateOrderDTO());
+        RpcResultParser.parseResult(goodsApiService.bathDeductStock(bathDeductStockDTO));
 
         /**
          * 清空购物车
@@ -460,31 +463,16 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          */
         CreateMergeTradeOrderDTO createMergeTradeOrderDTO = buildCreateMergeTradeOrderDTO(dto.getBathCreateOrderDTO());
         RpcResultParser.parseResult(payApiService.createMergeTradeOrder(createMergeTradeOrderDTO));
-
         /**
          * 创建订单
          */
         mainOrderService.bathCreateOrder(dto.getBathCreateOrderDTO());
 
-
-        /**
-         * 发布订单创建成功事件
-         *
-         */
-//        List<CreateOrderDTO> createOrderDTOList = bathCreateOrderDTO1.getCreateOrderDTOList();
-//        for (CreateOrderDTO createOrderDTO : createOrderDTOList) {
-//            OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
-//            message.setOrderId(createOrderDTO.getOrderId());
-//            message.setUserId(UserContext.getUserId());
-//            rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
-//                    OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message),
-//                    createOrderDTO.getOrderId().toString());        }
-
         /**
          * 构建返回值
          */
         SubmitCartVO submitCartVO = new SubmitCartVO();
-//        submitCartVO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
+        submitCartVO.setMainOrderNumber(dto.getBathCreateOrderDTO().getMainOrderNumber());
         return submitCartVO;
     }
 
@@ -546,12 +534,20 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return bathDeductStockDTO;
 
     }
-
+    @Override
     public void confirmSubmitCart(StartSubmitCartBO dto){
+
+        BathCreateOrderDTO orderDTO = dto.getBathCreateOrderDTO();
+        List<CreateOrderDTO> createOrderDTOList = orderDTO.getCreateOrderDTOList();
+        createOrderDTOList.forEach(a -> {
+            sendOrderCreateSuccessMessage(a.getOrderId(),
+                    a.getUserId());
+
+        });
 
 
     }
-
+    @Override
     public void cancelSubmitCart(StartSubmitCartBO dto){
 
         BathCreateOrderDTO orderDTO = dto.getBathCreateOrderDTO();

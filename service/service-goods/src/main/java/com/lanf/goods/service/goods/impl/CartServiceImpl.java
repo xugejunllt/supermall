@@ -514,7 +514,10 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
 
     }
 
-
+    /**
+     * 暂时不删除 方便测试
+     * @param dto
+     */
     public void  confirmClearCart(ClearCartDTO dto){
 
         log.info("清空购物车数据:{}", dto);

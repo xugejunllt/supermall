@@ -106,11 +106,6 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
         return orderStatusTraceDOList;
     }
 
-    public void cancelBathCreateOrder(BathCreateOrderDTO dto) {
-
-        log.info("批量创建订单取消:dto{}", dto);
-
-    }
 
     @Override
     public CreateOrderVO createOrder(CreateOrderDTO2 dto) {
