@@ -391,19 +391,20 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         dto.setShopId(orderDTO.getShopId());
         dto.setTotalAmount(totalAmount);
         dto.setCouponIds(orderDTO.getCouponIds());
-        dto.setBizKeyPrx(orderInitParamsBO.getBizKeyPrx() );
        // RpcResultParser.parseResult(welfareApiService.useMultipleCoupon(dto));
 
         return new CalculateDiscountAmountVO( );
     }
     private DeductStockVO  deductStock( PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO){
 
-
+        //表示唯一一次库存扣减 使用tcc_operation 表就需要
+        String bizKeyPrx = orderDTO.getOrderNumber()+"_"+orderDTO.getSkuCode() ;
         DeductStockDTO deductStockDTO = new DeductStockDTO();
         deductStockDTO.setOrderId(orderInitParamsBO.getOrderId());
         deductStockDTO.setSkuCode(orderDTO.getSkuCode());
         deductStockDTO.setQuantity(orderDTO.getQuantity());
-        deductStockDTO.setBizKeyPrx(orderInitParamsBO.getBizKeyPrx() );
+
+        deductStockDTO.setBizKeyPrx(bizKeyPrx );
         deductStockDTO.setGoodsId(orderDTO.getGoodsId());
         deductStockDTO.setWarehouseId(orderDTO.getWarehouseId());
         deductStockDTO.setOrderNumber(orderDTO.getOrderNumber());
@@ -418,7 +419,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         OrderInitParamsBO  orderInitParamsBO = new OrderInitParamsBO();
         orderInitParamsBO.setOrderId(IdUtils.generateId());
         orderInitParamsBO.setUserId(UserContext.getUserId());
-        orderInitParamsBO.setBizKeyPrx(orderDTO.getOrderNumber()+"_"+orderDTO.getSkuCode());
         orderInitParamsBO.setOrderNumber(orderDTO.getOrderNumber());
 
         List<AddressListVO> addressListVOS = RpcResultParser.parseResult(userCacheService.addressListQuery());
