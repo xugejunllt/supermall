@@ -113,7 +113,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                     .update();
             if (!update) {
                 log.warn("订单更新失败");
-                throw new BizException("订单状态异常");
+                throw new MessageRetryConsumeException("订单状态异常");
             }
 
             for (OrderDO orderDO2 : orderDOList) {
@@ -144,6 +144,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             Date date = new Date();
             OrderPayInfo orderPayInfo = message.getOrderPayInfoList().get(0);
             OrderDO orderDO = orderService.getById(orderPayInfo.getOrderId());
+            updateOrderStatusCheck(orderDO);
 
             OrderStatusTraceDO statusTraceDO = new OrderStatusTraceDO();
             statusTraceDO.setOrderId(orderDO.getId());
@@ -157,7 +158,8 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             orderPaySuccessMessage.setUserId(orderDO.getUserId());
 
 
-            boolean update = orderService.lambdaUpdate().eq(BaseEntity::getId, orderDO.getId())
+            boolean update = orderService.lambdaUpdate()
+                    .eq(BaseEntity::getId, orderDO.getId())
                     .eq(OrderDO::getVersion, orderDO.getVersion())
                     .set(OrderDO::getStatus, OrderStatusEnum.PAID.getCode())
                     .set(OrderDO::getVersion, orderDO.getVersion() + 1)
@@ -181,15 +183,18 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
     private void updateOrderStatusCheck( OrderDO orderDO) {
 
         if (orderDO == null) {
-            log.warn("订单不存在");
+            log.error("订单不存在");
             throw new BizException("订单不存在");
         }
         if (OrderStatusEnum.PAID.equals(orderDO.getStatus())) {
             log.warn("订单已更新");
-            return;
+            throw new BizException("订单已更新");
         }
+        /**
+         * 此时订单可能已经被取消了 则忽略
+         */
         if (!OrderStatusEnum.WAIT_PAY.equals(orderDO.getStatus())) {
-            log.warn("订单状态异常");
+            log.error("订单状态异常");
             throw new BizException("订单状态异常");
         }
 
