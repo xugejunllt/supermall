@@ -1,5 +1,6 @@
 package com.lanf.order.model.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import lombok.Data;
 
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
  * @author jarven
  * @since 2026-02-27
  */
+@TableName("main_order")
 @Data
 public class MainOrderDO extends BaseEntity {
 
