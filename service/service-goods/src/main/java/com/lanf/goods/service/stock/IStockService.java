@@ -1,6 +1,7 @@
 package com.lanf.goods.service.stock;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.api.goods.model.dto.BathDeductStockDTO;
 import com.lanf.api.goods.model.dto.DeductStockDTO;
 import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.api.goods.model.query.UserStockPageQuery;
@@ -15,7 +16,6 @@ import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.model.vo.StockWithDistanceVO;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>
@@ -28,8 +28,7 @@ import java.util.Map;
 public interface IStockService extends IService<StockDO> {
 
 
-    //key:skuCode
-    Map<String,StockDO> findBySkuCode(List<String> skuCode);
+
 
     /**
      * 扣减库存
@@ -37,6 +36,20 @@ public interface IStockService extends IService<StockDO> {
      */
     DeductStockVO deductStock(DeductStockDTO deductStockDTO);
 
+    DeductStockVO deductStock(DeductStockDTO deductStockDTO, boolean queryResult);
+
+     void confirmDeductStock(DeductStockDTO deductStockDTO);
+
+     void cancelDeductStock(DeductStockDTO deductStockDTO);
+    /**
+     * 批量扣减库存
+     *
+     */
+    void bathDeductStock(BathDeductStockDTO deductStockDTO);
+
+     void confirmBathDeductStock(BathDeductStockDTO deductStockDTO);
+
+    void cancelBathDeductStock(BathDeductStockDTO deductStockDTO);
     /**
      *  判断库存是否充足
      *

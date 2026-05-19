@@ -5,10 +5,7 @@ import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.api.goods.model.bo.GoodsItem;
 import com.lanf.api.goods.model.bo.GoodsSku;
 import com.lanf.api.goods.model.bo.ShopGoods;
-import com.lanf.api.goods.model.dto.CalculateOrderTotalAmountDTO;
-import com.lanf.api.goods.model.dto.ClearCartDTO;
-import com.lanf.api.goods.model.dto.DeductStockDTO;
-import com.lanf.api.goods.model.dto.ValidateCartDTO;
+import com.lanf.api.goods.model.dto.*;
 import com.lanf.api.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.DeductStockVO;
@@ -16,8 +13,6 @@ import com.lanf.api.goods.model.vo.ValidateCartItemVO;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.api.pay.api.PayApiService;
-import com.lanf.api.pay.model.dto.CreateMergeTradeOrderDTO;
-import com.lanf.api.pay.model.dto.CreateMergeTradeOrderItemDTO;
 import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.api.user.api.UserCacheService;
 import com.lanf.api.user.model.vo.AddressListVO;
@@ -35,7 +30,6 @@ import com.lanf.constant.utils.UserContext;
 import com.lanf.order.model.bo.BuildBathCreateOrderBO;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.StartSubmitCartBO;
-import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.MainOrderDO;
 import com.lanf.order.model.entity.OrderDO;
@@ -403,7 +397,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         deductStockDTO.setOrderId(orderInitParamsBO.getOrderId());
         deductStockDTO.setSkuCode(orderDTO.getSkuCode());
         deductStockDTO.setQuantity(orderDTO.getQuantity());
-
         deductStockDTO.setBizKeyPrx(bizKeyPrx );
         deductStockDTO.setGoodsId(orderDTO.getGoodsId());
         deductStockDTO.setWarehouseId(orderDTO.getWarehouseId());
@@ -489,6 +482,36 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         SubmitCartVO submitCartVO = new SubmitCartVO();
 //        submitCartVO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
         return submitCartVO;
+    }
+
+    private BathDeductStockDTO buildBathDeductStockDTO(BathCreateOrderDTO bathCreateOrderDTO){
+
+
+        String mainOrderNumber = bathCreateOrderDTO.getMainOrderNumber();
+
+        List<DeductStockDTO> deductStockDTOList = new ArrayList<>();
+        bathCreateOrderDTO.getCreateOrderDTOList().forEach(a -> {
+
+            Long orderId = a.getOrderId();
+            a.getOrderItems().forEach(b -> {
+                //表示 在一个批次提交里 唯一的key 可能多个商品下相同的skuCode 所以加上GoodsId
+                String bizKeyPrx = mainOrderNumber+"_"+b.getSkuCode()+"_"+ b.getGoodsId() ;
+                DeductStockDTO deductStockDTO = new DeductStockDTO();
+                deductStockDTO.setBizKeyPrx(bizKeyPrx);
+                deductStockDTO.setOrderId(orderId);
+                deductStockDTO.setSkuCode(b.getSkuCode());
+                deductStockDTO.setQuantity(b.getQuantity());
+                deductStockDTO.setGoodsId(b.getGoodsId());
+                deductStockDTO.setWarehouseId(b.getWarehouseId());
+                //订单编号使用主编号 防止重复提交 因为 订单编号是随机生成的
+                deductStockDTO.setOrderNumber(mainOrderNumber);
+                deductStockDTOList.add(deductStockDTO);
+            });
+        });
+        BathDeductStockDTO bathDeductStockDTO = new BathDeductStockDTO();
+        bathDeductStockDTO.setDeductStockDTOList(deductStockDTOList);
+        return bathDeductStockDTO;
+
     }
 
     public void confirmSubmitCart(StartSubmitCartBO dto){
@@ -581,26 +604,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
 
-    private CreateMergeTradeOrderDTO buildCreateMergeTradeOrderDTO(SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO,SubmitCartDTO dto, List<ShopGoods> goodsVOList) {
-        CreateMergeTradeOrderDTO createMergeTradeOrderDTO = new CreateMergeTradeOrderDTO();
-        createMergeTradeOrderDTO.setMainOrderId(submitCartOrderInitParamsBO.getMainOrderId());
-        createMergeTradeOrderDTO.setUserId(submitCartOrderInitParamsBO.getUserId());
-        createMergeTradeOrderDTO.setMainOrderNumber(dto.getMainOrderNumber());
-        List<CreateMergeTradeOrderItemDTO> tradeOrderItemList = new ArrayList<>(goodsVOList.size());
-        createMergeTradeOrderDTO.setTradeOrderItemList(tradeOrderItemList);
-
-        for (ShopGoods shopGoodsBO : goodsVOList) {
-            List<GoodsItem> cartItemList = shopGoodsBO.getCartItemList();
-            BigDecimal orderAmount = calculateOrderAmount(cartItemList);
-
-            CreateMergeTradeOrderItemDTO tradeOrderItem = new CreateMergeTradeOrderItemDTO();
-            tradeOrderItem.setOrderId(shopGoodsBO.getOrderId());
-            tradeOrderItem.setTradeMoney(orderAmount);
-            tradeOrderItemList.add(tradeOrderItem);
-        }
-
-        return createMergeTradeOrderDTO;
-    }
 
     /**
      * 构建批量创建订单的 DTO

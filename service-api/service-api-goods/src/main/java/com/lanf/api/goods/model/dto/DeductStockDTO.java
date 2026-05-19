@@ -32,4 +32,7 @@ public class DeductStockDTO implements Serializable {
 
     @NotBlank(message = "订单编号不能为空")
     private String orderNumber;
+
+
+
 }
