@@ -32,7 +32,9 @@ import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
+import com.lanf.order.model.bo.BuildBathCreateOrderBO;
 import com.lanf.order.model.bo.OrderInitParamsBO;
+import com.lanf.order.model.bo.StartSubmitCartBO;
 import com.lanf.order.model.bo.SubmitCartOrderInitParamsBO;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.MainOrderDO;
@@ -436,38 +438,36 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     @Override
     public SubmitCartVO submitCart(SubmitCartDTO dto) {
 
-        SubmitCartOrderInitParamsBO initParamsBO = buildSubmitCartOrderInitParamsBO(dto);
-        dto.setInitParamsBO(initParamsBO);
+        StartSubmitCartBO initParamsBO = buildSubmitCartOrderInitParamsBO(dto);
+
         OrderManagerService managerService = BeanUtil.getBean(OrderManagerService.class);
 
-        return managerService.startSubmitCart(dto);
+        return managerService.startSubmitCart(initParamsBO);
     }
     @HmilyTCC(confirmMethod = "confirmSubmitCart", cancelMethod = "cancelSubmitCart")
     @Override
-    public SubmitCartVO startSubmitCart(SubmitCartDTO dto) {
+    public SubmitCartVO startSubmitCart(StartSubmitCartBO dto) {
 
+
+
+
+//        /**
+//         * 创建订单 创建交易单 以ClearCartVO 信息进行构建
+//         */
+//        BathCreateOrderDTO bathCreateOrderDTO1 = buildBathCreateOrderDTO(initParamsBO, dto, clearCartVO);
+//        log.info("构建的订单信息是{}", bathCreateOrderDTO1);
+
+//        /**
+//         * 创建交易单 以ClearCartVO 信息进行构建
+//         *
+//         */
+//        CreateMergeTradeOrderDTO createMergeTradeOrderDTO =
+//                buildCreateMergeTradeOrderDTO( initParamsBO, dto,clearCartVO.getGoodsVOList()) ;
         /**
-         * 初始化一些参数
+         * 创建订单
          */
-        SubmitCartOrderInitParamsBO initParamsBO = dto.getInitParamsBO();
-
-        goodsApiService.clearCart(initParamsBO.getClearCartDTO());
-        ClearCartVO clearCartVO = initParamsBO.getClearCartVO();
-
-        /**
-         * 创建订单 创建交易单 以ClearCartVO 信息进行构建
-         */
-        BathCreateOrderDTO bathCreateOrderDTO1 = buildBathCreateOrderDTO(initParamsBO, dto, clearCartVO);
-        log.info("构建的订单信息是{}", bathCreateOrderDTO1);
-
-        /**
-         * 创建交易单 以ClearCartVO 信息进行构建
-         *
-         */
-        CreateMergeTradeOrderDTO createMergeTradeOrderDTO =
-                buildCreateMergeTradeOrderDTO( initParamsBO, dto,clearCartVO.getGoodsVOList()) ;
-
-        mainOrderService.bathCreateOrder(bathCreateOrderDTO1);
+        mainOrderService.bathCreateOrder(dto.getBathCreateOrderDTO());
+        goodsApiService.clearCart(dto.getClearCartDTO());
 
 
         /**
@@ -491,19 +491,20 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return submitCartVO;
     }
 
-    public void confirmSubmitCart(SubmitCartDTO dto){
+    public void confirmSubmitCart(StartSubmitCartBO dto){
 
 
     }
 
-    public void cancelSubmitCart(SubmitCartDTO dto){
+    public void cancelSubmitCart(StartSubmitCartBO dto){
 
-        SubmitCartOrderInitParamsBO initParamsBO = dto.getInitParamsBO();
-        Long mainOrderId = initParamsBO.getMainOrderId();
-        Long userId = initParamsBO.getUserId();
+        BathCreateOrderDTO orderDTO = dto.getBathCreateOrderDTO();
+
+        Long mainOrderId = orderDTO.getMainOrderId();
+        Long userId = orderDTO.getUserId();
         List<Long> orderIdList = new ArrayList<>();
-        initParamsBO.getClearCartVO().getGoodsVOList().forEach(goodsVO -> {
-            orderIdList.add(goodsVO.getOrderId());
+        orderDTO.getCreateOrderDTOList().forEach(a -> {
+            orderIdList.add(a.getOrderId());
         });
         mainOrderService.lambdaUpdate()
                 .eq(MainOrderDO::getId, mainOrderId)
@@ -531,7 +532,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
 
-    private SubmitCartOrderInitParamsBO buildSubmitCartOrderInitParamsBO(SubmitCartDTO dto){
+    private StartSubmitCartBO buildSubmitCartOrderInitParamsBO(SubmitCartDTO dto){
 
         List<AddressListVO> listVOList = RpcResultParser.parseResult(userCacheService.addressListQuery());
         AddressListVO addressListVO = listVOList.stream()
@@ -556,15 +557,20 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
         Map<Long,Long> warehouseIdMap = dto.getCartInfoList().stream()
                 .collect(Collectors.toMap(CartInfoDTO::getCartId, CartInfoDTO::getWarehouseId));
-        SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO = new SubmitCartOrderInitParamsBO();
-        submitCartOrderInitParamsBO.setMainOrderId(IdUtils.generateId());
-        submitCartOrderInitParamsBO.setUserId(UserContext.getUserId());
-        submitCartOrderInitParamsBO.setAddressListVO(addressListVO);
-        submitCartOrderInitParamsBO.setCartInfoList(dto.getCartInfoList());
-        submitCartOrderInitParamsBO.setWarehouseIdMap(warehouseIdMap);
-        submitCartOrderInitParamsBO.setClearCartDTO(clearCartDTO);
-        submitCartOrderInitParamsBO.setClearCartVO(clearCartVO);
-        return submitCartOrderInitParamsBO;
+
+        StartSubmitCartBO startSubmitCartDTO = new StartSubmitCartBO();
+        BuildBathCreateOrderBO initParamsBO = new BuildBathCreateOrderBO();
+        initParamsBO.setMainOrderId(IdUtils.generateId());
+        initParamsBO.setUserId(UserContext.getUserId());
+        initParamsBO.setAddressListVO(addressListVO);
+        initParamsBO.setWarehouseIdMap(warehouseIdMap);
+        BathCreateOrderDTO bathCreateOrderDTO1 =
+                buildBathCreateOrderDTO(initParamsBO, dto, clearCartVO);
+
+        startSubmitCartDTO.setBathCreateOrderDTO(bathCreateOrderDTO1);
+        startSubmitCartDTO.setClearCartDTO(clearCartDTO);
+
+        return startSubmitCartDTO;
     }
 
 
@@ -603,7 +609,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      * @param clearCartVO 清空购物车返回结果
      * @return 批量创建订单的 DTO
      */
-    private BathCreateOrderDTO buildBathCreateOrderDTO(SubmitCartOrderInitParamsBO submitCartOrderInitParamsBO,
+    private BathCreateOrderDTO buildBathCreateOrderDTO(BuildBathCreateOrderBO submitCartOrderInitParamsBO,
                                                        SubmitCartDTO dto,
                                                        ClearCartVO clearCartVO) {
         List<ShopGoods> goodsVOList = clearCartVO.getGoodsVOList();
@@ -630,7 +636,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
      * @return 创建订单的 DTO
      */
     private CreateOrderDTO buildCreateOrderDTO(ShopGoods shopGoodsBO,
-                                               SubmitCartOrderInitParamsBO initParamsBO) {
+                                               BuildBathCreateOrderBO initParamsBO) {
         BigDecimal orderAmount = calculateOrderAmount(shopGoodsBO.getCartItemList());
         List<GoodsItem> cartItemList = shopGoodsBO.getCartItemList();
         List<OrderItemDTO> orderItems = new ArrayList<>(cartItemList.size());

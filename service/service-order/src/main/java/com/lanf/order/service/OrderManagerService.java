@@ -1,10 +1,8 @@
 package com.lanf.order.service;
 
 import com.lanf.api.goods.model.dto.ValidateCartDTO;
-import com.lanf.order.model.dto.CalculateOrderAmountDTO;
-import com.lanf.order.model.dto.CancelOrderDTO;
-import com.lanf.order.model.dto.PlaceOrderDTO;
-import com.lanf.order.model.dto.SubmitCartDTO;
+import com.lanf.order.model.bo.StartSubmitCartBO;
+import com.lanf.order.model.dto.*;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
@@ -41,7 +39,7 @@ public interface OrderManagerService {
      */
     SubmitCartVO submitCart(SubmitCartDTO dto);
 
-    SubmitCartVO startSubmitCart(SubmitCartDTO dto);
+    SubmitCartVO startSubmitCart(StartSubmitCartBO dto);
     /**
      * 取消订单
      *

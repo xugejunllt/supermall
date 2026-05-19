@@ -3,6 +3,7 @@ package com.lanf.order.model.bo;
 import com.lanf.api.goods.model.dto.ClearCartDTO;
 import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.user.model.vo.AddressListVO;
+import com.lanf.order.model.dto.BathCreateOrderDTO;
 import com.lanf.order.model.dto.CartInfoDTO;
 import lombok.Data;
 
@@ -28,4 +29,7 @@ public class SubmitCartOrderInitParamsBO implements Serializable {
     private ClearCartDTO clearCartDTO;
 
     private ClearCartVO clearCartVO;
+
+    private BathCreateOrderDTO bathCreateOrderDTO;
+
 }
