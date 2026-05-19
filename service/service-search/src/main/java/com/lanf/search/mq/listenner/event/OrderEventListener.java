@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 订单创建成功 同步订单索引到ES
- *
+ *监听所有订单事件
  */
 
 @Slf4j
@@ -26,10 +26,9 @@ import org.springframework.stereotype.Component;
 @RocketMQMessageListener(
         consumerGroup = SearchMqGroupName.ORDER_CREATE_SUCCESS_EVENT_ADD_ORDER_INDEX_GROUP,
         topic = OrderTopicWithTag.ORDER_EVENT_TOPIC,
-        consumeMode = ConsumeMode.ORDERLY,
-        selectorExpression = OrderTopicWithTag.TAG_WAIT_PAY
+        consumeMode = ConsumeMode.ORDERLY
 )
-public class OrderCreateSuccessEventListener implements RocketMQListener<OrderCreateSuccessMessage> {
+public class OrderEventListener implements RocketMQListener<OrderCreateSuccessMessage> {
 
      @Autowired
      private OrderApiService orderApiService;
