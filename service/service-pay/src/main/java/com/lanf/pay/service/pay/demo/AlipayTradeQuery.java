@@ -7,7 +7,9 @@ import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.AlipayTradeQueryModel;
 import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.response.AlipayTradeQueryResponse;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class AlipayTradeQuery {
 
     public static void main(String[] args) throws AlipayApiException {
@@ -28,6 +30,7 @@ public class AlipayTradeQuery {
         System.out.println(response.getBody());
 
         if (response.isSuccess()) {
+            log.info("响应码{}", response.getCode());
             System.out.println("调用成功");
         } else {
             System.out.println("调用失败");
