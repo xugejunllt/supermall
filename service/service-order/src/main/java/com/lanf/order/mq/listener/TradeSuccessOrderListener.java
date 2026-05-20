@@ -143,7 +143,9 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
 
             Date date = new Date();
             OrderPayInfo orderPayInfo = message.getOrderPayInfoList().get(0);
-            OrderDO orderDO = orderService.getById(orderPayInfo.getOrderId());
+            OrderDO orderDO = orderService.lambdaQuery()
+                    .eq(OrderDO::getId, orderPayInfo.getOrderId())
+                            .eq(OrderDO::getUserId, orderPayInfo.g())
             updateOrderStatusCheck(orderDO);
 
             OrderStatusTraceDO statusTraceDO = new OrderStatusTraceDO();
@@ -152,6 +154,8 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             statusTraceDO.setToStatus(OrderStatusEnum.PAID);
             statusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
             statusTraceDO.setRemark("订单支付成功");
+            statusTraceDO.setUserId(orderDO.getUserId());
+
 
             OrderPaySuccessMessage orderPaySuccessMessage = new OrderPaySuccessMessage();
             orderPaySuccessMessage.setOrderId(orderDO.getId());

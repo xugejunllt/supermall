@@ -147,8 +147,7 @@ public class RequestAuthExtractor {
         feignRequestInfo.setDeviceId(deviceId);
         feignRequestInfo.setTenantId(tenantId);
 
-        log.debug("解析Feign请求信息: userId={}, deviceId={}, tenantId={}", userId, deviceId, tenantId);
-        
+
         return feignRequestInfo;
     }
 
@@ -161,10 +160,7 @@ public class RequestAuthExtractor {
      * @throws Exception 解析异常
      */
     public static FeignRequestInfo extractFeignAuthInfoWithoutTenant(HttpServletRequest request) throws Exception {
-        if (request == null) {
-            log.error("HTTP请求对象为空");
-            throw new Exception("HTTP请求对象为空");
-        }
+
 
         String userIdStr = request.getHeader(FEIGN_HEADER_USER_ID);
         String deviceId = request.getHeader(FEIGN_HEADER_DEVICE_ID);
@@ -185,8 +181,7 @@ public class RequestAuthExtractor {
         feignRequestInfo.setDeviceId(deviceId);
         feignRequestInfo.setTenantId(null);
 
-        log.debug("解析Feign请求信息(无租户): userId={}, deviceId={}", userId, deviceId);
-        
+
         return feignRequestInfo;
     }
 

@@ -14,6 +14,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
@@ -32,15 +33,18 @@ public class UserAuthFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
 
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+
+        log.info("user token鉴权开始,请求请求方式:{},请求路径:{}", request.getMethod(), request.getRequestURI());
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         try {
             authService.authenticate(servletRequest, false);
             filterChain.doFilter(servletRequest, response);
         } catch (BizException e) {
-            log.error("用户认证过滤器异常", e);
+            log.warn("鉴权业务异常");
             ResponseUtil.outFail(response, Result.fail(e.getCode(), e.getMessage()));
         } catch (Exception e) {
-            log.error("用户认证过滤器异常", e);
+            log.error("鉴权未知异常", e);
             ResponseUtil.outFail(response, Result.fail(CommonCodeEnum.AUTH_FAILED.getCode(),
                     CommonCodeEnum.AUTH_FAILED.getMessage()));
         } finally {

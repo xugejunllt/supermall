@@ -94,14 +94,11 @@ public class PermissionCacheService {
 
 
             // 转换为 GrantedAuthority 列表
-            List<GrantedAuthority> authorities = perms.stream()
+
+
+            return perms.stream()
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
-
-            log.debug("从缓存加载用户权限, userId={}, channel={}, permsCount={}", 
-                    userId, channel, authorities.size());
-
-            return authorities;
 
         } catch (Exception e) {
             log.error("从缓存加载用户权限失败, userId={}, channel={}", userId, channel, e);

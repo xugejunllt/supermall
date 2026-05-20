@@ -49,10 +49,9 @@ public class AdminPermissionFilter extends OncePerRequestFilter implements Order
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            log.info("token鉴权开始");
+            log.info("admin token鉴权开始,请求请求方式:{},请求路径:{}", request.getMethod(), request.getRequestURI());
             authService.authenticate(request, true);
-            log.info("token鉴权结束");
-
+            log.info("admin token鉴权结束");
 
             if (authPathConfig.getExcludeAuthPaths().contains(request.getRequestURI())){
                 /**
@@ -68,8 +67,9 @@ public class AdminPermissionFilter extends OncePerRequestFilter implements Order
             List<GrantedAuthority> permissions = permissionCacheService.getPermissions(UserContext.getUserId()
                     , requestInfo.getChannel());
             if (IStringUtils.isEmpty(permissions)) {
-                log.error("添加菜单权限异常");
-                ResponseUtil.outFail(response, Result.fail("添加菜单权限异常"));
+                log.warn("菜单权限为空");
+                ResponseUtil.outFail(response, Result.fail("菜单权限为空"));
+                return;
             }
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     UserContext.getUserId(),
@@ -85,7 +85,8 @@ public class AdminPermissionFilter extends OncePerRequestFilter implements Order
             filterChain.doFilter(request, response);
             log.info("执行菜单权限过滤器结束");
         } catch (BizException e) {
-            log.error("鉴权异常", e);
+
+            log.warn("鉴权业务异常");
             ResponseUtil.outFail(response, Result.fail(e.getCode(),e.getMessage()));
         } catch (Exception e) {
             log.error("鉴权异常", e);

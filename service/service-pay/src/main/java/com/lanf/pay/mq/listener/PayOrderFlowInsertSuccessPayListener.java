@@ -156,6 +156,11 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
              */
 
         }
+        if (TradeOrderStatusEnum.COMPLETED.getCode().equals(tradeOrderDO.getPayStatus())){
+            log.info("交易单支付完成");
+            return;
+        }
+
         if (TradeOrderStatusEnum.PENDING.getCode().equals(tradeOrderDO.getPayStatus())) {
 
 
@@ -186,8 +191,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
             tradeSuccessHandler.postTradeSuccessHandler(context);
 
         }
-        log.error("未知场景");
-        throw new BizException("未知场景");
+
 
     }
 
