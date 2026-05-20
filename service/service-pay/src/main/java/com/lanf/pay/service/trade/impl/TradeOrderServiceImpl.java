@@ -94,7 +94,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private IPrepayPayTypeService prepayPayTypeService;
 
     @Autowired
-    private  PayConfig payConfig;
+    private PayConfig payConfig;
 
     @Autowired
     private PayRetryPolicyCacheService payRetryPolicyCacheService;
@@ -131,8 +131,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                 log.info("交易单已存在");
             }
         } catch (Exception e) {
-           log.error("插入交易单异常", e);
-           throw e;
+            log.error("插入交易单异常", e);
+            throw e;
         }
 
     }
@@ -143,12 +143,12 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
     }
 
-    private  TradeOrderDO buildTradeOrderDO(CreateTradeOrderDTO dto) {
+    private TradeOrderDO buildTradeOrderDO(CreateTradeOrderDTO dto) {
 
 
         String outTradeNo = CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.TRADE_ORDER,
                 dto.getOrderNumber());
-        log.info("过期时间是{}",payConfig.getExpireInterval());
+        log.info("过期时间是{}", payConfig.getExpireInterval());
         Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
         Long id = IdUtils.generateId();
         TradeOrderDO tradeOrderDO = new TradeOrderDO();
@@ -181,9 +181,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         return null;
     }
-
-
-
 
 
     /**
@@ -319,23 +316,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             log.info("交易单状态异常");
             throw new BizException("交易单状态异常");
         }
-        Integer payType = dto.getPayType();
-        boolean saveIfAbsent = prepayPayTypeService.saveIfAbsent(tradeOrderDO.getOutTradeNo(), payType);
-        if (!saveIfAbsent) {
-            /**
-             * 发送补单任务
-             */
-            PayCompensateOrderRetryPolicyBO firstLevelRetryPolicy = payRetryPolicyCacheService.getFirstLevelRetryPolicy();
-            CompensatePaymentOrderMessage message = new CompensatePaymentOrderMessage();
-            message.setOutTradeNo(tradeOrderDO.getOutTradeNo());
-            message.setPayType(payType);
-            message.setRetryLevel(firstLevelRetryPolicy.getRetryLevel());
-            message.setBathOrder(true);
-            rocketMqClient.sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
-                    JsonUtils.toJsonString(message), TimeUnit.SECONDS, firstLevelRetryPolicy.getDelaySeconds());
-
-        }
-
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
         PassbackParams passbackParams = JsonUtils.toObject(tradeOrderDO.getPassBackParams(),
                 PassbackParams.class);
@@ -347,6 +327,22 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         PrepayOrderVO prepayOrderVO = paymentService.createPrepayOrder(prepayOrderDTO);
         CreatePrepayOrderVO vo = new CreatePrepayOrderVO();
         vo.setOrderStr(prepayOrderVO.getOrderStr());
+
+        Integer payType = dto.getPayType();
+        prepayPayTypeService.saveIfAbsent(tradeOrderDO.getOutTradeNo(), payType);
+
+        /**
+         * 发送补单任务
+         */
+        PayCompensateOrderRetryPolicyBO firstLevelRetryPolicy = payRetryPolicyCacheService.getFirstLevelRetryPolicy();
+        CompensatePaymentOrderMessage message = new CompensatePaymentOrderMessage();
+        message.setOutTradeNo(tradeOrderDO.getOutTradeNo());
+        message.setPayType(payType);
+        message.setRetryLevel(firstLevelRetryPolicy.getRetryLevel());
+        message.setBathOrder(false);
+        rocketMqClient.sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
+                JsonUtils.toJsonString(message), TimeUnit.SECONDS, firstLevelRetryPolicy.getDelaySeconds());
+
 
         return vo;
     }
@@ -366,23 +362,23 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BizException("交易单状态异常");
         }
         Integer payType = dto.getPayType();
-        boolean saveIfAbsent = prepayPayTypeService.saveIfAbsent(bathTradeOrderDO.getOutTradeNo(), payType);
-        if (!saveIfAbsent) {
-            /**
-             * 发送补单任务
-             */
-            PayCompensateOrderRetryPolicyBO firstLevelRetryPolicy = payRetryPolicyCacheService.getFirstLevelRetryPolicy();
-            CompensatePaymentOrderMessage message = new CompensatePaymentOrderMessage();
-            message.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());
-            message.setPayType(payType);
-            message.setRetryLevel(firstLevelRetryPolicy.getRetryLevel());
-            message.setBathOrder(true);
-            rocketMqClient.sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
-                    JsonUtils.toJsonString(message), TimeUnit.SECONDS, firstLevelRetryPolicy.getDelaySeconds());
+       prepayPayTypeService.saveIfAbsent(bathTradeOrderDO.getOutTradeNo(), payType);
 
-        }
+        /**
+         * 发送补单任务
+         */
+        PayCompensateOrderRetryPolicyBO firstLevelRetryPolicy = payRetryPolicyCacheService.getFirstLevelRetryPolicy();
+        CompensatePaymentOrderMessage message = new CompensatePaymentOrderMessage();
+        message.setOutTradeNo(bathTradeOrderDO.getOutTradeNo());
+        message.setPayType(payType);
+        message.setRetryLevel(firstLevelRetryPolicy.getRetryLevel());
+        message.setBathOrder(true);
+        rocketMqClient.sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
+                JsonUtils.toJsonString(message), TimeUnit.SECONDS, firstLevelRetryPolicy.getDelaySeconds());
+
+
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
-        PassbackParams passbackParams =  JsonUtils.toObject(bathTradeOrderDO.getPassbackParams(),
+        PassbackParams passbackParams = JsonUtils.toObject(bathTradeOrderDO.getPassbackParams(),
                 PassbackParams.class);
 
         PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
@@ -397,13 +393,13 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         return vo;
     }
 
-    private AddMoneyFlowMessage buildAddMoneyFlowMessage(CallbackResultBO resultBO){
+    private AddMoneyFlowMessage buildAddMoneyFlowMessage(CallbackResultBO resultBO) {
 
 
         PassbackParams passbackParams = resultBO.getPassbackParams();
         TradePurposeEnum tradePurposeEnum = passbackParams.getTradeType();
         RecordTypeEnum recordType = null;
-        switch (tradePurposeEnum){
+        switch (tradePurposeEnum) {
             case REALTIME_ORDER:
                 recordType = RecordTypeEnum.ORDER;
                 break;
@@ -412,7 +408,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                 break;
             default:
                 log.error("不支持的用途");
-              throw new BizException("不支持的用途");
+                throw new BizException("不支持的用途");
 
         }
         AddMoneyFlowMessage addMoneyFlowMessage = new AddMoneyFlowMessage();
@@ -426,7 +422,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
     private PayOrderFlowInsertSuccessMessage buildPayOrderFlowInsertSuccessMessage
-            (CallbackResultBO resultBO,Integer payType){
+            (CallbackResultBO resultBO, Integer payType) {
         PassbackParams passbackParams = resultBO.getPassbackParams();
         TradePurposeEnum tradeType = passbackParams.getTradeType();
         PayOrderFlowInsertSuccessMessage message = new PayOrderFlowInsertSuccessMessage();
@@ -465,7 +461,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
         return tradeMoney;
     }
-
 
 
     /**

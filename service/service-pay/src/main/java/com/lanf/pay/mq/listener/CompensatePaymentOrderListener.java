@@ -23,7 +23,6 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -128,11 +127,11 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
             }
         }
 
-
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
         TradeStatusBO tradeStatusBO = paymentService.queryTradeStatus(outTradeNo);
-        TradeStatusEnum tradeStatus = tradeStatusBO.getTradeStatus();
 
+        TradeStatusEnum tradeStatus = tradeStatusBO.getTradeStatus();
+        log.info("支付宝交易状态:{}", tradeStatus);
         CompensatePaymentStatusEnum paymentStatus = null;
         switch (tradeStatus) {
             case TRADE_SUCCESS:
@@ -140,29 +139,14 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
                 log.info("三方支付成功，准备执行补偿:outTradeNo={},payType={}", outTradeNo, payType);
                 paymentStatus = CompensatePaymentStatusEnum.SUCCESS;
                 break;
-            case WAIT_BUYER_PAY:
-
             case UNKNOWN:
                 /**
                  * 可能丢单 即没有流水记录 取消交易单时 插入流水记录
                  */
                 paymentStatus = CompensatePaymentStatusEnum.CONTINUE;
                 break;
-            case NOT_EXIST:
-            case TRADE_CLOSED:
-            case TRADE_FINISHED:
-                /**
-                 * 不作处理 等取消延迟任务来关单
-                 */
-                log.info("订单支付完成，结束补投:outTradeNo={},payType={}", outTradeNo, payType);
-                paymentStatus = CompensatePaymentStatusEnum.FINISH;
-                break;
-            default:
-                log.error("未知交易状态");
-                throw new BizException("支付状态异常");
 
         }
-
         return new QueryThirdPartyPaymentStatusBO(paymentStatus, tradeStatusBO);
     }
 
@@ -175,7 +159,7 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
         PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
         PaySuccessHandleResultBO resultBO = paymentService.paySuccessHandleBO(successHandleBO);
         if ( !resultBO.getHandleSuccess()) {
-            log.warn("支付成功处理失败:outTradeNo={},payType={}", outTradeNo, payType);
+            log.error("支付成功处理失败:outTradeNo={},payType={}", outTradeNo, payType);
             throw new BizException("支付成功处理失败");
         }
 
@@ -203,11 +187,15 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
     private void scheduleNextRetry(String outTradeNo, Integer payType, Integer currentRetryLevel,Boolean bathOrder) {
 
         int nextRetryLevel = currentRetryLevel + 1;
-        log.info("安排下次重试:outTradeNo={},payType={},nextRetryLevel={}",
-                outTradeNo, payType, nextRetryLevel);
+
 
         PayCompensateOrderRetryPolicyBO matchOrNext = findMatchOrNext(nextRetryLevel);
-
+        if (matchOrNext == null){
+            log.warn("超过最大重试次数nextRetryLevel:{}",nextRetryLevel);
+            return;
+        }
+        log.info("安排下次重试:outTradeNo={},payType={},nextRetryLevel={}",
+                outTradeNo, payType, nextRetryLevel);
         CompensatePaymentOrderMessage message = new CompensatePaymentOrderMessage();
         message.setOutTradeNo(outTradeNo);
         message.setPayType(payType);
@@ -227,13 +215,9 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
         Optional<PayCompensateOrderRetryPolicyBO> exactMatch = list.stream()
                 .filter(p -> p.getRetryLevel() == targetLevel)
                 .findFirst();
+        log.info("查找 retryLevel 相等的元素:list{},targetLevel{}", list,targetLevel);
 
-        // // 2. 查找比 targetLevel 大的最小 retryLevel 的元素 如果没有更大的级别，返回 null
-        return exactMatch.orElseGet(() -> list.stream()
-                .filter(p -> p.getRetryLevel() > targetLevel)
-                .min(Comparator.comparingInt(PayCompensateOrderRetryPolicyBO::getRetryLevel))
-                .orElse(null));
-
+        return exactMatch.orElse(null);
 
     }
 

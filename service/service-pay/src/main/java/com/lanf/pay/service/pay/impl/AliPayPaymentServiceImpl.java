@@ -158,45 +158,45 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             request.setBizModel(model);
 
             response = alipayClient.certificateExecute(request);
+            log.info("支付宝查询结果outTradeNo:{},response:{}", outTradeNo, response.getSubMsg());
+
         } catch (AlipayApiException e) {
-            log.error("查询支付宝交易状态异常:outTradeNo={}", outTradeNo, e);
-            throw new BizException("查询交易状态异常");
+
+            log.warn("查询支付宝交易状态异常:outTradeNo:{}", outTradeNo, e);
+            /**
+             * 发生网络异常 统一返回不存在
+             */
+            TradeStatusBO tradeStatusBO = new TradeStatusBO();
+            tradeStatusBO.setTradeStatus(TradeStatusEnum.UNKNOWN);
+
+            return tradeStatusBO;
         }
 
         if (!response.isSuccess()) {
-            log.error("查询支付宝交易状态失败:outTradeNo={},subCode={},subMsg={}",
-                    outTradeNo, response.getSubCode(), response.getSubMsg());
-            throw new BizException("查询交易状态失败:" + response.getSubMsg());
+            TradeStatusBO tradeStatusBO = new TradeStatusBO();
+            tradeStatusBO.setTradeStatus(TradeStatusEnum.UNKNOWN);
+            return  tradeStatusBO;
         }
+        String tradeStatusStr = response.getTradeStatus();
+        TradeStatusEnum tradeStatusEnum = TradeStatusEnum.fromAlipayStatus(tradeStatusStr);
+        if (!TradeStatusEnum.TRADE_SUCCESS.equals(tradeStatusEnum)){
 
-        return buildTradeStatusBO(response, outTradeNo);
+            TradeStatusBO tradeStatusBO = new TradeStatusBO();
+            tradeStatusBO.setTradeStatus(TradeStatusEnum.UNKNOWN);
+            return  tradeStatusBO;
+        }
+        log.info("支付宝交易成功:outTradeNo{}", outTradeNo);
+        return buildTradeStatusBO(response);
     }
 
     /**
      * 查询三方支付单交易状态
      */
 
-    private TradeStatusBO buildTradeStatusBO(AlipayTradeQueryResponse response, String outTradeNo) {
-
-        String code = response.getCode();
-
-        if (TRADE_NOT_EXIST_CODES.contains(code)) {
-            log.info("交易不存在或查询异常:outTradeNo={},code={}", outTradeNo, code);
-            TradeStatusBO tradeStatusBO = new TradeStatusBO();
-            tradeStatusBO.setTradeStatus(TradeStatusEnum.NOT_EXIST);
-            return tradeStatusBO;
-        }
-
-        String tradeStatusStr = response.getTradeStatus();
-        TradeStatusEnum tradeStatusEnum = TradeStatusEnum.fromAlipayStatus(tradeStatusStr);
-        if (tradeStatusEnum.equals(TradeStatusEnum.UNKNOWN)) {
-
-            log.error("查询到交易状态未知:outTradeNo={}", outTradeNo);
-            throw new BizException("查询到交易状态未知");
-        }
+    private TradeStatusBO buildTradeStatusBO(AlipayTradeQueryResponse response) {
 
         TradeStatusBO tradeStatusBO = new TradeStatusBO();
-        tradeStatusBO.setTradeStatus(tradeStatusEnum);
+        tradeStatusBO.setTradeStatus(TradeStatusEnum.TRADE_SUCCESS);
         tradeStatusBO.setOutTradeNo(response.getOutTradeNo());
         tradeStatusBO.setTradeNo(response.getTradeNo());
         tradeStatusBO.setTotalAmount(new BigDecimal(response.getTotalAmount()));
@@ -234,6 +234,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
         AlipayTradeAppPayModel model = new AlipayTradeAppPayModel();
         model.setSubject("商品下单支付");
         model.setOutTradeNo(dto.getOutTradeNo());
+        log.info("发起支付宝支付,outTradeNo[{}]", dto.getOutTradeNo());
         //超时时间 一小时 这里参数是分钟 改一下
         model.setTimeoutExpress(dto.getExpireInterval() + "m");
         model.setTotalAmount(dto.getTotalAmount().toString());

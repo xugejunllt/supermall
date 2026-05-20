@@ -48,24 +48,15 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
         TradeStatusEnum tradeStatus = tradeStatusBO.getTradeStatus();
 
         switch (tradeStatus) {
-            case UNKNOWN:
-                log.error("未知订单状态");
-                return;
-            case NOT_EXIST:
-                log.info("交易不存在");
-                return;
 
-            case WAIT_BUYER_PAY:
+            case UNKNOWN:
                 log.info("取消待支付订单");
                 CancelWaitPayOrderBO cancelWaitPayOrderBO = new CancelWaitPayOrderBO();
                 cancelWaitPayOrderBO.setOutTradeNo(message.getOutTradeNo());
                 cancelWaitPayOrderBO.setPayType(message.getPayType());
                 cancelWaitPayOrderBO.setCancelSource(message.getCancelSource());
-                cancelWaitPayOrderBO.setCurrentPayStatus(TradeStatusEnum.WAIT_BUYER_PAY.getCode());
+                cancelWaitPayOrderBO.setCurrentPayStatus(TradeStatusEnum.UNKNOWN.getCode());
                 paymentCancelRecordService.cancelWaitPayOrder(cancelWaitPayOrderBO);
-                return;
-            case TRADE_CLOSED:
-                log.info("订单已关闭");
                 return;
             case TRADE_SUCCESS:
                 log.info("取消已支付的订单");
@@ -76,10 +67,6 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
                 cancelPaidOrderBO.setCurrentPayStatus(TradeStatusEnum.TRADE_SUCCESS.getCode());
                 cancelPaidOrderBO.setOutRequestNo(tradeStatusBO.getTradeNo());
                 paymentCancelRecordService.cancelPaidOrder(cancelPaidOrderBO);
-                return;
-            case TRADE_FINISHED:
-                log.info("支付订单已完成");
-
         }
 
 

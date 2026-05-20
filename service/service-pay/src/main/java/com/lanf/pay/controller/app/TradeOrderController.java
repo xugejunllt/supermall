@@ -34,7 +34,7 @@ public class TradeOrderController {
     @PostMapping("/createPrepayOrder")
     public Result<CreatePrepayOrderVO> createPrepayOrder(@RequestBody CreatePrepayOrderDTO dto){
 
-        log.info("创建预支付订单:dto{},配置信息{}", dto,aliPayConfig);
+        log.info("创建预支付订单:dto{}",dto);
         return Result.ok(tradeOrderService.createPrepayOrder(dto));
     }
 
