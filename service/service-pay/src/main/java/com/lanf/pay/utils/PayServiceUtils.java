@@ -143,21 +143,11 @@ public class PayServiceUtils {
         }
     }
 
-    public static PassbackParams parseAndVerifyPassbackParams(String paramStr) {
-        PassbackParams params = parsePassbackParams(paramStr);
+    public  static boolean   verifyPassbackParams(PassbackParams params) {
 
         String receivedSign = params.getSignValue();
-        
-        String dataToVerify = toStr(params);
-        
-        boolean isValid = verifySign(dataToVerify, receivedSign);
-        if (!isValid) {
-            log.warn("签名验证失败, paramStr: {}", paramStr);
-            throw new BizException("签名验证失败，数据可能被篡改");
-        }
-        
-        log.info("签名验证成功");
-        return params;
+
+        return verifySign(toStr(params), receivedSign);
     }
 
     private static Map<String, String> parseParamString(String paramStr) {
@@ -181,6 +171,9 @@ public class PayServiceUtils {
     }
 
     public static boolean verifySign(String params, String sign) {
+
+
+
         return PaySignUtils.verifySign(params, sign);
     }
 

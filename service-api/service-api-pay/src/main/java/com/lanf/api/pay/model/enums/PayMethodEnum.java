@@ -15,9 +15,9 @@ public enum PayMethodEnum {
     WALLET_BALANCE(1, "钱包余额");
 
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
+
 
     PayMethodEnum(Integer code, String name) {
         this.code = code;

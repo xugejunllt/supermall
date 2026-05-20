@@ -49,7 +49,8 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
     @Qualifier("threadPoolTaskScheduler")
     @Autowired
     private ThreadPoolTaskScheduler taskScheduler;
-
+    @Autowired
+    private PaymentServiceFactory paymentServiceFactory;
 
     @Override
     public void onMessage(BillSynchronizerMessage message) {
@@ -95,7 +96,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
          * 这里继续优化 先下载 下载完成 解析账单
          */
         Integer code = message.getPayChannel().getCode();
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(code);
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(code);
 
         //1.获取下载账单下载地址
         BillDownloadUrlResultBO billDownloadUrlResultBO = null;

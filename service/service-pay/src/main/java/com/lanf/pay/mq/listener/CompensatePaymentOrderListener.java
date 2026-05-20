@@ -46,7 +46,8 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
     private ITradeOrderService tradeOrderService;
     @Autowired
     private IBathTradeOrderService bathTradeOrderService;
-
+    @Autowired
+    private PaymentServiceFactory paymentServiceFactory;
 
     @Override
     public void onMessage(CompensatePaymentOrderMessage message) {
@@ -60,6 +61,7 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
         } catch (Exception e) {
             log.error("处理补偿支付订单失败:outTradeNo={},payType={}", 
                     message.getOutTradeNo(), message.getPayType(), e);
+            throw e;
         }
     }
 
@@ -79,7 +81,12 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
                 break;
 
             case SUCCESS:
-                executePaymentCompensation(outTradeNo, payType, tradeStatusBO);
+
+                boolean executed = executePaymentCompensation(outTradeNo, payType, tradeStatusBO);
+                if (!executed) {
+                    scheduleNextRetry( outTradeNo,  payType,retryLevel, bathOrder);
+                    return;
+                }
                 break;
             case FINISH:
                 log.info("支付成功,结束补投任务");
@@ -127,7 +134,7 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
             }
         }
 
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(payType);
         TradeStatusBO tradeStatusBO = paymentService.queryTradeStatus(outTradeNo);
 
         TradeStatusEnum tradeStatus = tradeStatusBO.getTradeStatus();
@@ -152,17 +159,16 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
 
 
 
-    private void executePaymentCompensation(String outTradeNo, Integer payType,TradeStatusBO tradeStatusBO) {
-
+    private boolean executePaymentCompensation(String outTradeNo, Integer payType,TradeStatusBO tradeStatusBO) {
 
         PaySuccessHandleBO successHandleBO = buildPaySuccessHandleBO( payType,tradeStatusBO);
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(payType);
         PaySuccessHandleResultBO resultBO = paymentService.paySuccessHandleBO(successHandleBO);
         if ( !resultBO.getHandleSuccess()) {
-            log.error("支付成功处理失败:outTradeNo={},payType={}", outTradeNo, payType);
-            throw new BizException("支付成功处理失败");
+            log.warn("支付成功处理失败:outTradeNo={},payType={}", outTradeNo, payType);
+            return false;
         }
-
+        return true;
     }
 
     private PaySuccessHandleBO buildPaySuccessHandleBO(Integer payType, TradeStatusBO tradeStatusBO) {
@@ -175,7 +181,7 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
         callbackResultBO.setNotifyTime(tradeStatusBO.getNotifyTime());
         callbackResultBO.setTradeNo(tradeStatusBO.getTradeNo());
         callbackResultBO.setOutTradeNo(tradeStatusBO.getOutTradeNo());
-        callbackResultBO.setPassbackParams(tradeStatusBO.getPassbackParams());
+        callbackResultBO.setStrPassbackParams(tradeStatusBO.getStrPassbackParams());
         callbackResultBO.setAllParams(tradeStatusBO.getAllParams());
 
         PaySuccessHandleBO successHandleBO = new PaySuccessHandleBO();
@@ -191,7 +197,7 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
 
         PayCompensateOrderRetryPolicyBO matchOrNext = findMatchOrNext(nextRetryLevel);
         if (matchOrNext == null){
-            log.warn("超过最大重试次数nextRetryLevel:{}",nextRetryLevel);
+            log.error("超过最大重试次数outTradeNo:outTradeNo{},nextRetryLevel:{}",outTradeNo,nextRetryLevel);
             return;
         }
         log.info("安排下次重试:outTradeNo={},payType={},nextRetryLevel={}",

@@ -47,10 +47,7 @@ public class TradeStatusBO implements Serializable {
      */
     private TradeStatusEnum tradeStatus;
 
-    /**
-     * 回调参数
-     */
-    private PassbackParams passbackParams;
+
     private String strPassbackParams;
 
     private String allParams;

@@ -12,7 +12,6 @@ public enum TradePurposeEnum {
     WALLET_RECHARGE(1, "钱包充值");
 
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
 
@@ -21,6 +20,10 @@ public enum TradePurposeEnum {
         this.name = name;
     }
 
+    @JsonValue
+    public Integer getCode() {
+        return code;
+    }
 
     @JsonCreator
     public static TradePurposeEnum getByCode(Integer code) {

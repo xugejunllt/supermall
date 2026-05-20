@@ -31,7 +31,8 @@ import static com.lanf.pay.mq.constant.PayMqTopicName.QUERY_TRANSFER_RESULT_TOPI
         consumerGroup = PayMqGroupName.TRANSFER_GROUP
 )
 public class TransferListener implements RocketMQListener<TransferMessage> {
-
+    @Autowired
+    private PaymentServiceFactory paymentServiceFactory;
     @Autowired
     private ITransferOrderService transferOrderService;
     @Autowired
@@ -59,7 +60,7 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
          *
          * 发起转账
          */
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(message.getTransferChannel().getCode());
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(message.getTransferChannel().getCode());
         TransferResult result = paymentService.transfer(message.getOutBizNo(),
                 message.getIncomeAccount(), message.getTransAmount(), message.getOrderTitle());
 

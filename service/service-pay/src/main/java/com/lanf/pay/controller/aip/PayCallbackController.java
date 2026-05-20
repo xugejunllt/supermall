@@ -21,7 +21,8 @@ public class PayCallbackController {
 
     @Autowired
     private ITradeOrderService tradeOrderService;
-
+    @Autowired
+    private PaymentServiceFactory paymentServiceFactory;
 
     @PostMapping("/aliPayCallback")
     public void aliPayCallback(HttpServletRequest request, HttpServletResponse response) {
@@ -31,7 +32,7 @@ public class PayCallbackController {
         dto.setPayType(PayChannelEnum.ALI_PAY.getCode());
         dto.setRequest(request);
         dto.setResponse(response);
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(PayChannelEnum.ALI_PAY.getCode());
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(PayChannelEnum.ALI_PAY.getCode());
         paymentService.payCallback(dto);
 
 

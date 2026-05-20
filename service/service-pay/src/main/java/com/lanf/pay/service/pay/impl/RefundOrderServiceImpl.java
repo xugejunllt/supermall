@@ -34,7 +34,8 @@ import java.math.BigDecimal;
 @Service
 public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, RefundOrderDO> implements IRefundOrderService {
 
-
+    @Autowired
+    private PaymentServiceFactory paymentServiceFactory;
     @Autowired
     private IPayOrderFlowService payOrderFlowService;
     @Autowired
@@ -87,7 +88,7 @@ public class RefundOrderServiceImpl extends ServiceImpl<RefundOrderMapper, Refun
         /**
          * 只保证请求发送成功 不作业务处理
          */
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(payType);
         CancelPaidOrderResultBO resultBO = paymentService.cancelPaidOrder(outTradeNo, receiptMoney, "取消订单");
 
         RefundQueryResultProcessorMessage queryRefundResultProcessorMessage =

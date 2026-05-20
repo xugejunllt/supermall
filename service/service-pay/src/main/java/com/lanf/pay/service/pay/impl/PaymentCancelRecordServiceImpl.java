@@ -29,7 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 public class PaymentCancelRecordServiceImpl extends ServiceImpl<PaymentCancelRecordMapper, PaymentCancelRecordDO> implements IPaymentCancelRecordService {
-
+    @Autowired
+    private PaymentServiceFactory paymentServiceFactory;
     @Autowired
     private IPayOrderFlowService payOrderFlowService;
     @Autowired
@@ -52,7 +53,7 @@ public class PaymentCancelRecordServiceImpl extends ServiceImpl<PaymentCancelRec
             return;
         }
 
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(payType);
 
         boolean cancelled = paymentService.cancelPendingOrder(outTradeNo);
         if (cancelled) {

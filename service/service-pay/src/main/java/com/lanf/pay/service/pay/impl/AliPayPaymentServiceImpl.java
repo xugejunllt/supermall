@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
@@ -36,14 +35,11 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
 
     @Autowired
-    private AliPayConfig ialiPayConfig;
+    private AliPayConfig aliPayConfig;
 
-    private static AliPayConfig aliPayConfig = null;
 
-    @PostConstruct
-    public void init(){
-        aliPayConfig = ialiPayConfig;
-    }
+
+
 
     private static final Set<String> TRADE_NOT_EXIST_CODES = new HashSet<>(Arrays.asList(
             "ACQ.TRADE_NOT_EXIST",
@@ -158,7 +154,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             request.setBizModel(model);
 
             response = alipayClient.certificateExecute(request);
-            log.info("支付宝查询结果outTradeNo:{},response:{}", outTradeNo, response.getSubMsg());
+            log.info("支付宝查询结果outTradeNo:{},subCode:{}", outTradeNo, response.getSubCode());
 
         } catch (AlipayApiException e) {
 
@@ -213,6 +209,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
          */
         tradeStatusBO.setIncomeAccount(null);
         String passbackParams = response.getPassbackParams();
+        log.info("支付宝回调参数:{}", passbackParams);
         tradeStatusBO.setStrPassbackParams(passbackParams);
         tradeStatusBO.setAllParams(JsonUtils.toJsonString(response));
         return tradeStatusBO;

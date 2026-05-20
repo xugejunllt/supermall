@@ -100,7 +100,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private PayRetryPolicyCacheService payRetryPolicyCacheService;
     @Autowired
     private RocketMqClient rocketMqClient;
-
+    @Autowired
+    private PaymentServiceFactory paymentServiceFactory;
 
     private static final String PREPAY_PAY_TYPE_CACHE_KEY = "prepay_pay_type:%s";
 
@@ -316,7 +317,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             log.info("交易单状态异常");
             throw new BizException("交易单状态异常");
         }
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(dto.getPayType());
         PassbackParams passbackParams = JsonUtils.toObject(tradeOrderDO.getPassBackParams(),
                 PassbackParams.class);
         PrepayOrderDTO prepayOrderDTO = new PrepayOrderDTO();
@@ -377,7 +378,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                 JsonUtils.toJsonString(message), TimeUnit.SECONDS, firstLevelRetryPolicy.getDelaySeconds());
 
 
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(dto.getPayType());
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(dto.getPayType());
         PassbackParams passbackParams = JsonUtils.toObject(bathTradeOrderDO.getPassbackParams(),
                 PassbackParams.class);
 

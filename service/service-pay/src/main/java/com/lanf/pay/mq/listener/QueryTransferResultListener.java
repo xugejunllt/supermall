@@ -47,7 +47,8 @@ import java.math.BigDecimal;
 )
 public class QueryTransferResultListener implements RocketMQListener<QueryTransferResultMessage> {
 
-
+    @Autowired
+    private PaymentServiceFactory paymentServiceFactory;
     @Autowired
     private ITransferOrderFlowService transferOrderFlowService;
 
@@ -76,7 +77,7 @@ public class QueryTransferResultListener implements RocketMQListener<QueryTransf
             return;
         }
 
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(oned.getTransferChannel().getCode());
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(oned.getTransferChannel().getCode());
         TransferQueryResultBO queryResultBO = paymentService.queryTransferResult(message.getOutBizNo(), null);
         AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(oned, queryResultBO.getTransAmount());
 

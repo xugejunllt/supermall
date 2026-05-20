@@ -47,7 +47,6 @@ public enum RecordTypeEnum {
 
 
     @EnumValue
-    @JsonValue
     private final Integer code;
     
 

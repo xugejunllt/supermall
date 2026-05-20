@@ -20,6 +20,7 @@ import com.lanf.pay.model.bo.PaySuccessHandleBO;
 import com.lanf.pay.model.bo.PaySuccessHandleResultBO;
 import com.lanf.pay.model.dto.PayCallbackDTO;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
+import com.lanf.pay.model.enums.PayOrderFlowStatusEnum;
 import com.lanf.pay.utils.PayServiceUtils;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
@@ -80,12 +81,18 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
 
         PassbackParams passbackParams = null;
         try {
-             passbackParams = PayServiceUtils.parseAndVerifyPassbackParams(strPassbackParams);
-            resultBO.setPassbackParams(passbackParams);
+            passbackParams = JsonUtils.toObject(strPassbackParams, PassbackParams.class);
+            boolean verified = PayServiceUtils.verifyPassbackParams(passbackParams);
+            if (!verified) {
+                log.error("回调参数签名异常");
+                return new PaySuccessHandleResultBO(false);
+            }
+
         } catch (Exception e) {
-            log.error("回调参数解析异常",e);
+            log.error("回调处理异常",e);
             return new PaySuccessHandleResultBO(false);
         }
+        resultBO.setPassbackParams(passbackParams);
 
         String outTradeNo = resultBO.getOutTradeNo();
         Integer payType = paySuccessHandleBO.getPayType();
@@ -136,7 +143,6 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
      * 是否已经支付过 以唯一支付流水为准
      */
     private boolean isAlreadyPaid(String outTradeNo, Integer payType) {
-
         PayOrderFlowDO flowDO = payOrderFlowService.lambdaQuery()
                 .eq(PayOrderFlowDO::getOutTradeNo, outTradeNo)
                 .eq(PayOrderFlowDO::getPayType, payType).one();
@@ -144,7 +150,10 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
     }
 
     private PayOrderFlowDO buildPayOrderFlowDO(Integer payType, CallbackResultBO resultBO) {
+
+        PassbackParams passbackParams = resultBO.getPassbackParams();
         PayOrderFlowDO payOrderFlowDO = new PayOrderFlowDO();
+        payOrderFlowDO.setTradeId(passbackParams.getTradeOrderId());
         payOrderFlowDO.setPayType(payType);
         payOrderFlowDO.setOutTradeNo(resultBO.getOutTradeNo());
         payOrderFlowDO.setTradeMoney(resultBO.getReceiptMoney());
@@ -154,8 +163,9 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
         payOrderFlowDO.setIncomeAccount(resultBO.getIncomeAccount());
         payOrderFlowDO.setNotifyTime(resultBO.getNotifyTime());
         payOrderFlowDO.setTradeNo(resultBO.getTradeNo());
-        payOrderFlowDO.setPassbackParams(JsonUtils.toJsonString(resultBO.getPassbackParams()));
+        payOrderFlowDO.setPassbackParams(JsonUtils.toJsonString(passbackParams));
         payOrderFlowDO.setAllParams(resultBO.getAllParams());
+        payOrderFlowDO.setStatus(PayOrderFlowStatusEnum.SUCCESS);
         String format = DateUtils.format(resultBO.getPayFinishTime(), DateUtils.DATE);
         payOrderFlowDO.setPayFinishDate(format);
         return payOrderFlowDO;

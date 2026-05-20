@@ -13,6 +13,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+import io.netty.util.HashedWheelTimer;
 
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -23,8 +24,9 @@ public class RocketMqClient {
 
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
-    // 1. 创建时间轮调度器（每格100ms，共512格，最大支持约51秒延迟）
-    private HashedWheelTimer timer = new HashedWheelTimer(100, TimeUnit.MILLISECONDS, 512);
+    
+    private static final HashedWheelTimer TIMER = new HashedWheelTimer(100, TimeUnit.MILLISECONDS, 512);
+
     /**
      * 发送顺序消息
      *
@@ -148,23 +150,24 @@ public class RocketMqClient {
      * 通过时钟轮算法实现
      *
      */
-    public void sendDelayMessage(String topic, String message,TimeUnit timeUnit, int delayTime){
+    public void sendDelayMessage(String topic, String message, TimeUnit timeUnit, int delayTime){
 
-        log.info("发送mq消息开始:topic:{},message:{}",topic, message);
-        timer.newTimeout(() -> {
+        log.info("发送延迟mq消息开始:topic:{},message:{},timeUnit:{},delayTime:{}秒", topic, message, timeUnit, delayTime);
+        
+        TIMER.newTimeout(timeout -> {
             try {
-                SendResult  sendResult = rocketMQTemplate.syncSend(topic, message);
+                log.info("延迟时间到，开始发送MQ消息:topic:{}", topic);
+                SendResult sendResult = rocketMQTemplate.syncSend(topic, message);
 
-                if ( !SendStatus.SEND_OK.equals(sendResult.getSendStatus())){
+                if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
                     String sendResultJson = JsonUtils.toJsonString(sendResult);
                     log.error("发送MQ消息失败,异常状态[{}]", sendResultJson);
                 } else {
-                    log.info("发送mq消息成功");
-
+                    log.info("发送mq消息成功:topic:{}", topic);
                 }
 
             } catch (Exception e) {
-                log.error("发送MQ消息失败" ,e);
+                log.error("发送MQ消息失败,topic:{}", topic, e);
             }
 
         }, delayTime, timeUnit);

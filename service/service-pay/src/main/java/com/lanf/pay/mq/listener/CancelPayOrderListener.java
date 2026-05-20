@@ -29,7 +29,8 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
 
     @Autowired
     private IPaymentCancelRecordService paymentCancelRecordService;
-
+    @Autowired
+    private PaymentServiceFactory paymentServiceFactory;
     @Override
     public void onMessage(CancelOrderMessage message) {
 
@@ -40,7 +41,7 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
         /**
          * 查询三方交易单状态
          */
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(payType);
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(payType);
         /**
          * 把钱包支付方式加入进去
          */

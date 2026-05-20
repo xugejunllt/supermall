@@ -48,7 +48,8 @@ import java.math.BigDecimal;
         consumerGroup = PayMqGroupName.QUERY_REFUND_RESULT_GROUP
 )
 public class QueryRefundResultListener implements RocketMQListener<QueryRefundResultMessage> {
-
+    @Autowired
+    private PaymentServiceFactory paymentServiceFactory;
     @Autowired
     private RocketMqClient rocketMqClient;
     @Autowired
@@ -78,7 +79,7 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
 
         PayChannelEnum payChannel = orderDO.getPayChannel();
 
-        PaymentService paymentService = PaymentServiceFactory.getPaymentService(payChannel.getCode());
+        PaymentService paymentService = paymentServiceFactory.getPaymentService(payChannel.getCode());
 
         RefundQueryResultBO refundQueryResultBO = paymentService.
                 queryRefundResult(message.getOutTradeNo(), message.getOutRequestNo());

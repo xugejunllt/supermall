@@ -64,7 +64,7 @@ public class PaySignUtils {
         String generatedSign = generateHmacSha256Sign(data);
         boolean result = generatedSign.equals(sign);
         if (!result) {
-            log.warn("签名失败,data[{}],generatedSign[{}],sign[{}]", data, generatedSign, sign);
+            log.error("签名失败,data[{}],generatedSign[{}],sign[{}]", data, generatedSign, sign);
         }
         return result;
     }
