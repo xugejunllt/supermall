@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
@@ -35,7 +36,15 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
 
     @Autowired
-    private AliPayConfig aliPayConfig;
+    private AliPayConfig ialiPayConfig;
+
+    private static AliPayConfig aliPayConfig = null;
+
+    @PostConstruct
+    public void init(){
+        aliPayConfig = ialiPayConfig;
+    }
+
     private static final Set<String> TRADE_NOT_EXIST_CODES = new HashSet<>(Arrays.asList(
             "ACQ.TRADE_NOT_EXIST",
             "ACQ.ENTERPRISE_PAY_BIZ_ERROR",
@@ -118,7 +127,6 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
 
     private AlipayConfig getAlipayConfig() {
-
         String privateKey = aliPayConfig.getPrivateKey();
         AlipayConfig alipayConfig = new AlipayConfig();
         alipayConfig.setPrivateKey(privateKey);

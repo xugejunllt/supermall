@@ -2,6 +2,7 @@ package com.lanf.pay.controller.app;
 
 
 import com.lanf.constant.result.Result;
+import com.lanf.pay.config.AliPayConfig;
 import com.lanf.pay.model.dto.BathCreatePrepayOrderDTO;
 import com.lanf.pay.model.dto.CreatePrepayOrderDTO;
 import com.lanf.pay.model.vo.CreatePrepayOrderVO;
@@ -28,11 +29,12 @@ public class TradeOrderController {
 
     @Autowired
     private ITradeOrderService tradeOrderService;
-
+    @Autowired
+    private AliPayConfig aliPayConfig;
     @PostMapping("/createPrepayOrder")
     public Result<CreatePrepayOrderVO> createPrepayOrder(@RequestBody CreatePrepayOrderDTO dto){
 
-        log.info("创建预支付订单:dto{}", dto);
+        log.info("创建预支付订单:dto{},配置信息{}", dto,aliPayConfig);
         return Result.ok(tradeOrderService.createPrepayOrder(dto));
     }
 
