@@ -47,7 +47,6 @@ public enum OrderStatusEnum {
 
     ;
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
     
@@ -83,7 +82,10 @@ public enum OrderStatusEnum {
         }
         return WAIT_PAY;
     }
-    
+    @JsonValue
+    public Integer getCode() {
+        return code;
+    }
     @JsonCreator
     public static OrderStatusEnum getByCode(Integer code) {
         if (code == null) {

@@ -1,28 +1,37 @@
 package com.lanf.order.model.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.order.model.enums.OrderTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.List;
 
 @Data
 public class OrderPageVO implements Serializable {
 
-    private Long orderId;
-
-    private  Long shopId;
+    /**
+     * 店铺id
+     */
+    private Long shopId;
 
     private String shopName;
 
-    private Integer status;
-    //订单状态描述
-    private String statusDesc;
-    //付款金额描述
-    private String  payMoneyDesc;
+    /**
+     * 订单编号
+     */
+    private String orderNumber;
 
+    /**
+     * 0:待付款, 1:待出库 2：已出库 3：已发货，4：已完成，5：已取消 6.已关闭
+     */
+    private OrderStatusEnum status;
 
-    //详细名称
-    private List<OrderItemPageVO> itemPageVOList;
+    /**
+     * 订单类型 0：普通订单 ,1:秒杀单
+     */
+    private OrderTypeEnum orderType;
+
+    private List<OrderItemPageVO> orderItemPageVOList;
+
 }

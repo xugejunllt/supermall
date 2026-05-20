@@ -1,5 +1,7 @@
 package com.lanf.order.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
@@ -31,8 +33,11 @@ import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
 import com.lanf.order.model.query.AdminOrderSearchQuery;
 import com.lanf.order.model.query.AppOrderSearchQuery;
+import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.vo.AdminOrderListVO;
+import com.lanf.order.model.vo.OrderItemPageVO;
 import com.lanf.order.model.vo.OrderListVO;
+import com.lanf.order.model.vo.OrderPageVO;
 import com.lanf.order.service.IOrderItemService;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.IOrderStatusTraceService;
@@ -51,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -474,17 +480,48 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
     }
 
+    @Override
+    public PageResult<OrderPageVO> orderPageQuery(OrderPageQuery query) {
 
+        IPage<OrderDO> page = new Page<>(query.getPage(), query.getPageSize());
+        IPage<OrderDO> result =  this.lambdaQuery()
+                .eq(OrderDO::getUserId, UserContext.getUserId())
+                .in(query.getStatus()!=null && !query.getStatus().isEmpty(), OrderDO::getStatus, query.getStatus())
+                .orderByDesc(BaseEntity::getId)
+                .page(page);
+        
+        if (result.getRecords().isEmpty()){
+            return PageResult.emptyResult();
+        }
+        
+        List<OrderDO> orderList = result.getRecords();
+        List<Long> orderIdList = orderList.stream().map(BaseEntity::getId).collect(Collectors.toList());
+        
+        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery()
+                .eq(OrderItemDO::getUserId, UserContext.getUserId())
+                .in(OrderItemDO::getOrderId, orderIdList)
+                .list();
 
+        Map<Long, List<OrderItemDO>> orderItemMap = orderItemDOList.stream()
+                .collect(Collectors.groupingBy(OrderItemDO::getOrderId));
 
+        List<OrderPageVO> voList = orderList.stream().map(orderDO -> {
+            OrderPageVO vo = BeanCopyUtils.copyBean(orderDO, OrderPageVO.class);
+            
+            List<OrderItemDO> items = orderItemMap.getOrDefault(orderDO.getId(), new ArrayList<>());
+            List<OrderItemPageVO> itemVos = BeanCopyUtils.copyBeanList(items, OrderItemPageVO.class);
+            vo.setOrderItemPageVOList(itemVos);
+            
+            return vo;
+        }).collect(Collectors.toList());
 
+        PageResult<OrderPageVO> resultVo = new PageResult<>();
+        resultVo.setTotal(result.getTotal());
+        resultVo.setSize(result.getSize());
+        resultVo.setRecords(voList);
 
-
-
-
-
-
-
+        return resultVo;
+    }
 
 
 }

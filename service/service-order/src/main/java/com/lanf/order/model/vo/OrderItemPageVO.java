@@ -8,8 +8,28 @@ import java.math.BigDecimal;
 @Data
 public class OrderItemPageVO implements Serializable {
 
+
+    /**
+     * 商品id
+     */
+    private Long goodsId;
+
+    /**
+     * 商品名称
+     */
+    private String goodsName;
+
     private String goodsTitle;
 
+    /**
+     * skuId
+     */
+    private Long skuId;
+
+
+    /**
+     * sku名称
+     */
     private String skuName;
 
     private String skuPictureAddress;
@@ -23,4 +43,6 @@ public class OrderItemPageVO implements Serializable {
      * 单价
      */
     private BigDecimal unitPrice;
+
+
 }

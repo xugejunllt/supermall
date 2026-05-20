@@ -12,7 +12,6 @@ public enum OrderTypeEnum {
     SEC_KILL(1, "秒杀单");
 
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
 

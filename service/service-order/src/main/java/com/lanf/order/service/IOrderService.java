@@ -11,8 +11,10 @@ import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.query.AdminOrderSearchQuery;
 import com.lanf.order.model.query.AppOrderSearchQuery;
+import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.vo.AdminOrderListVO;
 import com.lanf.order.model.vo.OrderListVO;
+import com.lanf.order.model.vo.OrderPageVO;
 
 import java.util.List;
 
@@ -84,6 +86,12 @@ public interface IOrderService extends IService<OrderDO> {
      */
     void closeTimeOutNotPayOrder(Long orderId);
 
+    /**
+     * C端 分页查询订单列表
+     *
+     *
+     */
+    PageResult<OrderPageVO> orderPageQuery(OrderPageQuery query);
 
 
 }

@@ -9,6 +9,7 @@ import com.lanf.constant.result.Result;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.query.AppOrderSearchQuery;
+import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.vo.*;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.OrderManagerService;
@@ -119,15 +120,12 @@ public class OrderController {
 
         return Result.ok(orderService.orderSearchQuery(query));
     }
+    @PostMapping("/orderPageQuery")
+    public Result<PageResult<OrderPageVO>> orderPageQuery(@Validated @RequestBody OrderPageQuery query) {
 
+        log.info("分页查询订单列表:{}dto", query);
 
-
-    @GetMapping("/orderDetail")
-    public Result<OrderDetailVO> orderDetail(Long id) {
-
-        log.info("查询订单详细:id{}", id);
-
-        return Result.ok(orderService.orderDetail(id));
+        return Result.ok(orderService.orderPageQuery(query));
     }
 
 
