@@ -1,9 +1,11 @@
 package com.lanf.auth.user.filter;
 
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.utils.TenantContextHolder;
+import com.lanf.constant.utils.TraceIdUtils;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.web.auth.AuthService;
 import com.lanf.web.security.sign.SigningKeyContext;
@@ -17,6 +19,9 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+import static com.lanf.web.auth.RequestAuthExtractor.FEIGN_HEADER_TRACE_ID;
+import static com.lanf.web.auth.RequestAuthExtractor.HEADER_DEVICE_ID;
 
 /**
  * 用户认证过滤器
@@ -34,6 +39,16 @@ public class UserAuthFilter implements Filter {
             throws IOException, ServletException {
 
         HttpServletRequest request = (HttpServletRequest) servletRequest;
+        /**
+         * 带deviceId的链路id 方便排查问题
+         */
+        String  deviceId = request.getHeader(HEADER_DEVICE_ID);
+        String  traceId =  request.getHeader(FEIGN_HEADER_TRACE_ID);
+        if ( !IStringUtils.isEmpty(traceId)){
+            TraceIdUtils.setTraceId(traceId);
+        } else {
+            TraceIdUtils.generateAndSetTraceId(deviceId);
+        }
 
         log.info("user token鉴权开始,请求请求方式:{},请求路径:{}", request.getMethod(), request.getRequestURI());
         HttpServletResponse response = (HttpServletResponse) servletResponse;
@@ -51,6 +66,7 @@ public class UserAuthFilter implements Filter {
             UserContext.clear();
             SigningKeyContext.clear();
             TenantContextHolder.clear();
+            TraceIdUtils.clearTraceId();
         }
     }
 }

@@ -5,6 +5,7 @@ import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.utils.TenantContextHolder;
+import com.lanf.constant.utils.TraceIdUtils;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.security.service.PermissionCacheService;
 import com.lanf.web.auth.AuthService;
@@ -26,6 +27,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+
+import static com.lanf.web.auth.RequestAuthExtractor.FEIGN_HEADER_TRACE_ID;
+import static com.lanf.web.auth.RequestAuthExtractor.HEADER_DEVICE_ID;
 
 /**
  * 实现 OncePerRequestFilter接口 加入到security过滤器链中
@@ -49,6 +53,17 @@ public class AdminPermissionFilter extends OncePerRequestFilter implements Order
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
+            /**
+             * 带deviceId的链路id 方便排查问题
+             */
+            String  deviceId = request.getHeader(HEADER_DEVICE_ID);
+            String  traceId =  request.getHeader(FEIGN_HEADER_TRACE_ID);
+            if ( !IStringUtils.isEmpty(traceId)){
+                TraceIdUtils.setTraceId(traceId);
+            } else {
+                TraceIdUtils.generateAndSetTraceId(deviceId);
+            }
+
             log.info("admin token鉴权开始,请求请求方式:{},请求路径:{}", request.getMethod(), request.getRequestURI());
             authService.authenticate(request, true);
             log.info("admin token鉴权结束");
@@ -95,6 +110,7 @@ public class AdminPermissionFilter extends OncePerRequestFilter implements Order
             UserContext.clear();
             SigningKeyContext.clear();
             TenantContextHolder.clear();
+            TraceIdUtils.clearTraceId();
         }
     }
 

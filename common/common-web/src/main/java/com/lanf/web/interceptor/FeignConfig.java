@@ -1,5 +1,6 @@
 package com.lanf.web.interceptor;
 
+import com.lanf.constant.utils.TraceIdUtils;
 import com.lanf.web.auth.RequestAuthExtractor;
 import com.lanf.constant.utils.UserContext;
 import feign.RequestInterceptor;
@@ -20,6 +21,7 @@ public class FeignConfig {
                 Long userId = UserContext.getUserId();
                 String deviceId = UserContext.getDeviceId();
                 Long tenantId = UserContext.getTenantId();
+                String traceId = TraceIdUtils.getTraceId();
 
                 if (userId != null) {
                     requestTemplate.header(RequestAuthExtractor.FEIGN_HEADER_USER_ID, userId.toString());
@@ -33,8 +35,12 @@ public class FeignConfig {
                     requestTemplate.header(RequestAuthExtractor.FEIGN_HEADER_TENANT_ID, tenantId.toString());
                 }
 
-                log.debug("Feign请求透传用户上下文: userId={}, deviceId={}, tenantId={}", 
-                        userId, deviceId, tenantId);
+                if (traceId != null) {
+                    requestTemplate.header(RequestAuthExtractor.FEIGN_HEADER_TRACE_ID, traceId);
+                }
+
+                log.debug("Feign请求透传用户上下文: userId={}, deviceId={}, tenantId={}, traceId={}", 
+                        userId, deviceId, tenantId, traceId);
             }
         };
     }
