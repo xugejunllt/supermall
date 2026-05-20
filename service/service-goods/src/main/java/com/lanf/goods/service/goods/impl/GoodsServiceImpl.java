@@ -436,7 +436,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         if (goodsDO == null) {
             return null;
         }
-
+        ShopDO shopDO = shopService.getById(goodsDO.getShopId());
         List<GoodsSkuDO> skuList = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getGoodsId, id).list();
 
         if (skuList == null || skuList.isEmpty()) {
@@ -448,7 +448,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         vo.setGoodsName(goodsDO.getName());
         vo.setPictureAddress(JsonUtils.toList(goodsDO.getPictureAddress(), String.class));
         vo.setSubTitle(goodsDO.getTitle());
-
+        vo.setShopId(shopDO.getId());
+        vo.setShopName(shopDO.getName());
         processSkuAndSpec(skuList, vo);
 
         return vo;
@@ -470,7 +471,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             skuInfo.setSkuCode(sku.getSkuCode());
             skuInfo.setPrice(sku.getPrice());
             skuInfo.setImage(sku.getSkuPictureAddress());
-            
+            skuInfo.setDefaultSelect(sku.getDefaultSelect());
             // 解析 attributes JSON 字符串为 Map
             Map<String, String> attrMap = parseAttributesToMap(sku.getAttributes());
             skuInfo.setAttributes(attrMap);

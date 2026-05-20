@@ -6,6 +6,11 @@ import java.util.List;
 
 @Data
 public class GoodsDetailForUserVO {
+
+    private Long shopId;
+
+    private String shopName;
+
     private Long goodsId;
     private String goodsName;
     /** 图片地址 */

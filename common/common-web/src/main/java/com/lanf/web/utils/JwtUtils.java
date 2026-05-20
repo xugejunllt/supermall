@@ -145,7 +145,7 @@ public class JwtUtils {
 
             JwtTokenInfo tokenInfo = new JwtTokenInfo();
 
-            tokenInfo.setUserId( claims.get(CLAIM_USER_ID, Long.class));
+            tokenInfo.setUserId( Long.parseLong(claims.get(CLAIM_USER_ID, String.class)));
             tokenInfo.setDeviceId(claims.get(CLAIM_DEVICE_ID, String.class));
             tokenInfo.setSigningKey(claims.get(CLAIM_SIGNING_KEY, String.class));
             tokenInfo.setExpTime(claims.getExpiration().getTime());

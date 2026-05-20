@@ -394,6 +394,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         cartItemVO.setQuantity(cartDO.getQuantity());
         cartItemVO.setPrice(goodsSkuDO.getPrice());
         cartItemVO.setSkuName(goodsSkuDO.getAttributeDetail());
+        cartItemVO.setSkuPictureAddress(goodsSkuDO.getSkuPictureAddress());
         return cartItemVO;
     }
     @Override

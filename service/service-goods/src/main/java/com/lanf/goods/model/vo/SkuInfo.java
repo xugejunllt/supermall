@@ -11,7 +11,7 @@ public class SkuInfo {
     private String skuCode;
     private BigDecimal price;
     private String image;
-
+    private Integer defaultSelect;
     private Map<String, String> attributes;
 
 }

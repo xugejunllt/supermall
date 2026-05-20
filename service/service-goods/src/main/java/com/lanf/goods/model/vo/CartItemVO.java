@@ -29,5 +29,5 @@ public class CartItemVO implements Serializable {
     
     /** 价格 */
     private BigDecimal price;
-
+    private String skuPictureAddress;
 }

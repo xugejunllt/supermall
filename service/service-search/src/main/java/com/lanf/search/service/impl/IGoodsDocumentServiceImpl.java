@@ -69,7 +69,7 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
         // 0上架
-       boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.UP_DOWN_STATUS, 0));
+       boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.UP_DOWN_STATUS, 1));
 
         // 设置查询和排序
         queryBuilder.withQuery(boolQuery)

@@ -1,6 +1,8 @@
 package com.lanf.user.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.user.mq.UserClientTopicName;
+import com.lanf.api.user.mq.message.UserRegisterMessage;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.cache.service.DistributedLocker;
 import com.lanf.cache.service.RedissonCacheService;
@@ -9,6 +11,7 @@ import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.SmsCodeEnum;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -25,18 +28,16 @@ import com.lanf.user.model.enums.UserStatusEnum;
 import com.lanf.user.model.vo.UserDetailVO;
 import com.lanf.user.model.vo.UserTokenInfoVO;
 import com.lanf.user.model.vo.UserVO;
-import com.lanf.api.user.mq.UserClientTopicName;
-import com.lanf.api.user.mq.message.UserRegisterMessage;
 import com.lanf.user.service.IUserLoginLogService;
 import com.lanf.user.service.IUserService;
 import com.lanf.user.service.benefit.IUserLevelService;
+import com.lanf.user.utils.NicknameGenerator;
 import com.lanf.web.auth.RequestAuthExtractor;
 import com.lanf.web.model.bo.AuthRequestInfo;
 import com.lanf.web.model.bo.JwtTokenInfo;
 import com.lanf.web.security.keygen.RsaEncryptKeyManager;
 import com.lanf.web.utils.IpUtil;
 import com.lanf.web.utils.JwtUtils;
-import com.lanf.constant.utils.UserContext;
 import com.lanf.web.utils.WebUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,8 +107,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private void fillUser(UserDO userDO) {
 
         userDO.setStatus(UserStatusEnum.NORMAL);
-        userDO.setNickName("asd");
-        userDO.setHeadImageUrl("");
+        userDO.setNickName(NicknameGenerator.generateUniqueNickname());
+        userDO.setHeadImageUrl("https://q6.itc.cn/q_70/images03/20250306/355fba6a5cb049f5b98c2ed9f03cc5e1.jpeg");
         userDO.setAccount(userDO.getPhoneNumber());
     }
 
@@ -416,9 +417,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         UserLevel userLevel = userLevelService.getUserLevel(userId);
 
         UserDetailVO userDetailVO = BeanCopyUtils.copyBean(userVO, UserDetailVO.class);
-        userDetailVO.setLevel(userLevel.getLevel());
-        userDetailVO.setLevelName(userLevel.getName());
-        userDetailVO.setLevelIcon(userLevel.getIcon());
+//        userDetailVO.setLevel(userLevel.getLevel());
+//        userDetailVO.setLevelName(userLevel.getName());
+//        userDetailVO.setLevelIcon(userLevel.getIcon());
 
         return userDetailVO;
     }

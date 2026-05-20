@@ -260,6 +260,10 @@ public class UserLevelServiceImpl extends ServiceImpl<UserLevelMapper, UserLevel
 
 
         UserLevelDO userLevelDO = getByUserId(userId);
+        if (userLevelDO == null) {
+            log.warn("用户等级不存在");
+           return null;
+        }
         List<UserLevelConfigDO> configDOS = userLevelConfigService.listUserLevelConfig();
         UserLevelConfigDO userLevelConfigDO = null;
 
