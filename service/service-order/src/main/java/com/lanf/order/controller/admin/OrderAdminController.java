@@ -59,21 +59,8 @@ public class OrderAdminController {
         return Result.ok(orderService.orderSearchQuery(query));
     }
 
-    @GetMapping("/orderPageVO2")
-    public Result<PageResult<OrderPageVO2>> orderPageVO2(@Validated OrderPageQuery2 query2) {
 
-        log.info("分页查询订单列表:{}", query2);
 
-        return Result.ok(orderService.orderPageVO2(query2));
-    }
-
-    @GetMapping("/orderDetailVO2")
-    public Result<OrderDetailVO2> orderDetailVO2(@Validated Long orderId) {
-
-        log.info("查询订单明细:{}", orderId);
-
-        return Result.ok(orderService.orderDetailVO2(orderId));
-    }
 
 }
 

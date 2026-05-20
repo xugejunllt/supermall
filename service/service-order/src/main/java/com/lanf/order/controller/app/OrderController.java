@@ -9,7 +9,6 @@ import com.lanf.constant.result.Result;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.query.AppOrderSearchQuery;
-import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.vo.*;
 import com.lanf.order.service.IOrderService;
 import com.lanf.order.service.OrderManagerService;
@@ -121,13 +120,7 @@ public class OrderController {
         return Result.ok(orderService.orderSearchQuery(query));
     }
 
-    @GetMapping("/orderPage")
-    public Result<PageResult<OrderPageVO>> orderPage(@Validated OrderPageQuery query) {
 
-        log.info("取消订单:query{}", query);
-
-        return Result.ok(orderService.orderPage(query));
-    }
 
     @GetMapping("/orderDetail")
     public Result<OrderDetailVO> orderDetail(Long id) {
