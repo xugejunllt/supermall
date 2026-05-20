@@ -264,7 +264,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
             log.warn("购物车项不存在");
             throw new BizException("购物车项不存在");
         }
-        boolean delete = cartDO.getQuantity() <= dto.getDecrementQuantity();
+        boolean delete = cartDO.getQuantity() == 1;
         if (delete) {
 
             log.info("购物车项数量不足,删除购物车项");
