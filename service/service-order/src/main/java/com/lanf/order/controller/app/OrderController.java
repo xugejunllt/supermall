@@ -2,11 +2,10 @@ package com.lanf.order.controller.app;
 
 
 import com.lanf.api.goods.model.dto.ValidateCartDTO;
-import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.model.enums.CancelSourceEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.utils.IdUtils;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
@@ -16,7 +15,10 @@ import com.lanf.order.service.OrderManagerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>
@@ -96,9 +98,7 @@ public class OrderController {
     @PostMapping("/cancelOrder")
     public Result<PlaceOrderVO> cancelOrder(@RequestBody @Validated CancelOrderDTO dto) {
 
-
-        log.info("取消订单[{}]", JsonUtils.toJsonString(dto));
-        dto.setCancelSource(CancelSourceEnum.USER_MANUAL.getCode());
+        dto.setUserId(UserContext.getUserId());
         orderManagerService.cancelOrder(dto);
         return Result.ok();
 

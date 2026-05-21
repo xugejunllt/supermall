@@ -10,7 +10,6 @@ import com.lanf.api.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
-import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.pay.model.dto.CreateMergeTradeOrderDTO;
@@ -19,10 +18,7 @@ import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.api.user.api.UserCacheService;
 import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.cache.aop.DistributedLock;
-import com.lanf.common.utils.BeanUtil;
-import com.lanf.common.utils.BigDecimalUtil;
-import com.lanf.common.utils.IStringUtils;
-import com.lanf.common.utils.JsonUtils;
+import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
@@ -45,6 +41,7 @@ import com.lanf.order.service.*;
 import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
+import com.lanf.rocketmq.model.message.OrderGoodsInfo;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.bo.DiscountInfoBO;
@@ -59,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -726,25 +724,37 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     @Override
     public void cancelOrder(CancelOrderDTO dto) {
 
-        log.info("cancelOrder[{}]", dto);
-        OrderDO orderDO = orderService.getById(dto.getOrderId());
+        log.info("取消订单:{}", dto);
+        Long orderId = dto.getOrderId();
+
+        OrderDO orderDO = orderService.lambdaQuery()
+                .eq(OrderDO::getId, orderId)
+                .eq(OrderDO::getUserId, dto.getUserId())
+                .one();
+
         if (orderDO == null) {
             log.error("订单不存在orderId:[{}]", dto.getOrderId());
             throw new BizException("订单不存在");
         }
         if (!OrderStatusEnum.isCancelable(orderDO.getStatus().getCode())) {
-            log.warn("订单状态异常status:[{}]", orderDO.getStatus());
+            log.warn("当前订单状态不允许取消:{}", orderDO.getStatus());
             throw new BizException("订单状态异常");
         }
-        //查询订单 关联的skuId
-        List<Long> skuIdList = orderService.querySkuIdsByOrderId(dto.getOrderId());
+        CancelOrderEventMessage orderEventMessage = buildCancelOrderEventMessage(dto);
 
-        CancelOrderEventMessage cancelOrderEventMessage = new CancelOrderEventMessage();
-        cancelOrderEventMessage.setOrderId(dto.getOrderId());
-        cancelOrderEventMessage.setSkuIdList(skuIdList);
+        //
+        Date date = new Date();
+        OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
+        orderStatusTraceDO.setOrderId(orderId);
+        orderStatusTraceDO.setFromStatus(orderDO.getStatus());
+        orderStatusTraceDO.setToStatus(OrderStatusEnum.CANCELLED);
+        orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+        orderStatusTraceDO.setTenantId(orderDO.getTenantId());
+        orderStatusTraceDO.setRemark(dto.getRemark());
 
         boolean update = orderService.lambdaUpdate()
                 .eq(OrderDO::getId, orderDO.getId())
+                .eq(OrderDO::getUserId, dto.getUserId())
                 .eq(OrderDO::getStatus, orderDO.getStatus())
                 .eq(OrderDO::getVersion, orderDO.getVersion())
                 .set(OrderDO::getStatus, OrderStatusEnum.CANCELLED)
@@ -754,23 +764,51 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             log.warn("订单状态更新异常");
             throw new MessageRetryConsumeException("订单状态更新异常");
         }
-        orderStatusTraceService.addOrderStatusTrace(orderDO.getId(),
-                orderDO.getStatus(), OrderStatusEnum.CANCELLED, dto.getRemark());
+        orderStatusTraceService.save(orderStatusTraceDO);
         /**
          * 发送取消订单事件
          */
-        rocketMqClient.sendMessage(OrderClientTopicName.ORDER_CANCEL_EVENT_TOPIC, JsonUtils.toJsonString(cancelOrderEventMessage));
+
+        rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+                OrderStatusEnum.CANCELLED.getTag(),JsonUtils.toJsonString(orderEventMessage),
+                orderDO.getId().toString());
+
         if (dto.getRunnable() != null){
             dto.getRunnable().run();
         }
-
+        log.info("取消订单成功");
     }
 
+    private CancelOrderEventMessage buildCancelOrderEventMessage(CancelOrderDTO dto ){
 
 
+        List<OrderItemDO> list = orderItemService.lambdaQuery()
+                .eq(OrderItemDO::getOrderId, dto.getOrderId())
+                .eq(OrderItemDO::getUserId, dto.getUserId())
+                .list();
+        if (list.isEmpty()){
+            log.error("订单商品项目不存在");
+           throw new BizException("订单商品项目不存在");
+        }
+        List<OrderGoodsInfo> orderGoodsInfoList = getOrderGoodsInfos(list);
+        CancelOrderEventMessage cancelOrderEventMessage = new CancelOrderEventMessage();
+        cancelOrderEventMessage.setOrderId(dto.getOrderId());
+        cancelOrderEventMessage.setOrderGoodsInfoList(orderGoodsInfoList);
+        return cancelOrderEventMessage;
+    }
 
-
-
-
+    private static List<OrderGoodsInfo> getOrderGoodsInfos(List<OrderItemDO> list) {
+        List<OrderGoodsInfo> orderGoodsInfoList = new ArrayList<>(list.size());
+        for (OrderItemDO orderItemDO : list) {
+            OrderGoodsInfo orderGoodsInfo = new OrderGoodsInfo();
+            orderGoodsInfo.setGoodsId(orderItemDO.getGoodsId());
+            orderGoodsInfo.setSkuCode(orderItemDO.getSkuCode());
+            orderGoodsInfo.setQuantity(orderItemDO.getQuantity());
+            orderGoodsInfo.setWarehouseId(orderItemDO.getWarehouseId());
+            orderGoodsInfo.setTenantId(orderItemDO.getTenantId());
+            orderGoodsInfoList.add(orderGoodsInfo);
+        }
+        return orderGoodsInfoList;
+    }
 
 }

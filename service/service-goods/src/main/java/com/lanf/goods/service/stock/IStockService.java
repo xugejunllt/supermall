@@ -14,6 +14,7 @@ import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.model.vo.StockWithDistanceVO;
+import com.lanf.rocketmq.model.message.OrderGoodsInfo;
 
 import java.util.List;
 
@@ -80,5 +81,12 @@ public interface IStockService extends IService<StockDO> {
      * @return 库存信息列表
      */
     List<StockWithDistanceVO> stockQueryByGoodsId(StockQueryByGoodsIdQuery dto);
+
+    /**
+     * 取消订单时 回滚库存
+     *
+
+     */
+    void rollbackStock(Long orderId,OrderGoodsInfo orderGoodsInfo);
 
 }

@@ -36,6 +36,8 @@ import com.lanf.goods.service.goods.IShopService;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockFlowService;
 import com.lanf.goods.utils.GoodsServiceUtils;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
+import com.lanf.rocketmq.model.message.OrderGoodsInfo;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -101,7 +103,6 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
     /**
      * 可以发送给消息队列 异步处理
-     *
      */
     @Override
     public void confirmBathDeductStock(BathDeductStockDTO deductStockDTO) {
@@ -111,9 +112,9 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         }
 
     }
+
     /**
      * 可以发送给消息队列 异步处理
-     *
      */
     @Override
     public void cancelBathDeductStock(BathDeductStockDTO deductStockDTO) {
@@ -579,6 +580,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         return convertToStockWithDistanceVO(matchedStockList);
     }
 
+
     /**
      * 根据仓库选择策略匹配库存
      *
@@ -776,4 +778,66 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         return pageResult;
     }
 
+    @Transactional
+    @Override
+    public void rollbackStock(Long orderId, OrderGoodsInfo orderGoodsInfo) {
+
+        log.info("取消订单,回滚库存开始 orderId:{},orderGoodsInfo:{}", orderId, orderGoodsInfo);
+
+        StockDO stockDO = this.lambdaQuery()
+                .eq(StockDO::getGoodsId, orderGoodsInfo.getGoodsId())
+                .eq(StockDO::getSkuCode, orderGoodsInfo.getSkuCode())
+                .eq(StockDO::getWarehouseId, orderGoodsInfo.getWarehouseId())
+                .one();
+        if (stockDO == null) {
+            log.error("库存不存在，订单回滚失败");
+            throw new BizException("库存不存在，订单回滚失败");
+        }
+
+        String flowNo = orderGoodsInfo.getGoodsId() + ":" +
+                orderGoodsInfo.getSkuCode() + ":" + orderId + ":" +
+                UserStockFlowEventTypeEnum.CANCEL_ORDER_INBOUND.getCode();
+        UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery()
+                .eq(UserStockFlowDO::getFlowNo, flowNo)
+                .eq(UserStockFlowDO::getGoodsId, orderGoodsInfo.getGoodsId())
+                .one();
+        if (stockFlowDO != null) {
+            log.warn("库存已回滚");
+            return;
+        }
+
+        Integer updateUsedStock =
+                stockDO.getUsableStock() + orderGoodsInfo.getQuantity();
+
+        UserStockFlowDO userStockFlowDO = new UserStockFlowDO();
+        userStockFlowDO.setFlowNo(flowNo);
+        userStockFlowDO.setGoodsId(orderGoodsInfo.getGoodsId());
+        userStockFlowDO.setUserStockId(stockDO.getId());
+        userStockFlowDO.setSkuCode(orderGoodsInfo.getSkuCode());
+        userStockFlowDO.setWarehouseId(orderGoodsInfo.getWarehouseId());
+        userStockFlowDO.setOrderId(orderId);
+        userStockFlowDO.setEventType(UserStockFlowEventTypeEnum.CANCEL_ORDER_INBOUND);
+        userStockFlowDO.setBeforeQuantity(stockDO.getUsableStock() + stockDO.getLockStock());
+        userStockFlowDO.setChangeQuantity(orderGoodsInfo.getQuantity());
+        userStockFlowDO.setAfterQuantity(updateUsedStock + stockDO.getLockStock());
+        userStockFlowDO.setTenantId(orderGoodsInfo.getTenantId());
+
+        try {
+            userStockFlowService.save(userStockFlowDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("库存已回滚");
+            return;
+        }
+        boolean update = this.lambdaUpdate()
+                .eq(StockDO::getGoodsId, orderGoodsInfo.getGoodsId())
+                .eq(StockDO::getId, stockDO.getId())
+                .eq(StockDO::getVersion, stockDO.getVersion())
+                .set(StockDO::getUsableStock, updateUsedStock)
+                .update();
+        if (!update) {
+            log.warn("回滚库存，更新库存数量失败");
+            throw new MessageRetryConsumeException("回滚库存，更新库存数量失败");
+        }
+        log.info("回滚库存成功");
+    }
 }

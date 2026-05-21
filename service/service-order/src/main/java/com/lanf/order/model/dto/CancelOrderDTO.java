@@ -8,6 +8,8 @@ public class CancelOrderDTO implements Serializable {
 
     private Long orderId;
 
+    private Long userId;
+
     private Integer cancelSource;
 
     private String remark;
