@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 public class OrderPageVO implements Serializable {
 
+    private Long id;
     /**
      * 店铺id
      */

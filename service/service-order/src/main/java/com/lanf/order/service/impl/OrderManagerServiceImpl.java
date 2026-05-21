@@ -751,6 +751,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
         orderStatusTraceDO.setTenantId(orderDO.getTenantId());
         orderStatusTraceDO.setRemark(dto.getRemark());
+        orderStatusTraceDO.setUserId(dto.getUserId());
 
         boolean update = orderService.lambdaUpdate()
                 .eq(OrderDO::getId, orderDO.getId())
