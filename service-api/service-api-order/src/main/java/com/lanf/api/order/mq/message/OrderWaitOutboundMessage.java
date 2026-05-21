@@ -12,7 +12,7 @@ public class OrderWaitOutboundMessage extends BaseMessage {
     private Long orderId;
 
     private Long tenantId;
-
+    private Long userId;
     private List<InOutStockOrderItem> items;
 
 }

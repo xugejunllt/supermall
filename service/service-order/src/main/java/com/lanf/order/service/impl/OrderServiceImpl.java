@@ -164,7 +164,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             throw new BizException("订单状态异常");
         }
 
-        OrderWaitOutboundMessage outboundMessage = buildAddSalesOutStockOrderMessage(orderId, orderDO.getTenantId());
+        OrderWaitOutboundMessage outboundMessage = buildAddSalesOutStockOrderMessage(
+                orderId, orderDO.getTenantId(),orderDO.getUserId());
         Date date = new Date();
         OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
         orderStatusTraceDO.setOrderId(orderId);
@@ -190,7 +191,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
     }
 
-    private OrderWaitOutboundMessage buildAddSalesOutStockOrderMessage(Long orderId,Long tenantId){
+    private OrderWaitOutboundMessage buildAddSalesOutStockOrderMessage(Long orderId,Long tenantId,Long userId){
         List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery()
                 .eq(OrderItemDO::getOrderId, orderId)
                 .list();
@@ -206,9 +207,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                     inOutStockOrderItem.setTenantId(orderItemDO.getTenantId());
                     return inOutStockOrderItem;
                 }).collect(Collectors.toList());
+
         addSalesOutStockOrderMessage.setOrderId(orderId);
         addSalesOutStockOrderMessage.setItems( items);
         addSalesOutStockOrderMessage.setTenantId(tenantId);
+        addSalesOutStockOrderMessage.setUserId(userId);
         return addSalesOutStockOrderMessage;
     }
 

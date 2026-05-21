@@ -60,6 +60,7 @@ public class OrderWaitOutboundEventAddSalesOutStockOrderListener implements Rock
         stockOrderDO.setStorageStatus(StorageStatusEnum.WAIT_OUTBOUND);
         stockOrderDO.setId(IdUtils.generateId());
         stockOrderDO.setTenantId(message.getTenantId());
+        stockOrderDO.setUserId(message.getUserId());
         List<InOutStockOrderItem> items = message.getItems();
         List<InOutStockOrderItemDO> inOutStockOrderItemDOList = new ArrayList<>(items.size());
         for (InOutStockOrderItem item : items) {

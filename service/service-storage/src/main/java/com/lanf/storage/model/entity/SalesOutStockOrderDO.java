@@ -20,6 +20,7 @@ public class SalesOutStockOrderDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
+    private Long userId;
     /** 单据编码 */
     private String code;
 
