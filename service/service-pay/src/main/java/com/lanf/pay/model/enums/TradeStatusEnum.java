@@ -6,8 +6,11 @@ import lombok.Getter;
 public enum TradeStatusEnum {
 
     UNKNOWN(0, "未知状态"),
-    TRADE_SUCCESS(2, "交易支付成功");
-
+    TRADE_SUCCESS(1, "交易支付成功"),
+    /**
+     * 交易结束 不支持查询
+     */
+    TRADE_FINISHED(3, "交易结束");
     private final Integer code;
     private final String description;
 

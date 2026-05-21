@@ -9,8 +9,7 @@ import lombok.Getter;
 public enum RefundStatusEnum {
 
     REFUNDING(0, "退款中"),
-    SUCCESS(1, "退款成功"),
-    FAILED(2, "退款失败");
+    SUCCESS(1, "退款成功");
 
     @EnumValue
     @JsonValue

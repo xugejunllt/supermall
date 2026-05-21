@@ -20,7 +20,6 @@ public enum PayChannelEnum {
     UNION_PAY(2, "银联支付");
     
     @EnumValue
-    @JsonValue
     private final Integer code;
 
     private final String name;

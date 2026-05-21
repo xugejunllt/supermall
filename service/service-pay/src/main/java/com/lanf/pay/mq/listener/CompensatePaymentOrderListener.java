@@ -132,7 +132,7 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
                     .one();
 
             if (tradeOrder == null) {
-                log.error("交易订单不存在" );
+                log.error("交易订单不存在");
                 throw new BizException("交易订单不存在");
             }
 
@@ -167,13 +167,18 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
                 log.warn("支付订单未知状态");
                 paymentStatus = CompensatePaymentStatusEnum.CONTINUE;
                 break;
+            case TRADE_FINISHED:
 
+                log.warn("三方交易已结束");
+                paymentStatus = CompensatePaymentStatusEnum.FINISH;
+                break;
         }
+
         return new QueryThirdPartyPaymentStatusBO(paymentStatus, tradeStatusBO);
     }
 
 
-    private boolean executePaymentCompensation( Integer payType, TradeStatusBO tradeStatusBO) {
+    private boolean executePaymentCompensation(Integer payType, TradeStatusBO tradeStatusBO) {
 
         PaySuccessHandleBO successHandleBO = buildPaySuccessHandleBO(payType, tradeStatusBO);
         PaymentService paymentService = paymentServiceFactory.getPaymentService(payType);
@@ -214,7 +219,7 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
 
         PayCompensateOrderRetryPolicyBO matchOrNext = findMatchOrNext(nextRetryLevel);
         if (matchOrNext == null) {
-            log.error("超过最大重试次数currentRetryLevel:{},nextRetryLevel:{}", currentRetryLevel,nextRetryLevel);
+            log.error("超过最大重试次数currentRetryLevel:{},nextRetryLevel:{}", currentRetryLevel, nextRetryLevel);
             return;
         }
 

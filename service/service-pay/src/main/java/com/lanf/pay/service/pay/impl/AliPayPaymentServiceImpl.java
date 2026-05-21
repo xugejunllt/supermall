@@ -9,7 +9,6 @@ import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.*;
 import com.alipay.api.response.*;
 import com.lanf.common.utils.DateUtils;
-import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.config.AliPayConfig;
@@ -150,20 +149,24 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             request.setBizModel(model);
 
             response = alipayClient.certificateExecute(request);
-            log.info("支付宝查询结果outTradeNo:{},subCode:{}", outTradeNo, response.getSubCode());
-
+            String code = response.getCode();
+            String subMsg = response.getSubMsg();
+            String subCode = response.getSubCode();
+            log.info("查询支付宝交易状态结果是:code:{},subMsg:{},subCode:{}", code, subMsg, subCode);
+            if ("40004".equals(response.getCode())) {
+                /**
+                 * 如果发生退款 进入此状态
+                 */
+                TradeStatusBO tradeStatusBO = new TradeStatusBO();
+                tradeStatusBO.setTradeStatus(TradeStatusEnum.TRADE_FINISHED);
+                return tradeStatusBO;
+            }
         } catch (Exception e) {
 
             log.error("查询支付宝交易状态异常", e);
             throw new MessageRetryConsumeException("查询支付宝交易状态异常");
         }
 
-        if (!response.isSuccess()) {
-            log.warn("支付宝支付订单非成功状态");
-            TradeStatusBO tradeStatusBO = new TradeStatusBO();
-            tradeStatusBO.setTradeStatus(TradeStatusEnum.UNKNOWN);
-            return tradeStatusBO;
-        }
         String tradeStatusStr = response.getTradeStatus();
         TradeStatusEnum tradeStatusEnum = TradeStatusEnum.fromAlipayStatus(tradeStatusStr);
         if (!TradeStatusEnum.TRADE_SUCCESS.equals(tradeStatusEnum)) {
@@ -316,10 +319,13 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             model.setRefundAmount(refundAmount.toString());
             model.setRefundReason(refundReason != null ? refundReason : "订单取消退款");
             request.setBizModel(model);
-            alipayClient.certificateExecute(request);
-            /**
-             * 只负责发送请求 最终通过查询保证退款成功
-             */
+            AlipayTradeRefundResponse response = alipayClient.certificateExecute(request);
+            String code = response.getCode();
+            String msg = response.getMsg();
+            String subMsg = response.getSubMsg();
+            log.info("响应结果,code={},msg={},subMsg={}", code, msg, subMsg);
+
+
         } catch (Exception e) {
             log.error("发起支付宝退款异常:outTradeNo={}", outTradeNo, e);
             throw new MessageRetryConsumeException("退款异常");
@@ -354,39 +360,19 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             result.setOutTradeNo(outTradeNo);
             result.setOutRequestNo(outRequestNo);
             String code = response.getCode();
-            String subCode = response.getSubCode();
             String refundStatus = response.getRefundStatus();
-
-            if ("1000".equals(code) && "SUCCESS".equals(refundStatus)) {
+            log.info("查询支付宝退款结果:outTradeNo={},code={},refundStatus={}",
+                    outTradeNo, code, refundStatus);
+            if ("10000".equals(code) && "REFUND_SUCCESS".equals(refundStatus)) {
                 // 设置退款成功的结果
+                log.info("查询支付宝退款结果成功");
                 result.setResult(true);
                 result.setTradeNo(response.getTradeNo());
                 result.setRefundAmount(new BigDecimal(response.getRefundAmount()));
-                result.setSendBackFee(new BigDecimal(response.getSendBackFee()));
                 result.setGmtRefundPay(response.getGmtRefundPay());
-                log.info("查询支付宝退款结果成功refundStatus={}", response.getRefundStatus());
                 return result;
-            }
-
-            if ("ACQ.SYSTEM_ERROR".equals(subCode) ||
-                    "ACQ.ENTERPRISE_PAY_BIZ_ERROR".equals(subCode)
-                    || IStringUtils.isEmpty(refundStatus)) {
-
-                log.warn("支付宝退款失败:outTradeNo={},code={},subCode={},msg={}",
-                        outTradeNo, code, response.getSubCode(), response.getSubMsg());
-                /**
-                 * 系统错误 抛出异常重试
-                 */
-                throw new MessageRetryConsumeException("退款接口系统错误");
             } else {
-                /**
-                 * 其他业务错误
-                 */
-                log.error("支付宝退款失败:outTradeNo={},code={},subCode={},msg={}",
-                        outTradeNo, code, response.getSubCode(), response.getSubMsg());
-                result.setResult(false);
-                result.setErrorMsg(subCode + ":" + response.getSubMsg());
-                return result;
+                throw new MessageRetryConsumeException("退款接口系统错误");
             }
 
         } catch (Exception e) {

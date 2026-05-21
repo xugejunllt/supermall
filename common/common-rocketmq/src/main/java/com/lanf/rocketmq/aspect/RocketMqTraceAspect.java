@@ -53,7 +53,7 @@ public class RocketMqTraceAspect {
 
         } catch (Throwable e) {
             log.error("RocketMQ 消费消息异常, traceId: {}", traceId, e);
-            throw e;
+          return null;
         } finally {
             TraceIdUtils.clearAll();
             MessageLevelUtils.clear();

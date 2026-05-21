@@ -65,6 +65,9 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
 
         switch (tradeStatus) {
 
+            case TRADE_FINISHED:
+                log.info("三方支付单交易结束");
+                return;
             case UNKNOWN:
                 log.info("取消未知状态支付订单");
                 CancelWaitPayOrderBO cancelWaitPayOrderBO = new CancelWaitPayOrderBO();
@@ -107,6 +110,10 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
                 } else {
                     log.info("退款单已存在");
                 }
+                log.info("发起三方退款请求");
+                paymentService.cancelPaidOrder(outTradeNo, orderFlowDO.getTradeMoney(), "取消订单退款");
+                log.info("发起成功");
+
                 log.info("发送退款结果查询消息");
                 QueryRefundResultMessage queryRefundResultMessage = new QueryRefundResultMessage();
                 queryRefundResultMessage.setOutTradeNo(outTradeNo);

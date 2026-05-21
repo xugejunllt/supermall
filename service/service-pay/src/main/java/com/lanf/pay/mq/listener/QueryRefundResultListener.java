@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 查询退款结果
@@ -62,10 +63,10 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
     @Override
     public void onMessage(QueryRefundResultMessage message) {
 
-        log.info("查询退款结果消息:{}",message);
+        log.info("查询退款结果消息:{}", message);
 
         RefundOrderFlowDO one = refundOrderFlowService.lambdaQuery().
-                 eq(RefundOrderFlowDO::getOutTradeNo, message.getOutTradeNo())
+                eq(RefundOrderFlowDO::getOutTradeNo, message.getOutTradeNo())
                 .eq(RefundOrderFlowDO::getOutRequestNo, message.getOutRequestNo())
                 .one();
 
@@ -87,16 +88,14 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
         PaymentService paymentService = paymentServiceFactory.getPaymentService(payChannel.getCode());
 
         RefundQueryResultBO refundQueryResultBO = paymentService.queryRefundResult(message.getOutTradeNo(), message.getOutRequestNo());
-
-        AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(refundQueryResultBO.getSendBackFee(), orderDO);
+        if (!Boolean.TRUE.equals(refundQueryResultBO.getResult())) {
+            return;
+        }
         RefundOrderFlowDO refundOrderFlowDO = buildRefundOrderFlowDO(refundQueryResultBO, orderDO);
 
-        RefundStatusEnum refundStatusEnum = null;
-        if (refundQueryResultBO.getResult()) {
-            refundStatusEnum = RefundStatusEnum.SUCCESS;
-        } else {
-            refundStatusEnum = RefundStatusEnum.FAILED;
-        }
+        BigDecimal incomeMoney = refundOrderFlowDO.getReturnMoney();
+        AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(incomeMoney, orderDO);
+
         try {
             refundOrderFlowService.save(refundOrderFlowDO);
         } catch (DuplicateKeyException e) {
@@ -106,8 +105,7 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
         boolean update = refundOrderService.lambdaUpdate()
                 .eq(RefundOrderDO::getId, orderDO.getId())
                 .eq(RefundOrderDO::getVersion, orderDO.getVersion())
-                .eq(RefundOrderDO::getStatus, RefundStatusEnum.REFUNDING)
-                .set(RefundOrderDO::getStatus, refundStatusEnum)
+                .set(RefundOrderDO::getStatus, RefundStatusEnum.SUCCESS)
                 .set(RefundOrderDO::getVersion, orderDO.getVersion() + 1)
                 .update();
 
@@ -115,34 +113,30 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
             log.warn("更新退款单失败");
             throw new MessageRetryConsumeException("更新退款单失败");
         }
-        if (refundQueryResultBO.getResult()) {
             /**
              * 插入资金流水
              */
             rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
-        }
+
     }
 
-    private RefundOrderFlowDO buildRefundOrderFlowDO(RefundQueryResultBO refundQueryResultBO,RefundOrderDO orderDO) {
-        RefundFlowStatusEnum refundFlowStatusEnum = null;
-        if (refundQueryResultBO.getResult()) {
-            refundFlowStatusEnum = RefundFlowStatusEnum.SUCCESS;
-        } else {
-            refundFlowStatusEnum = RefundFlowStatusEnum.FAILED;
-        }
+    private RefundOrderFlowDO buildRefundOrderFlowDO(RefundQueryResultBO refundQueryResultBO, RefundOrderDO orderDO) {
+
+        BigDecimal returnMoney = refundQueryResultBO.getSendBackFee() != null ? refundQueryResultBO.getSendBackFee() :
+                refundQueryResultBO.getRefundAmount();
         RefundOrderFlowDO refundOrderFlowDO = new RefundOrderFlowDO();
         refundOrderFlowDO.setOutTradeNo(orderDO.getOutTradeNo());
         refundOrderFlowDO.setOutRequestNo(orderDO.getOutTradeNo());
         refundOrderFlowDO.setTradeNo(refundQueryResultBO.getTradeNo());
         refundOrderFlowDO.setPayMoney(refundQueryResultBO.getRefundAmount());
-        refundOrderFlowDO.setReturnMoney(refundQueryResultBO.getSendBackFee());
-        refundOrderFlowDO.setStatus(refundFlowStatusEnum);
+        refundOrderFlowDO.setReturnMoney(returnMoney);
+        refundOrderFlowDO.setStatus(RefundFlowStatusEnum.SUCCESS);
         refundOrderFlowDO.setPayChannel(orderDO.getPayChannel());
-        refundOrderFlowDO.setPayFinishTime(refundQueryResultBO.getGmtRefundPay());
-        refundOrderFlowDO.setPayFinishDate(DateUtils.format(refundQueryResultBO.getGmtRefundPay(),
+        refundOrderFlowDO.setPayFinishTime(new Date());
+        refundOrderFlowDO.setPayFinishDate(DateUtils.format(new Date(),
                 DateUtils.DATE));
         refundOrderFlowDO.setFailReason(refundQueryResultBO.getErrorMsg());
-
+        refundOrderFlowDO.setRefundOrderId(orderDO.getId());
         return refundOrderFlowDO;
     }
 
@@ -168,7 +162,7 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
         AddMoneyFlowMessage moneyFlowMessage = new AddMoneyFlowMessage();
         moneyFlowMessage.setIncomeMoney(incomeMoney);
         moneyFlowMessage.setRecordType(recordTypeEnum);
-        moneyFlowMessage.setFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.MONEY_FLOW,orderDO.getId().toString()));
+        moneyFlowMessage.setFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.MONEY_FLOW, orderDO.getId().toString()));
         moneyFlowMessage.setTenantId(Constants.PLATFORM_BUSINESS_ID);
         moneyFlowMessage.setBizOrderId(orderDO.getBizOrderId());
 

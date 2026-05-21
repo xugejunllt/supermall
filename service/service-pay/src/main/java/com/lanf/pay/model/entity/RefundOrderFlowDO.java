@@ -23,6 +23,7 @@ public class RefundOrderFlowDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
+    private Long refundOrderId;
 
     /**
      * 商户订单号
@@ -49,10 +50,6 @@ private static final long serialVersionUID=1L;
      */
     private BigDecimal returnMoney;
 
-    /**
-     * 用户的登录id【示例值】159****5620
-     */
-    private String buyerLogonId;
 
     /**
      * 0:退款成功 1：退款失败
@@ -60,10 +57,7 @@ private static final long serialVersionUID=1L;
     private RefundFlowStatusEnum status;
 
 
-    /**
-     * 支付订单ID
-     */
-    private Long payOrderId;
+
 
     private PayChannelEnum payChannel;
 
