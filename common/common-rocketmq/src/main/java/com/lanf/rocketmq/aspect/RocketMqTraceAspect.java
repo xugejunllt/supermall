@@ -1,6 +1,7 @@
-package com.lanf.rocketmq.util;
+package com.lanf.rocketmq.aspect;
 
 import com.lanf.constant.mq.base.BaseMessage;
+import com.lanf.constant.utils.MessageLevelUtils;
 import com.lanf.constant.utils.TraceIdUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -30,20 +31,24 @@ public class RocketMqTraceAspect {
      */
     @Around("execution(* org.apache.rocketmq.spring.core.RocketMQListener.onMessage(..))")
     public Object traceAround(ProceedingJoinPoint joinPoint) throws Throwable {
-        log.info("RocketMQ 监听到消息, traceId: {}", TraceIdUtils.getTraceId());
         Object[] args = joinPoint.getArgs();
         String traceId = null;
-
+        Integer messageLevel = null;
         try {
             // 1. 从方法参数中提取 traceId
             if (args != null && args.length > 0) {
                 Object arg = args[0];
                 if (arg instanceof BaseMessage) {
                     traceId = ((BaseMessage) arg).getTraceId();
+                    messageLevel = ((BaseMessage) arg).getLevel();
                 }
             }
             TraceIdUtils.setTraceId(traceId);
+            if (messageLevel != null) {
 
+                MessageLevelUtils.setLevel(messageLevel + 1);
+                log.info("RocketMQ 消费消息，使用消息中的 level: {}", messageLevel);
+            }
             return joinPoint.proceed();
 
         } catch (Throwable e) {
@@ -51,6 +56,7 @@ public class RocketMqTraceAspect {
             throw e;
         } finally {
             TraceIdUtils.clearAll();
+            MessageLevelUtils.clear();
         }
     }
 }

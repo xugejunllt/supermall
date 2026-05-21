@@ -1,15 +1,15 @@
 package com.lanf.rocketmq.model.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * 交易成功事件消息
  */
 @Data
-public class TradeSuccessEventMessage implements Serializable {
+public class TradeSuccessEventMessage extends BaseMessage {
 
 
     private Boolean bathPay;

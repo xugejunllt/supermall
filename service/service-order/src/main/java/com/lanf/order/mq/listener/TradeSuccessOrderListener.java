@@ -56,8 +56,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
     @Override
     public void onMessage(TradeSuccessEventMessage message) {
 
-        log.info("订单交易成功事件,更新订单状态为已支付开始[{}]", JsonUtils.toJsonString(message));
-
+        log.info("订单交易成功消息,更新订单状态为已支付开始[{}]", JsonUtils.toJsonString(message));
         Boolean bathPay = message.getBathPay();
         if (bathPay) {
 
@@ -145,7 +144,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             OrderPayInfo orderPayInfo = message.getOrderPayInfoList().get(0);
             OrderDO orderDO = orderService.lambdaQuery()
                     .eq(OrderDO::getId, orderPayInfo.getOrderId())
-                            .eq(OrderDO::getUserId, orderPayInfo.g())
+                            .one();
             updateOrderStatusCheck(orderDO);
 
             OrderStatusTraceDO statusTraceDO = new OrderStatusTraceDO();

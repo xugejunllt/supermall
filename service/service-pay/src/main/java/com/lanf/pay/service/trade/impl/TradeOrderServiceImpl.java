@@ -363,7 +363,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BizException("交易单状态异常");
         }
         Integer payType = dto.getPayType();
-       prepayPayTypeService.saveIfAbsent(bathTradeOrderDO.getOutTradeNo(), payType);
+        prepayPayTypeService.saveIfAbsent(bathTradeOrderDO.getOutTradeNo(), payType);
 
         /**
          * 发送补单任务

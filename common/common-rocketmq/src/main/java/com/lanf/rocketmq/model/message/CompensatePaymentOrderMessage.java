@@ -1,11 +1,10 @@
 package com.lanf.rocketmq.model.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class CompensatePaymentOrderMessage implements Serializable {
+public class CompensatePaymentOrderMessage extends BaseMessage {
 
     private String outTradeNo;
 

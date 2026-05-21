@@ -53,7 +53,6 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
     public void onMessage(CompensatePaymentOrderMessage message) {
 
         log.info("收到补偿支付订单消息:[{}]", JsonUtils.toJsonString(message));
-        
         try {
             handleCompensatePayment(message);
             log.info("处理补偿支付订单完成:outTradeNo={},payType={}", 

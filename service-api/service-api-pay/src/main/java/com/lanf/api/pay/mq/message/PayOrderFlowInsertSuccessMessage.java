@@ -2,13 +2,13 @@ package com.lanf.api.pay.mq.message;
 
 import com.lanf.api.pay.model.enums.PayMethodEnum;
 import com.lanf.api.pay.model.enums.TradePurposeEnum;
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class PayOrderFlowInsertSuccessMessage implements Serializable {
+public class PayOrderFlowInsertSuccessMessage extends BaseMessage {
 
     private String outTradeNo;
     /**

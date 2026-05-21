@@ -69,7 +69,6 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
     public void onMessage(PayOrderFlowInsertSuccessMessage message) {
 
         log.info("插入支付流水成功:[{}]", JsonUtils.toJsonString(message));
-
         String outTradeNo = message.getOutTradeNo();
         Boolean bathPay = message.getBathPay();
         Integer payType = message.getPayType();

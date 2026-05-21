@@ -59,7 +59,7 @@ public class TraceIdUtils {
     }
 
 
-    private static String generateTraceId() {
+    public static String generateTraceId() {
         return
                 UUID.randomUUID().toString().
                         replace("-", "").substring(0,20);
