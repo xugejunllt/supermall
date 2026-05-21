@@ -14,10 +14,6 @@ import com.lanf.pay.model.entity.RefundOrderDO;
  */
 public interface IRefundOrderService extends IService<RefundOrderDO> {
 
-    /**
-     * 进行退款
-     *
-     */
-    void processRefund(ProcessRefund processRefund);
+
 
 }

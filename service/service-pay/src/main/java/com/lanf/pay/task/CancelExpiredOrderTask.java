@@ -96,9 +96,6 @@ public class CancelExpiredOrderTask {
                             CancelOrderMessage cancelOrderMessage = new CancelOrderMessage();
                             cancelOrderMessage.setOutTradeNo(outTradeNo);
                             cancelOrderMessage.setPayType(payType);
-                            cancelOrderMessage.setCancelSource(null);
-                            //取消订单 全部退款时 outRequestNo = outTradeNo
-                            cancelOrderMessage.setOutRequestNo(outTradeNo);
                             rocketMqClient.sendMessage(TopicName.CANCEL_PAY_ORDER_TOPIC, JsonUtils.toJsonString(cancelOrderMessage));
 
                         }

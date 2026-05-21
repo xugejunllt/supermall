@@ -10,6 +10,7 @@ import com.lanf.pay.model.bo.CancelPaidOrderBO;
 import com.lanf.pay.model.bo.CancelWaitPayOrderBO;
 import com.lanf.pay.model.entity.PaymentCancelRecordDO;
 import com.lanf.pay.service.pay.*;
+import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ public class PaymentCancelRecordServiceImpl extends ServiceImpl<PaymentCancelRec
     private IRefundOrderService refundOrderService;
     @Autowired
     private RocketMqClient rocketMqClient;
+    private ITradeOrderService tradeOrderService;
 
     @Override
     public void cancelWaitPayOrder(CancelWaitPayOrderBO cancelWaitPayOrderBO) throws MessageRetryConsumeException {
@@ -74,39 +76,5 @@ public class PaymentCancelRecordServiceImpl extends ServiceImpl<PaymentCancelRec
         }
     }
 
-    @Transactional
-    @Override
-    public void cancelPaidOrder(CancelPaidOrderBO cancelPaidOrderBO) throws MessageRetryConsumeException {
 
-        String outTradeNo = cancelPaidOrderBO.getOutTradeNo();
-        Integer payType = cancelPaidOrderBO.getPayType();
-        PaymentCancelRecordDO recordDO = this.lambdaQuery()
-                .eq(PaymentCancelRecordDO::getOutTradeNo, outTradeNo)
-                .eq(PaymentCancelRecordDO::getPayType, payType).one();
-
-        if ( recordDO != null){
-            log.warn("支付订单已取消");
-            return;
-        }
-        PaymentCancelRecordDO recordDO2 = new PaymentCancelRecordDO();
-        recordDO2.setOutTradeNo(outTradeNo);
-        recordDO2.setPayType(payType);
-        recordDO2.setCancelSource(cancelPaidOrderBO.getCancelSource());
-        recordDO2.setCurrentPayStatus(cancelPaidOrderBO.getCurrentPayStatus());
-        //
-        ProcessRefundMessage message = new ProcessRefundMessage();
-        message.setOutTradeNo(outTradeNo);
-        message.setOutRequestNo(cancelPaidOrderBO.getOutRequestNo());
-        message.setBizOrderId(null);
-        message.setRefundEventTypeEnum(RefundEventTypeEnum.CANCEL_PAID_ORDER);
-        message.setPayType(payType);
-        try {
-            this.save(recordDO2);
-        } catch (DuplicateKeyException e) {
-            log.info("该支付订单已取消");
-            return;
-        }
-        rocketMqClient.sendMessage(PayClientTopicName.PROCESS_REFUND_TOPIC,
-                JsonUtils.toJsonString(message));
-    }
 }

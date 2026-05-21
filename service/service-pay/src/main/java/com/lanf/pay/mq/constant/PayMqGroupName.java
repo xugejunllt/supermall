@@ -26,19 +26,12 @@ public class PayMqGroupName {
      */
     public static final String QUERY_REFUND_RESULT_GROUP = "QUERY_REFUND_RESULT_GROUP";
 
-
-
     /**
      * 查询转账结果
      */
     public static final String QUERY_TRANSFER_RESULT_GROUP = "QUERY_TRANSFER_RESULT_GROUP";
-    /**
-     * 转账查询结果处理
-     */
-    public static final String INSERT_TRANSFER_ORDER_FLOW_GROUP = "INSERT_TRANSFER_ORDER_FLOW_GROUP";
 
-    public static final String UPDATE_TRANSFER_ORDER_GROUP = "UPDATE_TRANSFER_ORDER_GROUP";
-    public static final String CANCEL_ORDER_CANCEL_TRADE_ORDER_GROUP = "CANCEL_ORDER_CANCEL_TRADE_ORDER_GROUP";
+
     public static final String CANCEL_ORDER_CANCEL_PAY_ORDER_GROUP = "CANCEL_ORDER_CANCEL_PAY_ORDER_GROUP";
 
 }

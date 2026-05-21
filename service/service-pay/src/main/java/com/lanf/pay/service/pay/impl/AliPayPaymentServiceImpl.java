@@ -33,12 +33,8 @@ import java.util.*;
 public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
 
-
     @Autowired
     private AliPayConfig aliPayConfig;
-
-
-
 
 
     private static final Set<String> TRADE_NOT_EXIST_CODES = new HashSet<>(Arrays.asList(
@@ -156,39 +152,33 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             response = alipayClient.certificateExecute(request);
             log.info("支付宝查询结果outTradeNo:{},subCode:{}", outTradeNo, response.getSubCode());
 
-        } catch (AlipayApiException e) {
+        } catch (Exception e) {
 
             log.error("查询支付宝交易状态异常", e);
-            /**
-             * 发生网络异常 统一返回不存在
-             */
-            TradeStatusBO tradeStatusBO = new TradeStatusBO();
-            tradeStatusBO.setTradeStatus(TradeStatusEnum.UNKNOWN);
-
-            return tradeStatusBO;
+            throw new MessageRetryConsumeException("查询支付宝交易状态异常");
         }
 
         if (!response.isSuccess()) {
             log.warn("支付宝支付订单非成功状态");
             TradeStatusBO tradeStatusBO = new TradeStatusBO();
             tradeStatusBO.setTradeStatus(TradeStatusEnum.UNKNOWN);
-            return  tradeStatusBO;
+            return tradeStatusBO;
         }
         String tradeStatusStr = response.getTradeStatus();
         TradeStatusEnum tradeStatusEnum = TradeStatusEnum.fromAlipayStatus(tradeStatusStr);
-        if (!TradeStatusEnum.TRADE_SUCCESS.equals(tradeStatusEnum)){
+        if (!TradeStatusEnum.TRADE_SUCCESS.equals(tradeStatusEnum)) {
 
             log.warn("支付宝支付订单非交易成功状态");
             TradeStatusBO tradeStatusBO = new TradeStatusBO();
             tradeStatusBO.setTradeStatus(TradeStatusEnum.UNKNOWN);
-            return  tradeStatusBO;
+            return tradeStatusBO;
         }
         log.info("支付宝支付订单状态为交易成功,构建返回结果");
         TradeStatusBO tradeStatusBO = null;
         try {
             tradeStatusBO = buildTradeStatusBO(response);
         } catch (Exception e) {
-            log.error("构建返回结果结果异常",e);
+            log.error("构建返回结果结果异常", e);
             tradeStatusBO = new TradeStatusBO();
             tradeStatusBO.setTradeStatus(TradeStatusEnum.UNKNOWN);
             return tradeStatusBO;
@@ -310,7 +300,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
     }
 
     @Override
-    public CancelPaidOrderResultBO cancelPaidOrder(String outTradeNo, BigDecimal refundAmount, String refundReason) throws MessageRetryConsumeException {
+    public void cancelPaidOrder(String outTradeNo, BigDecimal refundAmount, String refundReason) throws MessageRetryConsumeException {
 
 
         log.info("取消支付宝已支付订单开始:outTradeNo={},refundAmount={},refundReason={}",
@@ -326,46 +316,15 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             model.setRefundAmount(refundAmount.toString());
             model.setRefundReason(refundReason != null ? refundReason : "订单取消退款");
             request.setBizModel(model);
-
-            AlipayTradeRefundResponse response = alipayClient.certificateExecute(request);
-            String code = response.getCode();
-            String subCode = response.getSubCode();
+            alipayClient.certificateExecute(request);
             /**
              * 只负责发送请求 最终通过查询保证退款成功
              */
-            if ("10000".equals(code)) {
-                log.info("支付宝发起退款成功:outTradeNo={},tradeNo={},refundFee={}",
-                        outTradeNo, response.getTradeNo(), response.getRefundFee());
-                CancelPaidOrderResultBO bo = new CancelPaidOrderResultBO();
-                bo.setResult(true);
-                return bo;
-            }
-
-            if ("ACQ.SYSTEM_ERROR".equals(subCode)) {
-                log.warn("支付宝退款失败:outTradeNo={},code={},subCode={},msg={}",
-                        outTradeNo, code, response.getSubCode(), response.getSubMsg());
-                /**
-                 * 系统错误 抛出异常重试
-                 */
-                throw new MessageRetryConsumeException("退款接口系统错误");
-            } else {
-
-                /**
-                 * 其他业务错误
-                 */
-                log.error("支付宝退款失败:outTradeNo={},code={},subCode={},msg={}",
-                        outTradeNo, code, response.getSubCode(), response.getSubMsg());
-                CancelPaidOrderResultBO cancelPaidOrderResultBO = new CancelPaidOrderResultBO();
-                cancelPaidOrderResultBO.setResult(false);
-                cancelPaidOrderResultBO.setErrorMsg(subCode + ":" + response.getSubMsg());
-                return new CancelPaidOrderResultBO();
-            }
-
-
-        } catch (AlipayApiException e) {
-            log.warn("支付宝退款异常:outTradeNo={}", outTradeNo, e);
+        } catch (Exception e) {
+            log.error("发起支付宝退款异常:outTradeNo={}", outTradeNo, e);
             throw new MessageRetryConsumeException("退款异常");
         }
+        log.info("请求发起成功");
     }
 
     /**
@@ -405,11 +364,9 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
                 result.setRefundAmount(new BigDecimal(response.getRefundAmount()));
                 result.setSendBackFee(new BigDecimal(response.getSendBackFee()));
                 result.setGmtRefundPay(response.getGmtRefundPay());
-                log.info("查询支付宝退款结果成功:outTradeNo={},outRequestNo={},refundStatus={}",
-                        outTradeNo, outRequestNo, response.getRefundStatus());
+                log.info("查询支付宝退款结果成功refundStatus={}", response.getRefundStatus());
                 return result;
             }
-
 
             if ("ACQ.SYSTEM_ERROR".equals(subCode) ||
                     "ACQ.ENTERPRISE_PAY_BIZ_ERROR".equals(subCode)
@@ -432,8 +389,8 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
                 return result;
             }
 
-        } catch (AlipayApiException e) {
-            log.warn("查询支付宝退款结果异常:outTradeNo={},outRequestNo={}", outTradeNo, outRequestNo, e);
+        } catch (Exception e) {
+            log.error("查询支付宝退款结果异常:outTradeNo={},outRequestNo={}", outTradeNo, outRequestNo, e);
             throw new MessageRetryConsumeException("查询退款结果异常");
         }
     }

@@ -22,11 +22,6 @@ public interface IPaymentCancelRecordService extends IService<PaymentCancelRecor
      */
     void cancelWaitPayOrder(CancelWaitPayOrderBO cancelWaitPayOrderBO) throws MessageRetryConsumeException;
 
-    /**
-     * 取消已支付订单（发起退款）
-     *
-     * @throws MessageRetryConsumeException 消息重试异常
-     */
-    void cancelPaidOrder(CancelPaidOrderBO cancelPaidOrderBO) throws MessageRetryConsumeException;
+
 
 }

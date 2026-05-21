@@ -2,9 +2,7 @@ package com.lanf.pay.service.trade.impl;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.CancelPayOrderContext;
-import com.lanf.pay.service.pay.IPaymentCancelRecordService;
 import com.lanf.pay.service.pay.IPrepayPayTypeService;
-import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.PayMethodHandler;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderMessage;
@@ -19,15 +17,13 @@ import java.util.List;
 public class ThirdPartyPayMethodHandler implements PayMethodHandler {
 
     @Autowired
-    private IPaymentCancelRecordService paymentCancelRecordService;
-    @Autowired
-    private ITradeOrderService tradeOrderService;
-    @Autowired
     private IPrepayPayTypeService prepayPayTypeService;
     @Autowired
     private RocketMqClient rocketMqClient;
     @Override
     public void cancelPayOrder(CancelPayOrderContext context) {
+
+        log.info("取消三方支付订单,查询多渠道支付方式:{}",context);
 
         String outTradeNo = context.getOutTradeNo();
         List<Integer> payTypesByOutTradeNo = prepayPayTypeService.getPayTypesByOutTradeNo(outTradeNo);
@@ -41,9 +37,7 @@ public class ThirdPartyPayMethodHandler implements PayMethodHandler {
             CancelOrderMessage cancelOrderMessage = new CancelOrderMessage();
             cancelOrderMessage.setOutTradeNo(outTradeNo);
             cancelOrderMessage.setPayType(payType);
-            cancelOrderMessage.setCancelSource(null);
-            //取消订单 全部退款时 outRequestNo = outTradeNo
-            cancelOrderMessage.setOutRequestNo(outTradeNo);
+            cancelOrderMessage.setBizOrderId(context.getTradeOrderId());
             rocketMqClient.sendMessage(TopicName.CANCEL_PAY_ORDER_TOPIC, JsonUtils.toJsonString(cancelOrderMessage));
 
         }

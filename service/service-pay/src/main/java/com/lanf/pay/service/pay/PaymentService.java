@@ -68,7 +68,7 @@ public interface PaymentService {
      * @param refundReason 退款原因
      * @return 是否成功
      */
-    CancelPaidOrderResultBO cancelPaidOrder(String outTradeNo, BigDecimal refundAmount, String refundReason) throws MessageRetryConsumeException;
+    void cancelPaidOrder(String outTradeNo, BigDecimal refundAmount, String refundReason) throws MessageRetryConsumeException;
 
     /**
      * 转账

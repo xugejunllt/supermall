@@ -1,18 +1,16 @@
 package com.lanf.rocketmq.model.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class CancelOrderMessage implements Serializable {
+public class CancelOrderMessage extends BaseMessage {
 
-    private String outRequestNo;
 
     private String outTradeNo;
 
     private Integer payType;
 
-    private Integer cancelSource;
+    private Long bizOrderId;
 
 }

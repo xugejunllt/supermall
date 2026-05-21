@@ -1,11 +1,10 @@
 package com.lanf.pay.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class QueryRefundResultMessage implements Serializable {
+public class QueryRefundResultMessage extends BaseMessage {
 
 
     private String outTradeNo;

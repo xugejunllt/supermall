@@ -9,6 +9,7 @@ import com.lanf.api.pay.model.enums.RefundEventTypeEnum;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.finance.model.enums.RecordTypeEnum;
@@ -61,16 +62,20 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
     @Override
     public void onMessage(QueryRefundResultMessage message) {
 
+        log.info("查询退款结果消息:{}",message);
 
         RefundOrderFlowDO one = refundOrderFlowService.lambdaQuery().
-                eq(RefundOrderFlowDO::getOutTradeNo, message.getOutTradeNo())
-                .eq(RefundOrderFlowDO::getOutRequestNo, message.getOutRequestNo()).one();
+                 eq(RefundOrderFlowDO::getOutTradeNo, message.getOutTradeNo())
+                .eq(RefundOrderFlowDO::getOutRequestNo, message.getOutRequestNo())
+                .one();
 
         if (one != null) {
             log.info("退款已处理");
             return;
         }
-        RefundOrderDO orderDO = refundOrderService.lambdaQuery().eq(RefundOrderDO::getOutTradeNo, message.getOutTradeNo()).one();
+        RefundOrderDO orderDO = refundOrderService.lambdaQuery()
+                .eq(RefundOrderDO::getOutTradeNo, message.getOutTradeNo())
+                .one();
 
         if (orderDO == null) {
             log.error("退款单不存在");
@@ -81,8 +86,7 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
 
         PaymentService paymentService = paymentServiceFactory.getPaymentService(payChannel.getCode());
 
-        RefundQueryResultBO refundQueryResultBO = paymentService.
-                queryRefundResult(message.getOutTradeNo(), message.getOutRequestNo());
+        RefundQueryResultBO refundQueryResultBO = paymentService.queryRefundResult(message.getOutTradeNo(), message.getOutRequestNo());
 
         AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(refundQueryResultBO.getSendBackFee(), orderDO);
         RefundOrderFlowDO refundOrderFlowDO = buildRefundOrderFlowDO(refundQueryResultBO, orderDO);
@@ -97,7 +101,7 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
             refundOrderFlowService.save(refundOrderFlowDO);
         } catch (DuplicateKeyException e) {
             log.warn("退款流水已存在");
-            throw new BizException("退款流水已存在");
+            return;
         }
         boolean update = refundOrderService.lambdaUpdate()
                 .eq(RefundOrderDO::getId, orderDO.getId())
@@ -165,7 +169,7 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
         moneyFlowMessage.setIncomeMoney(incomeMoney);
         moneyFlowMessage.setRecordType(recordTypeEnum);
         moneyFlowMessage.setFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.MONEY_FLOW,orderDO.getId().toString()));
-        moneyFlowMessage.setTenantId(null);
+        moneyFlowMessage.setTenantId(Constants.PLATFORM_BUSINESS_ID);
         moneyFlowMessage.setBizOrderId(orderDO.getBizOrderId());
 
         return moneyFlowMessage;
