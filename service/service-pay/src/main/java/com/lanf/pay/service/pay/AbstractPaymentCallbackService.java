@@ -87,7 +87,7 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
                 log.error("回调参数签名异常");
                 return new PaySuccessHandleResultBO(false);
             }
-
+           log.info("回调参数验证成功");
         } catch (Exception e) {
             log.error("回调处理异常",e);
             return new PaySuccessHandleResultBO(false);
@@ -102,7 +102,7 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
 
         boolean alreadyPaid = isAlreadyPaid(outTradeNo, payType);
         if (alreadyPaid) {
-            log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
+            log.warn("支付流水已存在");
             return new PaySuccessHandleResultBO(true);
         }
 
@@ -110,7 +110,6 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
             /**
              * 交易金额异常
              *
-             * 记录流水--异常流水
              */
             log.error("交易金额异常 outTradeNo:[{}],totalAmount[{}],tradeMoney[{}]", outTradeNo, totalAmount, tradeMoney);
             return new PaySuccessHandleResultBO(false);
@@ -120,9 +119,10 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
         PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(payType, resultBO);
         PayOrderFlowInsertSuccessMessage message = buildPayOrderFlowInsertSuccessMessage(resultBO, payType);
 
-        AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(resultBO);
 
         try {
+            AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(resultBO);
+
             payOrderFlowService.save(payOrderFlowDO);
             /**
              * 下游业务处理
@@ -133,7 +133,7 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
              */
             rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
         } catch (DuplicateKeyException e) {
-            log.info("交易单支付成功 outTradeNo:[{}]", outTradeNo);
+            log.info("支付流水已存在,重复插入");
             return new PaySuccessHandleResultBO(true);
         }
         return new PaySuccessHandleResultBO(true);

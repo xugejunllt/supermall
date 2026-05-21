@@ -1,13 +1,13 @@
 package com.lanf.finance.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import com.lanf.finance.model.enums.RecordTypeEnum;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class AddMoneyFlowMessage implements Serializable {
+public class AddMoneyFlowMessage extends BaseMessage {
 
     private static final long serialVersionUID = 1L;
     private String flowNo;

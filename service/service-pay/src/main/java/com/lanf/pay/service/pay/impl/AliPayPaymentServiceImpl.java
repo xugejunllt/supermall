@@ -140,7 +140,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
     @Override
     public TradeStatusBO queryTradeStatus(String outTradeNo) {
 
-        log.info("查询支付宝交易状态:outTradeNo={}", outTradeNo);
+        log.info("查询支付宝交易状态");
 
         AlipayClient alipayClient = null;
         AlipayTradeQueryResponse response = null;
@@ -158,7 +158,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
         } catch (AlipayApiException e) {
 
-            log.warn("查询支付宝交易状态异常:outTradeNo:{}", outTradeNo, e);
+            log.error("查询支付宝交易状态异常", e);
             /**
              * 发生网络异常 统一返回不存在
              */
@@ -169,6 +169,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
         }
 
         if (!response.isSuccess()) {
+            log.warn("支付宝支付订单非成功状态");
             TradeStatusBO tradeStatusBO = new TradeStatusBO();
             tradeStatusBO.setTradeStatus(TradeStatusEnum.UNKNOWN);
             return  tradeStatusBO;
@@ -177,12 +178,22 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
         TradeStatusEnum tradeStatusEnum = TradeStatusEnum.fromAlipayStatus(tradeStatusStr);
         if (!TradeStatusEnum.TRADE_SUCCESS.equals(tradeStatusEnum)){
 
+            log.warn("支付宝支付订单非交易成功状态");
             TradeStatusBO tradeStatusBO = new TradeStatusBO();
             tradeStatusBO.setTradeStatus(TradeStatusEnum.UNKNOWN);
             return  tradeStatusBO;
         }
-        log.info("支付宝交易成功:outTradeNo{}", outTradeNo);
-        return buildTradeStatusBO(response);
+        log.info("支付宝支付订单状态为交易成功,构建返回结果");
+        TradeStatusBO tradeStatusBO = null;
+        try {
+            tradeStatusBO = buildTradeStatusBO(response);
+        } catch (Exception e) {
+            log.error("构建返回结果结果异常",e);
+            tradeStatusBO = new TradeStatusBO();
+            tradeStatusBO.setTradeStatus(TradeStatusEnum.UNKNOWN);
+            return tradeStatusBO;
+        }
+        return tradeStatusBO;
     }
 
     /**
@@ -208,9 +219,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
          * 暂不返回收款账户
          */
         tradeStatusBO.setIncomeAccount(null);
-        String passbackParams = response.getPassbackParams();
-        log.info("支付宝回调参数:{}", passbackParams);
-        tradeStatusBO.setStrPassbackParams(passbackParams);
+        tradeStatusBO.setStrPassbackParams(response.getPassbackParams());
         tradeStatusBO.setAllParams(JsonUtils.toJsonString(response));
         return tradeStatusBO;
     }
