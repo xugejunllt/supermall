@@ -2,7 +2,7 @@ package com.lanf.rocketmq.util;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.common.utils.StackTraceUtil;
-import com.lanf.rocketmq.model.BaseMessage;
+import com.lanf.constant.utils.TraceIdUtils;
 import com.lanf.rocketmq.model.enums.DelayLevelEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import io.netty.util.HashedWheelTimer;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -28,14 +29,31 @@ public class RocketMqClient {
     private static final HashedWheelTimer TIMER = new HashedWheelTimer(100, TimeUnit.MILLISECONDS, 512);
 
     /**
+     * 构建带链路 ID 的消息头
+     *
+     * @return 消息头 Map
+     */
+    private Map<String, Object> buildHeadersWithTraceId() {
+        Map<String, Object> headers = new HashMap<>();
+        String traceId = TraceIdUtils.getTraceId();
+        if (traceId != null) {
+            headers.put("traceId", traceId);
+        }
+        return headers;
+    }
+
+    /**
      * 发送顺序消息
      *
      *
      *
      */
-    public void syncSendOrderly(String topic, String message,String key){
-        log.info("发送顺序mq消息开始:topic:{},message:{}",topic, message);
-        rocketMQTemplate.syncSendOrderly(topic, message, key);
+    public void syncSendOrderly(String topic, String message, String key){
+        log.info("发送顺序mq消息开始:topic:{},message:{}", topic, message);
+        
+        Map<String, Object> headers = buildHeadersWithTraceId();
+        Message<Object> messageWithHeader = MessageBuilder.createMessage(message, new MessageHeaders(headers));
+        rocketMQTemplate.syncSendOrderly(topic, messageWithHeader, key);
     }
 
     /**
@@ -45,17 +63,18 @@ public class RocketMqClient {
      */
     public void sendMessage(String topic, String message){
 
-        log.info("发送mq消息开始:topic:{},message:{}",topic, message);
+        log.info("发送mq消息开始:topic:{},message:{}", topic, message);
 
         try {
-            SendResult  sendResult = rocketMQTemplate.syncSend(topic, message);
+            Map<String, Object> headers = buildHeadersWithTraceId();
+            Message<Object> messageWithHeader = MessageBuilder.createMessage(message, new MessageHeaders(headers));
+            SendResult sendResult = rocketMQTemplate.syncSend(topic, messageWithHeader);
 
-             if ( !SendStatus.SEND_OK.equals(sendResult.getSendStatus())){
+             if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())){
                  String sendResultJson = JsonUtils.toJsonString(sendResult);
                  log.error("发送MQ消息失败,异常状态[{}]", sendResultJson);
              } else {
                  log.info("发送mq消息成功");
-
              }
 
         } catch (Exception e) {
@@ -77,7 +96,9 @@ public class RocketMqClient {
         log.info("发送带Tag的mq消息开始:destination:{},tag:{},message:{}", destination, tag, message);
 
         try {
-            SendResult sendResult = rocketMQTemplate.syncSend(destination, message);
+            Map<String, Object> headers = buildHeadersWithTraceId();
+            Message<Object> messageWithHeader = MessageBuilder.createMessage(message, new MessageHeaders(headers));
+            SendResult sendResult = rocketMQTemplate.syncSend(destination, messageWithHeader);
 
             if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())){
                 String sendResultJson = JsonUtils.toJsonString(sendResult);
@@ -107,8 +128,9 @@ public class RocketMqClient {
         log.info("发送带Tag的顺序mq消息开始:destination:{},tag:{},hashKey:{},message:{}", destination, tag, hashKey, message);
 
         try {
-            // 使用 syncSendOrderly 方法，传入 hashKey
-            SendResult sendResult = rocketMQTemplate.syncSendOrderly(destination, message, hashKey);
+            Map<String, Object> headers = buildHeadersWithTraceId();
+            Message<Object> messageWithHeader = MessageBuilder.createMessage(message, new MessageHeaders(headers));
+            SendResult sendResult = rocketMQTemplate.syncSendOrderly(destination, messageWithHeader, hashKey);
 
             if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
                 String sendResultJson = JsonUtils.toJsonString(sendResult);
@@ -128,8 +150,9 @@ public class RocketMqClient {
     public void sendDelayMessage(String topic, String message, DelayLevelEnum delayLevel) {
 
         log.info("发送延迟mq消息开始:topic:{},delayLevel:{},message:{}", topic, delayLevel.getDescription(), message);
-        MessageHeaders messageHeaders = new MessageHeaders(new HashMap<>());
-        Message<Object> message1 = MessageBuilder.createMessage(message, messageHeaders);
+        
+        Map<String, Object> headers = buildHeadersWithTraceId();
+        Message<Object> message1 = MessageBuilder.createMessage(message, new MessageHeaders(headers));
         try {
             SendResult sendResult = rocketMQTemplate.syncSend(topic, message1, 0, delayLevel.getLevel());
 
@@ -154,10 +177,19 @@ public class RocketMqClient {
 
         log.info("发送延迟mq消息开始:topic:{},message:{},timeUnit:{},delayTime:{}秒", topic, message, timeUnit, delayTime);
         
+        String traceId = TraceIdUtils.getTraceId();
+        
         TIMER.newTimeout(timeout -> {
             try {
                 log.info("延迟时间到，开始发送MQ消息:topic:{}", topic);
-                SendResult sendResult = rocketMQTemplate.syncSend(topic, message);
+                
+                if (traceId != null) {
+                    TraceIdUtils.setTraceId(traceId);
+                }
+                
+                Map<String, Object> headers = buildHeadersWithTraceId();
+                Message<Object> messageWithHeader = MessageBuilder.createMessage(message, new MessageHeaders(headers));
+                SendResult sendResult = rocketMQTemplate.syncSend(topic, messageWithHeader);
 
                 if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
                     String sendResultJson = JsonUtils.toJsonString(sendResult);
@@ -168,6 +200,8 @@ public class RocketMqClient {
 
             } catch (Exception e) {
                 log.error("发送MQ消息失败,topic:{}", topic, e);
+            } finally {
+                TraceIdUtils.clearAll();
             }
 
         }, delayTime, timeUnit);
@@ -176,10 +210,12 @@ public class RocketMqClient {
     public void sendMessage(String topic, Object message){
 
         String jsonMessage = JsonUtils.toJsonString(message);
-        log.info("发送mq消息:topic:{},message:{}",topic, jsonMessage);
+        log.info("发送mq消息:topic:{},message:{}", topic, jsonMessage);
 
         try {
-            SendResult sendResult = rocketMQTemplate.syncSend(topic, jsonMessage);
+            Map<String, Object> headers = buildHeadersWithTraceId();
+            Message<Object> messageWithHeader = MessageBuilder.createMessage(jsonMessage, new MessageHeaders(headers));
+            SendResult sendResult = rocketMQTemplate.syncSend(topic, messageWithHeader);
         } catch (Exception e) {
 
             //不抛异常，事务最终一致性
@@ -188,19 +224,6 @@ public class RocketMqClient {
 
     }
 
-
-    public void sendMessage(String topic, BaseMessage message)  {
-
-        log.info("发送mq消息:topic:{},message:{}",topic, JsonUtils.toJsonString(message));
-
-        MessageHeaders messageHeaders = new MessageHeaders(new HashMap<>());
-        Message<Object> message1 = MessageBuilder.createMessage(JsonUtils.toJsonString(message), messageHeaders);
-        SendResult sendResult = rocketMQTemplate.syncSend(topic, message1, 0, message.getDelayTime());
-
-        if ( !SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
-            log.error("发送失败");
-        }
-    }
 
 
 

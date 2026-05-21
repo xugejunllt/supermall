@@ -39,8 +39,6 @@ public class FeignConfig {
                     requestTemplate.header(RequestAuthExtractor.FEIGN_HEADER_TRACE_ID, traceId);
                 }
 
-                log.debug("Feign请求透传用户上下文: userId={}, deviceId={}, tenantId={}, traceId={}", 
-                        userId, deviceId, tenantId, traceId);
             }
         };
     }
