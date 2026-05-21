@@ -35,6 +35,7 @@ public class RealtimeOrderTradesSuccessHandler implements TradeSuccessHandler {
         orderPayInfoList.add(orderPayInfo);
         TradeSuccessEventMessage message = new TradeSuccessEventMessage();
         message.setBathPay( false);
+        message.setUserId(tradeOrderDO.getUserId());
         message.setOrderPayInfoList(orderPayInfoList);
         return message;
     }

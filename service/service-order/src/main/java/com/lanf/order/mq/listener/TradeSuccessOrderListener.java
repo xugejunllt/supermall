@@ -56,13 +56,19 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
     @Override
     public void onMessage(TradeSuccessEventMessage message) {
 
-        log.info("订单交易成功消息,更新订单状态为已支付开始[{}]", JsonUtils.toJsonString(message));
+        log.info("交易单更新成功消息,更新订单状态为已支付开始[{}]", JsonUtils.toJsonString(message));
         Boolean bathPay = message.getBathPay();
+        Long userId = message.getUserId();
+
         if (bathPay) {
 
-            log.info("批量支付成功");
+            log.info("批量支付订单处理开始");
+
             Long mainOrderId = message.getMainOrderId();
-            MainOrderDO orderDO = mainOrderService.getById(mainOrderId);
+            MainOrderDO orderDO = mainOrderService.lambdaQuery()
+                    .eq(BaseEntity::getId, mainOrderId)
+                    .eq(MainOrderDO::getUserId, userId)
+                    .one();
 
             if (orderDO == null) {
                 log.error("订单不存在");
@@ -74,6 +80,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             }
 
             List<OrderDO> orderDOList = orderService.lambdaQuery()
+                    .eq(OrderDO::getUserId,userId)
                     .eq(OrderDO::getMainOrderId, message.getMainOrderId())
                     .list();
             if (orderDOList.isEmpty()) {
@@ -92,59 +99,63 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                 statusTraceDO.setOrderId(orderDO2.getId());
                 statusTraceDO.setFromStatus(OrderStatusEnum.WAIT_PAY);
                 statusTraceDO.setToStatus(OrderStatusEnum.PAID);
+                statusTraceDO.setUserId(userId);
                 statusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
                 statusTraceDO.setRemark("订单支付成功");
                 statusTraceDOList.add(statusTraceDO);
                 //
                 OrderPaySuccessMessage orderPaySuccessMessage = new OrderPaySuccessMessage();
                 orderPaySuccessMessage.setOrderId(orderDO.getId());
-                orderPaySuccessMessage.setUserId(orderDO.getUserId());
+                orderPaySuccessMessage.setUserId(userId);
                 orderPaySuccessMessageList.add(orderPaySuccessMessage);
             }
 
 
             boolean update = mainOrderService.lambdaUpdate()
                     .eq(BaseEntity::getId, mainOrderId)
+                    .eq(MainOrderDO::getUserId, userId)
                     .eq(MainOrderDO::getVersion, orderDO.getVersion())
                     .eq(MainOrderDO::getPayStatus, PayStatusEnum.WAIT_PAY.getCode())
                     .set(MainOrderDO::getPayStatus, PayStatusEnum.PAID.getCode())
                     .set(MainOrderDO::getVersion, orderDO.getVersion() + 1)
                     .update();
             if (!update) {
-                log.warn("订单更新失败");
-                throw new MessageRetryConsumeException("订单状态异常");
+                log.warn("更新主订单状态为已支付失败");
+                throw new MessageRetryConsumeException("更新主订单状态为已支付失败");
             }
 
             for (OrderDO orderDO2 : orderDOList) {
-                boolean update2 = orderService.lambdaUpdate().eq(BaseEntity::getId, orderDO2.getId())
+                boolean update2 = orderService.lambdaUpdate()
+                        .eq(BaseEntity::getId, orderDO2.getId())
+                        .eq(OrderDO::getUserId, userId)
                         .eq(OrderDO::getVersion, orderDO2.getVersion())
                         .set(OrderDO::getStatus, OrderStatusEnum.PAID.getCode())
                         .set(OrderDO::getVersion, orderDO2.getVersion() + 1)
                         .update();
                 if (!update2) {
-                    log.warn("订单更新失败");
-                    throw new MessageRetryConsumeException("订单状态异常");
+                    log.warn("更新订单状态为已支付失败");
+                    throw new MessageRetryConsumeException("更新订单状态为已支付失败");
                 }
             }
             orderStatusTraceService.saveBatch(statusTraceDOList);
-
             orderPaySuccessMessageList.forEach(a -> {
 
                 rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
-                        OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(message),
+                        OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(a),
                         a.getOrderId().toString());
             });
-
+            log.info("批量支付订单处理成功");
 
         } else {
 
-            log.info("单笔支付成功");
+            log.info("单笔支付订单处理开始");
 
             Date date = new Date();
             OrderPayInfo orderPayInfo = message.getOrderPayInfoList().get(0);
             OrderDO orderDO = orderService.lambdaQuery()
                     .eq(OrderDO::getId, orderPayInfo.getOrderId())
-                            .one();
+                    .eq(OrderDO::getUserId, userId)
+                    .one();
             updateOrderStatusCheck(orderDO);
 
             OrderStatusTraceDO statusTraceDO = new OrderStatusTraceDO();
@@ -163,23 +174,24 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
 
             boolean update = orderService.lambdaUpdate()
                     .eq(BaseEntity::getId, orderDO.getId())
+                    .eq(OrderDO::getUserId, userId)
                     .eq(OrderDO::getVersion, orderDO.getVersion())
                     .set(OrderDO::getStatus, OrderStatusEnum.PAID.getCode())
                     .set(OrderDO::getVersion, orderDO.getVersion() + 1)
                     .update();
             if (!update) {
-                log.warn("订单更新失败");
-                throw new MessageRetryConsumeException("订单状态异常");
+                log.warn("订单更新为已支付失败");
+                throw new MessageRetryConsumeException("订单更新为已支付失败");
             }
             orderStatusTraceService.save(statusTraceDO);
             rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
-                    OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(message),
+                    OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(orderPaySuccessMessage),
                     orderDO.getId().toString());
+            log.info("单笔支付订单处理成功");
 
 
         }
 
-       log.info("更新完成");
 
     }
 
@@ -190,15 +202,13 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             throw new BizException("订单不存在");
         }
         if (OrderStatusEnum.PAID.equals(orderDO.getStatus())) {
-            log.warn("订单已更新");
-            throw new BizException("订单已更新");
+            log.warn("订单已为支付状态");
+            throw new BizException("订单已为支付状态");
         }
-        /**
-         * 此时订单可能已经被取消了 则忽略
-         */
+
         if (!OrderStatusEnum.WAIT_PAY.equals(orderDO.getStatus())) {
-            log.error("订单状态异常");
-            throw new BizException("订单状态异常");
+            log.warn("订单已被其他业务场景更新");
+            throw new BizException("订单已被其他业务场景更新");
         }
 
     }

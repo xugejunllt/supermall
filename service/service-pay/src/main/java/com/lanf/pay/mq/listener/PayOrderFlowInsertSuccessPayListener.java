@@ -287,8 +287,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
              * 发送mq
              */
 
-            TradeSuccessEventMessage message = buildTradeSuccessEventMessage(payType,
-                    bathTradeOrderDO.getMainOrderId(), tradeOrderDOList);
+            TradeSuccessEventMessage message = buildTradeSuccessEventMessage(bathTradeOrderDO.getMainOrderId(), tradeOrderDOList);
 
             rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
 
@@ -297,7 +296,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
 
     }
 
-    private TradeSuccessEventMessage buildTradeSuccessEventMessage(Integer payType, Long mainOrderId
+    private TradeSuccessEventMessage buildTradeSuccessEventMessage( Long mainOrderId
             , List<TradeOrderDO> tradeOrderDOList) {
         List<OrderPayInfo> orderPayInfoList = new ArrayList<>();
         for (TradeOrderDO tradeOrderDO : tradeOrderDOList) {
@@ -311,7 +310,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         message.setBathPay(true);
         message.setMainOrderId(mainOrderId);
         message.setOrderPayInfoList(orderPayInfoList);
-
+        message.setUserId(orderPayInfoList.get(0).getOrderId());
         return message;
     }
 
@@ -383,11 +382,11 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         /**
          * 发送mq
          */
-        TradeSuccessEventMessage message = buildTradeSuccessEventMessage(payType, tradeOrderDO);
+        TradeSuccessEventMessage message = buildTradeSuccessEventMessage( tradeOrderDO);
         rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
     }
 
-    private TradeSuccessEventMessage buildTradeSuccessEventMessage(Integer payType, TradeOrderDO tradeOrderDO) {
+    private TradeSuccessEventMessage buildTradeSuccessEventMessage(TradeOrderDO tradeOrderDO) {
         List<OrderPayInfo> orderPayInfoList = new ArrayList<>();
         OrderPayInfo orderPayInfo = new OrderPayInfo();
         orderPayInfo.setOrderId(tradeOrderDO.getOrderId());
@@ -396,6 +395,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         message.setBathPay(false);
         message.setMainOrderId(tradeOrderDO.getOrderId());
         message.setOrderPayInfoList(orderPayInfoList);
+        message.setUserId(tradeOrderDO.getUserId());
         return message;
     }
 }

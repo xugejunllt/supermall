@@ -1,12 +1,11 @@
 package com.lanf.api.order.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
-
-import java.io.Serializable;
 
 
 @Data
-public class OrderPaySuccessMessage implements Serializable {
+public class OrderPaySuccessMessage extends BaseMessage {
 
 
 

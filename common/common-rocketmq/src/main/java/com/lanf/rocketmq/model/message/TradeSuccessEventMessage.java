@@ -16,6 +16,8 @@ public class TradeSuccessEventMessage extends BaseMessage {
 
     private Long mainOrderId;
 
+    private Long userId;
+
     private List<OrderPayInfo> orderPayInfoList;
 
 }
