@@ -8,7 +8,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @MapperScan(basePackages = {"com.lanf.finance.mapper"})
 @SpringBootApplication(scanBasePackages="com.lanf")
 @EnableDiscoveryClient  //nacos注册
-@EnableFeignClients(basePackages = {"com.lanf.log.api","com.lanf.pay.api","com.lanf.system.api","com.lanf.order.api"})
+@EnableFeignClients(basePackages = {"com.lanf.aftersales"})
 public class FinanceApplication {
     public static void main(String[] args) {
 

@@ -47,7 +47,9 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
     @Override
     public void addMoneyFlow(AddMoneyFlow addMoneyFlow) {
         Long businessId = addMoneyFlow.getTenantId();
-        PayAccountDO payAccountDO = payAccountService.lambdaQuery().eq(PayAccountDO::getTenantId, businessId).one();
+        PayAccountDO payAccountDO = payAccountService
+                .lambdaQuery().
+                eq(PayAccountDO::getTenantId, businessId).one();
 
         if (payAccountDO == null){
             log.error("收支账户不存在");
@@ -79,6 +81,7 @@ public class MoneyFlowServiceImpl extends ServiceImpl<MoneyFlowMapper, MoneyFlow
         moneyFlowDO.setIncomeAccount(payAccountDO.getAccount());
         moneyFlowDO.setBeforeRemainMoney(payAccountDO.getRemainMoney());
         moneyFlowDO.setAfterRemainMoney(afterRemainMoney);
+        moneyFlowDO.setChangeMoney(addMoneyFlow.getIncomeMoney());
         return moneyFlowDO;
     }
 

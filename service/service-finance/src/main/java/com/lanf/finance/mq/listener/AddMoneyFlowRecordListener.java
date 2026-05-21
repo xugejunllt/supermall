@@ -23,7 +23,7 @@ public class AddMoneyFlowRecordListener implements RocketMQListener<AddMoneyFlow
 
     @Override
     public void onMessage(AddMoneyFlowMessage message) {
-
+        log.info("收到添加资金流水记录消息: {}", message);
         AddMoneyFlow addMoneyFlow = new AddMoneyFlow();
         addMoneyFlow.setTenantId(message.getTenantId());
         addMoneyFlow.setBizOrderId(message.getBizOrderId());
