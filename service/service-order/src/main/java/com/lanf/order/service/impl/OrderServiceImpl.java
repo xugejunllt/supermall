@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
-import com.lanf.api.order.mq.message.AddSalesOutStockOrderMessage;
+import com.lanf.api.order.mq.message.OrderWaitOutboundMessage;
 import com.lanf.api.order.mq.message.InOutStockOrderItem;
 import com.lanf.api.order.mq.message.OrderOutBoundedMessage;
 import com.lanf.api.order.mq.message.SignOrderMessage;
@@ -21,6 +21,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.logistics.api.LogisticsApiService;
@@ -143,8 +144,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Transactional
     @Override
     public void allowOutbound(AllowOutboundDTO dto) {
+
         Long orderId = dto.getOrderId();
-        OrderDO orderDO = this.getById(orderId);
+        OrderDO orderDO = this.lambdaQuery()
+                .eq(OrderDO::getId, orderId)
+                .eq(OrderDO::getUserId, dto.getUserId())
+                .one();
 
         if (orderDO == null) {
             log.error("订单不存在");
@@ -158,8 +163,16 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             log.warn("订单状态异常");
             throw new BizException("订单状态异常");
         }
-        AddSalesOutStockOrderMessage addSalesOutStockOrderMessage = buildAddSalesOutStockOrderMessage(orderId);
 
+        OrderWaitOutboundMessage outboundMessage = buildAddSalesOutStockOrderMessage(orderId, orderDO.getTenantId());
+        Date date = new Date();
+        OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
+        orderStatusTraceDO.setOrderId(orderId);
+        orderStatusTraceDO.setFromStatus(orderDO.getStatus());
+        orderStatusTraceDO.setToStatus(OrderStatusEnum.WAIT_OUTBOUND);
+        orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+        orderStatusTraceDO.setUserId(orderDO.getUserId());
+        orderStatusTraceDO.setTenantId(orderDO.getTenantId());
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, orderId)
                 .eq(OrderDO::getVersion, orderDO.getVersion())
@@ -170,18 +183,18 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             log.warn("订单状态更新异常");
             throw new BizException("订单状态更新异常");
         }
-        orderStatusTraceService.addOrderStatusTrace(orderDO.getId(), orderDO.getStatus(),
-                OrderStatusEnum.WAIT_OUTBOUND);
-        rocketMqClient.sendMessage(OrderClientTopicName.SIGN_ORDER_EVENT_TOPIC, JsonUtils.
-                toJsonString(addSalesOutStockOrderMessage));
+        orderStatusTraceService.save(orderStatusTraceDO);
+        rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+                OrderStatusEnum.WAIT_OUTBOUND.getTag(),JsonUtils.toJsonString(outboundMessage),
+                orderDO.getId().toString());
 
     }
 
-    private AddSalesOutStockOrderMessage buildAddSalesOutStockOrderMessage(Long orderId){
+    private OrderWaitOutboundMessage buildAddSalesOutStockOrderMessage(Long orderId,Long tenantId){
         List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery()
                 .eq(OrderItemDO::getOrderId, orderId)
                 .list();
-        AddSalesOutStockOrderMessage addSalesOutStockOrderMessage = new AddSalesOutStockOrderMessage();
+        OrderWaitOutboundMessage addSalesOutStockOrderMessage = new OrderWaitOutboundMessage();
         List<InOutStockOrderItem> items = orderItemDOList.stream()
                 .map(orderItemDO -> {
                     InOutStockOrderItem inOutStockOrderItem = new InOutStockOrderItem();
@@ -190,11 +203,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                     inOutStockOrderItem.setTotalQuantity(orderItemDO.getQuantity());
                     inOutStockOrderItem.setUnit(orderItemDO.getSkuName());
                     inOutStockOrderItem.setWarehouseId(orderItemDO.getWarehouseId());
-
+                    inOutStockOrderItem.setTenantId(orderItemDO.getTenantId());
                     return inOutStockOrderItem;
                 }).collect(Collectors.toList());
         addSalesOutStockOrderMessage.setOrderId(orderId);
         addSalesOutStockOrderMessage.setItems( items);
+        addSalesOutStockOrderMessage.setTenantId(tenantId);
         return addSalesOutStockOrderMessage;
     }
 

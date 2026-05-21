@@ -1,15 +1,16 @@
-package com.lanf.storage.mq.listener;
+package com.lanf.storage.mq.listener.event;
 
 
-import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.constant.model.enums.FlowNoPrefixEnum;
-import com.lanf.constant.utils.IdUtils;
-import com.lanf.api.order.mq.constant.OrderClientTopicName;
-import com.lanf.api.order.mq.message.AddSalesOutStockOrderMessage;
 import com.lanf.api.order.mq.message.InOutStockOrderItem;
+import com.lanf.api.order.mq.message.OrderWaitOutboundMessage;
+import com.lanf.api.storage.model.enums.StorageStatusEnum;
+import com.lanf.common.utils.CodeGenerateUtils;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.mq.OrderTopicWithTag;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.storage.model.entity.InOutStockOrderItemDO;
 import com.lanf.storage.model.entity.SalesOutStockOrderDO;
-import com.lanf.api.storage.model.enums.StorageStatusEnum;
 import com.lanf.storage.mq.constant.StorageMqGroupName;
 import com.lanf.storage.service.storage.IInOutStockOrderItemService;
 import com.lanf.storage.service.storage.ISalesOutStockOrderService;
@@ -29,10 +30,11 @@ import java.util.List;
  */
 @Slf4j
 @Component
-@RocketMQMessageListener(topic = OrderClientTopicName.ADD_SALES_OUT_STOCK_ORDER_TOPIC,
-        consumerGroup = StorageMqGroupName.ADD_SALES_OUT_STOCK_ORDER_GROUP)
+@RocketMQMessageListener(topic = OrderTopicWithTag.ORDER_EVENT_TOPIC,
+        consumerGroup = StorageMqGroupName.ADD_SALES_OUT_STOCK_ORDER_GROUP,
+        selectorExpression = OrderTopicWithTag.TAG_WAIT_OUTBOUND)
 
-public class AddSalesOutStockOrderListener implements RocketMQListener<AddSalesOutStockOrderMessage> {
+public class OrderWaitOutboundEventAddSalesOutStockOrderListener implements RocketMQListener<OrderWaitOutboundMessage> {
 
     @Autowired
     private ISalesOutStockOrderService salesOutStockOrderService;
@@ -41,14 +43,15 @@ public class AddSalesOutStockOrderListener implements RocketMQListener<AddSalesO
 
     @Transactional
     @Override
-    public void onMessage(AddSalesOutStockOrderMessage message) {
+    public void onMessage(OrderWaitOutboundMessage message) {
 
-
+        log.info("订单允许发货消息,添加销售出库单:{}", JsonUtils.toJsonString(message));
         SalesOutStockOrderDO one = salesOutStockOrderService.lambdaQuery()
                 .eq(SalesOutStockOrderDO::getOrderId, message.getOrderId())
                 .one();
         if (one != null) {
             log.warn("销售出库单已存在");
+            return;
         }
 
         SalesOutStockOrderDO stockOrderDO = new SalesOutStockOrderDO();
@@ -56,7 +59,7 @@ public class AddSalesOutStockOrderListener implements RocketMQListener<AddSalesO
         stockOrderDO.setCode(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.SALES_OUTBOUND_ORDER));
         stockOrderDO.setStorageStatus(StorageStatusEnum.WAIT_OUTBOUND);
         stockOrderDO.setId(IdUtils.generateId());
-
+        stockOrderDO.setTenantId(message.getTenantId());
         List<InOutStockOrderItem> items = message.getItems();
         List<InOutStockOrderItemDO> inOutStockOrderItemDOList = new ArrayList<>(items.size());
         for (InOutStockOrderItem item : items) {
@@ -83,6 +86,7 @@ public class AddSalesOutStockOrderListener implements RocketMQListener<AddSalesO
         inOutStockOrderItemDO.setSurplusQuantity(item.getTotalQuantity());
         inOutStockOrderItemDO.setUnit(item.getUnit());
         inOutStockOrderItemDO.setWarehouseId(item.getWarehouseId());
+        inOutStockOrderItemDO.setTenantId(stockOrderDO.getTenantId());
         return inOutStockOrderItemDO;
     }
 

@@ -34,6 +34,6 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "仓库id")
     private Long warehouseId;
 
-
+    private Long tenantId;
 
 }
