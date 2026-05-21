@@ -165,7 +165,7 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
         moneyFlowMessage.setIncomeMoney(incomeMoney);
         moneyFlowMessage.setRecordType(recordTypeEnum);
         moneyFlowMessage.setFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.MONEY_FLOW,orderDO.getId().toString()));
-        moneyFlowMessage.setBusinessId(null);
+        moneyFlowMessage.setTenantId(null);
         moneyFlowMessage.setBizOrderId(orderDO.getBizOrderId());
 
         return moneyFlowMessage;

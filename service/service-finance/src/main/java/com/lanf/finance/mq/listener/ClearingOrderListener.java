@@ -2,10 +2,10 @@ package com.lanf.finance.mq.listener;
 
 import com.lanf.aftersales.api.AfterSalesOrderApiService;
 import com.lanf.aftersales.model.dto.UnderAfterSaleDTO;
-import com.lanf.client.pay.model.enums.PayChannelEnum;
-import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
-import com.lanf.client.pay.mq.constant.PayClientTopicName;
-import com.lanf.client.pay.mq.message.TransferMessage;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
+import com.lanf.api.pay.mq.constant.PayClientTopicName;
+import com.lanf.api.pay.mq.message.TransferMessage;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.result.Result;
 import com.lanf.finance.model.entity.ClearingDetailDO;

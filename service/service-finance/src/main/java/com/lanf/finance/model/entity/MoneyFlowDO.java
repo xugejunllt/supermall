@@ -29,7 +29,7 @@ public class MoneyFlowDO extends BaseEntity {
     private String flowNo;
 
     @ApiModelProperty(value = "商家id")
-    private Long businessId;
+    private Long tenantId;
 
     @ApiModelProperty(value = "业务订单id")
     private Long bizOrderId;

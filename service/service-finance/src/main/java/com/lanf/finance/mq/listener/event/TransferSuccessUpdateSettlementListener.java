@@ -1,9 +1,10 @@
 package com.lanf.finance.mq.listener.event;
 
-import com.lanf.client.pay.model.enums.TransferEventTypeEnum;
-import com.lanf.client.pay.mq.constant.PayClientTopicName;
-import com.lanf.client.pay.mq.constant.TransferEventTagConstant;
-import com.lanf.client.pay.mq.message.TransferSuccessMessage;
+
+import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
+import com.lanf.api.pay.mq.constant.PayClientTopicName;
+import com.lanf.api.pay.mq.constant.TransferEventTagConstant;
+import com.lanf.api.pay.mq.message.TransferSuccessMessage;
 import com.lanf.finance.model.entity.ClearingDetailDO;
 import com.lanf.finance.model.enums.ClearingStatusEnum;
 import com.lanf.finance.mq.constant.FinanceMqGroupName;

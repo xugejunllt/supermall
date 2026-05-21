@@ -2,7 +2,7 @@ package com.lanf.finance.model.query;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lanf.common.utils.DateUtils;
-import com.lanf.constant.web.PageQuery;
+import com.lanf.constant.model.query.PageQuery;
 import lombok.Data;
 
 @Data

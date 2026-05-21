@@ -39,7 +39,7 @@ private static final long serialVersionUID=1L;
     private String createDate;
 
     private String remark;
-
+    private Long tenantId;
 
 
 

@@ -25,7 +25,7 @@ public class AddMoneyFlowRecordListener implements RocketMQListener<AddMoneyFlow
     public void onMessage(AddMoneyFlowMessage message) {
 
         AddMoneyFlow addMoneyFlow = new AddMoneyFlow();
-        addMoneyFlow.setBusinessId(message.getBusinessId());
+        addMoneyFlow.setTenantId(message.getTenantId());
         addMoneyFlow.setBizOrderId(message.getBizOrderId());
         addMoneyFlow.setRecordType(message.getRecordType());
         addMoneyFlow.setIncomeMoney(message.getIncomeMoney());

@@ -24,7 +24,7 @@ private static final long serialVersionUID=1L;
 
 
     @ApiModelProperty(value = "商家id")
-    private Long businessId;
+    private Long tenantId;
 
 
     @ApiModelProperty(value = "账户类型 0:支付宝")

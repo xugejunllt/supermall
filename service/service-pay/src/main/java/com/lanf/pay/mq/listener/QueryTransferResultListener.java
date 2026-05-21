@@ -181,7 +181,7 @@ public class QueryTransferResultListener implements RocketMQListener<QueryTransf
                 throw new BizException("不支持的转账事件");
         }
         AddMoneyFlowMessage addMoneyFlowMessage = new AddMoneyFlowMessage();
-        addMoneyFlowMessage.setBusinessId(oned.getMerchantId());
+        addMoneyFlowMessage.setTenantId(oned.getMerchantId());
         addMoneyFlowMessage.setBizOrderId(oned.getBizOrderId());
         addMoneyFlowMessage.setFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.MONEY_FLOW, oned.getOutTradeNo()));
         addMoneyFlowMessage.setRecordType(recordType);

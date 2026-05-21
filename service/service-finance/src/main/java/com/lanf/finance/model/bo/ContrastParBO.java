@@ -1,8 +1,8 @@
 package com.lanf.finance.model.bo;
 
 import com.lanf.api.order.model.vo.OrderVO;
-import com.lanf.client.pay.model.vo.OrderTradeVO;
-import com.lanf.client.pay.model.vo.TradeStatusVO;
+import com.lanf.api.pay.model.vo.OrderTradeVO;
+import com.lanf.api.pay.model.vo.TradeStatusVO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -12,7 +12,7 @@ public class ContrastParBO implements Serializable {
 
     private OrderVO orderVO;
 
-    private  OrderTradeVO orderTradeVO;
+    private OrderTradeVO orderTradeVO;
 
     private TradeStatusVO statusVO;
 

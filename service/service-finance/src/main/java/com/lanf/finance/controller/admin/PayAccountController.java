@@ -1,6 +1,8 @@
 package com.lanf.finance.controller.admin;
 
 
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
 import com.lanf.finance.model.dto.PayAccountAddDTO;
 import com.lanf.finance.model.entity.PayAccountDO;
 import com.lanf.finance.model.query.AccountMoneySumQuery;
@@ -8,8 +10,6 @@ import com.lanf.finance.model.query.PayAccountPageQuery;
 import com.lanf.finance.model.vo.AccountMoneySumVO;
 import com.lanf.finance.service.IMoneyFlowService;
 import com.lanf.finance.service.IPayAccountService;
-import com.lanf.constant.web.PageResult;
-import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -38,13 +38,7 @@ public class PayAccountController {
         log.info("分页查询支付账户");
         return Result.ok(payAccountService.payAccountPage(query));
     }
-    @GetMapping("/accountMoneySumQuery")
-    public Result<AccountMoneySumVO> accountMoneySumQuery(AccountMoneySumQuery query) {
 
-        log.info("账户资金汇总:query{}", query);
-
-        return Result.ok(moneyFlowService.accountMoneySumQuery(query));
-    }
 
 }
 

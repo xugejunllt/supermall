@@ -11,7 +11,7 @@ public class AddMoneyFlow implements Serializable {
 
     private String flowNo;
 
-    private Long businessId;
+    private Long tenantId;
 
     private Long bizOrderId;
 

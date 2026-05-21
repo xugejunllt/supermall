@@ -1,12 +1,12 @@
 package com.lanf.finance.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.finance.model.dto.PayAccountAddDTO;
 import com.lanf.finance.model.dto.PayAccountDTO;
 import com.lanf.finance.model.entity.PayAccountDO;
 import com.lanf.finance.model.query.PayAccountPageQuery;
 import com.lanf.finance.model.vo.PayAccountApiVO;
-import com.lanf.constant.web.PageResult;
 
 /**
  * <p>

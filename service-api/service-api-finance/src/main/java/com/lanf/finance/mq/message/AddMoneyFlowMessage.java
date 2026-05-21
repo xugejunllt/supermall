@@ -11,7 +11,7 @@ public class AddMoneyFlowMessage extends BaseMessage {
 
     private static final long serialVersionUID = 1L;
     private String flowNo;
-    private Long businessId;
+    private Long tenantId;
 
     private Long bizOrderId;
 

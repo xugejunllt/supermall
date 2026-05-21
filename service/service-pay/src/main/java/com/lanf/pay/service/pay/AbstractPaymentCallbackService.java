@@ -206,7 +206,7 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
 
         }
         AddMoneyFlowMessage addMoneyFlowMessage = new AddMoneyFlowMessage();
-        addMoneyFlowMessage.setBusinessId(Constants.PLATFORM_BUSINESS_ID);
+        addMoneyFlowMessage.setTenantId(Constants.PLATFORM_BUSINESS_ID);
         addMoneyFlowMessage.setBizOrderId(resultBO.getPassbackParams().getTradeOrderId());
         addMoneyFlowMessage.setIncomeMoney(resultBO.getReceiptMoney());
         addMoneyFlowMessage.setRecordType(recordType);

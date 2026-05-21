@@ -4,7 +4,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.mybatis.utils.IdUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.utils.IdUtils;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.finance.mapper.PayAccountMapper;
 import com.lanf.finance.model.dto.PayAccountAddDTO;
 import com.lanf.finance.model.dto.PayAccountDTO;
@@ -13,9 +16,6 @@ import com.lanf.finance.model.query.PayAccountPageQuery;
 import com.lanf.finance.model.vo.PayAccountApiVO;
 import com.lanf.finance.service.IPayAccountService;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
-import com.lanf.system.model.bo.SysUserBO;
-import com.lanf.constant.exception.BizException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +39,7 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
     public PayAccountApiVO payAccountQuery(PayAccountDTO dto) {
 
         PayAccountDO payAccountDO = this.lambdaQuery().
-                eq(dto.getBusinessId() != null, PayAccountDO::getBusinessId, dto.getBusinessId()).
+                eq(dto.getBusinessId() != null, PayAccountDO::getTenantId, dto.getBusinessId()).
                 eq(PayAccountDO::getAccountType, dto.getAccountType()).one();
 
         if (payAccountDO == null) {
@@ -57,8 +57,7 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
 
         String account = dto.getAccount();
         Integer accountType = dto.getAccountType();
-        SysUserBO userInfo = UserUtils.getUserInfo();
-        Long businessId = userInfo.getBusinessId();
+        Long businessId = UserContext.getTenantId();
         /**
          * 远程查询支付宝账户 初期余额是否相等
          */
@@ -85,7 +84,7 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
         Long id = IdUtils.generateId();
         payAccountDO.setId(id);
         payAccountDO.setRemainMoney(dto.getStartRemainMoney());
-        payAccountDO.setBusinessId(businessId);
+        payAccountDO.setTenantId(businessId);
 
         this.save(payAccountDO);
 
@@ -97,13 +96,13 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
 
         IPage<PayAccountDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<PayAccountDO> payAccountPage = this.lambdaQuery().
-                eq(PayAccountDO::getBusinessId, UserUtils.getBusinessId()).
+                eq(PayAccountDO::getTenantId, UserContext.getTenantId()).
                 eq(query.getAccountType() != null, PayAccountDO::getAccountType, query.getAccountType()).
                 orderByDesc(BaseEntity::getId).
                 page(page);
 
 
-        return PageResult.toPageResult(payAccountPage);
+        return null;
     }
 
     @Override
@@ -111,7 +110,7 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
 
 
         return this.lambdaQuery()
-                .eq(PayAccountDO::getBusinessId, merchantId)
+                .eq(PayAccountDO::getTenantId, merchantId)
                 .eq(PayAccountDO::getAccountType, accountType)
                 .one();
     }
