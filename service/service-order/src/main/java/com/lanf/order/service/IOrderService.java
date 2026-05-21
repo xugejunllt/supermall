@@ -3,6 +3,7 @@ package com.lanf.order.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
+import com.lanf.api.storage.mq.message.SalesOutStockOrderFinishMessage;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.order.model.dto.AllowOutboundDTO;
 import com.lanf.order.model.dto.CreateOrderDTO;
@@ -59,7 +60,7 @@ public interface IOrderService extends IService<OrderDO> {
     /**
      * 出库完成
      */
-    void outStockFinish(Long orderId);
+    void outStockFinish(SalesOutStockOrderFinishMessage message);
 
     /**
      * 签收

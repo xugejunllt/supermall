@@ -10,7 +10,6 @@ public class OutStockSalesOutStockOrderDTO implements Serializable {
 
     //销售出库单id
     private Long salesOutStockOrderId;
-    private Long warehouseId;
 
     private List<OutStockItemDTO> outStockItemList;
 }

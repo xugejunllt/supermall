@@ -6,14 +6,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
-import com.lanf.api.order.mq.message.OrderWaitOutboundMessage;
 import com.lanf.api.order.mq.message.InOutStockOrderItem;
-import com.lanf.api.order.mq.message.OrderOutBoundedMessage;
+import com.lanf.api.order.mq.message.OrderWaitOutboundMessage;
 import com.lanf.api.order.mq.message.SignOrderMessage;
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.search.api.SearchApiService;
 import com.lanf.api.search.model.query.OrderSearchQuery;
 import com.lanf.api.search.model.vo.OrderSearchVO;
+import com.lanf.api.storage.mq.message.SalesOutStockOrderFinishMessage;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IStringUtils;
@@ -355,9 +355,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
 
     @Override
-    public void outStockFinish(Long orderId) {
+    public void outStockFinish(SalesOutStockOrderFinishMessage message) {
 
-        OrderDO orderDO = this.getById(orderId);
+        Long orderId = message.getOrderId();
+        Long userId = message.getUserId();
+        OrderDO orderDO = this.lambdaQuery().eq(OrderDO::getId, orderId)
+                .eq(OrderDO::getUserId, userId)
+                .one();
         OrderStatusEnum status = orderDO.getStatus();
         if (OrderStatusEnum.OUTBOUNDED.equals( status)){
             log.warn("订单已出库");
@@ -369,6 +373,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         }
         boolean update = this.lambdaUpdate()
                 .eq(OrderDO::getId, orderId)
+                .eq(OrderDO::getUserId, userId)
                 .eq(OrderDO::getVersion, orderDO.getVersion())
                 .set(OrderDO::getStatus, OrderStatusEnum.OUTBOUNDED.getCode())
                 .set(OrderDO::getVersion, orderDO.getVersion() + 1)
@@ -377,15 +382,22 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             log.warn("订单状态更新失败");
            throw new MessageRetryConsumeException("订单状态更新失败");
         }
-        orderStatusTraceService.addOrderStatusTrace(orderId,
-                OrderStatusEnum.WAIT_OUTBOUND, OrderStatusEnum.OUTBOUNDED);
-        /**
-         * 发布订单出库成功事件
-         */
-        OrderOutBoundedMessage message = new OrderOutBoundedMessage();
-        message.setOrderId(orderId);
-        rocketMqClient.sendMessage( OrderClientTopicName.ORDER_OUT_BOUNDED_EVENT_TOPIC,
-                JsonUtils.toJsonString(message));
+        Date date = new Date();
+        OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
+        orderStatusTraceDO.setOrderId(orderId);
+        orderStatusTraceDO.setFromStatus(orderDO.getStatus());
+        orderStatusTraceDO.setToStatus(OrderStatusEnum.OUTBOUNDED);
+        orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+        orderStatusTraceDO.setUserId(userId);
+        orderStatusTraceDO.setTenantId(orderDO.getTenantId());
+        orderStatusTraceService.save(orderStatusTraceDO);
+//        /**
+//         * 发布订单出库成功事件
+//         */
+//        OrderOutBoundedMessage message = new OrderOutBoundedMessage();
+//        message.setOrderId(orderId);
+//        rocketMqClient.sendMessage( OrderClientTopicName.ORDER_OUT_BOUNDED_EVENT_TOPIC,
+//                JsonUtils.toJsonString(message));
 
 
     }

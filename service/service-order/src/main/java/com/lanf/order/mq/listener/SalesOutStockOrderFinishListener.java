@@ -28,7 +28,7 @@ public class SalesOutStockOrderFinishListener implements RocketMQListener<SalesO
     public void onMessage(SalesOutStockOrderFinishMessage message) {
 
         log.info("出库完成，修改订单状态");
-        orderService.outStockFinish(message.getOrderId());
+        orderService.outStockFinish(message);
 
 
 

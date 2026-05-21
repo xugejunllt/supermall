@@ -7,8 +7,7 @@ import java.io.Serializable;
 @Data
 public class OutStockItemDTO implements Serializable {
 
-    private Long id;
+    private Long outStockItemId;
     private String skuCode;
-    //实际出入库数量
     private Integer actualQuantity;
 }
