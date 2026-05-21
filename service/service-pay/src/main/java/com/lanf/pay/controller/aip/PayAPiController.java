@@ -43,11 +43,6 @@ public class PayAPiController {
         return Result.ok();
     }
 
-    @PostMapping("/cancelTradeOrder")
-    public Result<CancelTradeOrderVO> cancelTradeOrder(@Validated @RequestBody CancelTradeOrderDTO dto){
 
-        log.info("取消交易订单:dto{}", dto);
-        return Result.ok(tradeOrderService.cancelTradeOrder(dto));
-    }
 
 }

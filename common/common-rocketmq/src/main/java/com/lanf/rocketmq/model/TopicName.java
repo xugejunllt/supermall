@@ -179,7 +179,7 @@ public class TopicName {
     /**
      * 取消订单- 支付服务消费组
      */
-    public static final String CANCEL_ORDER_EVENT_PAY_GROUP = "CANCEL_ORDER_EVENT_PAY_GROUP";
+    public static final String CANCEL_ORDER_CANCEL_TRADE_ORDER_GROUP = "CANCEL_ORDER_CANCEL_TRADE_ORDER_GROUP";
     public static final String CANCEL_PAY_ORDER_TOPIC_GROUP = "CANCEL_PAY_ORDER_TOPIC_GROUP";
     public static final String CANCEL_EXPIRED_ORDER_GROUP = "CANCEL_EXPIRED_ORDER_GROUP";
     public static final String AFTER_SALES_CREATE_IN_ORDER_GROUP = "AFTER_SALES_CREATE_IN_ORDER_GROUP";

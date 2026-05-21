@@ -131,14 +131,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
             throw new BizException("交易单不存在");
         }
 
-        if (TradeOrderStatusEnum.CANCELLED.getCode().
-                equals(tradeOrderDO.getPayStatus())) {
-            log.info("交易单已取消");
-            /**
-             * 进行退款 极端场景发生
-             */
 
-        }
         boolean alreadyPaid = isAlreadyPaid(outTradeNo, payType);
         if (TradeOrderStatusEnum.COMPLETED.getCode()
                 .equals(tradeOrderDO.getPayStatus()) && !alreadyPaid) {
@@ -228,15 +221,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
              */
 
         }
-        if (TradeOrderStatusEnum.CANCELLED.getCode().
-                equals(bathTradeOrderDO.getPayStatus())) {
-            log.info("交易单已取消");
-            /**
-             * 进行退款 极端场景发生
-             */
 
-
-        }
         Integer payStatus = bathTradeOrderDO.getPayStatus();
 
         if (BathTradeOrderStatusEnum.MERGE_TRANSFER_SINGLE.getCode().equals(payStatus)) {
@@ -345,12 +330,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
             return;
         }
 
-        if (TradeOrderStatusEnum.CANCELLED.getCode().equals(orderDO.getPayStatus())) {
-            /**
-             * 退款
-             */
-            return;
-        }
+
         if (BathTradeOrderStatusEnum.PENDING.
                 getCode().equals(orderDO.getPayStatus())) {
             log.info("更新批量交易单状态");
