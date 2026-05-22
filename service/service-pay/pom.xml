@@ -83,9 +83,12 @@
             <artifactId>service-api-finance</artifactId>
             <version>${service.version}</version>
         </dependency>
+
+
         <dependency>
             <groupId>com.alipay.sdk</groupId>
             <artifactId>alipay-sdk-java</artifactId>
+            <version>4.40.771.ALL</version>
         </dependency>
         <dependency>
             <groupId>com.lanf</groupId>

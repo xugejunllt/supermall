@@ -73,7 +73,6 @@ public class SettlementTask {
         log.info("处理清算单结算，订单ID: {}", liquidation.getOrderId());
         ClearingOrderMessage settlementTaskMessage = new ClearingOrderMessage();
         settlementTaskMessage.setClearingDetailId(liquidation.getId());
-        settlementTaskMessage.setOrderId(liquidation.getOrderId());
         rocketMqClient.sendMessage(FinanceMqTopicName.SETTLEMENT_TASK_TOPIC, settlementTaskMessage);
 
     }

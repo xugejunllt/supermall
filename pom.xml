@@ -46,7 +46,9 @@
         <spring-cloud.version>2021.0.8</spring-cloud.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <rocketmq-spring.version>2.2.1</rocketmq-spring.version>
-        <alipay.sdk.version>4.39.134.ALL</alipay.sdk.version>
+<!--        <alipay.sdk.version>4.39.134.ALL</alipay.sdk.version>-->
+        <alipay.sdk.version> 4.34.0.ALL</alipay.sdk.version>
+
         <okhttp3.version>4.9.1</okhttp3.version>
         <kuaidi100.version>1.0.11</kuaidi100.version>
         <aliyun-java-sdk-dysmsapi.version>1.0.0</aliyun-java-sdk-dysmsapi.version>

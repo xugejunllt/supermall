@@ -14,6 +14,6 @@ public class ClearingOrderMessage implements Serializable {
      */
     private Long clearingDetailId;
 
-    private Long orderId;
+
 
 }

@@ -13,7 +13,7 @@ public enum TransferEventTypeEnum {
     WALLET_WITHDRAW(1, "用户钱包提现", TransferEventTagConstant.WALLET_WITHDRAW);
 
     @EnumValue
-    @JsonValue
+
     private final Integer code;
     private final String name;
     private final String tag;

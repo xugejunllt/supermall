@@ -6,8 +6,8 @@ import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.api.pay.mq.constant.PayClientTopicName;
 import com.lanf.api.pay.mq.message.TransferMessage;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
-import com.lanf.constant.result.Result;
 import com.lanf.finance.model.entity.ClearingDetailDO;
 import com.lanf.finance.model.entity.PayAccountDO;
 import com.lanf.finance.model.enums.ClearingStatusEnum;
@@ -49,7 +49,6 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
         log.info("收到结算任务消息: {}", message);
 
         Long liquidationId = message.getClearingDetailId();
-        Long orderId = message.getOrderId();
         ClearingDetailDO liquidation = clearingDetailService.getById(liquidationId);
         if (liquidation == null) {
             log.error("清算单不存在: {}", liquidationId);
@@ -60,13 +59,13 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
             return;
         }
         UnderAfterSaleDTO underAfterSaleDTO = new UnderAfterSaleDTO();
-        underAfterSaleDTO.setOrderId(orderId);
-        Result<Boolean> result = afterSalesOrderApiService.isUnderAfterSale(underAfterSaleDTO);
-
-        if (result != null && Boolean.TRUE.equals(result.getData())) {
-            log.info("订单 {} 正在售后中，暂不结算", orderId);
-            return;
-        }
+        underAfterSaleDTO.setOrderId(liquidation.getOrderId());
+//        Result<Boolean> result = afterSalesOrderApiService.isUnderAfterSale(underAfterSaleDTO);
+//
+//        if (result != null && Boolean.TRUE.equals(result.getData())) {
+//            log.info("订单 {} 正在售后中，暂不结算", orderId);
+//            return;
+//        }
         /**
          * 发起转账
          */
@@ -75,7 +74,6 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
 
         boolean update = clearingDetailService.lambdaUpdate()
                 .eq(ClearingDetailDO::getId, liquidationId)
-                .eq(ClearingDetailDO::getStatus, ClearingStatusEnum.WAIT_CLEARING)
                 .eq(ClearingDetailDO::getVersion, liquidation.getVersion())
                 .set(ClearingDetailDO::getStatus, ClearingStatusEnum.CLEARING)
                 .set(ClearingDetailDO::getVersion, liquidation.getVersion() + 1)
@@ -84,7 +82,7 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
             log.warn("更新清算单失败");
             throw new MessageRetryConsumeException("更新清算单失败");
         }
-        rocketMqClient.sendMessage(PayClientTopicName.TRANSFER_TOPIC, transferMessage);
+        rocketMqClient.sendMessage(PayClientTopicName.TRANSFER_TOPIC, JsonUtils.toJsonString(transferMessage));
 
     }
 

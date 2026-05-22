@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.*;
 
 @Slf4j
@@ -395,24 +396,36 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
             AlipayFundTransUniTransferRequest request = new AlipayFundTransUniTransferRequest();
             AlipayFundTransUniTransferModel model = new AlipayFundTransUniTransferModel();
-
             model.setOutBizNo(outBizNo);
-            model.setProductCode("TRANS_ACCOUNT_NO_PWD");
+            model.setTransAmount("1.00");
             model.setBizScene("DIRECT_TRANSFER");
-            model.setRemark(remark != null ? remark : "转账");
+            model.setProductCode("TRANS_ACCOUNT_NO_PWD");
+            model.setOrderTitle("结算费用给商家");
+            model.setTransferSceneName("DIRECT_TRANSFER");
 
-            com.alipay.api.domain.Participant payeeInfo = new com.alipay.api.domain.Participant();
+            Participant payeeInfo = new Participant();
             payeeInfo.setIdentity(payeeAccount);
             payeeInfo.setIdentityType("ALIPAY_LOGON_ID");
+            payeeInfo.setName("刘强");
             model.setPayeeInfo(payeeInfo);
 
-            model.setTransAmount(amount.toString());
+
+            // 设置转账场景上报信息
+            List<TransferSceneReportInfo> transferSceneReportInfos = new ArrayList<TransferSceneReportInfo>();
+            TransferSceneReportInfo transferSceneReportInfos0 = new TransferSceneReportInfo();
+            transferSceneReportInfos0.setInfoType("佣金报酬说明");
+            transferSceneReportInfos0.setInfoContent("8月家政服务报酬");
+            transferSceneReportInfos.add(transferSceneReportInfos0);
+            model.setTransferSceneReportInfos(transferSceneReportInfos);
+
 
             request.setBizModel(model);
-
             AlipayFundTransUniTransferResponse response = alipayClient.certificateExecute(request);
+
             String code = response.getCode();
             String subCode = response.getSubCode();
+
+            log.info("支付宝转账响应结果,code={},subCode={}", code, subCode);
 
             if ("10000".equals(code)) {
 
@@ -420,19 +433,9 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
                 log.info("支付宝转账成功:outBizNo={},orderId={}", outBizNo, response.getOrderId());
                 return resultBO;
 
-            } else if ("SYSTEM_ERROR".equals(subCode)) {
-
-                throw new MessageRetryConsumeException("支付宝转账系统繁忙");
-
-            } else {
-                resultBO.setTransferSuccess(false);
-                resultBO.setErrorMsg(subCode + ":" + response.getSubMsg());
-                log.error("支付宝转账失败:outBizNo={},code={},subCode={},msg={}",
-                        outBizNo, code, response.getSubCode(), response.getSubMsg());
-
-                return resultBO;
             }
-
+            log.error("支付宝转账异常");
+            throw new MessageRetryConsumeException("转账异常");
         } catch (AlipayApiException e) {
             log.warn("支付宝转账异常:outBizNo={}", outBizNo, e);
             throw new MessageRetryConsumeException("转账异常");
