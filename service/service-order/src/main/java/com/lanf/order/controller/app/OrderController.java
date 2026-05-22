@@ -97,7 +97,7 @@ public class OrderController {
 
     @PostMapping("/cancelOrder")
     public Result<PlaceOrderVO> cancelOrder(@RequestBody @Validated CancelOrderDTO dto) {
-
+        log.info("取消订单:{}", dto);
         dto.setUserId(UserContext.getUserId());
         orderManagerService.cancelOrder(dto);
         return Result.ok();
@@ -106,9 +106,9 @@ public class OrderController {
 
 
     @PostMapping("/signFor")
-    public Result signFor(@Validated @RequestBody SignForDTO dto) {
+    public Result<Void> signFor(@Validated @RequestBody SignForDTO dto) {
 
-        log.info("签收:{}dto", dto);
+        log.info("签收订单:{}", dto);
         orderService.signFor(dto);
         return Result.ok();
     }

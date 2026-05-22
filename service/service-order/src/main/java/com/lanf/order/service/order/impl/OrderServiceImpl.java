@@ -5,11 +5,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
-import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.InOutStockOrderItem;
 import com.lanf.api.order.mq.message.OrderShippedMessage;
 import com.lanf.api.order.mq.message.OrderWaitOutboundMessage;
-import com.lanf.api.order.mq.message.SignOrderMessage;
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.search.api.SearchApiService;
 import com.lanf.api.search.model.query.OrderSearchQuery;
@@ -480,42 +478,50 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
     }
 
+    @Transactional
     @Override
     public void signFor(SignForDTO dto) {
 
         Long orderId = dto.getOrderId();
-        OrderDO orderDO = this.getById(orderId);
-        OrderStatusEnum status = orderDO.getStatus();
-        if (!OrderStatusEnum.SHIPPED.equals(status)) {
-            log.warn("订单状态异常");
-            throw new BizException("订单状态异常");
+        OrderDO orderDO = this.lambdaQuery().eq(OrderDO::getId, orderId)
+                .eq(OrderDO::getUserId, UserContext.getUserId()).one();
+        if (orderDO == null) {
+            log.error("订单不存在");
+            throw new BizException("订单不存在");
         }
+        OrderStatusEnum status = orderDO.getStatus();
+        if (OrderStatusEnum.WAIT_COMMENT.equals(status)) {
+            log.warn("订单已签收");
+            throw new BizException("订单已签收");
+        }
+        if ( !OrderStatusEnum.SHIPPED.equals(status)) {
+            log.warn("订单非已发货状态");
+            throw new BizException("订单非已发货状态");
+        }
+        Date date = new Date();
+        OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
+        orderStatusTraceDO.setOrderId(orderId);
+        orderStatusTraceDO.setFromStatus(orderDO.getStatus());
+        orderStatusTraceDO.setToStatus(OrderStatusEnum.WAIT_COMMENT);
+        orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+        orderStatusTraceDO.setUserId(UserContext.getUserId());
+        orderStatusTraceDO.setTenantId(orderDO.getTenantId());
+        orderStatusTraceDO.setRemark("用户签收订单");
         /**
          * 订单更新信息
          */
         boolean update = this.lambdaUpdate().eq(OrderDO::getId, orderId)
-                .eq(OrderDO::getStatus, OrderStatusEnum.SHIPPED.getCode())
+                .eq(OrderDO::getUserId, UserContext.getUserId())
+                .eq(BaseEntity::getId, orderDO.getId())
                 .eq(OrderDO::getVersion, orderDO.getVersion())
-                .set(OrderDO::getStatus, OrderStatusEnum.WAIT_COMMENT.getCode())
+                .set(OrderDO::getStatus, OrderStatusEnum.WAIT_COMMENT)
                 .set(OrderDO::getVersion, orderDO.getVersion() + 1)
                 .update();
         if (!update) {
-            log.error("订单状态更新异常");
+            log.warn("订单状态更新异常");
             throw new BizException("订单状态更新异常");
         }
-        /**
-         * 发送订单签收消息
-         */
-        SignOrderMessage signOrderMessage = new SignOrderMessage();
-
-        signOrderMessage.setOrderId(orderId);
-        signOrderMessage.setSignTime(new Date());
-        signOrderMessage.setAfterSaleDays(orderDO.getAfterSaleDays());
-        signOrderMessage.setPayMoney(orderDO.getActualPayMoney());
-        signOrderMessage.setMerchantId(orderDO.getTenantId());
-
-        rocketMqClient.sendMessage(OrderClientTopicName.SIGN_ORDER_EVENT_TOPIC,
-                JsonUtils.toJsonString(signOrderMessage));
+        orderStatusTraceService.save(orderStatusTraceDO);
 
     }
 
