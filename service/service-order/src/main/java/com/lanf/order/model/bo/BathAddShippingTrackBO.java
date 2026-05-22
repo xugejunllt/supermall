@@ -9,6 +9,9 @@ import java.util.List;
 public class BathAddShippingTrackBO implements Serializable {
 
     private Long orderId;
+    private Long userId;
+
+    private Long tenantId;
 
     private List<AddShippingTrackBO> shippingTrackBOList;
 

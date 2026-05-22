@@ -31,6 +31,7 @@ import com.lanf.order.mapper.OrderMapper;
 import com.lanf.order.model.bo.OrderIdAndUserId;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.*;
+import com.lanf.order.model.enums.ShippingStatusEnum;
 import com.lanf.order.model.enums.SubStatusEnum;
 import com.lanf.order.model.query.AdminOrderSearchQuery;
 import com.lanf.order.model.query.AppOrderSearchQuery;
@@ -39,6 +40,9 @@ import com.lanf.order.model.vo.AdminOrderListVO;
 import com.lanf.order.model.vo.OrderItemPageVO;
 import com.lanf.order.model.vo.OrderListVO;
 import com.lanf.order.model.vo.OrderPageVO;
+import com.lanf.order.mq.constant.OrderMqTopicName;
+import com.lanf.order.mq.message.BathAddShippingTrackMessage;
+import com.lanf.order.mq.message.ShippingTrackMessage;
 import com.lanf.order.service.order.IOrderItemService;
 import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.order.IOrderStatusTraceService;
@@ -239,8 +243,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             throw new BizException("订单已发货");
         }
         if ( !OrderStatusEnum.OUTBOUNDED.equals(orderDO.getStatus())){
-            log.warn("订单非待已出库状态");
-            throw new BizException("订单非待已出库状态");
+                log.warn("订单非待已出库状态");
+                throw new BizException("订单非待已出库状态");
         }
         Long expressId = dto.getExpressId();
         ExpressDO expressDO = expressService.getById(expressId);
@@ -255,7 +259,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         shippingInfoDO.setLogisticsCode(expressDO.getCompanyCode());
         shippingInfoDO.setTrackingNumber(dto.getTrackingNumber());
         shippingInfoDO.setFromAddress(JsonUtils.toJsonString(dto.getFromAddressJson()));
-        shippingInfoDO.setTenantId(UserContext.getTenantId());
+        shippingInfoDO.setTenantId(orderDO.getTenantId());
         shippingInfoDO.setSubStatus(SubStatusEnum.PENDING);
 
         Date date = new Date();
@@ -265,10 +269,25 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         orderStatusTraceDO.setToStatus(OrderStatusEnum.SHIPPED);
         orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
         orderStatusTraceDO.setUserId(orderDO.getUserId());
-        orderStatusTraceDO.setTenantId(UserContext.getTenantId());
+        orderStatusTraceDO.setTenantId(orderDO.getTenantId());
 
         OrderShippedMessage orderShippedMessage = new OrderShippedMessage();
         orderShippedMessage.setOrderId(orderId);
+        orderShippedMessage.setUserId(orderDO.getUserId());
+
+        BathAddShippingTrackMessage message = new BathAddShippingTrackMessage();
+        message.setOrderId(orderDO.getId());
+        message.setTenantId(orderDO.getTenantId());
+        message.setUserId(orderDO.getUserId());
+        List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
+        ShippingTrackMessage  shippingTrackMessage = new ShippingTrackMessage();
+        shippingTrackMessage.setStatus(ShippingStatusEnum.WAREHOUSE_PROCESSING);
+        shippingTrackMessage.setFinishTime(new Date());
+        shippingTrackMessage.setFinishContent("你的订单由第三方卖家拣货完成,待出库交付快递");
+        shippingTrackMessage.setFlowNo(IStringUtils.hashToUniqueString(orderDO.getId() +
+                shippingTrackMessage.getFinishContent()));
+        shippingTrackList.add(shippingTrackMessage);
+        message.setShippingTrackList(shippingTrackList);
 
 
         boolean update = this.lambdaUpdate()
@@ -288,6 +307,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.SHIPPED.getTag(),JsonUtils.toJsonString(orderShippedMessage),
                 orderId.toString());
+        //发送物流信息
+        rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(message));
 
 
     }

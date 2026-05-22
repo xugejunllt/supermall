@@ -5,6 +5,7 @@ import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.order.model.dto.CreateOrderDTO;
@@ -12,11 +13,13 @@ import com.lanf.order.model.entity.OrderDO;
 import com.lanf.welfare.model.bo.DiscountInfoBO;
 import lombok.extern.slf4j.Slf4j;
 
+import java.security.MessageDigest;
 import java.util.List;
 
 
 @Slf4j
 public class OrderServiceUtils {
+
 
 
     public static  String generateOrderNumber(){
@@ -42,5 +45,7 @@ public class OrderServiceUtils {
         orderDO.setAfterSaleDays(7);
         return orderDO;
     }
+
+
 
 }

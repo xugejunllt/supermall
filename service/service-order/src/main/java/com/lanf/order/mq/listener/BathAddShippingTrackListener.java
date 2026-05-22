@@ -4,8 +4,6 @@ package com.lanf.order.mq.listener;
 
 import com.lanf.order.model.bo.AddShippingTrackBO;
 import com.lanf.order.model.bo.BathAddShippingTrackBO;
-import com.lanf.order.model.enums.Express100StatusEnum;
-import com.lanf.order.model.enums.ShippingStatusEnum;
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.mq.constant.OrderMqTopicName;
 import com.lanf.order.mq.message.BathAddShippingTrackMessage;
@@ -38,6 +36,8 @@ public class BathAddShippingTrackListener implements RocketMQListener<BathAddShi
 
         BathAddShippingTrackBO bo = new BathAddShippingTrackBO();
         bo.setOrderId(message.getOrderId());
+        bo.setUserId(message.getUserId());
+        bo.setTenantId(message.getTenantId());
 
         List<AddShippingTrackBO> trackBOList = new ArrayList<>();
 
@@ -47,6 +47,7 @@ public class BathAddShippingTrackListener implements RocketMQListener<BathAddShi
             trackBO.setBaseTrackStatus(trackMessage.getBaseTrackStatus());
             trackBO.setFinishTime(trackMessage.getFinishTime());
             trackBO.setFinishContent(trackMessage.getFinishContent());
+            trackBO.setFlowNo(trackMessage.getFlowNo());
             trackBOList.add(trackBO);
         }
 

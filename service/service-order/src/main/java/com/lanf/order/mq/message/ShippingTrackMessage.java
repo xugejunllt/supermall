@@ -10,6 +10,8 @@ import java.util.Date;
 @Data
 public  class ShippingTrackMessage implements Serializable {
 
+
+        private String flowNo;
         /**
          * 物流状态 (对应 ShippingStatusEnum code)
          */

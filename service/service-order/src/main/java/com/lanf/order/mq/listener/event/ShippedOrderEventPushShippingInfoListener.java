@@ -34,7 +34,8 @@ public class ShippedOrderEventPushShippingInfoListener implements RocketMQListen
         log.info("监听到订单发货消息,推送物流信息到快递100:{}", orderShippedMessage);
         Long orderId = orderShippedMessage.getOrderId();
 
-        ShippingInfoDO one = shippingInfoService.lambdaQuery().eq(ShippingInfoDO::getOrderId, orderId)
+        ShippingInfoDO one = shippingInfoService.lambdaQuery()
+                .eq(ShippingInfoDO::getOrderId, orderShippedMessage.getOrderId())
                 .eq(ShippingInfoDO::getUserId, orderShippedMessage.getUserId())
                 .one();
         if (one == null){

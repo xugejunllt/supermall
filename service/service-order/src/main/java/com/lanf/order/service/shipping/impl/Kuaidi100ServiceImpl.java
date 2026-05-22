@@ -10,6 +10,7 @@ import com.kuaidi100.sdk.request.SubscribeReq;
 import com.kuaidi100.sdk.response.SubscribeResp;
 import com.kuaidi100.sdk.utils.SignUtils;
 import com.lanf.common.utils.DateUtils;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.order.config.Express100Config;
@@ -148,6 +149,8 @@ public class Kuaidi100ServiceImpl implements Kuaidi100Service {
 
         BathAddShippingTrackMessage message = new BathAddShippingTrackMessage();
         message.setOrderId(one.getOrderId());
+        message.setUserId(one.getUserId());
+        message.setTenantId(one.getTenantId());
         List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
 
         for (ExpressPushLastResultDataBO data : lastResultData) {
@@ -156,6 +159,8 @@ public class Kuaidi100ServiceImpl implements Kuaidi100Service {
             shippingTrackMessage.setStatus(baseTrackStatus.getShippingStatus());
             shippingTrackMessage.setFinishTime(DateUtils.parse(data.getTime(), DateUtils.DATE_TIME));
             shippingTrackMessage.setFinishContent(data.getContext());
+            shippingTrackMessage.setFlowNo(IStringUtils.hashToUniqueString(one.getOrderId() +
+                    data.getContext()));
             shippingTrackList.add(shippingTrackMessage);
         }
         message.setShippingTrackList(shippingTrackList);

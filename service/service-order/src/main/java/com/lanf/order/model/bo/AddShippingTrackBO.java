@@ -11,7 +11,7 @@ import java.util.Date;
 public class AddShippingTrackBO implements Serializable {
 
 
-
+    private String flowNo;
     /**
      * 物流状态
      */

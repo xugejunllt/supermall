@@ -1,10 +1,10 @@
 package com.lanf.order.service.shipping.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.order.mapper.ShippingTrackMapper;
 import com.lanf.order.model.bo.AddShippingTrackBO;
 import com.lanf.order.model.bo.BathAddShippingTrackBO;
-import com.lanf.order.model.entity.ShippingInfoDO;
 import com.lanf.order.model.entity.ShippingTrackDO;
 import com.lanf.order.service.shipping.IShippingInfoService;
 import com.lanf.order.service.shipping.IShippingTrackService;
@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -30,40 +31,42 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
     @Autowired
     private IShippingInfoService shippingInfoService;
 
-    @Autowired
+
     @Override
     public void bathAddShippingTrack(BathAddShippingTrackBO bo) {
 
-        Long orderId = bo.getOrderId();
-        ShippingInfoDO infoDO = shippingInfoService.getById(orderId);
-        if (infoDO == null) {
-            log.error("订单物流信息不存在");
-            return;
-        }
+        log.info("批量插入参数:{}",bo);
         List<AddShippingTrackBO> shippingTrackBOList = bo.getShippingTrackBOList();
         List<ShippingTrackDO> trackDOList = new ArrayList<>(shippingTrackBOList.size());
 
-        for (AddShippingTrackBO shippingTrackBO : shippingTrackBOList){
+        Date now = new Date();
+        for (AddShippingTrackBO shippingTrackBO : shippingTrackBOList) {
 
-            ShippingTrackDO trackDO = getShippingTrackDO(shippingTrackBO, orderId, infoDO);
+            ShippingTrackDO trackDO = getShippingTrackDO(shippingTrackBO, bo);
+            // 手动填充 MyBatis-Plus 自动字段（自定义 SQL 不走自动填充）
+            trackDO.setId(IdUtils.generateId());
+            trackDO.setCreateTime(now);
+            trackDO.setUpdateTime(now);
+            trackDO.setIsDeleted(0);
             trackDOList.add(trackDO);
         }
-        this.saveBatch(trackDOList);
-
+        log.info("批量插入的数据:{}", trackDOList);
+        baseMapper.insertIgnoreBatch(trackDOList);
 
     }
 
 
-    private static ShippingTrackDO getShippingTrackDO(AddShippingTrackBO shippingTrackBO, Long orderId, ShippingInfoDO infoDO) {
+    private static ShippingTrackDO getShippingTrackDO(AddShippingTrackBO shippingTrackBO,BathAddShippingTrackBO bo) {
         ShippingTrackDO trackDO = new ShippingTrackDO();
-        trackDO.setOrderId(orderId);
+        trackDO.setOrderId(bo.getOrderId());
         trackDO.setStatus(shippingTrackBO.getStatus());
-        trackDO.setUserId(infoDO.getUserId());
+        trackDO.setUserId(bo.getUserId());
         trackDO.setBaseTrackStatus(shippingTrackBO.getBaseTrackStatus());
         trackDO.setAdvancedTrackStatus(null);
         trackDO.setFinishTime(shippingTrackBO.getFinishTime());
         trackDO.setFinishContent(shippingTrackBO.getFinishContent());
-        trackDO.setTenantId(infoDO.getTenantId());
+        trackDO.setTenantId(bo.getTenantId());
+        trackDO.setFlowNo(shippingTrackBO.getFlowNo());
         return trackDO;
     }
 }
