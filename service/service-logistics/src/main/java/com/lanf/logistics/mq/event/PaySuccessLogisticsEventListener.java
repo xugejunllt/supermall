@@ -2,11 +2,7 @@ package com.lanf.logistics.mq.event;
 
 
 import com.lanf.logistics.service.ILogisticsService;
-import com.lanf.messagemanager.client.annotation.ConsumeMessage;
-import com.lanf.messagemanager.client.annotation.SendMessage;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.model.message.PaySuccessEventMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -21,7 +17,6 @@ public class PaySuccessLogisticsEventListener implements RocketMQListener<PaySuc
 
     @Autowired
     private ILogisticsService logisticsService;
-    @ConsumeMessage
     @Override
     public void onMessage(PaySuccessEventMessage paySuccessEventMessage) {
         log.info("支付成功,物流业务操作");

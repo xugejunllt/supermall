@@ -1,9 +1,7 @@
 package com.lanf.logistics.mq;
 
-import com.lanf.common.utils.LogFormatUtils;
 import com.lanf.common.utils.LogInfo;
 import com.lanf.logistics.service.ILogisticsTrackService;
-import com.lanf.messagemanager.client.annotation.ConsumeMessage;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.bo.ExpressPushBO;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +24,7 @@ public class LogisticsTrackAddListener implements RocketMQListener<ExpressPushBO
     @Autowired
     private ILogisticsTrackService logisticsTrackService;
 
-    @ConsumeMessage
+
     @Override
     public void onMessage(ExpressPushBO expressPushBO) {
 

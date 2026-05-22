@@ -4,13 +4,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.MD5;
+import com.lanf.constant.model.enums.LogisticsTrackStatusEnum;
 import com.lanf.logistics.mapper.LogisticsTrackMapper;
 import com.lanf.logistics.model.entity.LogisticsDO;
 import com.lanf.logistics.model.entity.LogisticsTrackDO;
-import com.lanf.constant.enums.LogisticsTrackStatusEnum;
 import com.lanf.logistics.service.ILogisticsService;
 import com.lanf.logistics.service.ILogisticsTrackService;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.bo.ExpressPushBO;
 import com.lanf.rocketmq.model.bo.ExpressPushLastResultBO;
@@ -43,8 +42,7 @@ public class LogisticsTrackServiceImpl extends ServiceImpl<LogisticsTrackMapper,
     @Lazy
     @Autowired
     private ILogisticsService logisticsService;
-    @Autowired
-    private ISendMqMessageService sendMqMessageService;
+
 
     @Override
     public void LogisticsTrackAdd(ExpressPushBO expressPushBO) {
@@ -98,8 +96,8 @@ public class LogisticsTrackServiceImpl extends ServiceImpl<LogisticsTrackMapper,
             LogisticsTrackBathAddDTO logisticsTrackBathAddDTO = new LogisticsTrackBathAddDTO();
             List<LogisticsTrackAddDTO> logisticsTrackAddDTOS = BeanCopyUtils.copyBeanList(trackAddList, LogisticsTrackAddDTO.class);
             logisticsTrackBathAddDTO.setAddDTOList(logisticsTrackAddDTOS);
-            logisticsTrackBathAddDTO.setBizKeyValue(generateKey(logisticsTrackAddDTOS));
-            sendMqMessageService.sendMessage(TopicName.BATH_ADD_LOGISTICS_TRACK_TOPIC,logisticsTrackBathAddDTO);
+
+
 
         }
         log.error("添加轨迹信息完成");

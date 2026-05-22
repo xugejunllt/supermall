@@ -5,7 +5,7 @@ import com.lanf.aftersales.mq.message.CloseOrderMessage;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.mq.constant.OrderMqGroupName;
-import com.lanf.order.service.IOrderService;
+import com.lanf.order.service.order.IOrderService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;

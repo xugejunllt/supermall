@@ -10,13 +10,15 @@ import com.kuaidi100.sdk.request.*;
 import com.kuaidi100.sdk.response.SubscribeResp;
 import com.kuaidi100.sdk.utils.SignUtils;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.logistics.model.bo.*;
+import com.lanf.constant.exception.BizException;
+import com.lanf.logistics.model.bo.ExpressQueryBO;
+import com.lanf.logistics.model.bo.ExpressQueryResultBO;
+import com.lanf.logistics.model.bo.ExpressRequestResultBO;
+import com.lanf.logistics.model.bo.ExpressSubscribeBO;
 import com.lanf.logistics.service.config.Express100Config;
 import com.lanf.logistics.service.manager.ExpressPushSuccessCallback;
 import com.lanf.logistics.service.manager.LogisticsManagerService;
 import com.lanf.rocketmq.model.bo.ExpressPushBO;
-import com.lanf.constant.exception.BizException;
-import com.lanf.web.utils.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -84,8 +86,8 @@ public class LogisticsManagerServiceImpl implements LogisticsManagerService {
             resultBO = JsonUtils.toObject(body, ExpressRequestResultBO.class);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error("订阅快递100异常:body{},expressPushBO{}", body, expressPushBO);
+
+            log.error("订阅快递100异常:body{},expressPushBO{}", body, expressPushBO,e);
             throw new BizException("订阅快递100异常");
         }
 
@@ -114,7 +116,7 @@ public class LogisticsManagerServiceImpl implements LogisticsManagerService {
         subscribeResp.setResult(Boolean.TRUE);
         subscribeResp.setReturnCode("200");
         subscribeResp.setMessage("成功");
-        ResponseUtil.outFail(response, JsonUtils.toJsonString(subscribeResp));
+       // ResponseUtil.outFail(response, JsonUtils.toJsonString(subscribeResp));
 
         /**
          * 构建返回结果

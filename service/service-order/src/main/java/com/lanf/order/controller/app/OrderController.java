@@ -10,7 +10,7 @@ import com.lanf.order.model.dto.*;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.vo.*;
-import com.lanf.order.service.IOrderService;
+import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.OrderManagerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

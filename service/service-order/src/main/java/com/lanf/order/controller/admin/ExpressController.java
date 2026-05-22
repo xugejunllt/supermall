@@ -1,12 +1,12 @@
-package com.lanf.logistics.controller.admin;
+package com.lanf.order.controller.admin;
 
 
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.logistics.model.dto.ExpressAddDTO;
-import com.lanf.logistics.model.entity.ExpressDO;
-import com.lanf.logistics.service.IExpressService;
+import com.lanf.order.model.bo.AddExpressDTO;
+import com.lanf.order.model.entity.ExpressDO;
+import com.lanf.order.service.shipping.IExpressService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -28,19 +28,19 @@ public class ExpressController {
     @Autowired
     private IExpressService expressService;
 
-    @PostMapping("/expressAdd")
-    public Result expressAdd(@Validated @RequestBody ExpressAddDTO dto) {
+    @PostMapping("/addExpress")
+    public Result<Void> addExpress(@Validated @RequestBody AddExpressDTO dto) {
 
         log.info("添加快递公司");
-        expressService.expressAdd(dto);
+        expressService.addExpress(dto);
         return Result.ok();
     }
 
-    @GetMapping("/expressPage")
-    public Result<PageResult<ExpressDO>> expressPage(@Validated PageQuery query) {
+    @GetMapping("/expressPageQuery")
+    public Result<PageResult<ExpressDO>> expressPageQuery(@Validated PageQuery query) {
 
         log.info("分页查询快递公司:query{}", query);
-        return Result.ok(expressService.expressPage(query));
+        return Result.ok(expressService.expressPageQuery(query));
     }
 
 }

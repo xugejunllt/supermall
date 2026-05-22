@@ -7,7 +7,7 @@ import com.lanf.order.model.dto.AllowOutboundDTO;
 import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.query.AdminOrderSearchQuery;
 import com.lanf.order.model.vo.AdminOrderListVO;
-import com.lanf.order.service.IOrderService;
+import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.layout.InterfaceLayoutService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package com.lanf.order.service;
+package com.lanf.order.service.order;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;

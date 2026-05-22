@@ -9,7 +9,7 @@ import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.mq.constant.OrderMqTopicName;
 import com.lanf.order.mq.message.SecKillOrderCancelMessage;
-import com.lanf.order.service.IOrderService;
+import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;

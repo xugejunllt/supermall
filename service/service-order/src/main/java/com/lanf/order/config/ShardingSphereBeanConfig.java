@@ -208,6 +208,13 @@ public class ShardingSphereBeanConfig {
         );
         shardingRuleConfig.getTables().add(orderStatusTraceRule);
 
+        // 5. 配置 express 表：不参与分库分表，默认路由到 ds0（order_db_0）
+        ShardingTableRuleConfiguration expressRule = new ShardingTableRuleConfiguration(
+                "express",
+                "ds0.express"
+        );
+        shardingRuleConfig.getTables().add(expressRule);
+
         // 注册分片算法
         Map<String, AlgorithmConfiguration> shardingAlgorithms = new LinkedHashMap<>();
         

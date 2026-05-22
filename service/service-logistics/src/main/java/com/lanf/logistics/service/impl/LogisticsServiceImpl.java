@@ -1,30 +1,27 @@
 package com.lanf.logistics.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.constant.enums.LogisticsTrackStatusEnum;
-import com.lanf.logistics.mapper.LogisticsMapper;
-import com.lanf.logistics.model.entity.LogisticsTrackDO;
-import com.lanf.logistics.model.vo.LogisticsTrackStatusVO;
-import com.lanf.logistics.model.vo.LogisticsTrackVO;
-import com.lanf.logistics.model.vo.LogisticsVO;
-import com.lanf.logistics.service.ILogisticsTrackService;
-import com.lanf.messagemanager.client.annotation.SendMessage;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
 import com.lanf.api.order.api.OrderApiService;
 import com.lanf.api.order.model.vo.OrderVO2;
-import com.lanf.rocketmq.model.TopicName;
+import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.LogisticsTrackStatusEnum;
+import com.lanf.logistics.mapper.LogisticsMapper;
 import com.lanf.logistics.model.bo.ExpressSubscribeBO;
 import com.lanf.logistics.model.dto.LogisticsAddDTO;
 import com.lanf.logistics.model.entity.ExpressDO;
 import com.lanf.logistics.model.entity.LogisticsDO;
+import com.lanf.logistics.model.entity.LogisticsTrackDO;
+import com.lanf.logistics.model.vo.LogisticsTrackStatusVO;
+import com.lanf.logistics.model.vo.LogisticsTrackVO;
+import com.lanf.logistics.model.vo.LogisticsVO;
 import com.lanf.logistics.service.IExpressService;
 import com.lanf.logistics.service.ILogisticsService;
+import com.lanf.logistics.service.ILogisticsTrackService;
 import com.lanf.logistics.service.IUseDeliveryAddressService;
 import com.lanf.logistics.service.manager.LogisticsManagerService;
 import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import com.lanf.rocketmq.model.message.PaySuccessEventMessage;
-import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,8 +50,6 @@ public class LogisticsServiceImpl extends ServiceImpl<LogisticsMapper, Logistics
     @Autowired
     private ILogisticsTrackService logisticsTrackService;
     @Autowired
-    private ISendMqMessageService sendMqMessageService;
-    @Autowired
     private OrderApiService orderApiService;
 
     @Override
@@ -70,7 +65,7 @@ public class LogisticsServiceImpl extends ServiceImpl<LogisticsMapper, Logistics
         ExpressSubscribeBO expressPushBO = new ExpressSubscribeBO();
         expressPushBO.setNumber(addDTO.getNumber());
         expressPushBO.setCompanyNumber(expressDO.getCompanyCode());
-        //logisticsManagerService.expressSubscribe(expressPushBO);
+        logisticsManagerService.expressSubscribe(expressPushBO);
         /**
          * 构建LogisticsDO  优化成异步写入 即第三方成功写入失败 可以重试写入
          */
@@ -180,7 +175,6 @@ public class LogisticsServiceImpl extends ServiceImpl<LogisticsMapper, Logistics
         return logisticsVO;
     }
 
-    @SendMessage
     @Transactional
     @Override
     public void paySuccessHandle(PaySuccessEventMessage paySuccessEventMessage) {
@@ -193,11 +187,8 @@ public class LogisticsServiceImpl extends ServiceImpl<LogisticsMapper, Logistics
         logisticsDO.setOrderId(orderId);
         logisticsDO.setToAddress(orderVO2.getTakeAddress());
         this.save(logisticsDO);
-        log.info("添加物流轨迹,发送到批量写入队列中:{}", paySuccessEventMessage.getBizKeyValue());
         //发送批量消费队列中
         LogisticsTrackBathAddDTO logisticsTrackBathAddDTO = paySuccessEventMessage.getLogisticsTrackBathAddDTO();
-        logisticsTrackBathAddDTO.setBizKeyValue(paySuccessEventMessage.getBizKeyValue());
-        sendMqMessageService.sendMessage(TopicName.BATH_ADD_LOGISTICS_TRACK_TOPIC, logisticsTrackBathAddDTO);
     }
 
 

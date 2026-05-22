@@ -1,6 +1,6 @@
 package com.lanf.order.mq.listener;
 
-import com.lanf.order.service.IOrderService;
+import com.lanf.order.service.order.IOrderService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.PrePayMsg;
 import lombok.extern.slf4j.Slf4j;

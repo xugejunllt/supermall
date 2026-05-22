@@ -1,8 +1,6 @@
 package com.lanf.logistics.mq;
 
-import com.lanf.interfacemonitor.client.annotation.CallMqTask;
 import com.lanf.logistics.service.ILogisticsTrackService;
-import com.lanf.messagemanager.client.annotation.ConsumeMessage;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.LogisticsTrackBathAddDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +29,6 @@ public class LogisticsTrackBathAddListener implements RocketMQListener<Logistics
     /**
      *
      */
-    @CallMqTask
-    @ConsumeMessage
     @Override
     public void onMessage(LogisticsTrackBathAddDTO logisticsTrackBathAddDTO) {
 
