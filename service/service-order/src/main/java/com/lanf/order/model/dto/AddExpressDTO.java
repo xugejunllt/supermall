@@ -1,4 +1,4 @@
-package com.lanf.order.model.bo;
+package com.lanf.order.model.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

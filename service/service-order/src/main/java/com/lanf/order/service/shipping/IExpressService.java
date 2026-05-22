@@ -3,7 +3,7 @@ package com.lanf.order.service.shipping;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.order.model.bo.AddExpressDTO;
+import com.lanf.order.model.dto.AddExpressDTO;
 import com.lanf.order.model.entity.ExpressDO;
 import com.lanf.order.model.vo.ExpressPageVO;
 

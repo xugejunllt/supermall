@@ -55,7 +55,10 @@
             <artifactId>common-constant</artifactId>
             <version>${common.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.github.kuaidi100-api</groupId>
+            <artifactId>sdk</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>

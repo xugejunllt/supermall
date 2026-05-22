@@ -8,7 +8,7 @@ import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.mapper.ExpressMapper;
-import com.lanf.order.model.bo.AddExpressDTO;
+import com.lanf.order.model.dto.AddExpressDTO;
 import com.lanf.order.model.entity.ExpressDO;
 import com.lanf.order.model.vo.ExpressPageVO;
 import com.lanf.order.service.shipping.IExpressService;

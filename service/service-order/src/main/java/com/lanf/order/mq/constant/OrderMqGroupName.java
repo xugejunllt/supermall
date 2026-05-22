@@ -17,4 +17,7 @@ public class OrderMqGroupName {
 
 
     public static final String SHIPPED_ORDER_EVENT_PUSH_SHIPPING_INFO = "SHIPPED_ORDER_EVENT_PUSH_SHIPPING_INFO";
+
+    public static final String BATH_ADD_SHIPPING_TRACK_GROUP = "BATH_ADD_SHIPPING_TRACK_GROUP";
+
 }

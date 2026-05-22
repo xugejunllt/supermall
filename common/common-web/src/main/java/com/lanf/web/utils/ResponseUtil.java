@@ -34,6 +34,16 @@ public class ResponseUtil {
             log.error("响应结果错误", e);
         }
     }
-
+    public static void outSuccess(HttpServletResponse response, Object object) {
+        ObjectMapper mapper = new ObjectMapper();
+        response.setStatus(HttpStatus.OK.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        try {
+            mapper.writeValue(response.getWriter(),object);
+        } catch (IOException e) {
+            log.error("响应结果错误", e);
+        }
+    }
 
 }

@@ -3,6 +3,7 @@ package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.order.model.enums.SubStatusEnum;
 import lombok.Data;
 
 /**
@@ -45,6 +46,12 @@ public class ShippingInfoDO extends BaseEntity {
      * 发货地址
      */
     private String fromAddress;
+    /**
+     * 0:待订阅,1:订阅成功
+     */
+    private SubStatusEnum subStatus;
+
+    private  Long version;
 
     private Long tenantId;
 }

@@ -1,41 +1,25 @@
-package com.lanf.order.model.entity;
+package com.lanf.order.model.bo;
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.model.enums.Express100StatusEnum;
 import com.lanf.order.model.enums.ShippingStatusEnum;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
 
-
 @Data
-@TableName("shipping_track")
-public class ShippingTrackDO extends BaseEntity {
+public class AddShippingTrackBO implements Serializable {
 
-    private static final long serialVersionUID = 1L;
 
-    /**
-     * 订单id
-     */
-    private Long orderId;
-
-    private Long userId;
 
     /**
      * 物流状态
      */
     private ShippingStatusEnum status;
-
     /**
      * 三方物流基础轨迹状态
      */
     private Express100StatusEnum baseTrackStatus;
-
-    /**
-     * 三方物流高级轨迹状态
-     */
-    private Integer advancedTrackStatus;
 
     /**
      * 当前完成时间
@@ -47,5 +31,6 @@ public class ShippingTrackDO extends BaseEntity {
      */
     private String finishContent;
 
-    private Long tenantId;
+
+
 }

@@ -8,6 +8,7 @@ public class OrderShippedMessage extends BaseMessage {
 
     private Long orderId;
 
+    private  Long userId;
 
 
 }

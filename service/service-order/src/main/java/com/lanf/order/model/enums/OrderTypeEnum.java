@@ -38,12 +38,5 @@ public enum OrderTypeEnum {
         return null;
     }
 
-    public static OrderTypeEnum getOrderTypeEnum(Integer code) {
-        for (OrderTypeEnum e : OrderTypeEnum.values()) {
-            if (e.code.equals(code)) {
-                return e;
-            }
-        }
-        return NORMAL;
-    }
+
 }

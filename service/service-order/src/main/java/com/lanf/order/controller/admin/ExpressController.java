@@ -4,7 +4,7 @@ package com.lanf.order.controller.admin;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.order.model.bo.AddExpressDTO;
+import com.lanf.order.model.dto.AddExpressDTO;
 import com.lanf.order.model.vo.ExpressPageVO;
 import com.lanf.order.service.shipping.IExpressService;
 import lombok.extern.slf4j.Slf4j;

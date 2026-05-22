@@ -1,6 +1,7 @@
 package com.lanf.order.service.shipping;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.order.model.bo.BathAddShippingTrackBO;
 import com.lanf.order.model.entity.ShippingTrackDO;
 
 /**
@@ -13,4 +14,9 @@ import com.lanf.order.model.entity.ShippingTrackDO;
  */
 public interface IShippingTrackService extends IService<ShippingTrackDO> {
 
+    /**
+     * 插入物流轨迹
+     *
+     */
+    void bathAddShippingTrack(BathAddShippingTrackBO bo);
 }

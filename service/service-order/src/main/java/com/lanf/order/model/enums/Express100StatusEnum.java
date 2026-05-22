@@ -1,5 +1,8 @@
 package com.lanf.order.model.enums;
 
+import com.baomidou.mybatisplus.annotation.EnumValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
@@ -68,7 +71,7 @@ public enum Express100StatusEnum {
      * 14：拒收
      */
     REJECTED(14, "拒收", ShippingStatusEnum.SIGNED);
-
+    @EnumValue
     private final Integer code;
     private final String desc;
     private final ShippingStatusEnum shippingStatus;
@@ -78,13 +81,17 @@ public enum Express100StatusEnum {
         this.desc = desc;
         this.shippingStatus = shippingStatus;
     }
-
+    @JsonValue
+    public Integer getCode() {
+        return code;
+    }
     /**
      * 根据code获取枚举
      *
      * @param code 状态码
      * @return 对应的枚举值，如果未找到返回null
      */
+    @JsonCreator
     public static Express100StatusEnum getByCode(Integer code) {
         if (code == null) {
             return null;

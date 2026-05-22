@@ -31,6 +31,7 @@ import com.lanf.order.mapper.OrderMapper;
 import com.lanf.order.model.bo.OrderIdAndUserId;
 import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.*;
+import com.lanf.order.model.enums.SubStatusEnum;
 import com.lanf.order.model.query.AdminOrderSearchQuery;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
@@ -42,6 +43,7 @@ import com.lanf.order.service.order.IOrderItemService;
 import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.order.IOrderStatusTraceService;
 import com.lanf.order.service.shipping.IExpressService;
+import com.lanf.order.service.shipping.IShippingInfoService;
 import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -97,7 +99,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     private ThreadPoolTaskExecutor searchTaskExecutor;
     @Autowired
     private IExpressService expressService;
-
+    @Autowired
+    private IShippingInfoService shippingInfoService;
 
     @Transactional
     @Override
@@ -253,6 +256,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         shippingInfoDO.setTrackingNumber(dto.getTrackingNumber());
         shippingInfoDO.setFromAddress(JsonUtils.toJsonString(dto.getFromAddressJson()));
         shippingInfoDO.setTenantId(UserContext.getTenantId());
+        shippingInfoDO.setSubStatus(SubStatusEnum.PENDING);
 
         Date date = new Date();
         OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
@@ -278,6 +282,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             log.warn("更新订单为已发货状态异常");
             throw new BizException("更新订单为已发货状态异常");
         }
+        orderStatusTraceService.save(orderStatusTraceDO);
+        shippingInfoService.save(shippingInfoDO);
         //发送订单已发货事件
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.SHIPPED.getTag(),JsonUtils.toJsonString(orderShippedMessage),

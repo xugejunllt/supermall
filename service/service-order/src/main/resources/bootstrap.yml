@@ -37,19 +37,7 @@ server:
   servlet:
     context-path: /order
 
-org:
-  dromara:
-    hmily :
-      serializer: kryo
-      recoverDelayTime: 30
-      retryMax: 5
-      scheduledDelay: 30
-      scheduledThreadMax:  10
-      repositorySupport: db
-      started: true
-      hmilyDbConfig:
-        driverClassName: com.mysql.jdbc.Driver
-        url: jdbc:mysql://localhost:3306/hmily?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
-        username: root
-        password: 123456
 
+
+express100:
+  callback: 350fc4ac.nat123.fun/logistics/out/expressPush

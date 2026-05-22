@@ -1,5 +1,8 @@
 package com.lanf.order.model.enums;
 
+import com.baomidou.mybatisplus.annotation.EnumValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
@@ -18,6 +21,7 @@ public enum ShippingStatusEnum {
     /**
      * 状态码
      */
+    @EnumValue
     private final Integer code;
     /**
      * 状态名称
@@ -34,12 +38,17 @@ public enum ShippingStatusEnum {
         this.sort = sort;
     }
 
+    @JsonValue
+    public Integer getCode() {
+        return code;
+    }
     /**
      * 根据 code 获取枚举
      *
      * @param code 状态码
      * @return 对应的枚举值，如果未找到返回 null
      */
+    @JsonCreator
     public static ShippingStatusEnum getByCode(Integer code) {
         if (code == null) {
             return null;
