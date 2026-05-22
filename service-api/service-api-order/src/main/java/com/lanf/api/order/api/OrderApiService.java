@@ -5,7 +5,6 @@ import com.lanf.api.order.model.query.ContrastBillOrderQuery;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.query.ReconciliationOrderItemQuery;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
-import com.lanf.api.order.model.vo.OrderVO;
 import com.lanf.api.order.model.vo.OrderVO2;
 import com.lanf.api.order.model.vo.ReconciliationOrderItemVO;
 import com.lanf.constant.result.Result;
@@ -30,9 +29,6 @@ public interface OrderApiService {
     @Hmily
     @PostMapping("/order/api/cancelOrder")
     public Result<Void> cancelOrder(@Validated @RequestBody CancelOrderApiDTO dto);
-
-    @PostMapping("/order/orderApi/queryByOrderId")
-    public Result<List<OrderVO>> queryByOrderId(@RequestBody List<Long> orderIdList);
 
     /**
      * 查询订单轨迹

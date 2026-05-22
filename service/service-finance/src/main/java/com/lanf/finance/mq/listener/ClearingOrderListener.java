@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * 结算转账
+ * 当订单关闭时触发
  */
 @Slf4j
 @Component
@@ -60,12 +60,7 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
         }
         UnderAfterSaleDTO underAfterSaleDTO = new UnderAfterSaleDTO();
         underAfterSaleDTO.setOrderId(liquidation.getOrderId());
-//        Result<Boolean> result = afterSalesOrderApiService.isUnderAfterSale(underAfterSaleDTO);
-//
-//        if (result != null && Boolean.TRUE.equals(result.getData())) {
-//            log.info("订单 {} 正在售后中，暂不结算", orderId);
-//            return;
-//        }
+
         /**
          * 发起转账
          */

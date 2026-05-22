@@ -1,29 +1,23 @@
 package com.lanf.aftersales.service.layout.impl;
 
-import com.lanf.aftersales.model.dto.AfterSalesOrderAddDTO;
+import com.lanf.aftersales.model.dto.AddAfterSalesOrderDTO;
 import com.lanf.aftersales.model.dto.BusinessReceiverDTO;
 import com.lanf.aftersales.model.entity.AfterSalesOrderDO;
 import com.lanf.aftersales.model.entity.AfterSalesOrderItemDO;
-import com.lanf.aftersales.model.enums.MainStatusEnum;
 import com.lanf.aftersales.model.enums.SubStatus;
-import com.lanf.aftersales.service.IAfterSalesOrderItemService;
-import com.lanf.aftersales.service.IAfterSalesOrderService;
-import com.lanf.aftersales.service.layout.InterfaceLayoutService;
-import com.lanf.common.utils.*;
-import com.lanf.constant.exception.BizException;
-import com.lanf.constant.result.RpcResultParser;
 import com.lanf.aftersales.mq.AftersalesClientTopicName;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
+import com.lanf.aftersales.service.IAfterSalesOrderItemService;
+import com.lanf.aftersales.service.IAfterSalesOrderService;
+import com.lanf.aftersales.service.layout.InterfaceLayoutService;
 import com.lanf.api.goods.api.GoodsApiService;
-import com.lanf.messagemanager.client.service.ISendMqMessageService;
-import com.lanf.mybatis.utils.IdUtils;
 import com.lanf.api.order.api.OrderApiService;
-import com.lanf.api.order.model.vo.OrderItemVO;
-import com.lanf.api.order.model.vo.OrderVO;
-import com.lanf.client.pay.api.PayApiService;
-import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.api.storage.api.StorageApiService;
+import com.lanf.common.utils.DateUtils;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,8 +33,7 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
 
     @Autowired
     private OrderApiService orderApiService;
-    @Autowired
-    private PayApiService payApiService;
+
     @Autowired
     private IAfterSalesOrderItemService iAfterSalesOrderItemService;
     @Autowired
@@ -54,79 +47,13 @@ public class InterfaceLayoutServiceImpl implements InterfaceLayoutService {
     private IAfterSalesOrderItemService afterSalesOrderItemService;
     @Autowired
     private GoodsApiService goodsApiService;
-    @Autowired
-    private ISendMqMessageService sendMqMessageService;
+
 
     @Transactional
     @Override
-    public void afterSalesOrderAdd(AfterSalesOrderAddDTO dto) {
+    public void afterSalesOrderAdd(AddAfterSalesOrderDTO dto) {
 
-        Long orderId = dto.getOrderId();
-        List<Long> orderIdList = new ArrayList<>();
-        orderIdList.add(orderId);
-        /**
-         * 校验
-         */
-        AfterSalesOrderDO salesOrderDO = afterSalesOrderService.lambdaQuery()
-                .eq(AfterSalesOrderDO::getOrderId, orderId).one();
 
-        if (!(MainStatusEnum.CLOSED.getCode()
-                .equals(salesOrderDO.getMainStatus())
-                || MainStatusEnum.SUCCESS.getCode()
-                .equals(salesOrderDO.getMainStatus()))) {
-            throw new BizException("已存在处理中的售后单");
-        }
-
-        List<OrderVO> orderVOList = RpcResultParser.parseResult(orderApiService.queryByOrderId(orderIdList));
-        if (orderVOList == null || orderVOList.isEmpty()) {
-            log.error("订单信息查询异常{}", orderIdList);
-            throw new BizException("订单信息查询异常");
-        }
-        OrderVO orderVO = orderVOList.get(0);
-        if (new Date().getTime() > orderVO.getFinishTime().getTime()) {
-            throw new BizException("订单履约已完成，不能进行售后");
-        }
-        List<OrderItemVO> inOutStockOrderItemDTOList = orderVO.getInOutStockOrderItemDTOList();
-        //校验下订单状态 简单校验 就在这里进行
-        Integer orderStatus = orderVO.getOrderStatus();
-        if (!(orderStatus == 4 || orderStatus == 5)) {
-            /**
-             * 待评价、已完成订单才能发起售后
-             */
-            throw new BizException("订单状态异常");
-        }
-
-        /**
-         * 构建
-         */
-        Date applicationTime = new Date();
-        AfterSalesOrderDO afterSalesOrder = new AfterSalesOrderDO();
-        Long id = IdUtils.generateId();
-        afterSalesOrder.setUserId(UserUtils.getUserId());
-        afterSalesOrder.setId(id);
-        afterSalesOrder.setOrderId(orderId);
-        afterSalesOrder.setOrderNumber(CodeGenerateUtils.generateOrderNumber());
-        afterSalesOrder.setShopId(orderVO.getShopId());
-        afterSalesOrder.setAfterSalesType(dto.getAfterSalesType());
-        afterSalesOrder.setBusinessAutoAgreeTime(getBusinessAutoAgreeTime(applicationTime));
-        afterSalesOrder.setApplicationTime(applicationTime);
-        afterSalesOrder.setReturnReason(dto.getReturnReason());
-        afterSalesOrder.setReturnQuantity(orderVO.getTotalQuantity());
-        afterSalesOrder.setMainStatus(MainStatusEnum.WAIT_SELLER_AGREE.getCode());
-        afterSalesOrder.setSubStatus(SubStatus.WAIT_MANUAL.getCode());
-        //
-        List<AfterSalesOrderItemDO> afterSalesOrderItemList = BeanCopyUtils.copyBeanList(inOutStockOrderItemDTOList, AfterSalesOrderItemDO.class);
-        afterSalesOrderItemList.forEach(a -> {
-            a.setAfterSalesOrderId(id);
-        });
-        /**
-         * 保存
-         */
-        afterSalesOrderService.save(afterSalesOrder);
-        iAfterSalesOrderItemService.saveBatch(afterSalesOrderItemList);
-        /**
-         * 发送延迟消息 商家自动同意
-         */
 
     }
 

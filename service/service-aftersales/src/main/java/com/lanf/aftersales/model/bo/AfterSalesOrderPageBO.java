@@ -1,7 +1,7 @@
 package com.lanf.aftersales.model.bo;
 
 import com.lanf.aftersales.model.query.AfterSalesOrderPageQuery;
-import com.lanf.constant.web.PageQuery;
+import com.lanf.constant.model.query.PageQuery;
 import lombok.Data;
 
 @Data

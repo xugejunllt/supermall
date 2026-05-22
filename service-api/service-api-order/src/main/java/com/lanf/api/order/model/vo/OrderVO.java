@@ -3,7 +3,6 @@ package com.lanf.api.order.model.vo;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
 
 @Data
@@ -29,10 +28,9 @@ public class OrderVO implements Serializable {
     private Long businessId;
     //订单状态
     private Integer orderStatus;
-    //履约完成时间
-    private Date finishTime;
+
+
     private List<OrderItemVO> inOutStockOrderItemDTOList;
-    //履约单退款状态--订单售后是否退款 0:未退款,1:已退款
-    private Integer promiseOrderReturnMoney;
+
 
 }

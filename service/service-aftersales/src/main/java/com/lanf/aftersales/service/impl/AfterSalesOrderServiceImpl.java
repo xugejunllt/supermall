@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.aftersales.mapper.AfterSalesOrderMapper;
 import com.lanf.aftersales.model.bo.AfterSalesOrderPageBO;
+import com.lanf.aftersales.model.dto.AddAfterSalesOrderDTO;
 import com.lanf.aftersales.model.dto.BusinessAgreeDTO;
 import com.lanf.aftersales.model.dto.UnderAfterSaleDTO;
 import com.lanf.aftersales.model.dto.UserDeliveryDTO;
@@ -21,26 +22,28 @@ import com.lanf.aftersales.mq.AftersalesClientTopicName;
 import com.lanf.aftersales.mq.message.CloseOrderMessage;
 import com.lanf.aftersales.service.IAfterSalesOrderItemService;
 import com.lanf.aftersales.service.IAfterSalesOrderService;
-import com.lanf.client.pay.model.enums.RefundEventTypeEnum;
-import com.lanf.client.pay.mq.constant.PayClientTopicName;
-import com.lanf.client.pay.mq.message.ProcessRefundMessage;
+import com.lanf.api.order.api.OrderApiService;
+import com.lanf.api.order.model.vo.OrderItemVO;
+import com.lanf.api.order.model.vo.OrderVO;
+import com.lanf.api.pay.model.enums.RefundEventTypeEnum;
+import com.lanf.api.pay.mq.constant.PayClientTopicName;
+import com.lanf.api.pay.mq.message.ProcessRefundMessage;
+import com.lanf.api.storage.api.StorageApiService;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.RpcResultParser;
+import com.lanf.constant.utils.IdUtils;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.api.storage.api.StorageApiService;
-import com.lanf.system.api.SystemService;
-import com.lanf.system.model.vo.ShopVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -64,7 +67,75 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
     @Autowired
     private IAfterSalesOrderItemService afterSalesOrderItemService;
     @Autowired
-    private SystemService systemService;
+    private OrderApiService orderApiService;
+
+    @Override
+    public void addAfterSalesOrder(AddAfterSalesOrderDTO dto) {
+        Long orderId = dto.getOrderId();
+        List<Long> orderIdList = new ArrayList<>();
+        orderIdList.add(orderId);
+        /**
+         * 校验
+         */
+        AfterSalesOrderDO salesOrderDO = this.lambdaQuery()
+                .eq(AfterSalesOrderDO::getOrderId, orderId).one();
+
+        if (!(MainStatusEnum.CLOSED.getCode()
+                .equals(salesOrderDO.getMainStatus())
+                || MainStatusEnum.SUCCESS.getCode()
+                .equals(salesOrderDO.getMainStatus()))) {
+            throw new BizException("已存在处理中的售后单");
+        }
+
+        List<OrderVO> orderVOList = RpcResultParser.parseResult(orderApiService.queryByOrderId(orderIdList));
+        if (orderVOList == null || orderVOList.isEmpty()) {
+            log.error("订单信息查询异常{}", orderIdList);
+            throw new BizException("订单信息查询异常");
+        }
+        OrderVO orderVO = orderVOList.get(0);
+
+        List<OrderItemVO> inOutStockOrderItemDTOList = orderVO.getInOutStockOrderItemDTOList();
+        //校验下订单状态 简单校验 就在这里进行
+        Integer orderStatus = orderVO.getOrderStatus();
+        if (!(orderStatus == 4 || orderStatus == 5)) {
+            /**
+             * 待评价、已完成订单才能发起售后
+             */
+            throw new BizException("订单状态异常");
+        }
+
+        /**
+         * 构建
+         */
+        Date applicationTime = new Date();
+        AfterSalesOrderDO afterSalesOrder = new AfterSalesOrderDO();
+        Long id = IdUtils.generateId();
+        afterSalesOrder.setUserId(UserContext.getUserId());
+        afterSalesOrder.setId(id);
+        afterSalesOrder.setOrderId(orderId);
+        afterSalesOrder.setOrderNumber(CodeGenerateUtils.generateOrderNumber());
+        afterSalesOrder.setShopId(orderVO.getShopId());
+        afterSalesOrder.setAfterSalesType(dto.getAfterSalesType());
+        afterSalesOrder.setBusinessAutoAgreeTime(getBusinessAutoAgreeTime(applicationTime));
+        afterSalesOrder.setApplicationTime(applicationTime);
+        afterSalesOrder.setReturnReason(dto.getReturnReason());
+        afterSalesOrder.setReturnQuantity(orderVO.getTotalQuantity());
+        afterSalesOrder.setMainStatus(MainStatusEnum.WAIT_SELLER_AGREE.getCode());
+        afterSalesOrder.setSubStatus(SubStatus.WAIT_MANUAL.getCode());
+        //
+        List<AfterSalesOrderItemDO> afterSalesOrderItemList = BeanCopyUtils.copyBeanList(inOutStockOrderItemDTOList, AfterSalesOrderItemDO.class);
+        afterSalesOrderItemList.forEach(a -> {
+            a.setAfterSalesOrderId(id);
+        });
+        /**
+         * 保存
+         */
+        this.save(afterSalesOrder);
+        afterSalesOrderItemService.saveBatch(afterSalesOrderItemList);
+        /**
+         * 发送延迟消息 商家自动同意
+         */
+    }
 
     /**
      * 分布式锁更新 用组件封装 代码更简单
@@ -133,9 +204,7 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         v2.setPage(query.getPage());
         v2.setPageSize(query.getPageSize());
         v2.setUserId(query.getUserId());
-        if (UserUtils.getShopId()!=null){
-            v2.setShopId(UserUtils.getShopId());
-        }
+
 
         return afterSalesOrderPageQuery(v2);
     }

@@ -1,8 +1,11 @@
-package com.lanf.aftersales.model.entity;
+package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
+import com.lanf.order.model.enums.AfterSalesTypeEnum;
+import com.lanf.order.model.enums.IncomeStatusEnum;
+import com.lanf.order.model.enums.MainStatusEnum;
+import com.lanf.order.model.enums.SubStatus;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -22,44 +25,54 @@ public class AfterSalesOrderDO extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
     private Long userId;
-    @ApiModelProperty(value = "订单id")
+    /**
+     * 订单id
+     */
     private Long orderId;
 
-    @ApiModelProperty(value = "售后单编号")
+    /**
+     * 售后单编号
+     */
     private String orderNumber;
 
-    @ApiModelProperty(value = "售后类型 0:退货退款 1:换货")
-    private Integer afterSalesType;
+    private AfterSalesTypeEnum afterSalesType;
 
     /**
      *
      */
-    private Integer mainStatus;
+    private MainStatusEnum mainStatus;
 
     /**
      * 子状态
      */
-    private Integer subStatus;
+    private SubStatus subStatus;
 
     /**
      * 商家自动同意时间
      */
     private Date businessAutoAgreeTime;
 
-    @ApiModelProperty(value = "快递编号")
+    /**
+     * 快递编号
+     */
     private String expressNumber;
-
+    /**
+     * 快递公司
+     */
     private String expressCompany;
 
-    @ApiModelProperty(value = "退款原因")
+    /**
+     * 退款原因
+     */
     private String returnReason;
 
-    @ApiModelProperty(value = "退款金额")
+    /**
+     * 退款金额
+     */
     private BigDecimal returnMoney;
 
-    //退款金额是否到账 0:未到账，1:已到账
-    private Integer incomeStatus;
+    private IncomeStatusEnum incomeStatus;
 
     private Long version;
-
+    private Long tenantId;
 }

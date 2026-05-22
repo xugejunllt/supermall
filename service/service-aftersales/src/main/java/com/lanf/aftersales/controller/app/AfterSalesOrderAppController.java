@@ -1,13 +1,13 @@
 package com.lanf.aftersales.controller.app;
 
 
-import com.lanf.aftersales.model.dto.AfterSalesOrderAddDTO;
+import com.lanf.aftersales.model.dto.AddAfterSalesOrderDTO;
 import com.lanf.aftersales.model.dto.UserDeliveryDTO;
 import com.lanf.aftersales.model.query.AfterSalesOrderPageQuery;
 import com.lanf.aftersales.model.vo.AfterSalesOrderPageVO;
 import com.lanf.aftersales.service.IAfterSalesOrderService;
 import com.lanf.aftersales.service.layout.InterfaceLayoutService;
-import com.lanf.constant.web.PageResult;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class AfterSalesOrderAppController {
 
 
     @PostMapping("/afterSalesOrderAdd")
-    public Result afterSalesOrderAdd(@Validated @RequestBody AfterSalesOrderAddDTO dto) {
+    public Result<Void> afterSalesOrderAdd(@Validated @RequestBody AddAfterSalesOrderDTO dto) {
 
         log.info("创建售后单:dto{}", dto);
         interfaceLayoutService.afterSalesOrderAdd(dto);
@@ -46,7 +46,6 @@ public class AfterSalesOrderAppController {
     public Result<PageResult<AfterSalesOrderPageVO>> afterSalesOrderPageQuery(@Validated AfterSalesOrderPageQuery query) {
 
         log.info("分页查询售后单:query{}", query);
-        query.setUserId(UserUtils.getUserId());
         return Result.ok(afterSalesOrderService.afterSalesOrderPageQuery(query));
     }
 

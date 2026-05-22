@@ -229,6 +229,20 @@ public class ShardingSphereBeanConfig {
         );
         shardingRuleConfig.getTables().add(shippingTrackRule);
 
+        // 8. 配置 after_sales_order 表：不参与分库分表，默认路由到 ds0（order_db_0）
+        ShardingTableRuleConfiguration afterSalesOrderRule = new ShardingTableRuleConfiguration(
+                "after_sales_order",
+                "ds0.after_sales_order"
+        );
+        shardingRuleConfig.getTables().add(afterSalesOrderRule);
+
+        // 9. 配置 after_sales_order_item 表：不参与分库分表，默认路由到 ds0（order_db_0）
+        ShardingTableRuleConfiguration afterSalesOrderItemRule = new ShardingTableRuleConfiguration(
+                "after_sales_order_item",
+                "ds0.after_sales_order_item"
+        );
+        shardingRuleConfig.getTables().add(afterSalesOrderItemRule);
+
         // 注册分片算法
         Map<String, AlgorithmConfiguration> shardingAlgorithms = new LinkedHashMap<>();
         
