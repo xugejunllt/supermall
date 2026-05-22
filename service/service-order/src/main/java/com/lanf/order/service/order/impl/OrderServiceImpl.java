@@ -7,6 +7,7 @@ import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.InOutStockOrderItem;
+import com.lanf.api.order.mq.message.OrderShippedMessage;
 import com.lanf.api.order.mq.message.OrderWaitOutboundMessage;
 import com.lanf.api.order.mq.message.SignOrderMessage;
 import com.lanf.api.pay.api.PayApiService;
@@ -29,9 +30,7 @@ import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.mapper.OrderMapper;
 import com.lanf.order.model.bo.OrderIdAndUserId;
 import com.lanf.order.model.dto.*;
-import com.lanf.order.model.entity.OrderDO;
-import com.lanf.order.model.entity.OrderItemDO;
-import com.lanf.order.model.entity.OrderStatusTraceDO;
+import com.lanf.order.model.entity.*;
 import com.lanf.order.model.query.AdminOrderSearchQuery;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
@@ -42,6 +41,7 @@ import com.lanf.order.model.vo.OrderPageVO;
 import com.lanf.order.service.order.IOrderItemService;
 import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.order.IOrderStatusTraceService;
+import com.lanf.order.service.shipping.IExpressService;
 import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -95,6 +95,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Qualifier("searchTaskExecutor")
     @Autowired
     private ThreadPoolTaskExecutor searchTaskExecutor;
+    @Autowired
+    private IExpressService expressService;
+
 
     @Transactional
     @Override
@@ -215,23 +218,71 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         return addSalesOutStockOrderMessage;
     }
 
+    @Transactional
     @Override
     public void delivery(DeliveryDTO dto) {
 
         Long orderId = dto.getOrderId();
-        OrderDO orderDO = this.getById(orderId);
-
+        OrderDO orderDO = this.lambdaQuery()
+                .eq(OrderDO::getUserId, dto.getUserId())
+                .eq(OrderDO::getId, orderId)
+                .one();
         if (orderDO == null) {
+            log.error("订单不存在");
             throw new BizException("订单不存在");
         }
-//        Integer status = orderDO.getStatus();
-//        if (status != 2) {
-//            throw new BizException("订单状态异常");
-//        }
-        OrderDO orderDOUpdate = new OrderDO();
-        orderDOUpdate.setId(orderId);
-        orderDOUpdate.setStatus(null);
-        this.updateById(orderDOUpdate);
+        if (OrderStatusEnum.SHIPPED.equals(orderDO.getStatus())){
+            log.warn("订单已发货");
+            throw new BizException("订单已发货");
+        }
+        if ( !OrderStatusEnum.OUTBOUNDED.equals(orderDO.getStatus())){
+            log.warn("订单非待已出库状态");
+            throw new BizException("订单非待已出库状态");
+        }
+        Long expressId = dto.getExpressId();
+        ExpressDO expressDO = expressService.getById(expressId);
+        if (expressDO == null) {
+            log.error("物流公司不存在");
+            throw new BizException("物流公司不存在");
+        }
+        ShippingInfoDO shippingInfoDO = new ShippingInfoDO();
+        shippingInfoDO.setOrderId(orderId);
+        shippingInfoDO.setUserId(orderDO.getUserId());
+        shippingInfoDO.setLogisticsCompany(expressDO.getExpressCompany());
+        shippingInfoDO.setLogisticsCode(expressDO.getCompanyCode());
+        shippingInfoDO.setTrackingNumber(dto.getTrackingNumber());
+        shippingInfoDO.setFromAddress(JsonUtils.toJsonString(dto.getFromAddressJson()));
+        shippingInfoDO.setTenantId(UserContext.getTenantId());
+
+        Date date = new Date();
+        OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
+        orderStatusTraceDO.setOrderId(orderId);
+        orderStatusTraceDO.setFromStatus(orderDO.getStatus());
+        orderStatusTraceDO.setToStatus(OrderStatusEnum.SHIPPED);
+        orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+        orderStatusTraceDO.setUserId(orderDO.getUserId());
+        orderStatusTraceDO.setTenantId(UserContext.getTenantId());
+
+        OrderShippedMessage orderShippedMessage = new OrderShippedMessage();
+        orderShippedMessage.setOrderId(orderId);
+
+
+        boolean update = this.lambdaUpdate()
+                .eq(BaseEntity::getId, orderId)
+                .eq(OrderDO::getUserId, dto.getUserId())
+                .eq(OrderDO::getVersion, orderDO.getVersion())
+                .set(OrderDO::getStatus, OrderStatusEnum.SHIPPED)
+                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.warn("更新订单为已发货状态异常");
+            throw new BizException("更新订单为已发货状态异常");
+        }
+        //发送订单已发货事件
+        rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+                OrderStatusEnum.SHIPPED.getTag(),JsonUtils.toJsonString(orderShippedMessage),
+                orderId.toString());
+
 
     }
 

@@ -8,7 +8,6 @@ import com.lanf.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.query.AdminOrderSearchQuery;
 import com.lanf.order.model.vo.AdminOrderListVO;
 import com.lanf.order.service.order.IOrderService;
-import com.lanf.order.service.layout.InterfaceLayoutService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -29,8 +28,7 @@ public class OrderAdminController {
 
     @Autowired
     private IOrderService orderService;
-    @Autowired
-    private InterfaceLayoutService interfaceLayoutService;
+
 
     @PostMapping("/allowOutbound")
     public Result<Void> allowOutbound(@Validated @RequestBody AllowOutboundDTO dto) {
@@ -41,10 +39,10 @@ public class OrderAdminController {
     }
 
     @PostMapping("/delivery")
-    public Result delivery(@Validated @RequestBody DeliveryDTO dto) {
+    public Result<Void> delivery(@Validated @RequestBody DeliveryDTO dto) {
 
         log.info("进行发货:{}dto", dto);
-        interfaceLayoutService.delivery(dto);
+        orderService.delivery(dto);
         return Result.ok();
     }
 

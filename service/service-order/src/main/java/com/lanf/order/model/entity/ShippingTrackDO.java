@@ -14,11 +14,6 @@ public class ShippingTrackDO extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 物流信息id
-     */
-    private Long shippingInfoId;
-
-    /**
      * 订单id
      */
     private Long orderId;

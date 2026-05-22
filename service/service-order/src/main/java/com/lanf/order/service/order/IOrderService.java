@@ -41,10 +41,7 @@ public interface IOrderService extends IService<OrderDO> {
      *
      */
     void allowOutbound(AllowOutboundDTO dto);
-    /**
-     * 发货
-     */
-    void delivery(DeliveryDTO dto);
+
 
     /**
      * C端 搜索订单列表
@@ -61,7 +58,11 @@ public interface IOrderService extends IService<OrderDO> {
      * 出库完成
      */
     void outStockFinish(SalesOutStockOrderFinishMessage message);
-
+    /**
+     * 发货
+     *
+     */
+    void  delivery(DeliveryDTO dto);
     /**
      * 签收
      */

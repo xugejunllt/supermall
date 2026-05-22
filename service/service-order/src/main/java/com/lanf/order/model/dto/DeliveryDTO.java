@@ -1,21 +1,31 @@
 package com.lanf.order.model.dto;
 
+import com.lanf.order.model.bo.FromAddressJson;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 @Data
 public class DeliveryDTO implements Serializable {
 
+    @NotNull(message = "订单ID不能为空")
     private Long orderId;
+
+    @NotNull(message = "用户ID不能为空")
+    private Long userId;
+
     //快递公司id
+    @NotNull(message = "快递公司ID不能为空")
     private Long expressId;
 
     /**
-     * 快递单号
+     * 物流单号
      */
-    private String number;
+    @NotNull(message = "物流单号不能为空")
+    private String trackingNumber;
 
-
+    @NotNull(message = "发货地址不能为空")
+    private FromAddressJson fromAddressJson;
 
 }

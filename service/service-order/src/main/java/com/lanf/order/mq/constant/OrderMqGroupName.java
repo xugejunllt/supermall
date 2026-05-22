@@ -14,4 +14,7 @@ public class OrderMqGroupName {
     public static final String SEC_KILL_ORDER_CONFIRM_GROUP = "SEC_KILL_ORDER_CONFIRM_GROUP";
 
     public static final String SEC_KILL_ORDER_TIMEOUT_CANCEL_TOPIC = "SEC_KILL_ORDER_TIMEOUT_CANCEL_TOPIC";
+
+
+    public static final String SHIPPED_ORDER_EVENT_PUSH_SHIPPING_INFO = "SHIPPED_ORDER_EVENT_PUSH_SHIPPING_INFO";
 }
