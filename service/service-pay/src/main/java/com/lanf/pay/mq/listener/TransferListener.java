@@ -2,6 +2,7 @@ package com.lanf.pay.mq.listener;
 
 import com.lanf.api.pay.mq.constant.PayClientTopicName;
 import com.lanf.api.pay.mq.message.TransferMessage;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.TransferResult;
 import com.lanf.pay.model.entity.TransferOrderDO;
 import com.lanf.pay.model.enums.TransferStatusEnum;
@@ -17,6 +18,8 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
+
+import static com.lanf.pay.mq.constant.PayMqTopicName.QUERY_TRANSFER_RESULT_TOPIC;
 
 /**
  * 处理转账事件
@@ -66,7 +69,7 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
                 message.getIncomeAccount(), message.getTransAmount(), message.getOrderTitle());
         log.info("转账完成");
         QueryTransferResultMessage queryTransferResultMessage = getQueryTransferResultMessage(message);
-       // rocketMqClient.sendMessage(QUERY_TRANSFER_RESULT_TOPIC,JsonUtils.toJsonString(queryTransferResultMessage));
+        rocketMqClient.sendMessage(QUERY_TRANSFER_RESULT_TOPIC, JsonUtils.toJsonString(queryTransferResultMessage));
     }
 
     private static QueryTransferResultMessage getQueryTransferResultMessage(TransferMessage message) {
