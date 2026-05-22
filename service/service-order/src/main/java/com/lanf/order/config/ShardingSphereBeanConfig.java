@@ -215,6 +215,20 @@ public class ShardingSphereBeanConfig {
         );
         shardingRuleConfig.getTables().add(expressRule);
 
+        // 6. 配置 shipping_info 表：不参与分库分表，默认路由到 ds0（order_db_0）
+        ShardingTableRuleConfiguration shippingInfoRule = new ShardingTableRuleConfiguration(
+                "shipping_info",
+                "ds0.shipping_info"
+        );
+        shardingRuleConfig.getTables().add(shippingInfoRule);
+
+        // 7. 配置 shipping_track 表：不参与分库分表，默认路由到 ds0（order_db_0）
+        ShardingTableRuleConfiguration shippingTrackRule = new ShardingTableRuleConfiguration(
+                "shipping_track",
+                "ds0.shipping_track"
+        );
+        shardingRuleConfig.getTables().add(shippingTrackRule);
+
         // 注册分片算法
         Map<String, AlgorithmConfiguration> shardingAlgorithms = new LinkedHashMap<>();
         

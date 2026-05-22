@@ -5,7 +5,7 @@ import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import com.lanf.order.model.bo.AddExpressDTO;
-import com.lanf.order.model.entity.ExpressDO;
+import com.lanf.order.model.vo.ExpressPageVO;
 import com.lanf.order.service.shipping.IExpressService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +37,7 @@ public class ExpressController {
     }
 
     @GetMapping("/expressPageQuery")
-    public Result<PageResult<ExpressDO>> expressPageQuery(@Validated PageQuery query) {
+    public Result<PageResult<ExpressPageVO>> expressPageQuery(@Validated PageQuery query) {
 
         log.info("分页查询快递公司:query{}", query);
         return Result.ok(expressService.expressPageQuery(query));
