@@ -1,11 +1,11 @@
-package com.lanf.order.controller.app;
+package com.lanf.order.controller.admin;
 
 
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.order.model.dto.AddAfterSalesOrderDTO;
-import com.lanf.order.model.dto.UserDeliveryDTO;
+import com.lanf.order.model.dto.BusinessAgreeDTO;
+import com.lanf.order.model.dto.BusinessReceiverDTO;
 import com.lanf.order.model.vo.AfterSalesOrderForUserDetailVO;
 import com.lanf.order.model.vo.AfterSalesOrderForUserPageVO;
 import com.lanf.order.service.aftersales.IAfterSalesOrderService;
@@ -24,26 +24,17 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/app/afterSalesOrder")
-public class AfterSalesOrderAppController {
+@RequestMapping("/admin/afterSalesOrder")
+public class AfterSalesOrderForAdminController {
 
     @Autowired
     private IAfterSalesOrderService afterSalesOrderService;
 
 
-    @PostMapping("/addAfterSalesOrder")
-    public Result<Void> addAfterSalesOrder(@Validated @RequestBody AddAfterSalesOrderDTO dto) {
-
-        log.info("创建售后单:dto{}", dto);
-        afterSalesOrderService.addAfterSalesOrder(dto);
-
-        return Result.ok();
-    }
-
     @GetMapping("/afterSalesOrderForUserPageQuery")
     public Result<PageResult<AfterSalesOrderForUserPageVO>> afterSalesOrderForUserPageQuery(@Validated PageQuery query) {
 
-        log.info("分页查询用户售后单:query{}", query);
+        log.info("分页查询售后单:query{}", query);
 
         return Result.ok(afterSalesOrderService.afterSalesOrderForUserPageQuery(query));
     }
@@ -51,18 +42,26 @@ public class AfterSalesOrderAppController {
     @GetMapping("/afterSalesOrderForUserDetailQuery")
     public Result<AfterSalesOrderForUserDetailVO> afterSalesOrderForUserDetailQuery(Long id) {
 
-        log.info("查询用户售后单详细:query{}", id);
+        log.info("售后单详细:query{}", id);
 
         return Result.ok(afterSalesOrderService.afterSalesOrderForUserDetailQuery(id));
     }
 
+    @PostMapping("/businessAgree")
+    public Result<Void> businessAgree(@RequestBody @Validated BusinessAgreeDTO dto) {
 
+        log.info("商家同意:dto{}", dto);
+        afterSalesOrderService.businessAgree(dto);
+        return Result.ok();
+    }
 
-    @PostMapping("/userDelivery")
-    public Result<Void> userDelivery(@RequestBody @Validated UserDeliveryDTO dto) {
+    @PostMapping("/businessReceiver")
+    public Result<Void> businessReceiver(@RequestBody @Validated BusinessReceiverDTO dto) {
 
-        log.info("用户发货:dto{}", dto);
-        afterSalesOrderService.userDelivery(dto);
+        log.info("商家签收商品:dto{}", dto);
+
+        afterSalesOrderService.businessReceiver(dto);
+
         return Result.ok();
     }
 

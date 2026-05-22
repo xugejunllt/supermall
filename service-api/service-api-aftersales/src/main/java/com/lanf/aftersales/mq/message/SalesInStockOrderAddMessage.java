@@ -14,6 +14,7 @@ public class SalesInStockOrderAddMessage implements Serializable {
      */
     private Long afterSalesOrderId;
 
+    private Long tenantId;
 
     private List<SalesInStockOrderItemAdd> salesInStockOrderItemAddDTOList;
 

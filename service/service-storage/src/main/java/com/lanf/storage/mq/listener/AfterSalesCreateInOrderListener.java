@@ -28,7 +28,7 @@ public class AfterSalesCreateInOrderListener implements RocketMQListener<SalesIn
     @Override
     public void onMessage(SalesInStockOrderAddMessage message) {
 
-        log.info("售后单创建商品入库单监听器接收到消息:{}", JsonUtils.toJsonString(message));
+        log.info("监听到售后单商家签收商品消息:{}", JsonUtils.toJsonString(message));
 
         afterSalesIntStockOrderService.addAfterSalesIntStockOrder( message);
     }

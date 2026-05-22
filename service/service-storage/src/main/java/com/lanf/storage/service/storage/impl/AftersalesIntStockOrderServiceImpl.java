@@ -49,7 +49,7 @@ public class AftersalesIntStockOrderServiceImpl extends ServiceImpl<AftersalesIn
         AfterSalesIntStockOrderDO one = this.lambdaQuery().eq(AfterSalesIntStockOrderDO::
                 getAfterSalesOrderId, message.getAfterSalesOrderId()).one();
         if (one != null) {
-            throw new BizException("售后单已存在");
+            throw new BizException("售后入库单已存在");
         }
 
         List<SalesInStockOrderItemAdd> salesInStockOrderItemAddDTOList = message.getSalesInStockOrderItemAddDTOList();
@@ -66,6 +66,8 @@ public class AftersalesIntStockOrderServiceImpl extends ServiceImpl<AftersalesIn
         afterSalesIntStockOrderDO.setAfterSalesOrderId(message.getAfterSalesOrderId());
         afterSalesIntStockOrderDO.setExpectQuantity(totalQuantity);
         afterSalesIntStockOrderDO.setStorageStatus(0);
+        afterSalesIntStockOrderDO.setTenantId(message.getTenantId());
+        afterSalesIntStockOrderDO.setAfterSalesOrderId(message.getAfterSalesOrderId());
         //
         List<SalesInStockOrderItemAdd> inOutStockOrderItemDTOList = message.getSalesInStockOrderItemAddDTOList();
         inOutStockOrderItemDTOList.forEach(b -> {
@@ -77,6 +79,7 @@ public class AftersalesIntStockOrderServiceImpl extends ServiceImpl<AftersalesIn
             inOutStockOrderItemDO.setSurplusQuantity(b.getQuantity());
             inOutStockOrderItemDO.setUnit(b.getSkuName());
             inOutStockOrderItemDO.setInOutStockOrderId(id);
+            inOutStockOrderItemDO.setTenantId(message.getTenantId());
             inOutStockOrderItemDOList.add(inOutStockOrderItemDO);
         });
 
@@ -102,7 +105,6 @@ public class AftersalesIntStockOrderServiceImpl extends ServiceImpl<AftersalesIn
                 .eq(AfterSalesIntStockOrderDO::getVersion, one.getVersion())
                 .set(AfterSalesIntStockOrderDO::getStorageStatus, 1)
                 .set(AfterSalesIntStockOrderDO::getActualQuantity, one.getExpectQuantity())
-                .set(AfterSalesIntStockOrderDO::getWarehouseId, dto.getWarehouseId())
                 .update();
         if (!update) {
             log.error("更新失败");

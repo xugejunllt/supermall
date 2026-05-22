@@ -1,8 +1,15 @@
 package com.lanf.order.service.aftersales;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.order.model.dto.AddAfterSalesOrderDTO;
+import com.lanf.order.model.dto.BusinessAgreeDTO;
+import com.lanf.order.model.dto.BusinessReceiverDTO;
+import com.lanf.order.model.dto.UserDeliveryDTO;
 import com.lanf.order.model.entity.AfterSalesOrderDO;
+import com.lanf.order.model.vo.AfterSalesOrderForUserDetailVO;
+import com.lanf.order.model.vo.AfterSalesOrderForUserPageVO;
 
 /**
  * <p>
@@ -20,5 +27,24 @@ public interface IAfterSalesOrderService extends IService<AfterSalesOrderDO> {
      */
     void  addAfterSalesOrder(AddAfterSalesOrderDTO dto);
 
+    PageResult<AfterSalesOrderForUserPageVO> afterSalesOrderForUserPageQuery(PageQuery query);
 
+    AfterSalesOrderForUserDetailVO afterSalesOrderForUserDetailQuery(Long id);
+
+    /**
+     * 退货退款/换货 商家同意
+     *
+     */
+    void  businessAgree(BusinessAgreeDTO dto);
+
+    /**
+     * 退货退款/换货 用户发货
+     *
+     */
+    void userDelivery(UserDeliveryDTO dto);
+    /**
+     * 退货退款 商家收货
+     *
+     */
+    void businessReceiver(BusinessReceiverDTO dto);
 }

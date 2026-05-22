@@ -19,7 +19,6 @@ public class AfterSalesIntStockOrderDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
 
-
     /** 单据编码 */
     private String code;
 
@@ -34,9 +33,6 @@ private static final long serialVersionUID=1L;
 
     /** 出库状态0:待入库, 1:已入库 */
     private Integer storageStatus;
-
-    /** 仓库id */
-    private Long warehouseId;
 
     /** 备注 */
     private String remarks;

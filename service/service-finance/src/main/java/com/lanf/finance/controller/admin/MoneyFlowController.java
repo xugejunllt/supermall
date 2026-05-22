@@ -25,8 +25,7 @@ public class MoneyFlowController {
     private IMoneyFlowService moneyFlowService;
     @Autowired
     private RocketMqClient rocketMqClient;
-    @Autowired
-    private SettlementTask contrastBillTask;
+
 
 
 

@@ -19,7 +19,7 @@ public class SalesInStockOrderItemAdd implements Serializable {
     private String skuName;
     private String skuCode;
 
-
+    private Long tenantId;
 
 
 
