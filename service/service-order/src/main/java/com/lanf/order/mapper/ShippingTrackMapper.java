@@ -1,0 +1,16 @@
+package com.lanf.order.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.lanf.order.model.entity.ShippingTrackDO;
+
+/**
+ * <p>
+ * 物流轨迹 Mapper 接口
+ * </p>
+ *
+ * @author 江帅帅 Jss_forever
+ * @since 2024-06-17
+ */
+public interface ShippingTrackMapper extends BaseMapper<ShippingTrackDO> {
+
+}
