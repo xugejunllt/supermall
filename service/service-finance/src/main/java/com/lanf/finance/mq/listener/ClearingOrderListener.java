@@ -90,14 +90,14 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
 
     private TransferMessage buildTransferMessage(ClearingDetailDO liquidation){
         // 商家账户
-        PayAccountDO merchantAccount = payAccountService.getByMerchantIdAccount(liquidation.getMerchantId(), PayChannelEnum.ALI_PAY.getCode());
+        PayAccountDO merchantAccount = payAccountService.getByMerchantIdAccount(liquidation.getTenantId(), PayChannelEnum.ALI_PAY.getCode());
         //平台账户
         PayAccountDO platAccount = payAccountService.getByMerchantIdAccount(Constants.PLATFORM_BUSINESS_ID, PayChannelEnum.ALI_PAY.getCode());
         Long liquidationId = liquidation.getId();
         String outBizNo = liquidationId.toString();
         TransferMessage transferMessage = new TransferMessage();
         transferMessage.setOutBizNo(outBizNo);
-        transferMessage.setMerchantId(liquidation.getMerchantId());
+        transferMessage.setMerchantId(liquidation.getTenantId());
         transferMessage.setBizOrderId(liquidationId);
         transferMessage.setEventType(TransferEventTypeEnum.ORDER_SETTLEMENT);
         //默认支付宝

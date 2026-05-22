@@ -8,6 +8,7 @@ import com.lanf.api.order.model.vo.OrderDocumentVO;
 import com.lanf.api.order.mq.message.InOutStockOrderItem;
 import com.lanf.api.order.mq.message.OrderShippedMessage;
 import com.lanf.api.order.mq.message.OrderWaitOutboundMessage;
+import com.lanf.api.order.mq.message.SignOrderMessage;
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.search.api.SearchApiService;
 import com.lanf.api.search.model.query.OrderSearchQuery;
@@ -498,6 +499,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             log.warn("订单非已发货状态");
             throw new BizException("订单非已发货状态");
         }
+
         Date date = new Date();
         OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
         orderStatusTraceDO.setOrderId(orderId);
@@ -507,6 +509,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         orderStatusTraceDO.setUserId(UserContext.getUserId());
         orderStatusTraceDO.setTenantId(orderDO.getTenantId());
         orderStatusTraceDO.setRemark("用户签收订单");
+
+        SignOrderMessage signOrderMessage = new SignOrderMessage();
+        signOrderMessage.setOrderId(orderId);
+        signOrderMessage.setSignTime( date);
+        signOrderMessage.setAfterSaleDays(orderDO.getAfterSaleDays());
+        signOrderMessage.setPayMoney(orderDO.getActualPayMoney());
+        signOrderMessage.setTenantId(orderDO.getTenantId());
+
+
         /**
          * 订单更新信息
          */
@@ -522,7 +533,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             throw new BizException("订单状态更新异常");
         }
         orderStatusTraceService.save(orderStatusTraceDO);
-
+        //发送订单签收事件
+        rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+                OrderStatusEnum.WAIT_COMMENT.getTag(),JsonUtils.toJsonString(signOrderMessage),
+                orderDO.getId().toString());
     }
 
     @Override

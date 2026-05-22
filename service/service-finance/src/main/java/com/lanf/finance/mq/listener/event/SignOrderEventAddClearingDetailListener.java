@@ -1,14 +1,13 @@
 package com.lanf.finance.mq.listener.event;
 
+import com.lanf.api.order.mq.message.SignOrderMessage;
 import com.lanf.common.utils.BigDecimalUtil;
-import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.finance.model.entity.ClearingDetailDO;
 import com.lanf.finance.model.enums.ClearingStatusEnum;
 import com.lanf.finance.model.enums.RecipientTypeEnum;
 import com.lanf.finance.mq.constant.FinanceMqGroupName;
 import com.lanf.finance.service.ClearingDetailService;
-import com.lanf.api.order.mq.constant.OrderClientTopicName;
-import com.lanf.api.order.mq.message.SignOrderMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -21,12 +20,15 @@ import java.util.Date;
 
 
 /**
- * 订单签收时 进行新增计算单
+ * 订单签收时 进行新增结算单
  */
 
 @Slf4j
 @Component
-@RocketMQMessageListener(topic = OrderClientTopicName.SIGN_ORDER_EVENT_TOPIC, consumerGroup = FinanceMqGroupName.SIGN_ORDER_EVENT_FINANCE_GROUP)
+@RocketMQMessageListener(topic = OrderTopicWithTag.ORDER_EVENT_TOPIC,
+        consumerGroup = FinanceMqGroupName.SIGN_ORDER_EVENT_FINANCE_GROUP,
+selectorExpression = OrderTopicWithTag.TAG_WAIT_COMMENT)
+
 public class SignOrderEventAddClearingDetailListener implements RocketMQListener<SignOrderMessage> {
 
     @Autowired
@@ -38,17 +40,17 @@ public class SignOrderEventAddClearingDetailListener implements RocketMQListener
     /**
      * 平台费率 5%
      */
-    private static final BigDecimal rate = new BigDecimal(5);
+    private static final BigDecimal rate = new BigDecimal(50);
 
     @Override
     public void onMessage(SignOrderMessage message) {
 
-        log.info("订单签收时开始:[{{}}]", JsonUtils.toJsonString(message));
+        log.info("监听到订单已签收消息:{}", message);
         Long orderId = message.getOrderId();
         Date signTime = message.getSignTime();
         BigDecimal payMoney = message.getPayMoney();
         Integer afterSaleDays = message.getAfterSaleDays();
-        Long merchantId = message.getMerchantId();
+        Long merchantId = message.getTenantId();
         Date afterSaleExpireTime = new Date(signTime.getTime() + afterSaleDays * 24 * 60 * 60 * 1000);
 
         //商家收入
@@ -56,12 +58,13 @@ public class SignOrderEventAddClearingDetailListener implements RocketMQListener
         ClearingDetailDO merchantLiquidationFlowDO = new ClearingDetailDO();
         merchantLiquidationFlowDO.setOrderId(orderId);
         merchantLiquidationFlowDO.setPayMoney(payMoney);
-        merchantLiquidationFlowDO.setMerchantId(merchantId);
+        merchantLiquidationFlowDO.setTenantId(merchantId);
+        merchantLiquidationFlowDO.setAfterSaleExpireTime(afterSaleExpireTime);
         merchantLiquidationFlowDO.setStatus(ClearingStatusEnum.WAIT_CLEARING);
         merchantLiquidationFlowDO.setRecipientType(RecipientTypeEnum.MERCHANT);
         merchantLiquidationFlowDO.setIncomeMoney(merchantIncomeMoney);
-        merchantLiquidationFlowDO.setAfterSaleExpireTime(afterSaleExpireTime);
-        merchantLiquidationFlowDO.setVersion(1L);
+        merchantLiquidationFlowDO.setRate( rate);
+
         try {
             clearingDetailService.save(merchantLiquidationFlowDO);
         } catch (DuplicateKeyException e) {

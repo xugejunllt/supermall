@@ -25,8 +25,7 @@ private static final long serialVersionUID=1L;
 
     private Date afterSaleExpireTime;
 
-    @ApiModelProperty(value = "商家id")
-    private Long merchantId;
+    private Long tenantId;
 
     private ClearingStatusEnum status;
 

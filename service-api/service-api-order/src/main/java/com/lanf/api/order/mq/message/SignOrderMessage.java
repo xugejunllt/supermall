@@ -26,6 +26,6 @@ public class SignOrderMessage extends BaseMessage {
     private BigDecimal payMoney;
 
     //商家id
-    private Long merchantId;
+    private Long tenantId;
 
 }

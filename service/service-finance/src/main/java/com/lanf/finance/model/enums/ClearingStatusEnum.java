@@ -14,7 +14,6 @@ public enum ClearingStatusEnum {
     EXCEPTION(3, "结算异常");
 
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
 

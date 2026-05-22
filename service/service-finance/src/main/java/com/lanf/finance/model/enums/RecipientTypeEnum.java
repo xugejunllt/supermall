@@ -11,7 +11,6 @@ public enum RecipientTypeEnum {
     MERCHANT(0, "商家");
 
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
 
