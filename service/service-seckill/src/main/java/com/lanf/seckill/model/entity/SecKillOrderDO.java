@@ -39,7 +39,7 @@ private static final long serialVersionUID=1L;
     private SecKillOrderStatusEnum orderStatus;
 
 
-    private Long merchantId;
+    private Long tenantId;
 
     private Long version;
 

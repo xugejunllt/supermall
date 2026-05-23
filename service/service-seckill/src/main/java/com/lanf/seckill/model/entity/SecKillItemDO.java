@@ -72,7 +72,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "已售数量")
     private Integer soldStock;
 
-    private Long merchantId;
+    private Long tenantId;
     /**
      *
      */

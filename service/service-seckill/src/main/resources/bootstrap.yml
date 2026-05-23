@@ -25,6 +25,9 @@ spring:
             refresh: true
           - group: common
             data-id: rocketmq.yaml
+          - group: common
+            data-id: common.yaml
+
 server:
   port: 9013
   servlet:

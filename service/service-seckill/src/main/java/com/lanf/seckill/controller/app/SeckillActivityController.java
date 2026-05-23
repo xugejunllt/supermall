@@ -2,6 +2,7 @@ package com.lanf.seckill.controller.app;
 
 
 import com.alibaba.nacos.api.model.v2.Result;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.seckill.model.dto.GetSeckillTokenDTO;
 import com.lanf.seckill.model.enums.SecKillResultEnum;
 import com.lanf.seckill.model.query.SecKillResultQuery;
@@ -76,7 +77,7 @@ public class SeckillActivityController {
     @GetMapping("/querySecKillResult")
     public Result<SecKillResultVO> querySecKillResult(SecKillResultQuery query) {
 
-        Long userId = UserIdContext.getUserId() ;
+        Long userId = UserContext.getUserId() ;
         SecKillResultEnum result = secKillResultCache.getResult(userId, query.getSecKillItemId());
         /**
          * 返回友好提示

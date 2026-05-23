@@ -193,6 +193,29 @@ public class JwtUtils {
         }
     }
 
+    /**
+     * 解析Token并获取Claims
+     *
+     * @param token JWT Token
+     * @return Claims 对象
+     * @throws IExpiredJwtException Token过期异常
+     * @throws TokenParseException  Token解析异常
+     */
+    public static Claims getClaims(String token) throws IExpiredJwtException, TokenParseException {
+        try {
+            return JWT_PARSER
+                    .setSigningKey(TOKEN_SIGN_KEY)
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            log.warn("Token已过期 token=[{}]", token);
+            throw new IExpiredJwtException();
+        } catch (Exception e) {
+            log.warn("Token解析失败 token=[{}]", token, e);
+            throw new TokenParseException();
+        }
+    }
+
 
 
 }

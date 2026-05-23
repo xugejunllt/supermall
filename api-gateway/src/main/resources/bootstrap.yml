@@ -92,5 +92,10 @@ spring:
           uri: lb://service-search
           predicates:
             - Path=/search/**
+        - id: service-seckill
+          uri: lb://service-seckill
+          predicates:
+            - Path=/seckill/**
+
 front:
   path: http://127.0.0.1:8420

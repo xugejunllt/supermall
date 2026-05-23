@@ -15,7 +15,6 @@
     <modules>
         <module>service-system</module>
         <module>service-log</module>
-        <module>service-logistics</module>
         <module>service-file</module>
         <module>service-storage</module>
         <module>service-goods</module>
@@ -24,7 +23,6 @@
         <module>service-pay</module>
         <module>service-sms</module>
         <module>service-welfare</module>
-        <module>service-aftersales</module>
         <module>service-finance</module>
         <module>service-search</module>
         <module>service-seckill</module>

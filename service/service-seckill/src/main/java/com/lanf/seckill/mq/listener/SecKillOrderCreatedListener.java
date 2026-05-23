@@ -1,9 +1,9 @@
 package com.lanf.seckill.mq.listener;
 
+import com.lanf.api.order.mq.constant.OrderClientTopicName;
+import com.lanf.api.order.mq.message.SecKillOrderCreatedMessage;
 import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.order.mq.constant.OrderClientTopicName;
-import com.lanf.order.mq.message.SecKillOrderCreatedMessage;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.model.entity.SecKillItemDO;

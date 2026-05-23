@@ -28,7 +28,7 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "秒杀的库存数量")
     private Integer stockQuantity;
-
+    private Long tenantId;
 
 
 

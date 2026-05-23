@@ -5,7 +5,6 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.model.entity.SecKillItemDO;
 import com.lanf.seckill.model.entity.SecKillOrderDO;
 import com.lanf.seckill.model.enums.SecKillOrderStatusEnum;
-import com.lanf.seckill.model.enums.SecKillResultEnum;
 import com.lanf.seckill.mq.constant.SecKillMqGroupName;
 import com.lanf.seckill.mq.constant.SecKillMqTopicName;
 import com.lanf.seckill.mq.message.SecKillSuccessMessage;
@@ -59,7 +58,7 @@ public class SecKillSuccessListener implements RocketMQListener<SecKillSuccessMe
          */
         SecKillPlaneMessage secKillPlaneMessage = new SecKillPlaneMessage();
         secKillPlaneMessage.setShopId(null);
-        secKillPlaneMessage.setMerchantId(killItemDO.getMerchantId());
+        secKillPlaneMessage.setMerchantId(killItemDO.getTenantId());
         secKillPlaneMessage.setUserId(message.getUserId());
         secKillPlaneMessage.setOrderNumber(message.getOrderNumber());
 
@@ -97,7 +96,7 @@ public class SecKillSuccessListener implements RocketMQListener<SecKillSuccessMe
         secKillOrderDO.setOrderNumber(message.getOrderNumber());
         secKillOrderDO.setItemQuantity(message.getItemQuantity());
         secKillOrderDO.setOrderStatus(SecKillOrderStatusEnum.CREATING);
-        secKillOrderDO.setMerchantId(killItemDO.getMerchantId());
+        secKillOrderDO.setTenantId(killItemDO.getTenantId());
         return secKillOrderDO;
     }
 

@@ -8,6 +8,7 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.config.SeckillUrlConfig;
 import com.lanf.seckill.mapper.SecKillActivityMapper;
@@ -122,7 +123,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         seckillActivityDO.setEndTime(dto.getEndTime());
         //简单处理 默认开始 实际秒杀时间以秒杀开始时间为准 提前预热
         seckillActivityDO.setStatus(SeckillActivityStatusEnum.IN_PROGRESS);
-        seckillActivityDO.setMerchantId(null);
+        seckillActivityDO.setTenantId(UserContext.getTenantId());
         this.save(seckillActivityDO);
 
     }
@@ -187,7 +188,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         seckillItemDO.setSoldStock(0);
         //默认下架状态
         seckillItemDO.setShelfStatus(0);
-        seckillItemDO.setMerchantId(null);
+        seckillItemDO.setTenantId(null);
         seckillItemDO.setGoodsName(dto.getGoodsName());
         seckillItemDO.setSkuId(dto.getSkuId());
         seckillItemDO.setGoodsVersion(dto.getGoodsVersion());
@@ -539,7 +540,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
             throw new BizException("商品已售罄");
         }
 
-        Long userId = UserIdContext.getUserId();
+        Long userId = UserContext.getUserId();
         /**
          * token 绑定用户id 秒杀商品id
          * 过期时间1分钟

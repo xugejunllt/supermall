@@ -35,7 +35,7 @@ private static final long serialVersionUID=1L;
 
     private SeckillActivityStatusEnum status;
 
-    private Long merchantId;
+    private Long tenantId;
 
 
 
