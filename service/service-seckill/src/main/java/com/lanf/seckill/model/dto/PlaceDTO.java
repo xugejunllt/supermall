@@ -10,7 +10,7 @@ public class PlaceDTO implements Serializable {
 
     private Long seckillItemId;
 
-    private Long activityId;
+
 
     private String token;
 

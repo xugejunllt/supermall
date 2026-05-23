@@ -5,6 +5,7 @@ import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.result.Result;
+import com.lanf.constant.result.RpcResultParser;
 import com.lanf.constant.utils.UserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

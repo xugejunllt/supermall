@@ -14,7 +14,9 @@ public class AddSeckillItemDTO implements Serializable {
      * 秒杀模式 0：实时秒杀，1：MQ排队秒杀
      */
     private SeckillModeEnum secKillMode;
+    private Long shopId;
 
+    private String shopName;
     private String orderNumber;
 
     @ApiModelProperty(value = "所属活动ID")

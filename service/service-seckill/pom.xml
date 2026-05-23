@@ -85,6 +85,7 @@
             <artifactId>service-api-order</artifactId>
             <version>${service.version}</version>
         </dependency>
+
     </dependencies>
 
     <build>

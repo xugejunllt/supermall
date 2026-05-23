@@ -1,11 +1,10 @@
 package com.lanf.seckill.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class SecKillSuccessMessage implements Serializable {
+public class SecKillSuccessMessage extends BaseMessage {
 
     private Long userId;
 

@@ -22,6 +22,11 @@ public class SecKillItemDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 
+
+    private Long shopId;
+
+    private String shopName;
+
     @ApiModelProperty(value = "所属活动ID")
     private Long activityId;
 

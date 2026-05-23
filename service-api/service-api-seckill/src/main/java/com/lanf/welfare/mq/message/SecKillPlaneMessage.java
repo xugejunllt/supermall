@@ -1,17 +1,19 @@
 package com.lanf.welfare.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class SecKillPlaneMessage implements Serializable {
+public class SecKillPlaneMessage extends BaseMessage {
 
     private Long shopId;
+
+    private String shopName;
     //商家id
-    private Long merchantId;
+    private Long tenantId;
 
     @ApiModelProperty(value = "用户id")
     private Long userId;

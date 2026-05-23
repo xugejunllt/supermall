@@ -5,6 +5,7 @@ import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.seckill.config.SeckillUrlConfig;
 import com.lanf.seckill.model.dto.PlaceDTO;
 import com.lanf.seckill.service.strategy.SecKillStrategy;
@@ -67,10 +68,11 @@ public class SeckillFilter implements Filter {
 
         // 如果没有匹配的配置，直接放行
         if (matchedMapping == null) {
+            log.info("非秒杀接口");
             filterChain.doFilter(request, response);
             return;
         }
-
+        log.info("开始进行秒杀");
         // 读取 Body 为字符串
         StringBuilder sb = new StringBuilder();
         try (BufferedReader reader = request.getReader()) {
@@ -89,14 +91,16 @@ public class SeckillFilter implements Filter {
         try {
             object = JsonUtils.toObject(jsonBody, PlaceDTO.class);
         } catch (Exception e) {
+            log.error("请求参反序列化错误");
             ResponseUtil.outFail(response, Result.fail("系统繁忙，请重试"));
             return;
         }
         String token = object.getToken();
-        Long userId = object.getUserId();
+        Long userId = UserContext.getUserId();
         Long skillItemId = object.getSeckillItemId();
 
         if (userId == null || skillItemId == null || IStringUtils.isEmpty(token)){
+            log.error("请求参数错误");
             ResponseUtil.outFail(response, Result.fail("系统繁忙，请重试"));
             return;
         }
@@ -112,11 +116,13 @@ public class SeckillFilter implements Filter {
             if ( !userId.equals(jwtUserId) ||
                     !skillItemId.equals(jwtSkillItemId)
                  || secKillModel == null) {
+                log.error("token信息不一致");
                 ResponseUtil.outFail(response, Result.fail(100004, "系统繁忙，请重试"));
                 return;
             }
 
         } catch (Exception e) {
+            log.error("token校验失败");
             ResponseUtil.outFail(response, Result.fail(100004, "系统繁忙，请重试"));
             return;
         }
@@ -125,6 +131,7 @@ public class SeckillFilter implements Filter {
             /**
              * 与缓存token不一致 或者已经失效了
              */
+            log.warn("token已失效或与缓存不一致");
             ResponseUtil.outFail(response, Result.fail(100004, "太火爆了，再试一次"));
             return;
         }
@@ -136,13 +143,16 @@ public class SeckillFilter implements Filter {
          */
         try {
             SecKillStrategy strategy = secKillStrategyFactory.getStrategy(secKillModel);
+            object.setUserId(userId);
             strategy.executeSecKill(object);
             ResponseUtil.outFail(response, Result.ok());
 
         } catch (BizException e) {
+            log.error("秒杀异常");
             ResponseUtil.outFail(response, Result.fail(e.getCode(), e.getMessage()));
 
         } catch (Exception e) {
+            log.error("秒杀异常",e);
             ResponseUtil.outFail(response, Result.fail(100004, "太火爆了，再试一次"));
 
         }

@@ -1,6 +1,7 @@
 package com.lanf.seckill.controller.app;
 
 
+import com.lanf.constant.result.Result;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.seckill.model.dto.GetSeckillTokenDTO;
 import com.lanf.seckill.model.enums.SecKillResultEnum;
@@ -10,13 +11,14 @@ import com.lanf.seckill.model.vo.SecKillResultVO;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
+import com.lanf.seckill.mq.listener.SecKillSuccessListener;
+import com.lanf.seckill.mq.message.SecKillSuccessMessage;
 import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.seckill.service.strategy.SecKillResultCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import com.lanf.constant.result.Result;
 
 import java.util.List;
 
@@ -38,6 +40,8 @@ public class SeckillActivityController {
     private ISecKillActivityService seckillActivityService;
     @Autowired
     private SecKillResultCache secKillResultCache;
+    @Autowired
+    private SecKillSuccessListener secKillSuccessListener;
 
     /**
      *
@@ -70,6 +74,14 @@ public class SeckillActivityController {
 
         return Result.ok(seckillActivityService.getSeckillToken( dto));
     }
+    @PostMapping("/secKillSuccess")
+    public Result<Void> secKillSuccess(@Validated @RequestBody SecKillSuccessMessage message) {
+
+        log.info("测试秒杀成功:{}",message);
+        secKillSuccessListener.onMessage(message);
+        return Result.ok();
+    }
+
 
     /**
      * 前端轮训秒杀结果

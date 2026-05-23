@@ -24,7 +24,7 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "用户ID")
     private Long userId;
 
-    @ApiModelProperty(value = "秒杀商品ID（seckill_item 表的 id）")
+    @ApiModelProperty(value = "seckill_item  id）")
     private Long itemId;
 
     @ApiModelProperty(value = "活动ID")

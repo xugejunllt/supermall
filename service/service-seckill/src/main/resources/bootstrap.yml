@@ -40,6 +40,6 @@ mybatis-plus:
 seckill:
   url-mappings:
     - path: /seckill/kill/iphone15
-      activityId: 10
+      seckillItemId: 1507911104775458816
     - path: /seckill/kill/macbook
-      activityId: 11
+      seckillItemId: 1507911104775458816

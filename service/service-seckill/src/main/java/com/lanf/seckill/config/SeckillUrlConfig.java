@@ -21,7 +21,7 @@ public class SeckillUrlConfig {
 
         private String path;
 
-        private Long activityId;
+        private Long seckillItemId;
 
     }
 }

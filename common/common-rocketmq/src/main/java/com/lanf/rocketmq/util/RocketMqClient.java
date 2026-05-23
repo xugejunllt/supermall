@@ -3,7 +3,7 @@ package com.lanf.rocketmq.util;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.common.utils.StackTraceUtil;
 import com.lanf.constant.utils.TraceIdUtils;
-import com.lanf.rocketmq.model.enums.DelayLevelEnum;
+import io.netty.util.HashedWheelTimer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
@@ -13,7 +13,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
-import io.netty.util.HashedWheelTimer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -143,31 +142,7 @@ public class RocketMqClient {
             log.error("发送带Tag的顺序MQ消息失败,destination:{},tag:{},hashKey:{}", destination, tag, hashKey, e);
         }
     }
-    /**
-     * 发送延迟消息
-     *
-     */
-    public void sendDelayMessage(String topic, String message, DelayLevelEnum delayLevel) {
 
-        log.info("发送延迟mq消息开始:topic:{},delayLevel:{},message:{}", topic, delayLevel.getDescription(), message);
-        
-        Map<String, Object> headers = buildHeadersWithTraceId();
-        Message<Object> message1 = MessageBuilder.createMessage(message, new MessageHeaders(headers));
-        try {
-            SendResult sendResult = rocketMQTemplate.syncSend(topic, message1, 0, delayLevel.getLevel());
-
-            if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
-                String sendResultJson = JsonUtils.toJsonString(sendResult);
-                log.error("发送延迟MQ消息失败,异常状态[{}]", sendResultJson);
-            } else {
-                log.info("发送延迟mq消息成功,delayLevel:{}", delayLevel.getDescription());
-            }
-
-        } catch (Exception e) {
-            log.error("发送延迟MQ消息失败,topic:{},delayLevel:{}", topic, delayLevel.getDescription(), e);
-        }
-
-    }
     /**
      * 发送延迟消息
      * 通过时钟轮算法实现
@@ -175,7 +150,7 @@ public class RocketMqClient {
      */
     public void sendDelayMessage(String topic, String message, TimeUnit timeUnit, int delayTime){
 
-        log.info("发送延迟mq消息开始:topic:{},message:{},timeUnit:{},delayTime:{}秒", topic, message, timeUnit, delayTime);
+        log.info("发送延迟mq消息开始:topic:{},message:{},timeUnit:{},delayTime:{}", topic, message, timeUnit, delayTime);
         
         String traceId = TraceIdUtils.getTraceId();
         

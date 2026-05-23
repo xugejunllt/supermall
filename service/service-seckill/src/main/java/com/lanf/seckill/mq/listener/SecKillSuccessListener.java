@@ -57,11 +57,11 @@ public class SecKillSuccessListener implements RocketMQListener<SecKillSuccessMe
          *
          */
         SecKillPlaneMessage secKillPlaneMessage = new SecKillPlaneMessage();
-        secKillPlaneMessage.setShopId(null);
-        secKillPlaneMessage.setMerchantId(killItemDO.getTenantId());
+        secKillPlaneMessage.setShopId(killItemDO.getShopId());
+        secKillPlaneMessage.setShopName(killItemDO.getShopName());
+        secKillPlaneMessage.setTenantId(killItemDO.getTenantId());
         secKillPlaneMessage.setUserId(message.getUserId());
         secKillPlaneMessage.setOrderNumber(message.getOrderNumber());
-
         //取默认收货地址
         secKillPlaneMessage.setTakeAddress(null);
         //秒杀商品 默认无售后
@@ -76,7 +76,8 @@ public class SecKillSuccessListener implements RocketMQListener<SecKillSuccessMe
         secKillPlaneMessage.setWarehouseId(killItemDO.getWarehouseId());
         secKillPlaneMessage.setGoodsVersion(killItemDO.getGoodsVersion());
         secKillPlaneMessage.setSkuVersion(killItemDO.getSkuVersion());
-
+        secKillPlaneMessage.setSkuCode(killItemDO.getSkuCode());
+        secKillPlaneMessage.setUnitPrice(killItemDO.getSeckillPrice());
         try {
             secKillOrderService.save(secKillOrderDO);
         } catch (DuplicateKeyException e) {
@@ -91,7 +92,7 @@ public class SecKillSuccessListener implements RocketMQListener<SecKillSuccessMe
     private static SecKillOrderDO getSecKillOrderDO(SecKillSuccessMessage message, SecKillItemDO killItemDO) {
         SecKillOrderDO secKillOrderDO = new SecKillOrderDO();
         secKillOrderDO.setUserId(message.getUserId());
-        secKillOrderDO.setItemId(killItemDO.getItemId());
+        secKillOrderDO.setItemId(killItemDO.getId());
         secKillOrderDO.setActivityId(killItemDO.getActivityId());
         secKillOrderDO.setOrderNumber(message.getOrderNumber());
         secKillOrderDO.setItemQuantity(message.getItemQuantity());

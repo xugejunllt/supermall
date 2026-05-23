@@ -28,7 +28,8 @@ public abstract class AbstractSecKillStrategy implements SecKillStrategy {
             secKillSuccessMessage.setSecKillItemId(secKillItemId);
             secKillSuccessMessage.setUserId(userId);
             secKillSuccessMessage.setOrderNumber(CodeGenerateUtils.generateOrderNumber());
-            
+            //默认秒杀一个商品
+            secKillSuccessMessage.setItemQuantity(1);
             rocketMqClient.sendMessage(
                     SecKillMqTopicName.SEC_KILL_SUCCESS_TOPIC,
                     JsonUtils.toJsonString(secKillSuccessMessage)
