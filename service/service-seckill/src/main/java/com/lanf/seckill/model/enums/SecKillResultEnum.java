@@ -13,7 +13,6 @@ public enum SecKillResultEnum {
     FAILED(2, "秒杀失败"),
     SOLD_OUT(3, "商品已售罄");
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
 

@@ -16,7 +16,6 @@ public enum SeckillItemShelfStatusEnum {
     ON_SHELF(1, "上架");
 
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
 

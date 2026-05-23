@@ -13,7 +13,6 @@ public enum SecKillOrderStatusEnum {
     CREATE_FAILED(2, "创建失败");
 
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
 

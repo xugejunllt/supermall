@@ -11,7 +11,6 @@ public enum SeckillModeEnum {
     MQ_QUEUE(1, "MQ排队秒杀");
     
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
     

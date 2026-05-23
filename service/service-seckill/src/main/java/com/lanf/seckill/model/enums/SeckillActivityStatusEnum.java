@@ -18,7 +18,7 @@ public enum SeckillActivityStatusEnum {
     FINISHED(2, "已结束");
 
     @EnumValue
-    @JsonValue
+
     private final Integer code;
     private final String name;
 
