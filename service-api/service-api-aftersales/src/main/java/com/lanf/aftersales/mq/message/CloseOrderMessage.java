@@ -8,4 +8,6 @@ import java.io.Serializable;
 public class CloseOrderMessage implements Serializable {
 
     private Long orderId;
+    private Long userId;
+
 }

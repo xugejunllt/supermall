@@ -41,7 +41,9 @@ public enum OrderStatusEnum {
     /**
      *
      *  1.已取消订单 3天之后 转成 已关闭
-     *  2.售后完成 不取消订单
+     *  2.主动售后完成
+     *  3.超过售后完成时间
+     *
      */
     CLOSED(8, "已关闭,订单已终结", OrderTopicWithTag.TAG_CLOSED),
 

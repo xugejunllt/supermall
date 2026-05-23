@@ -43,5 +43,9 @@ public class OrderClientTopicName {
      * 售后单退款
      */
     public static final String AFTER_SALES_REFUND_TOPIC = "AFTER_SALES_REFUND_TOPIC";
+    /**
+     * 关闭订单
+     */
+    public static final String CLOSE_ORDER_TOPIC = "CLOSE_ORDER_TOPIC";
 
 }

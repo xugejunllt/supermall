@@ -20,4 +20,6 @@ public class OrderMqGroupName {
 
     public static final String BATH_ADD_SHIPPING_TRACK_GROUP = "BATH_ADD_SHIPPING_TRACK_GROUP";
 
+    public static final String CLOSE_ORDER_GROUP = "CLOSE_ORDER_GROUP";
+
 }

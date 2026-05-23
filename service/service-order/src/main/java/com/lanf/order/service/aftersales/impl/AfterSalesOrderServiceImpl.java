@@ -5,10 +5,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.aftersales.mq.AftersalesClientTopicName;
+import com.lanf.aftersales.mq.message.CloseOrderMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
-import com.lanf.api.order.mq.message.AfterSalesRefundMessage;
 import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.query.PageQuery;
@@ -344,19 +344,20 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         /**
          * 进行售后退款
          */
-        AfterSalesRefundMessage message = new AfterSalesRefundMessage();
-        message.setOrderId(salesOrderDO.getOrderId());
-        message.setAfterSalesOrderId(id);
-        rocketMqClient.sendMessage(OrderClientTopicName.AFTER_SALES_REFUND_TOPIC,
-                JsonUtils.toJsonString(message));
-//        /**
-//         * 关闭订单
-//         *
-//         */
-//        CloseOrderMessage closeOrderMessage = new CloseOrderMessage();
-//        closeOrderMessage.setOrderId(salesOrderDO.getOrderId());
-//        rocketMqClient.sendMessage(AftersalesClientTopicName.AFTER_SALES_CLOSE_ORDER_TOPIC,
-//                JsonUtils.toJsonString(closeOrderMessage));
+//        AfterSalesRefundMessage message = new AfterSalesRefundMessage();
+//        message.setOrderId(salesOrderDO.getOrderId());
+//        message.setAfterSalesOrderId(id);
+//        rocketMqClient.sendMessage(OrderClientTopicName.AFTER_SALES_REFUND_TOPIC,
+//                JsonUtils.toJsonString(message));
+        /**
+         * 关闭订单
+         *
+         */
+        CloseOrderMessage closeOrderMessage = new CloseOrderMessage();
+        closeOrderMessage.setOrderId(salesOrderDO.getOrderId());
+        closeOrderMessage.setUserId(salesOrderDO.getUserId());
+        rocketMqClient.sendMessage(OrderClientTopicName.CLOSE_ORDER_TOPIC,
+                JsonUtils.toJsonString(closeOrderMessage));
     }
 
 
