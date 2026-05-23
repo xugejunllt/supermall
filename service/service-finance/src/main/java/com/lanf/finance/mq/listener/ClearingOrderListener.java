@@ -25,7 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * 当订单关闭时触发
+ * 定时任务 扫描已关闭的订单
+ * 主动检查 避免风险
+ * 进行检查
+ * 1.如果发生售后，检查退款是否成功
+ *
  */
 @Slf4j
 @Component
