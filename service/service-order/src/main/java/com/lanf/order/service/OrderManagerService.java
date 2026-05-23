@@ -66,10 +66,6 @@ public interface OrderManagerService {
      */
     void createSecKillOrder(SecKillPlaneMessage message);
 
-    /**
-     * 开始创建秒杀单
-     * @param dto
-     */
-     void startCreateSecKillOrder(CreateSecKillOrderDTO dto);
+
 
 }

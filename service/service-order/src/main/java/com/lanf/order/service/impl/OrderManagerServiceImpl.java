@@ -11,6 +11,7 @@ import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
+import com.lanf.api.order.mq.message.SecKillPlaneCreateOrderSuccessMessage;
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.api.pay.model.dto.CreateMergeTradeOrderItemDTO;
@@ -20,6 +21,7 @@ import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.result.RpcResultParser;
@@ -33,11 +35,12 @@ import com.lanf.order.model.entity.MainOrderDO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
+import com.lanf.order.model.enums.OrderTypeEnum;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;
-import com.lanf.order.service.*;
+import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.service.order.IMainOrderService;
 import com.lanf.order.service.order.IOrderItemService;
 import com.lanf.order.service.order.IOrderService;
@@ -56,6 +59,7 @@ import com.lanf.welfare.mq.message.SecKillPlaneMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -817,14 +821,98 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         }
         return orderGoodsInfoList;
     }
+    @HmilyTCC(confirmMethod = "confirmCreateSecKillOrder", cancelMethod = "cancelCreateSecKillOrder")
     @Override
     public void createSecKillOrder(SecKillPlaneMessage message) {
 
+        log.info("创建秒杀订单");
+        BigDecimal totalMoney = BigDecimalUtils.multiply(message.getUnitPrice(), BigDecimal.valueOf(message.getQuantity()));
+        Long orderId = message.getOrderId();
+        OrderDO orderDO = getOrderDO(message, orderId, totalMoney);
+        //
+        OrderItemDO orderItemDO = new OrderItemDO();
+        orderItemDO.setOrderId(orderId);
+        orderItemDO.setGoodsId(message.getGoodsId());
+        orderItemDO.setGoodsName(message.getGoodsName());
+        orderItemDO.setGoodsTitle(message.getGoodsTitle());
+        orderItemDO.setSkuId(message.getSkuId());
+        orderItemDO.setSkuCode(message.getSkuCode());
+        orderItemDO.setSkuName(message.getSkuName());
+        orderItemDO.setSkuPictureAddress(message.getSkuPictureAddress());
+        orderItemDO.setQuantity(message.getQuantity());
+        orderItemDO.setUnitPrice(message.getUnitPrice());
+        orderItemDO.setGoodsVersion(message.getGoodsVersion());
+        orderItemDO.setSkuVersion(message.getSkuVersion());
+        orderItemDO.setWarehouseId(message.getWarehouseId());
+        orderItemDO.setUserId(message.getUserId());
+        orderItemDO.setTenantId(message.getTenantId());
+        //
+
+        SecKillPlaneCreateOrderSuccessMessage successMessage = new SecKillPlaneCreateOrderSuccessMessage();
+        successMessage.setOrderId(orderId);
+        successMessage.setOrderNumber(message.getOrderNumber());
+        successMessage.setUserId(message.getUserId());
+        successMessage.setTradeMoney(totalMoney);
+        successMessage.setStockFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.STOCK_FLOW,
+                message.getOrderNumber()));
+        successMessage.setSkuCode(message.getSkuCode());
+        successMessage.setWarehouseId(message.getWarehouseId());
+        successMessage.setQuantity(message.getQuantity());
+        //
+        Date date = new Date();
+        OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
+        orderStatusTraceDO.setOrderId(orderId);
+        orderStatusTraceDO.setFromStatus(null);
+        orderStatusTraceDO.setToStatus(OrderStatusEnum.WAIT_PAY);
+        orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
+        orderStatusTraceDO.setTenantId(message.getTenantId());
+        orderStatusTraceDO.setUserId(message.getUserId());
+        try {
+            orderService.save(orderDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("订单已创建");
+            return;
+        }
+        orderItemService.save(orderItemDO);
+        orderStatusTraceService.save(orderStatusTraceDO);
+        //创建交易单
+        CreateTradeOrderDTO dto = new CreateTradeOrderDTO();
+        dto.setUserId(message.getUserId());
+        dto.setOrderId(message.getOrderId());
+        dto.setTradeMoney(totalMoney);
+        dto.setOrderNumber(message.getOrderNumber());
+        RpcResultParser.parseResult(payApiService.createPayOrder(dto));
+
     }
 
-    @Override
-    public void startCreateSecKillOrder(CreateSecKillOrderDTO dto) {
-
+    private static OrderDO getOrderDO(SecKillPlaneMessage message, Long orderId, BigDecimal totalMoney) {
+        OrderDO orderDO = new OrderDO();
+        orderDO.setId(orderId);
+        orderDO.setShopId(message.getShopId());
+        orderDO.setShopName(message.getShopName());
+        orderDO.setTenantId(message.getTenantId());
+        orderDO.setUserId(message.getUserId());
+        orderDO.setOrderNumber(message.getOrderNumber());
+        orderDO.setTotalMoney(totalMoney);
+        orderDO.setActualPayMoney(totalMoney);
+        orderDO.setTakeAddress(message.getTakeAddress());
+        orderDO.setStatus(OrderStatusEnum.WAIT_PAY);
+        orderDO.setOrderType(OrderTypeEnum.SEC_KILL);
+        orderDO.setAfterSaleDays(message.getAfterSaleDays());
+        orderDO.setDiscountAmount(new BigDecimal(0));
+        return orderDO;
+    }
+    public void confirmCreateSecKillOrder(SecKillPlaneMessage message){
+        OrderCreateSuccessMessage message2 = new OrderCreateSuccessMessage();
+        message2.setOrderId(message.getOrderId());
+        message2.setUserId(message.getUserId());
+        rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+                OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message2),
+                message.getOrderId().toString());
     }
 
+
+    public void cancelCreateSecKillOrder(SecKillPlaneMessage message){
+
+    }
 }

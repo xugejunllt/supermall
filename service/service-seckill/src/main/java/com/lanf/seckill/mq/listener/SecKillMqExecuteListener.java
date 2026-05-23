@@ -2,6 +2,7 @@ package com.lanf.seckill.mq.listener;
 
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.model.entity.SecKillItemDO;
@@ -50,25 +51,19 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
 
         log.info("监听到秒杀成功消息,生成秒杀记录:{}",message);
 
-        SecKillRecordDO one = secKillRecordService.lambdaQuery()
-                .eq(SecKillRecordDO::getUserId, message.getUserId())
-                .eq(SecKillRecordDO::getSecKillItemId, message.getSecKillItemId())
-                .one();
-
-        if (one != null) {
-            log.warn("用户已经秒杀成功");
-            return;
-        }
         SecKillItemDO killItemDO = secKillItemService.getById(message.getSecKillItemId());
 
         //默认一次一个商品
         Integer stockQuantity = 1;
+        Long orderId = IdUtils.generateId();
         SecKillRecordDO recordDO = new SecKillRecordDO();
         recordDO.setUserId(message.getUserId());
         recordDO.setSecKillItemId(message.getSecKillItemId());
         recordDO.setStockQuantity(stockQuantity);
         recordDO.setTenantId(killItemDO.getTenantId());
-        SecKillPlaneMessage secKillPlaneMessage = buildSecKillPlaneMessage(killItemDO, message.getUserId(), stockQuantity);
+        recordDO.setOrderId(orderId);
+        SecKillPlaneMessage secKillPlaneMessage = buildSecKillPlaneMessage(killItemDO, message.getUserId(),
+                stockQuantity,orderId);
 
         try {
             /**
@@ -120,7 +115,8 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
                 SecKillResultEnum.SUCCESS_ORDER_CREATING);
     }
 
-    private SecKillPlaneMessage buildSecKillPlaneMessage(SecKillItemDO killItemDO ,Long userId,Integer stockQuantity){
+    private SecKillPlaneMessage buildSecKillPlaneMessage(SecKillItemDO killItemDO ,Long userId,
+                                                         Integer stockQuantity,Long orderId){
         SecKillPlaneMessage secKillPlaneMessage = new SecKillPlaneMessage();
         secKillPlaneMessage.setShopId(killItemDO.getShopId());
         secKillPlaneMessage.setShopName(killItemDO.getShopName());
@@ -143,6 +139,7 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
         secKillPlaneMessage.setSkuVersion(killItemDO.getSkuVersion());
         secKillPlaneMessage.setSkuCode(killItemDO.getSkuCode());
         secKillPlaneMessage.setUnitPrice(killItemDO.getSeckillPrice());
+        secKillPlaneMessage.setOrderId(orderId);
         return  secKillPlaneMessage;
     }
 }
