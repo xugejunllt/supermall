@@ -1,13 +1,13 @@
 package com.lanf.seckill.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.goods.api.GoodsApiService;
+import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.RpcResultParser;
-import com.lanf.api.goods.api.GoodsApiService;
-import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.config.SeckillUrlConfig;
@@ -28,15 +28,12 @@ import com.lanf.seckill.model.vo.SeckillTokenVO;
 import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.seckill.service.ISecKillItemService;
 import com.lanf.web.utils.JwtUtils;
-import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.hmily.annotation.HmilyTCC;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,8 +56,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
 
     @Autowired
     private GoodsApiService goodsApiService;
-    @Autowired
-    private ITccOperationService tccOperationService;
+
     @Autowired
     private ISecKillItemService seckillItemService;
     @Autowired
@@ -76,7 +72,6 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
     private SeckillUrlConfig seckillUrlConfig;
     @Autowired
     private RocketMqClient rocketMqClient;
-
 
 
     /**
@@ -129,7 +124,6 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
 
     }
 
-    @HmilyTCC(confirmMethod = "confirmAddSeckillItem", cancelMethod = "cancelAddSeckillItem")
     @Override
     public void addAddSeckillItem(AddSeckillItemDTO dto) {
 
@@ -138,37 +132,10 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
                 .eq(SecKillActivityDO::getId, activityId)
                 .one();
         if (one == null) {
-            tccOperationService.addInterruptedFlag(buidSeckillItemKey(dto.getOrderNumber()),
-                    "活动不存在");
+
             log.error("活动不存在");
             throw new BizException("活动不存在");
         }
-
-        tccOperationService.tryOperation(buidSeckillItemKey(dto.getOrderNumber()), null);
-        /**
-         * 预占库存
-         */
-        seckillStockPreoccupation(dto);
-
-    }
-
-
-    private void seckillStockPreoccupation(AddSeckillItemDTO dto) {
-        SeckillStockPreoccupationDTO stockPreoccupationDTO = new SeckillStockPreoccupationDTO();
-        stockPreoccupationDTO.setBizKeyPrx(dto.getOrderNumber());
-        stockPreoccupationDTO.setSkuCode(dto.getSkuCode());
-        stockPreoccupationDTO.setWarehouseId(dto.getWarehouseId());
-        stockPreoccupationDTO.setPreQuantity(dto.getTotalStock());
-        stockPreoccupationDTO.setGoodsId(dto.getItemId());
-        RpcResultParser.parseResult(goodsApiService.seckillStockPreoccupation(stockPreoccupationDTO));
-    }
-
-    private String buidSeckillItemKey(String bizKeyPrx) {
-        return bizKeyPrx + "_" + "addAddSeckillItem";
-    }
-
-    @Transactional
-    public void confirmAddSeckillItem(AddSeckillItemDTO dto) {
 
         SecKillItemDO seckillItemDO = new SecKillItemDO();
         seckillItemDO.setActivityId(dto.getActivityId());
@@ -198,19 +165,27 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         seckillItemDO.setSecKillMode(dto.getSecKillMode());
         seckillItemDO.setRemainingStock(dto.getTotalStock());
         seckillItemDO.setShopName(dto.getShopName());
-        boolean operation = tccOperationService.confirmOperation(buidSeckillItemKey(dto.getOrderNumber()));
-        if (!operation) {
-            log.info("已执行");
-            return;
-        }
+
         seckillItemService.save(seckillItemDO);
-    }
 
-    public void cancelAddSeckillItem(AddSeckillItemDTO dto) {
-
-        tccOperationService.cancelOperation(buidSeckillItemKey(dto.getOrderNumber()));
 
     }
+
+
+    private void seckillStockPreoccupation(AddSeckillItemDTO dto) {
+        SeckillStockPreoccupationDTO stockPreoccupationDTO = new SeckillStockPreoccupationDTO();
+        stockPreoccupationDTO.setBizKeyPrx(dto.getOrderNumber());
+        stockPreoccupationDTO.setSkuCode(dto.getSkuCode());
+        stockPreoccupationDTO.setWarehouseId(dto.getWarehouseId());
+        stockPreoccupationDTO.setPreQuantity(dto.getTotalStock());
+        stockPreoccupationDTO.setGoodsId(dto.getItemId());
+        RpcResultParser.parseResult(goodsApiService.seckillStockPreoccupation(stockPreoccupationDTO));
+    }
+
+    private String buidSeckillItemKey(String bizKeyPrx) {
+        return bizKeyPrx + "_" + "addAddSeckillItem";
+    }
+
 
     @Override
     public void launcherSeckillItem(LauncherSeckillItemDTO itemDTO) {
@@ -362,8 +337,6 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
 
     /**
      * 分页查询秒杀商品列表
-     *
-
      */
     @Override
     public List<SeckillItemVO> seckillItemPageQuery(SeckillItemPageQuery query) {
@@ -528,11 +501,11 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
 
         Date startTime = seckillItemDetail.getStartTime();
         Date endTime = seckillItemDetail.getEndTime();
-        if (startTime.after(new Date()) ) {
+        if (startTime.after(new Date())) {
             log.warn("秒杀活动即将开始");
             throw new BizException("秒杀活动即将开始");
         }
-        if ( endTime.before(new Date())) {
+        if (endTime.before(new Date())) {
             log.warn("秒杀活动已结束");
             throw new BizException("秒杀活动已结束");
         }
@@ -560,7 +533,6 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         vo.setOrderUrl(urlMapping.getPath());
         return vo;
     }
-
 
 
 }

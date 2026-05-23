@@ -75,11 +75,7 @@
             <artifactId>common-user-auth</artifactId>
             <version>${common.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-hmily</artifactId>
-            <version>${common.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>com.lanf</groupId>
             <artifactId>service-api-order</artifactId>
