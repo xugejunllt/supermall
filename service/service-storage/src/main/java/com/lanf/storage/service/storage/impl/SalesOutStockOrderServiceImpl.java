@@ -14,11 +14,9 @@ import com.lanf.api.storage.model.vo.SalesOutStockOrderDetailVO;
 import com.lanf.api.storage.model.vo.SalesOutStockOrderPageVO;
 import com.lanf.api.storage.mq.constant.StorageClientTopicName;
 import com.lanf.api.storage.mq.message.SalesOutStockOrderFinishMessage;
-import com.lanf.common.utils.BeanCopyUtils;
-import com.lanf.common.utils.CodeGenerateUtils;
-import com.lanf.common.utils.JsonUtils;
-import com.lanf.common.utils.ThreadLocalUtils;
+import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
@@ -39,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -138,50 +137,113 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     public void outStockSalesOutStockOrder(OutStockSalesOutStockOrderDTO dto) {
 
         Long salesOutStockOrderId = dto.getSalesOutStockOrderId();
-        List<OutStockItemDTO> outStockItemList = dto.getOutStockItemList();
-        
-        // 1. 查询出库单
+
         SalesOutStockOrderDO salesOutStockOrderDO = this.getById(salesOutStockOrderId);
         if (salesOutStockOrderDO == null) {
             log.error("出库单不存在: id={}", salesOutStockOrderId);
             throw new BizException("出库单不存在");
         }
-        
-//        // 2. 查询出库单明细
-//        List<InOutStockOrderItemDO> storageOrderItemDetailList = iInOutStockOrderItemService.lambdaQuery()
-//                .eq(InOutStockOrderItemDO::getInOutStockOrderId, salesOutStockOrderId)
-//                .list();
-//        Map<Long, InOutStockOrderItemDO> purchaseOrderItemDOMap = storageOrderItemDetailList.stream()
-//                .collect(Collectors.toMap(InOutStockOrderItemDO::getId, Function.identity()));
-//
-//        // 3. 校验出库数据
-//        outStockCheck(salesOutStockOrderDO, outStockItemList, salesOutStockOrderId);
-//
-//        // 4. 获取仓库信息
-//        WarehouseDO warehouseDO = warehouseService.getById(getWarehouseId());
-//        if (warehouseDO == null) {
-//            throw new BizException("仓库不存在");
-//        }
-//
-//        // 5. 更新出库单明细（扣减剩余数量）
-//        List<InOutStockOrderItemDO> storageOrderItemDetailsDOUpdate = buildStorageOrderItemDetailsDO(outStockItemList, purchaseOrderItemDOMap);
-//
-//        // 6. 检查并更新出库单状态（部分出库 or 全部出库）
-//        StorageStatusEnum newStatus = checkAndUpdateOutStockStatus(salesOutStockOrderDO, storageOrderItemDetailsDOUpdate);
-//
-//        // 7. 扣减库存（skuCode + warehouseId 查询）
-//        List<StockUpdateBO> stockUpdateList = deductStock(outStockItemList, warehouseDO.getId());
-//
-//        // 8. 生成库存流水
-//        List<StockFlowDO> stockFlowList = buildStockFlowDO(outStockItemList, purchaseOrderItemDOMap,
-//                salesOutStockOrderDO, warehouseDO, stockUpdateList);
-//
-//        // 9. 批量更新数据库
-//        executeBatchUpdate(salesOutStockOrderId, salesOutStockOrderDO, storageOrderItemDetailsDOUpdate,
-//                stockUpdateList, stockFlowList, newStatus);
-        
-        // 10. 发送出库完成消息
-        sendOutStockFinishMessage(salesOutStockOrderDO, null);
+        if (StorageStatusEnum.COMPLETED.equals(salesOutStockOrderDO.getStorageStatus())){
+
+            log.warn("出库单已出库");
+            throw new BizException("出库单已出库");
+        }
+
+        if (!StorageStatusEnum.WAIT_OUTBOUND.equals(salesOutStockOrderDO.getStorageStatus())){
+            log.warn("出库单非待出库状态");
+            throw new BizException("出库单非待出库状态");
+        }
+
+        List<InOutStockOrderItemDO> list = storageOrderItemDetailsService.lambdaQuery()
+                .eq(InOutStockOrderItemDO::getInOutStockOrderId, salesOutStockOrderId)
+                .list();
+        List<String> skuCodeList = list.stream().map(InOutStockOrderItemDO::getSkuCode)
+                .collect(Collectors.toList());
+
+        List<StockDO> stockDOList = stockService.lambdaQuery().in(StockDO::getSkuCode, skuCodeList)
+                .list();
+        Map<String, StockDO> stockMap = stockDOList.stream()
+                .collect(Collectors.toMap(
+                        s -> s.getSkuCode() + ":" + s.getWarehouseId(),
+                        s -> s,
+                        (existing, replacement) -> existing
+                ));
+
+        for (InOutStockOrderItemDO itemDO : list){
+            StockDO stockDO = stockMap.get(itemDO.getSkuCode() + ":" + itemDO.getWarehouseId());
+            if (stockDO.getPreStock()< itemDO.getTotalQuantity()){
+                throw new BizException("库存不足");
+            }
+        }
+
+        List<StockDO> updateStockDO = new ArrayList<>();
+        List<StockFlowDO> flowDOList = new ArrayList<>();
+        List<InOutStockOrderItemDO> updatedItems = new ArrayList<>();
+
+        for (InOutStockOrderItemDO itemDO : list){
+            StockDO stockDO = stockMap.get(itemDO.getSkuCode() + ":" + itemDO.getWarehouseId());
+            Integer beforeQuantity = stockDO.getPreStock()+stockDO.getUsableStock();
+            Integer changeQuantity = itemDO.getTotalQuantity();
+            Integer afterQuantity = beforeQuantity - itemDO.getTotalQuantity();
+
+            Integer updatePreStock = stockDO.getPreStock() - itemDO.getTotalQuantity();
+            stockDO.setPreStock(updatePreStock);
+            updateStockDO.add(stockDO);
+            //
+            itemDO.setSurplusQuantity(0);
+            updatedItems.add(itemDO);
+            //
+            StockFlowDO stockFlowDO = new StockFlowDO();
+            stockFlowDO.setFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.STOCK_FLOW));
+            stockFlowDO.setStockId(stockDO.getId());
+            stockFlowDO.setFlowType(StockFlowTypeEnum.SALES_OUTBOUND);
+            stockFlowDO.setSkuCode(stockDO.getSkuCode());
+            stockFlowDO.setBizOrderId(salesOutStockOrderDO.getId());
+            stockFlowDO.setOrderId(salesOutStockOrderDO.getOrderId());
+            stockFlowDO.setBeforeQuantity(beforeQuantity);
+            stockFlowDO.setChangeQuantity(changeQuantity);
+            stockFlowDO.setAfterQuantity(afterQuantity);
+            stockFlowDO.setWarehouseId(stockDO.getWarehouseId());
+            stockFlowDO.setWarehouseName(stockDO.getWarehouseName());
+            stockFlowDO.setTenantId(stockDO.getTenantId());
+            stockFlowDO.setCreateDate(DateUtils.format(new Date(), DateUtils.DATE));
+            flowDOList.add(stockFlowDO);
+
+        }
+        boolean update1 = this.lambdaUpdate()
+                .eq(BaseEntity::getId, salesOutStockOrderId)
+                .eq(SalesOutStockOrderDO::getVersion, salesOutStockOrderDO.getVersion())
+                .set(SalesOutStockOrderDO::getStorageStatus, StorageStatusEnum.COMPLETED)
+                .set(SalesOutStockOrderDO::getVersion, salesOutStockOrderDO.getVersion() + 1)
+                .update();
+        if (!update1) {
+            log.warn("更新销售出库单失败");
+            throw new BizException("更新销售出库单失败");
+        }
+        for (StockDO stockDO : updateStockDO){
+            boolean update = stockService.lambdaUpdate()
+                    .eq(BaseEntity::getId, stockDO.getId())
+                    .eq(StockDO::getVersion, stockDO.getVersion())
+                    .set(StockDO::getVersion, stockDO.getVersion() + 1)
+                    .set(StockDO::getPreStock, stockDO.getPreStock())
+                    .update();
+            if (!update) {
+                log.warn("销售出库单更新库存失败");
+                throw new BizException("销售出库单更新库存失败");
+            }
+        }
+        for (InOutStockOrderItemDO itemDO : updatedItems){
+            boolean update = storageOrderItemDetailsService.lambdaUpdate()
+                    .eq(BaseEntity::getId, itemDO.getId())
+                    .set(InOutStockOrderItemDO::getSurplusQuantity, itemDO.getSurplusQuantity())
+                    .update();
+            if (!update) {
+                log.warn("更新销售出库单商品项目失败");
+                throw new BizException("更新销售出库单商品项目失败");
+            }
+        }
+        stockFlowService.saveBatch(flowDOList);
+        sendOutStockFinishMessage(salesOutStockOrderDO);
     }
 
     /**
@@ -305,12 +367,8 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     /**
      * 发送出库完成消息
      */
-    private void sendOutStockFinishMessage(SalesOutStockOrderDO salesOutStockOrderDO, StorageStatusEnum status) {
-//        // 只有全部出库才发送消息
-//        if (status != StorageStatusEnum.COMPLETED) {
-//            log.info("出库单 {} 为部分出库，不发送完成消息", salesOutStockOrderDO.getId());
-//            return;
-//        }
+    private void sendOutStockFinishMessage(SalesOutStockOrderDO salesOutStockOrderDO) {
+
         
         SalesOutStockOrderFinishMessage message = new SalesOutStockOrderFinishMessage();
         message.setOrderId(salesOutStockOrderDO.getOrderId());
@@ -319,7 +377,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
                 StorageClientTopicName.SALES_OUT_STOCK_ORDER_FINISH_TOPIC, 
                 JsonUtils.toJsonString(message));
         
-        log.info("已发送出库完成消息，订单ID: {}", salesOutStockOrderDO.getOrderId());
     }
 
     /**
