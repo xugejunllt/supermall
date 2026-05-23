@@ -50,7 +50,7 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
             throw new BizException("秒杀订单创建成功，但是库存不存在");
 
         }
-        if (stockDO.getLockStock() < message.getQuantity()) {
+        if (stockDO.getUsableStock() < message.getQuantity()) {
             log.error("秒杀订单创建成功，但是库存不足");
             /**
              * 发送通知 标记订单为异常
@@ -66,8 +66,9 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
 
         Integer beforeQuantity = stockDO.getUsableStock() + stockDO.getLockStock();
         Integer afterQuantity = beforeQuantity - message.getQuantity();
-        Integer updateLockStock = stockDO.getLockStock() - message.getQuantity();
+        Integer updateUsableStock = stockDO.getUsableStock() - message.getQuantity();
         UserStockFlowDO userStockFlowDO = new UserStockFlowDO();
+        userStockFlowDO.setGoodsId(message.getGoodsId());
         userStockFlowDO.setFlowNo(flowNo);
         userStockFlowDO.setUserStockId(stockDO.getId());
         userStockFlowDO.setSkuCode(message.getSkuCode());
@@ -77,6 +78,7 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
         userStockFlowDO.setBeforeQuantity(beforeQuantity);
         userStockFlowDO.setChangeQuantity(message.getQuantity());
         userStockFlowDO.setAfterQuantity(afterQuantity);
+        userStockFlowDO.setTenantId(stockDO.getTenantId());
         try {
             userStockFlowService.save(userStockFlowDO);
         } catch (DuplicateKeyException e) {
@@ -84,7 +86,7 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
             return;
         }
         boolean update = stockService.lambdaUpdate()
-                .set(StockDO::getLockStock, updateLockStock)
+                .set(StockDO::getUsableStock, updateUsableStock)
                 .set(StockDO::getVersion, stockDO.getVersion()+1)
                 .eq(StockDO::getId, stockDO.getId())
                 .eq(StockDO::getVersion, stockDO.getVersion())
