@@ -9,6 +9,6 @@ public class GetSeckillTokenDTO implements Serializable {
 
     private Long seckillItemId;
 
-    private Long activityId;
+
 
 }

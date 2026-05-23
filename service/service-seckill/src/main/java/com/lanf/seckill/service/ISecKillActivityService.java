@@ -1,8 +1,12 @@
 package com.lanf.seckill.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.seckill.model.dto.*;
+import com.lanf.seckill.model.dto.AddSeckillActivityDTO;
+import com.lanf.seckill.model.dto.AddSeckillItemDTO;
+import com.lanf.seckill.model.dto.GetSeckillTokenDTO;
+import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
 import com.lanf.seckill.model.entity.SecKillActivityDO;
+import com.lanf.seckill.model.query.SeckillItemPageQuery;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
@@ -40,12 +44,9 @@ public interface ISecKillActivityService extends IService<SecKillActivityDO> {
     /**
      * 分页查询秒杀商品列表
      * 
-     * @param activityId 活动ID
-     * @param pageNum 页码（从1开始）
-     * @param pageSize 每页大小
-     * @return 秒杀商品VO列表
+
      */
-    List<SeckillItemVO> pageQuerySeckillItems(Long activityId, int pageNum, int pageSize);
+    List<SeckillItemVO> seckillItemPageQuery(SeckillItemPageQuery query);
 
     /**
      * 查询秒杀商品详情
@@ -53,7 +54,7 @@ public interface ISecKillActivityService extends IService<SecKillActivityDO> {
      * @param seckillItemId 秒杀商品ID
      * @return 商品详情VO
      */
-    SeckillItemDetailVO getSeckillItemDetail(Long seckillItemId);
+    SeckillItemDetailVO seckillItemDetailQuery(Long seckillItemId);
 
     /**
      * 获取秒杀令牌（动态秒杀链接）

@@ -21,6 +21,7 @@ import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
 import com.lanf.seckill.model.entity.SecKillActivityDO;
 import com.lanf.seckill.model.entity.SecKillItemDO;
 import com.lanf.seckill.model.enums.SeckillActivityStatusEnum;
+import com.lanf.seckill.model.query.SeckillItemPageQuery;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
@@ -267,7 +268,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
                                         Long activityId, long cacheExpireSeconds) {
         SeckillItemDetail detail = getSeckillItemDetail(item, activity);
         String data = JsonUtils.toJsonString(detail);
-        String keyPrefix = String.format(SECKILL_ITEM_DETAIL_KEY_PRX, activityId + ":" + item.getId());
+        String keyPrefix = String.format(SECKILL_ITEM_DETAIL_KEY_PRX, item.getId());
 
         RedisKeyGenerator.ALL_DIGIT_SUFFIXES.forEach(digit -> {
             String generateKey = redisKeyGenerator.generateKey(keyPrefix, digit);
@@ -360,22 +361,21 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
     /**
      * 分页查询秒杀商品列表
      *
-     * @param activityId 活动ID
-     * @param pageNum    页码（从1开始）
-     * @param pageSize   每页大小
-     * @return 秒杀商品VO列表
+
      */
     @Override
-    public List<SeckillItemVO> pageQuerySeckillItems(Long activityId, int pageNum, int pageSize) {
+    public List<SeckillItemVO> seckillItemPageQuery(SeckillItemPageQuery query) {
 
-
+        Long activityId = query.getActivityId();
+        long page = query.getPage();
+        long pageSize = query.getPageSize();
         if (activityId == null) {
             log.warn("活动ID不能为空");
             return Collections.emptyList();
         }
 
-        if (pageNum < 1) {
-            pageNum = 1;
+        if (page < 1) {
+            page = 1;
         }
 
         if (pageSize < 1 || pageSize > 100) {
@@ -385,7 +385,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         Integer randomDigit = RedisKeyGenerator.getRandomDigitSuffix();
         String key = redisKeyGenerator.generateKey(keyPrefix, randomDigit);
 
-        List<String> items = redissonCacheService.getListPage(key, pageNum, pageSize);
+        List<String> items = redissonCacheService.getListPage(key, (int) page, (int) pageSize);
         if (IStringUtils.isEmpty(items)) {
 
             return Collections.emptyList();
@@ -435,7 +435,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
      * @return 商品详情VO
      */
     @Override
-    public SeckillItemDetailVO getSeckillItemDetail(Long seckillItemId) {
+    public SeckillItemDetailVO seckillItemDetailQuery(Long seckillItemId) {
 
 
         if (seckillItemId == null) {
@@ -448,7 +448,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
 
         Integer randomDigit = RedisKeyGenerator.getRandomDigitSuffix();
         String detailKey = redisKeyGenerator.generateKey(keyPrefix, randomDigit);
-
+        log.info("商品详细缓存key:{}", detailKey);
         try {
 
             // 使用 taskExecutor 线程池并行查询
@@ -518,7 +518,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
     public SeckillTokenVO getSeckillToken(GetSeckillTokenDTO dto) {
 
         Long seckillItemId = dto.getSeckillItemId();
-        SeckillItemDetailVO seckillItemDetail = getSeckillItemDetail(seckillItemId);
+        SeckillItemDetailVO seckillItemDetail = seckillItemDetailQuery(seckillItemId);
         if (seckillItemDetail == null) {
             log.warn("商品不存在");
             throw new BizException("系统繁忙,请稍后再试");

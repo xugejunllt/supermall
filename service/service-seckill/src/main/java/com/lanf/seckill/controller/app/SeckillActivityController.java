@@ -1,20 +1,22 @@
 package com.lanf.seckill.controller.app;
 
 
-import com.alibaba.nacos.api.model.v2.Result;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.seckill.model.dto.GetSeckillTokenDTO;
 import com.lanf.seckill.model.enums.SecKillResultEnum;
 import com.lanf.seckill.model.query.SecKillResultQuery;
+import com.lanf.seckill.model.query.SeckillItemPageQuery;
 import com.lanf.seckill.model.vo.SecKillResultVO;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
 import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.seckill.service.strategy.SecKillResultCache;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import com.lanf.constant.result.Result;
 
 import java.util.List;
 
@@ -26,6 +28,7 @@ import java.util.List;
  * @author jarven
  * @since 2026-05-07
  */
+@Slf4j
 @RestController
 @RequestMapping("/app/seckillActivity")
 public class SeckillActivityController {
@@ -41,32 +44,31 @@ public class SeckillActivityController {
      * 获取秒杀商品列表
      *
      */
-    @GetMapping("/items/{activityId}")
-    public Result<List<SeckillItemVO>> getSeckillItems(
-            @PathVariable Long activityId,
-            @RequestParam(defaultValue = "1") int pageNum,
-            @RequestParam(defaultValue = "10") int pageSize) {
-
-        List<SeckillItemVO> items = seckillActivityService.pageQuerySeckillItems(activityId, pageNum, pageSize);
-        return Result.success(items);
+    @GetMapping("/seckillItemPageQuery")
+    public Result<List<SeckillItemVO>> seckillItemPageQuery(
+            SeckillItemPageQuery query) {
+        log.info("分页查询秒杀商品列表:{}",query);
+        List<SeckillItemVO> items = seckillActivityService.seckillItemPageQuery(query);
+        return Result.ok(items);
     }
     /**
      * 查询商品详情
      */
-    @GetMapping("/item/detail/{seckillItemId}")
-    public Result<SeckillItemDetailVO> getItemDetail(@PathVariable Long seckillItemId) {
+    @GetMapping("/seckillItemDetailQuery")
+    public Result<SeckillItemDetailVO> seckillItemDetailQuery( Long seckillItemId) {
 
-        SeckillItemDetailVO detail = seckillActivityService.getSeckillItemDetail( seckillItemId);
+        log.info("查询秒杀商品详细:{}",seckillItemId);
+        SeckillItemDetailVO detail = seckillActivityService.seckillItemDetailQuery( seckillItemId);
 
 
-        return Result.success(detail);
+        return Result.ok(detail);
     }
 
-    @PostMapping("/item/detail/getSeckillToken")
+    @PostMapping("/getSeckillToken")
     public Result<SeckillTokenVO> getSeckillToken(@Validated @RequestBody GetSeckillTokenDTO dto) {
 
 
-        return Result.success(seckillActivityService.getSeckillToken( dto));
+        return Result.ok(seckillActivityService.getSeckillToken( dto));
     }
 
     /**
@@ -101,7 +103,7 @@ public class SeckillActivityController {
         }
         SecKillResultVO vo = new SecKillResultVO();
         vo.setMessage(message);
-        return Result.success(vo);
+        return Result.ok(vo);
     }
 
 }

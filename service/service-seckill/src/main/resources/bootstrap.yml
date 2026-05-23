@@ -38,7 +38,7 @@ mybatis-plus:
 
 # application.yml
 seckill:
-
+  url-mappings:
     - path: /seckill/kill/iphone15
       activityId: 10
     - path: /seckill/kill/macbook
