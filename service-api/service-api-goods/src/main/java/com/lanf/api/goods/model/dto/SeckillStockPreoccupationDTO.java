@@ -17,7 +17,7 @@ public class SeckillStockPreoccupationDTO implements Serializable {
     private String skuCode;
 
     private Long warehouseId;
-    
+    private Long goodsId;
     /**
      * 预占数量
      */

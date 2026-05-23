@@ -158,7 +158,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         stockPreoccupationDTO.setSkuCode(dto.getSkuCode());
         stockPreoccupationDTO.setWarehouseId(dto.getWarehouseId());
         stockPreoccupationDTO.setPreQuantity(dto.getTotalStock());
-
+        stockPreoccupationDTO.setGoodsId(dto.getItemId());
         RpcResultParser.parseResult(goodsApiService.seckillStockPreoccupation(stockPreoccupationDTO));
     }
 

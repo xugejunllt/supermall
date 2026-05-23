@@ -442,6 +442,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     public void seckillStockPreoccupation(SeckillStockPreoccupationDTO dto) {
 
         StockDO one = this.lambdaQuery().eq(StockDO::getSkuCode, dto.getSkuCode())
+                .eq(StockDO::getGoodsId, dto.getGoodsId())
                 .eq(StockDO::getWarehouseId, dto.getWarehouseId())
                 .one();
 
@@ -449,7 +450,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         if (one == null) {
             log.error("库存不存在");
-            tccOperationService.addInterruptedFlag(bizKey, "库存不存在");
+            tccOperationService.addInterruptedFlag(bizKey, "库存不存在",dto.getGoodsId().toString());
 
             throw new BizException("库存不存在");
         }
@@ -458,17 +459,20 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         if (usableStock < preQuantity) {
             log.warn("库存不足");
-            tccOperationService.addInterruptedFlag(bizKey, "库存不足");
+            tccOperationService.addInterruptedFlag(bizKey, "库存不足",dto.getGoodsId().toString());
             throw new BizException("库存不足");
         }
 
         /**
          * DB操作
          */
-        tccOperationService.tryOperation(bizKey, null);
-        boolean update = this.lambdaUpdate().eq(StockDO::getId, one.getId())
+        tccOperationService.tryOperation(bizKey, null,dto.getGoodsId().toString());
+        boolean update = this.lambdaUpdate()
+                .eq(StockDO::getId, one.getId())
+                .eq(StockDO::getGoodsId, dto.getGoodsId())
                 .eq(StockDO::getVersion, one.getVersion())
                 .set(StockDO::getUsableStock, usableStock - preQuantity)
+                .set(StockDO::getLockStock, one.getLockStock() + preQuantity)
                 .set(StockDO::getVersion, one.getVersion() + 1)
                 .update();
         if (!update) {
@@ -488,7 +492,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
          * 空执行 什么也不作
          */
         String bizKey = generateSeckillStockPreoccupation(dto.getBizKeyPrx());
-        boolean operation = tccOperationService.confirmOperation(bizKey);
+        boolean operation = tccOperationService.confirmOperation(bizKey,dto.getGoodsId().toString());
         if (!operation) {
             log.info("confirm已执行");
             return;
@@ -506,19 +510,20 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 .one();
         if (one == null) {
             log.error("库存不存在");
-            tccOperationService.addInterruptedFlag(bizKey, "库存不存在");
+            tccOperationService.addInterruptedFlag(bizKey, "库存不存在",dto.getGoodsId().toString());
             throw new BizException("库存不存在");
         }
 
-        boolean operation = tccOperationService.cancelOperation(bizKey);
+        boolean operation = tccOperationService.cancelOperation(bizKey,dto.getGoodsId().toString());
         if (!operation) {
 
             return;
         }
         Integer usableStock = one.getUsableStock();
         Integer preQuantity = dto.getPreQuantity();
-        boolean update = this.lambdaUpdate().eq(StockDO::getId, one.getId())
-                .eq(StockDO::getVersion, one.getVersion())
+        boolean update = this.lambdaUpdate()
+                .eq(StockDO::getId, one.getId())
+                .eq(StockDO::getGoodsId,dto.getGoodsId())
                 .set(StockDO::getUsableStock, usableStock + preQuantity)
                 .set(StockDO::getVersion, one.getVersion() + 1)
                 .update();

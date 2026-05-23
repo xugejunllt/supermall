@@ -1,7 +1,6 @@
 package com.lanf.seckill.controller.admin;
 
 
-import com.alibaba.nacos.api.model.v2.Result;
 import com.lanf.seckill.model.dto.AddSeckillActivityDTO;
 import com.lanf.seckill.model.dto.AddSeckillItemDTO;
 import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.lanf.constant.result.Result;
 
 /**
  * <p>
@@ -33,38 +33,38 @@ public class AdminSeckillActivityController {
     /**
      * 添加秒杀活动
      */
-    @PostMapping("/add")
+    @PostMapping("/addSeckillActivity")
     public Result<Void> addSeckillActivity(@Validated @RequestBody AddSeckillActivityDTO dto) {
         log.info("添加秒杀活动: dto={}", dto);
 
 
         seckillActivityService.addSeckillActivity(dto);
-        return Result.success();
+        return Result.ok();
 
     }
 
     /**
      * 添加秒杀商品
      */
-    @PostMapping("/item/add")
+    @PostMapping("/addSeckillItem")
     public Result<Void> addSeckillItem(@Validated @RequestBody AddSeckillItemDTO dto) {
         log.info("添加秒杀商品: dto={}", dto);
 
 
         seckillActivityService.addAddSeckillItem(dto);
-        return Result.success();
+        return Result.ok();
 
     }
 
     /**
      * 上架秒杀商品
      */
-    @PostMapping("/item/launcher")
+    @PostMapping("/launcherSeckillItem")
     public Result<Void> launcherSeckillItem(@Validated @RequestBody LauncherSeckillItemDTO dto) {
         log.info("上架秒杀商品: seckillItemId={}", dto.getSeckillItemId());
 
         seckillActivityService.launcherSeckillItem(dto);
-        return Result.success();
+        return Result.ok();
 
     }
 }
