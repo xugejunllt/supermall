@@ -360,5 +360,29 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
                 JsonUtils.toJsonString(closeOrderMessage));
     }
 
+    @Override
+    public void afterSalesInStockFinish(Long id) {
+        AfterSalesOrderDO salesOrderDO = this.getById(id);
+        if (salesOrderDO == null) {
+            log.error("售后单不存在");
+            throw new BizException("售后单不存在");
+        }
+        if ( ! SubStatus.SIGNED
+                .equals(salesOrderDO.getSubStatus())) {
+            throw new BizException("售后单状态异常");
+        }
+
+        boolean update = this.lambdaUpdate().eq(AfterSalesOrderDO::getId, id)
+                .eq(AfterSalesOrderDO::getVersion, salesOrderDO.getVersion())
+                .set(AfterSalesOrderDO::getMainStatus, MainStatusEnum.WAIT_CONFIRM.getCode())
+                .set(AfterSalesOrderDO::getSubStatus, SubStatus.REFUND_PROCESS.getCode())
+                .set(AfterSalesOrderDO::getVersion, salesOrderDO.getVersion() + 1)
+                .update();
+        if ( !update) {
+            throw new BizException("售后单更新失败");
+        }
+
+    }
+
 
 }

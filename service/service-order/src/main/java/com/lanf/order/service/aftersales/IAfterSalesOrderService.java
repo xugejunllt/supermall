@@ -52,5 +52,9 @@ public interface IAfterSalesOrderService extends IService<AfterSalesOrderDO> {
      */
     void completeRefund(CompleteRefundDTO dto);
 
-
+    /**
+     * 销售出库单入库完成
+     *
+     */
+    void afterSalesInStockFinish(Long id);
 }
