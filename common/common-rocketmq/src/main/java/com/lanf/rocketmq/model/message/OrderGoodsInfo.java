@@ -11,7 +11,7 @@ public class OrderGoodsInfo implements Serializable {
 
     private String skuCode;
 
-    private Integer quantity;
+
 
     private Long warehouseId;
     private Long tenantId;

@@ -50,10 +50,12 @@ import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.model.message.OrderGoodsInfo;
 import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.welfare.api.SecKillResultCache;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.bo.DiscountInfoBO;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
 import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
+import com.lanf.welfare.model.enums.SecKillResultEnum;
 import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
 import com.lanf.welfare.mq.message.SecKillPlaneMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +75,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class OrderManagerServiceImpl implements OrderManagerService {
-
 
 
     @Autowired
@@ -97,13 +98,14 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private IOrderItemService orderItemService;
     @Autowired
     private IMainOrderService mainOrderService;
+    @Autowired
+    private SecKillResultCache secKillResultCache;
 
     @Override
     public CalculateOrderAmountVO calculateOrderAmount(CalculateOrderAmountDTO dto) {
 
 
-
-        CalculateOrderTotalAmountVO amountVO =  calculateOrderTotalAmount(dto);
+        CalculateOrderTotalAmountVO amountVO = calculateOrderTotalAmount(dto);
         BigDecimal totalAmount = amountVO.getTotalAmount();
         //计算优惠金额
         CalculateDiscountAmountVO calculateDiscountAmountVO = calculateDiscountAmount(dto,
@@ -135,6 +137,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return RpcResultParser.parseResult(
                 goodsApiService.calculateOrderTotalAmount(calculateOrderTotalAmountDTO));
     }
+
     private CalculateDiscountAmountVO calculateDiscountAmount(CalculateOrderAmountDTO dto, Long userId, BigDecimal totalAmount) {
         CalculateDiscountAmountDTO discountAmountDTO = new CalculateDiscountAmountDTO();
         discountAmountDTO.setUserId(userId);
@@ -149,26 +152,26 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 //        return RpcResultParser.parseResult(calculateDiscountAmountVOResult);
         CalculateDiscountAmountVO vo = new CalculateDiscountAmountVO();
         vo.setTotalDiscountAmount(BigDecimal.ZERO);
-        return  vo;
+        return vo;
     }
+
     /**
-     *立即下单
-     *
-     *
+     * 立即下单
      */
     @DistributedLock(key = "#orderDTO.orderNumber")
     @Override
     public PlaceOrderVO placeOrder(PlaceOrderDTO orderDTO) {
 
-        OrderInitParamsBO orderInitParamsBO = initParams( orderDTO);
+        OrderInitParamsBO orderInitParamsBO = initParams(orderDTO);
         orderDTO.setOrderInitParamsBO(orderInitParamsBO);
         /**
          * 获取代理对象
          */
         OrderManagerService managerService = BeanUtil.getBean(OrderManagerService.class);
 
-        return managerService.startPlaceOrder( orderDTO);
+        return managerService.startPlaceOrder(orderDTO);
     }
+
     @HmilyTCC(confirmMethod = "confirmPlaceOrder", cancelMethod = "cancelPlaceOrder")
     @Override
     public PlaceOrderVO startPlaceOrder(PlaceOrderDTO orderDTO) {
@@ -231,10 +234,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     /**
      *
-     *
      */
     @Override
-    public  void  confirmPlaceOrder(PlaceOrderDTO orderDTO){
+    public void confirmPlaceOrder(PlaceOrderDTO orderDTO) {
         /**
          * 发送MQ 订单创建成功消息
          */
@@ -246,11 +248,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     /**
      *
-     *
      */
     @Transactional
     @Override
-    public  void  cancelPlaceOrder(PlaceOrderDTO orderDTO){
+    public void cancelPlaceOrder(PlaceOrderDTO orderDTO) {
         /**
          * 如果数据不存在 那么执行删除操作也没有影响
          * 如果数据库异常 那么会抛出异常进行重试
@@ -264,7 +265,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
                 .eq(OrderItemDO::getUserId, orderInitParamsBO.getUserId())
                 .eq(OrderItemDO::getOrderId, orderInitParamsBO.getOrderId())
                 .remove();
-       orderStatusTraceService.lambdaUpdate()
+        orderStatusTraceService.lambdaUpdate()
                 .eq(OrderStatusTraceDO::getOrderId, orderInitParamsBO.getOrderId())
                 .eq(OrderStatusTraceDO::getUserId, orderInitParamsBO.getUserId())
                 .remove();
@@ -273,9 +274,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     /**
      * 创建订单项
+     *
      * @param orderInitParamsBO 订单初始化参数
-     * @param orderDTO 下单请求参数
-     * @param deductStockVO 扣减库存结果
+     * @param orderDTO          下单请求参数
+     * @param deductStockVO     扣减库存结果
      * @return 订单项对象
      */
     private OrderItemDTO createOrderItem(OrderInitParamsBO orderInitParamsBO, PlaceOrderDTO orderDTO, DeductStockVO deductStockVO) {
@@ -300,13 +302,15 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderItem.setSkuName(goodsSkuBO.getSkuName());
         return orderItem;
     }
+
     /**
      * 创建订单
-     * @param orderDTO 下单请求参数
+     *
+     * @param orderDTO          下单请求参数
      * @param orderInitParamsBO 订单初始化参数
-     * @param deductStockVO 扣减库存结果
-     * @param tradeMoney 实际支付金额
-     * @param amountVO 优惠券计算结果
+     * @param deductStockVO     扣减库存结果
+     * @param tradeMoney        实际支付金额
+     * @param amountVO          优惠券计算结果
      */
     private void createOrder(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, DeductStockVO deductStockVO,
                              BigDecimal tradeMoney, CalculateDiscountAmountVO amountVO) {
@@ -331,11 +335,13 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
         orderService.createOrder(createOrderDTO);
     }
+
     /**
      * 创建支付订单
+     *
      * @param orderInitParamsBO 订单初始化参数
-     * @param orderDTO 下单请求参数
-     * @param tradeMoney 交易金额
+     * @param orderDTO          下单请求参数
+     * @param tradeMoney        交易金额
      */
     private void createPayOrder(OrderInitParamsBO orderInitParamsBO, PlaceOrderDTO orderDTO, BigDecimal tradeMoney) {
         CreateTradeOrderDTO dto = new CreateTradeOrderDTO();
@@ -349,16 +355,19 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     /**
      * 从优惠券计算结果中获取折扣金额
+     *
      * @param amountVO 优惠券计算结果
      * @return 折扣金额
      */
     private BigDecimal getDiscountAmount(CalculateDiscountAmountVO amountVO) {
         return amountVO != null ? amountVO.getTotalDiscountAmount() : BigDecimal.ZERO;
     }
+
     /**
      * 计算订单实际支付金额
+     *
      * @param totalAmount 商品总金额
-     * @param amountVO 优惠券计算结果，包含折扣金额
+     * @param amountVO    优惠券计算结果，包含折扣金额
      * @return 实际支付金额
      */
     private BigDecimal calculateActualPayment(BigDecimal totalAmount, CalculateDiscountAmountVO amountVO) {
@@ -367,8 +376,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         validatePaymentAmount(actualPayment);
         return actualPayment;
     }
+
     /**
      * 校验实际支付金额是否小于0
+     *
      * @param actualPayment 实际支付金额
      */
     private void validatePaymentAmount(BigDecimal actualPayment) {
@@ -377,18 +388,18 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         }
     }
 
-    private void sendOrderCreateSuccessMessage(Long orderId,Long userId) {
+    private void sendOrderCreateSuccessMessage(Long orderId, Long userId) {
         OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
         message.setOrderId(orderId);
         message.setUserId(userId);
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
-                OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message),
-                orderId.toString());    }
+                OrderStatusEnum.WAIT_PAY.getTag(), JsonUtils.toJsonString(message),
+                orderId.toString());
+    }
 
 
-
-    private CalculateDiscountAmountVO useMultipleCoupon(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, BigDecimal totalAmount){
-        if (IStringUtils.isEmpty(orderDTO.getCouponIds())){
+    private CalculateDiscountAmountVO useMultipleCoupon(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, BigDecimal totalAmount) {
+        if (IStringUtils.isEmpty(orderDTO.getCouponIds())) {
             return null;
         }
         UseMultipleCouponDTO dto = new UseMultipleCouponDTO();
@@ -397,19 +408,20 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         dto.setShopId(orderDTO.getShopId());
         dto.setTotalAmount(totalAmount);
         dto.setCouponIds(orderDTO.getCouponIds());
-       // RpcResultParser.parseResult(welfareApiService.useMultipleCoupon(dto));
+        // RpcResultParser.parseResult(welfareApiService.useMultipleCoupon(dto));
 
-        return new CalculateDiscountAmountVO( );
+        return new CalculateDiscountAmountVO();
     }
-    private DeductStockVO  deductStock( PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO){
+
+    private DeductStockVO deductStock(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO) {
 
         //表示唯一一次库存扣减 使用tcc_operation 表就需要
-        String bizKeyPrx = orderDTO.getOrderNumber()+"_"+orderDTO.getSkuCode() ;
+        String bizKeyPrx = orderDTO.getOrderNumber() + "_" + orderDTO.getSkuCode();
         DeductStockDTO deductStockDTO = new DeductStockDTO();
         deductStockDTO.setOrderId(orderInitParamsBO.getOrderId());
         deductStockDTO.setSkuCode(orderDTO.getSkuCode());
         deductStockDTO.setQuantity(orderDTO.getQuantity());
-        deductStockDTO.setBizKeyPrx(bizKeyPrx );
+        deductStockDTO.setBizKeyPrx(bizKeyPrx);
         deductStockDTO.setGoodsId(orderDTO.getGoodsId());
         deductStockDTO.setWarehouseId(orderDTO.getWarehouseId());
         deductStockDTO.setOrderNumber(orderDTO.getOrderNumber());
@@ -418,10 +430,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     }
 
-    private OrderInitParamsBO initParams(PlaceOrderDTO orderDTO){
+    private OrderInitParamsBO initParams(PlaceOrderDTO orderDTO) {
 
 
-        OrderInitParamsBO  orderInitParamsBO = new OrderInitParamsBO();
+        OrderInitParamsBO orderInitParamsBO = new OrderInitParamsBO();
         orderInitParamsBO.setOrderId(IdUtils.generateId());
         orderInitParamsBO.setUserId(UserContext.getUserId());
         orderInitParamsBO.setOrderNumber(orderDTO.getOrderNumber());
@@ -431,7 +443,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         AddressListVO addressListVO1 = addressListVOS.stream()
                 .filter(addressListVO -> addressListVO.getId().equals(addressId)).
                 findFirst().orElse(null);
-        if (addressListVO1 == null){
+        if (addressListVO1 == null) {
             throw new BizException("收货地址不存在");
         }
         orderInitParamsBO.setAddressListVO(addressListVO1);
@@ -449,10 +461,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
         return managerService.startSubmitCart(initParamsBO);
     }
+
     @HmilyTCC(confirmMethod = "confirmSubmitCart", cancelMethod = "cancelSubmitCart")
     @Override
     public SubmitCartVO startSubmitCart(StartSubmitCartBO dto) {
-
 
 
         /**
@@ -484,7 +496,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return submitCartVO;
     }
 
-    private CreateMergeTradeOrderDTO buildCreateMergeTradeOrderDTO(BathCreateOrderDTO bathCreateOrderDTO){
+    private CreateMergeTradeOrderDTO buildCreateMergeTradeOrderDTO(BathCreateOrderDTO bathCreateOrderDTO) {
 
         List<CreateOrderDTO> createOrderDTOList = bathCreateOrderDTO.getCreateOrderDTOList();
 
@@ -500,7 +512,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     }
 
-    private  List<CreateMergeTradeOrderItemDTO> getCreateMergeTradeOrderItemDTOS(List<CreateOrderDTO> createOrderDTOList) {
+    private List<CreateMergeTradeOrderItemDTO> getCreateMergeTradeOrderItemDTOS(List<CreateOrderDTO> createOrderDTOList) {
         List<CreateMergeTradeOrderItemDTO> tradeOrderItemList = new ArrayList<>(createOrderDTOList.size());
 
         for (CreateOrderDTO createOrderDTO : createOrderDTOList) {
@@ -513,7 +525,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return tradeOrderItemList;
     }
 
-    private BathDeductStockDTO buildBathDeductStockDTO(BathCreateOrderDTO bathCreateOrderDTO){
+    private BathDeductStockDTO buildBathDeductStockDTO(BathCreateOrderDTO bathCreateOrderDTO) {
 
 
         String mainOrderNumber = bathCreateOrderDTO.getMainOrderNumber();
@@ -524,7 +536,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             Long orderId = a.getOrderId();
             a.getOrderItems().forEach(b -> {
                 //表示 在一个批次提交里 唯一的key 可能多个商品下相同的skuCode 所以加上GoodsId
-                String bizKeyPrx = mainOrderNumber+"_"+b.getSkuCode()+"_"+ b.getGoodsId() ;
+                String bizKeyPrx = mainOrderNumber + "_" + b.getSkuCode() + "_" + b.getGoodsId();
                 DeductStockDTO deductStockDTO = new DeductStockDTO();
                 deductStockDTO.setBizKeyPrx(bizKeyPrx);
                 deductStockDTO.setOrderId(orderId);
@@ -542,8 +554,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return bathDeductStockDTO;
 
     }
+
     @Override
-    public void confirmSubmitCart(StartSubmitCartBO dto){
+    public void confirmSubmitCart(StartSubmitCartBO dto) {
 
         BathCreateOrderDTO orderDTO = dto.getBathCreateOrderDTO();
         List<CreateOrderDTO> createOrderDTOList = orderDTO.getCreateOrderDTOList();
@@ -555,8 +568,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
 
     }
+
     @Override
-    public void cancelSubmitCart(StartSubmitCartBO dto){
+    public void cancelSubmitCart(StartSubmitCartBO dto) {
 
         BathCreateOrderDTO orderDTO = dto.getBathCreateOrderDTO();
 
@@ -580,8 +594,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
                 .remove();
 
     }
+
     /**
      * 计算订单金额
+     *
      * @param cartItemList 购物车商品项列表
      * @return 订单金额
      */
@@ -592,13 +608,13 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
 
-    private StartSubmitCartBO buildSubmitCartOrderInitParamsBO(SubmitCartDTO dto){
+    private StartSubmitCartBO buildSubmitCartOrderInitParamsBO(SubmitCartDTO dto) {
 
         List<AddressListVO> listVOList = RpcResultParser.parseResult(userCacheService.addressListQuery());
         AddressListVO addressListVO = listVOList.stream()
                 .filter(a -> a.getId().equals(dto.getAddressId()))
                 .findFirst().orElse(null);
-        if (addressListVO == null){
+        if (addressListVO == null) {
             log.warn("收货地址不存在");
             throw new BizException("收货地址不存在");
         }
@@ -613,9 +629,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         /**
          * 添加一些字段
          */
-        addField( clearCartVO.getGoodsVOList());
+        addField(clearCartVO.getGoodsVOList());
 
-        Map<Long,Long> warehouseIdMap = dto.getCartInfoList().stream()
+        Map<Long, Long> warehouseIdMap = dto.getCartInfoList().stream()
                 .collect(Collectors.toMap(CartInfoDTO::getCartId, CartInfoDTO::getWarehouseId));
 
         StartSubmitCartBO startSubmitCartDTO = new StartSubmitCartBO();
@@ -634,19 +650,21 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
 
-    private void addField(List<ShopGoods> goodsVOList){
+    private void addField(List<ShopGoods> goodsVOList) {
         //添加订单id 这样订单id与交易单的订单id一一关联起来
-        goodsVOList.forEach(shopGoodsBO -> {shopGoodsBO.setOrderId(IdUtils.generateId());});
+        goodsVOList.forEach(shopGoodsBO -> {
+            shopGoodsBO.setOrderId(IdUtils.generateId());
+        });
 
     }
 
 
-
     /**
      * 构建批量创建订单的 DTO
+     *
      * @param submitCartOrderInitParamsBO 购物车订单初始化参数
-     * @param dto 提交购物车请求参数
-     * @param clearCartVO 清空购物车返回结果
+     * @param dto                         提交购物车请求参数
+     * @param clearCartVO                 清空购物车返回结果
      * @return 批量创建订单的 DTO
      */
     private BathCreateOrderDTO buildBathCreateOrderDTO(BuildBathCreateOrderBO submitCartOrderInitParamsBO,
@@ -672,6 +690,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     /**
      * 构建单个订单的 DTO
+     *
      * @param shopGoodsBO 店铺商品信息
      * @return 创建订单的 DTO
      */
@@ -705,7 +724,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     /**
      * 构建订单项 DTO
-     * @param orderId 订单 ID
+     *
+     * @param orderId  订单 ID
      * @param cartItem 购物车商品项
      * @return 订单项 DTO
      */
@@ -749,7 +769,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             log.warn("当前订单状态不允许取消:{}", orderDO.getStatus());
             throw new BizException("订单状态异常");
         }
-        CancelOrderEventMessage orderEventMessage = buildCancelOrderEventMessage(dto);
+        CancelOrderEventMessage orderEventMessage = buildCancelOrderEventMessage(orderDO);
 
         //
         Date date = new Date();
@@ -780,30 +800,31 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          */
 
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
-                OrderStatusEnum.CANCELLED.getTag(),JsonUtils.toJsonString(orderEventMessage),
+                OrderStatusEnum.CANCELLED.getTag(), JsonUtils.toJsonString(orderEventMessage),
                 orderDO.getId().toString());
 
-        if (dto.getRunnable() != null){
+        if (dto.getRunnable() != null) {
             dto.getRunnable().run();
         }
         log.info("取消订单成功");
     }
 
 
-    private CancelOrderEventMessage buildCancelOrderEventMessage(CancelOrderDTO dto ){
+    private CancelOrderEventMessage buildCancelOrderEventMessage(OrderDO orderDO) {
 
 
         List<OrderItemDO> list = orderItemService.lambdaQuery()
-                .eq(OrderItemDO::getOrderId, dto.getOrderId())
-                .eq(OrderItemDO::getUserId, dto.getUserId())
+                .eq(OrderItemDO::getOrderId, orderDO.getId())
+                .eq(OrderItemDO::getUserId, orderDO.getUserId())
                 .list();
-        if (list.isEmpty()){
+        if (list.isEmpty()) {
             log.error("订单商品项目不存在");
-           throw new BizException("订单商品项目不存在");
+            throw new BizException("订单商品项目不存在");
         }
         List<OrderGoodsInfo> orderGoodsInfoList = getOrderGoodsInfos(list);
         CancelOrderEventMessage cancelOrderEventMessage = new CancelOrderEventMessage();
-        cancelOrderEventMessage.setOrderId(dto.getOrderId());
+        cancelOrderEventMessage.setOrderId(orderDO.getId());
+        cancelOrderEventMessage.setOrderNumber(orderDO.getOrderNumber());
         cancelOrderEventMessage.setOrderGoodsInfoList(orderGoodsInfoList);
         return cancelOrderEventMessage;
     }
@@ -814,13 +835,13 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             OrderGoodsInfo orderGoodsInfo = new OrderGoodsInfo();
             orderGoodsInfo.setGoodsId(orderItemDO.getGoodsId());
             orderGoodsInfo.setSkuCode(orderItemDO.getSkuCode());
-            orderGoodsInfo.setQuantity(orderItemDO.getQuantity());
             orderGoodsInfo.setWarehouseId(orderItemDO.getWarehouseId());
             orderGoodsInfo.setTenantId(orderItemDO.getTenantId());
             orderGoodsInfoList.add(orderGoodsInfo);
         }
         return orderGoodsInfoList;
     }
+
     @HmilyTCC(confirmMethod = "confirmCreateSecKillOrder", cancelMethod = "cancelCreateSecKillOrder")
     @Override
     public void createSecKillOrder(SecKillPlaneMessage message) {
@@ -902,17 +923,19 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderDO.setDiscountAmount(new BigDecimal(0));
         return orderDO;
     }
-    public void confirmCreateSecKillOrder(SecKillPlaneMessage message){
+
+    public void confirmCreateSecKillOrder(SecKillPlaneMessage message) {
         OrderCreateSuccessMessage message2 = new OrderCreateSuccessMessage();
         message2.setOrderId(message.getOrderId());
         message2.setUserId(message.getUserId());
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
-                OrderStatusEnum.WAIT_PAY.getTag(),JsonUtils.toJsonString(message2),
+                OrderStatusEnum.WAIT_PAY.getTag(), JsonUtils.toJsonString(message2),
                 message.getOrderId().toString());
+        secKillResultCache.addResult(message.getUserId(), message.getSecKillItemId(), SecKillResultEnum.SUCCESS_ORDER_CREATED);
     }
 
 
-    public void cancelCreateSecKillOrder(SecKillPlaneMessage message){
+    public void cancelCreateSecKillOrder(SecKillPlaneMessage message) {
 
     }
 }

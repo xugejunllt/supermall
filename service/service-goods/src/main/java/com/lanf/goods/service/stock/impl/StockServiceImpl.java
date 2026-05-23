@@ -23,6 +23,7 @@ import com.lanf.constant.result.RpcResultParser;
 import com.lanf.goods.constant.GoodsCodeEnum;
 import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.bo.DeductStockParameterBO;
+import com.lanf.goods.model.bo.RollbackStockBO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
 import com.lanf.goods.model.dto.SubmitCartStockEnoughDTO;
 import com.lanf.goods.model.entity.*;
@@ -450,7 +451,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         if (one == null) {
             log.error("库存不存在");
-            tccOperationService.addInterruptedFlag(bizKey, "库存不存在",dto.getGoodsId().toString());
+            tccOperationService.addInterruptedFlag(bizKey, "库存不存在", dto.getGoodsId().toString());
 
             throw new BizException("库存不存在");
         }
@@ -459,14 +460,14 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
         if (usableStock < preQuantity) {
             log.warn("库存不足");
-            tccOperationService.addInterruptedFlag(bizKey, "库存不足",dto.getGoodsId().toString());
+            tccOperationService.addInterruptedFlag(bizKey, "库存不足", dto.getGoodsId().toString());
             throw new BizException("库存不足");
         }
 
         /**
          * DB操作
          */
-        tccOperationService.tryOperation(bizKey, null,dto.getGoodsId().toString());
+        tccOperationService.tryOperation(bizKey, null, dto.getGoodsId().toString());
         boolean update = this.lambdaUpdate()
                 .eq(StockDO::getId, one.getId())
                 .eq(StockDO::getGoodsId, dto.getGoodsId())
@@ -492,7 +493,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
          * 空执行 什么也不作
          */
         String bizKey = generateSeckillStockPreoccupation(dto.getBizKeyPrx());
-        boolean operation = tccOperationService.confirmOperation(bizKey,dto.getGoodsId().toString());
+        boolean operation = tccOperationService.confirmOperation(bizKey, dto.getGoodsId().toString());
         if (!operation) {
             log.info("confirm已执行");
             return;
@@ -510,11 +511,11 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 .one();
         if (one == null) {
             log.error("库存不存在");
-            tccOperationService.addInterruptedFlag(bizKey, "库存不存在",dto.getGoodsId().toString());
+            tccOperationService.addInterruptedFlag(bizKey, "库存不存在", dto.getGoodsId().toString());
             throw new BizException("库存不存在");
         }
 
-        boolean operation = tccOperationService.cancelOperation(bizKey,dto.getGoodsId().toString());
+        boolean operation = tccOperationService.cancelOperation(bizKey, dto.getGoodsId().toString());
         if (!operation) {
 
             return;
@@ -523,7 +524,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         Integer preQuantity = dto.getPreQuantity();
         boolean update = this.lambdaUpdate()
                 .eq(StockDO::getId, one.getId())
-                .eq(StockDO::getGoodsId,dto.getGoodsId())
+                .eq(StockDO::getGoodsId, dto.getGoodsId())
                 .set(StockDO::getUsableStock, usableStock + preQuantity)
                 .set(StockDO::getVersion, one.getVersion() + 1)
                 .update();
@@ -785,8 +786,10 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
     @Transactional
     @Override
-    public void rollbackStock(Long orderId, OrderGoodsInfo orderGoodsInfo) {
+    public void rollbackStock(RollbackStockBO stockBO) {
 
+        Long orderId = stockBO.getOrderId();
+        OrderGoodsInfo orderGoodsInfo = stockBO.getOrderGoodsInfo();
         log.info("取消订单,回滚库存开始 orderId:{},orderGoodsInfo:{}", orderId, orderGoodsInfo);
 
         StockDO stockDO = this.lambdaQuery()
@@ -799,10 +802,23 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             throw new BizException("库存不存在，订单回滚失败");
         }
 
+        String planeFlowNo = orderGoodsInfo.getGoodsId() + "_" +
+                orderGoodsInfo.getSkuCode() + ":" + stockBO.getOrderNumber() + ":" +
+                UserStockFlowEventTypeEnum.ORDER_OUTBOUND.getCode();
+
+        UserStockFlowDO stockFlowDO1 = userStockFlowService.lambdaQuery().eq(UserStockFlowDO::getFlowNo, planeFlowNo)
+                .eq(UserStockFlowDO::getGoodsId, orderGoodsInfo.getGoodsId()).one();
+        if (stockFlowDO1 == null) {
+            log.error("下单库存流水不存在");
+            throw new MessageRetryConsumeException("下单库存流水不存在");
+        }
+
         String flowNo = orderGoodsInfo.getGoodsId() + ":" +
-                orderGoodsInfo.getSkuCode() + ":" + orderId + ":" +
+                orderGoodsInfo.getSkuCode() + ":" + stockBO.getOrderNumber() + ":" +
                 UserStockFlowEventTypeEnum.CANCEL_ORDER_INBOUND.getCode();
+
         UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery()
+                .eq(UserStockFlowDO::getGoodsId, orderGoodsInfo.getGoodsId())
                 .eq(UserStockFlowDO::getFlowNo, flowNo)
                 .eq(UserStockFlowDO::getGoodsId, orderGoodsInfo.getGoodsId())
                 .one();
@@ -812,7 +828,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         }
 
         Integer updateUsedStock =
-                stockDO.getUsableStock() + orderGoodsInfo.getQuantity();
+                stockDO.getUsableStock() + stockFlowDO1.getChangeQuantity();
 
         UserStockFlowDO userStockFlowDO = new UserStockFlowDO();
         userStockFlowDO.setFlowNo(flowNo);
@@ -823,7 +839,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         userStockFlowDO.setOrderId(orderId);
         userStockFlowDO.setEventType(UserStockFlowEventTypeEnum.CANCEL_ORDER_INBOUND);
         userStockFlowDO.setBeforeQuantity(stockDO.getUsableStock() + stockDO.getLockStock());
-        userStockFlowDO.setChangeQuantity(orderGoodsInfo.getQuantity());
+        userStockFlowDO.setChangeQuantity(stockFlowDO1.getChangeQuantity());
         userStockFlowDO.setAfterQuantity(updateUsedStock + stockDO.getLockStock());
         userStockFlowDO.setTenantId(orderGoodsInfo.getTenantId());
 

@@ -9,6 +9,9 @@ import java.math.BigDecimal;
 @Data
 public class SecKillPlaneMessage extends BaseMessage {
 
+
+    private Long secKillItemId;
+
     private Long orderId;
 
     private Long shopId;

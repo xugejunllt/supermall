@@ -140,6 +140,7 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
         secKillPlaneMessage.setSkuCode(killItemDO.getSkuCode());
         secKillPlaneMessage.setUnitPrice(killItemDO.getSeckillPrice());
         secKillPlaneMessage.setOrderId(orderId);
+        secKillPlaneMessage.setSecKillItemId(killItemDO.getId());
         return  secKillPlaneMessage;
     }
 }

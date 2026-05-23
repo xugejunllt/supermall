@@ -9,6 +9,7 @@ import java.util.List;
 public class CancelOrderEventMessage implements Serializable {
 
 
+    private String orderNumber;
 
     private Long orderId;
 
