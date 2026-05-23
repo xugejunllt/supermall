@@ -14,6 +14,6 @@ public class WalletPayMethodHandler implements PayMethodHandler {
 
     @Override
     public void cancelPayOrder(CancelPayOrderContext context) {
-        walletAccountService.rollbackWalletBalanceOnCancelOrder(context.getTradeOrderId());
+        walletAccountService.rollbackWalletBalanceOnCancelOrder(context.getOrderId());
     }
 }

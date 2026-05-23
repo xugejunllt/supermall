@@ -1,12 +1,7 @@
 package com.lanf.pay.service.pay.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.api.pay.model.enums.RefundEventTypeEnum;
-import com.lanf.api.pay.mq.constant.PayClientTopicName;
-import com.lanf.api.pay.mq.message.ProcessRefundMessage;
-import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.mapper.PaymentCancelRecordMapper;
-import com.lanf.pay.model.bo.CancelPaidOrderBO;
 import com.lanf.pay.model.bo.CancelWaitPayOrderBO;
 import com.lanf.pay.model.entity.PaymentCancelRecordDO;
 import com.lanf.pay.service.pay.*;
@@ -17,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <p>

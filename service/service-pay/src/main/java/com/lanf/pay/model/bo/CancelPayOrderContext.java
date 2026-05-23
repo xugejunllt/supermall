@@ -7,7 +7,7 @@ import java.io.Serializable;
 @Data
 public class CancelPayOrderContext implements Serializable {
 
-    private Long tradeOrderId;
+    private Long orderId;
 
     private String outTradeNo;
 

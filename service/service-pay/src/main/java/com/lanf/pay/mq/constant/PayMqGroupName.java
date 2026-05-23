@@ -33,5 +33,6 @@ public class PayMqGroupName {
 
 
     public static final String CANCEL_ORDER_CANCEL_PAY_ORDER_GROUP = "CANCEL_ORDER_CANCEL_PAY_ORDER_GROUP";
+    public static final String AFTER_SALES_REFUND_GROUP = "AFTER_SALES_REFUND_GROUP";
 
 }

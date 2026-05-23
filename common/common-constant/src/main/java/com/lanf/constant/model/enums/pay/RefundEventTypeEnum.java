@@ -1,4 +1,4 @@
-package com.lanf.api.pay.model.enums;
+package com.lanf.constant.model.enums.pay;
 
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
@@ -15,7 +15,6 @@ public enum RefundEventTypeEnum {
     CANCEL_PAID_ORDER(0, "取消已支付的订单"),
     AFTER_SALES_REFUND(1, "售后单退款");
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
 

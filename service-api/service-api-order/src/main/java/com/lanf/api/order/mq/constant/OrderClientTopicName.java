@@ -39,4 +39,9 @@ public class OrderClientTopicName {
      * 秒杀订单创建成功通知 秒杀服务
      */
     public static final String SEC_KILL_ORDER_CREATED_TOPIC = "SEC_KILL_ORDER_CREATED_TOPIC";
+    /**
+     * 售后单退款
+     */
+    public static final String AFTER_SALES_REFUND_TOPIC = "AFTER_SALES_REFUND_TOPIC";
+
 }

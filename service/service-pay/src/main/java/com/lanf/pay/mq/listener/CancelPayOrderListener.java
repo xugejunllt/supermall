@@ -1,7 +1,6 @@
 package com.lanf.pay.mq.listener;
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
-import com.lanf.api.pay.model.enums.RefundEventTypeEnum;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.CancelWaitPayOrderBO;
 import com.lanf.pay.model.bo.TradeStatusBO;
@@ -97,7 +96,7 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
                     refundOrderDO.setOutTradeNo(outTradeNo);
                     refundOrderDO.setReturnMoney(orderFlowDO.getTradeMoney());
                     refundOrderDO.setStatus(RefundStatusEnum.REFUNDING);
-                    refundOrderDO.setRefundEventType(RefundEventTypeEnum.CANCEL_PAID_ORDER);
+                    refundOrderDO.setRefundEventType(message.getRefundEventType());
                     refundOrderDO.setPayChannel(PayChannelEnum.getByCode(orderFlowDO.getPayType()));
                     refundOrderDO.setBizOrderId(message.getBizOrderId());
                     refundOrderDO.setRefundReason("取消订单退款");

@@ -25,7 +25,7 @@ import com.lanf.aftersales.service.IAfterSalesOrderService;
 import com.lanf.api.order.api.OrderApiService;
 import com.lanf.api.order.model.vo.OrderItemVO;
 import com.lanf.api.order.model.vo.OrderVO;
-import com.lanf.api.pay.model.enums.RefundEventTypeEnum;
+import com.lanf.constant.model.enums.pay.RefundEventTypeEnum;
 import com.lanf.api.pay.mq.constant.PayClientTopicName;
 import com.lanf.api.pay.mq.message.ProcessRefundMessage;
 import com.lanf.api.storage.api.StorageApiService;
@@ -371,6 +371,7 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
             log.error("售后单更新失败:afterSalesOrderId={}", id);
             throw new BizException("售后单更新失败");
         }
+
         /**
          * 进行退款
          */

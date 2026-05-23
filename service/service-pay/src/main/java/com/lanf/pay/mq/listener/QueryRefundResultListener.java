@@ -5,7 +5,7 @@ package com.lanf.pay.mq.listener;
  */
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
-import com.lanf.api.pay.model.enums.RefundEventTypeEnum;
+import com.lanf.constant.model.enums.pay.RefundEventTypeEnum;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;

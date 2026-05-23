@@ -57,7 +57,7 @@ public class CancelOrderEventRollbackPayOrderListener implements RocketMQListene
             return;
         }
         CancelPayOrderContext context = new CancelPayOrderContext();
-        context.setTradeOrderId(tradeOrderDO.getId());
+        context.setOrderId(tradeOrderDO.getOrderId());
         context.setOutTradeNo(tradeOrderDO.getOutTradeNo());
         PayMethodHandler payMethodHandler = PayMethodHandlerFactory.
                 getPayMethodHandler(tradeOrderDO.getPayMethod());

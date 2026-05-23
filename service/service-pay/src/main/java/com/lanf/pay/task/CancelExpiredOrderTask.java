@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lanf.api.pay.model.enums.TradePurposeEnum;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.model.enums.CancelSourceEnum;
+import com.lanf.constant.model.enums.pay.RefundEventTypeEnum;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.service.pay.IPrepayPayTypeService;
@@ -96,6 +97,7 @@ public class CancelExpiredOrderTask {
                             CancelOrderMessage cancelOrderMessage = new CancelOrderMessage();
                             cancelOrderMessage.setOutTradeNo(outTradeNo);
                             cancelOrderMessage.setPayType(payType);
+                            cancelOrderMessage.setRefundEventType(RefundEventTypeEnum.CANCEL_PAID_ORDER);
                             rocketMqClient.sendMessage(TopicName.CANCEL_PAY_ORDER_TOPIC, JsonUtils.toJsonString(cancelOrderMessage));
 
                         }

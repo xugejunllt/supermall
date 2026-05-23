@@ -6,6 +6,7 @@ import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import com.lanf.order.model.dto.BusinessAgreeDTO;
 import com.lanf.order.model.dto.BusinessReceiverDTO;
+import com.lanf.order.model.dto.CompleteRefundDTO;
 import com.lanf.order.model.vo.AfterSalesOrderForUserDetailVO;
 import com.lanf.order.model.vo.AfterSalesOrderForUserPageVO;
 import com.lanf.order.service.aftersales.IAfterSalesOrderService;
@@ -65,6 +66,15 @@ public class AfterSalesOrderForAdminController {
         return Result.ok();
     }
 
+    @PostMapping("/completeRefund")
+    public Result<Void> completeRefund(@RequestBody @Validated CompleteRefundDTO dto) {
+
+        log.info("发起退款:dto{}", dto);
+
+        afterSalesOrderService.completeRefund(dto);
+
+        return Result.ok();
+    }
 
 }
 

@@ -1,6 +1,6 @@
 package com.lanf.api.pay.mq.message;
 
-import com.lanf.api.pay.model.enums.RefundEventTypeEnum;
+import com.lanf.constant.model.enums.pay.RefundEventTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;

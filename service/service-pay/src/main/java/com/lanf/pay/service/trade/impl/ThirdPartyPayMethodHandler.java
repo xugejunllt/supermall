@@ -1,6 +1,7 @@
 package com.lanf.pay.service.trade.impl;
 
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.model.enums.pay.RefundEventTypeEnum;
 import com.lanf.pay.model.bo.CancelPayOrderContext;
 import com.lanf.pay.service.pay.IPrepayPayTypeService;
 import com.lanf.pay.service.trade.PayMethodHandler;
@@ -37,7 +38,8 @@ public class ThirdPartyPayMethodHandler implements PayMethodHandler {
             CancelOrderMessage cancelOrderMessage = new CancelOrderMessage();
             cancelOrderMessage.setOutTradeNo(outTradeNo);
             cancelOrderMessage.setPayType(payType);
-            cancelOrderMessage.setBizOrderId(context.getTradeOrderId());
+            cancelOrderMessage.setBizOrderId(context.getOrderId());
+            cancelOrderMessage.setRefundEventType(RefundEventTypeEnum.CANCEL_PAID_ORDER);
             rocketMqClient.sendMessage(TopicName.CANCEL_PAY_ORDER_TOPIC, JsonUtils.toJsonString(cancelOrderMessage));
 
         }

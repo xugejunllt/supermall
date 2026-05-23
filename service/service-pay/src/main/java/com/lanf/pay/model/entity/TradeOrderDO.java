@@ -71,7 +71,7 @@ private static final long serialVersionUID=1L;
     private PayChannelEnum payType;
 
     /**
-     * 支付状态 0:待支付 1.支付完成 3:已取消
+     * 支付状态 0:待支付 1.支付完成
      */
     private Integer payStatus;
 

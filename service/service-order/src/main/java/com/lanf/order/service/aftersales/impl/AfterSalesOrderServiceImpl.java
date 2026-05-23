@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.aftersales.mq.AftersalesClientTopicName;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
+import com.lanf.api.order.mq.constant.OrderClientTopicName;
+import com.lanf.api.order.mq.message.AfterSalesRefundMessage;
 import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.query.PageQuery;
@@ -15,10 +17,7 @@ import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.mapper.AfterSalesOrderMapper;
-import com.lanf.order.model.dto.AddAfterSalesOrderDTO;
-import com.lanf.order.model.dto.BusinessAgreeDTO;
-import com.lanf.order.model.dto.BusinessReceiverDTO;
-import com.lanf.order.model.dto.UserDeliveryDTO;
+import com.lanf.order.model.dto.*;
 import com.lanf.order.model.entity.AfterSalesOrderDO;
 import com.lanf.order.model.entity.AfterSalesOrderItemDO;
 import com.lanf.order.model.entity.OrderDO;
@@ -26,8 +25,8 @@ import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.enums.MainStatusEnum;
 import com.lanf.order.model.enums.SubStatus;
 import com.lanf.order.model.vo.AfterSalesOrderForUserDetailVO;
-import com.lanf.order.model.vo.AfterSalesOrderItemVO;
 import com.lanf.order.model.vo.AfterSalesOrderForUserPageVO;
+import com.lanf.order.model.vo.AfterSalesOrderItemVO;
 import com.lanf.order.service.aftersales.IAfterSalesOrderItemService;
 import com.lanf.order.service.aftersales.IAfterSalesOrderService;
 import com.lanf.order.service.order.IOrderItemService;
@@ -289,6 +288,8 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
 
     }
 
+
+
     private SalesInStockOrderAddMessage buildSalesInStockOrderAddDTO(AfterSalesOrderDO salesOrderDO) {
 
         Long afterSalesOrderId = salesOrderDO.getId();
@@ -311,6 +312,51 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         dto.setAfterSalesOrderId(salesOrderDO.getId());
         dto.setTenantId(salesOrderDO.getTenantId());
         return dto;
+    }
+    @Override
+    public void completeRefund(CompleteRefundDTO dto) {
+
+        Long id = dto.getId();
+        AfterSalesOrderDO salesOrderDO = this.getById(id);
+        if (salesOrderDO == null) {
+            log.error("售后单不存在:afterSalesOrderId={}", id);
+            throw new BizException("售后单不存在");
+        }
+
+//        if (!SubStatus.REFUND_PROCESS.equals(salesOrderDO.getSubStatus())) {
+//            log.error("售后单状态异常:afterSalesOrderId={},subStatus={}", id, salesOrderDO.getSubStatus());
+//            throw new BizException("售后单状态异常，当前不是退款处理中状态");
+//        }
+
+        boolean update = this.lambdaUpdate()
+                .eq(AfterSalesOrderDO::getId, id)
+                .eq(AfterSalesOrderDO::getVersion, salesOrderDO.getVersion())
+                .set(AfterSalesOrderDO::getMainStatus, MainStatusEnum.SUCCESS.getCode())
+                .set(AfterSalesOrderDO::getSubStatus, SubStatus.REFUND_DONE.getCode())
+                .set(AfterSalesOrderDO::getIncomeStatus, 1)
+                .set(AfterSalesOrderDO::getVersion, salesOrderDO.getVersion() + 1)
+                .update();
+
+        if (!update) {
+            log.error("售后单更新失败:afterSalesOrderId={}", id);
+            throw new BizException("售后单更新失败");
+        }
+        /**
+         * 进行售后退款
+         */
+        AfterSalesRefundMessage message = new AfterSalesRefundMessage();
+        message.setOrderId(salesOrderDO.getOrderId());
+        message.setAfterSalesOrderId(id);
+        rocketMqClient.sendMessage(OrderClientTopicName.AFTER_SALES_REFUND_TOPIC,
+                JsonUtils.toJsonString(message));
+//        /**
+//         * 关闭订单
+//         *
+//         */
+//        CloseOrderMessage closeOrderMessage = new CloseOrderMessage();
+//        closeOrderMessage.setOrderId(salesOrderDO.getOrderId());
+//        rocketMqClient.sendMessage(AftersalesClientTopicName.AFTER_SALES_CLOSE_ORDER_TOPIC,
+//                JsonUtils.toJsonString(closeOrderMessage));
     }
 
 
