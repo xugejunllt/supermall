@@ -24,5 +24,10 @@
          <artifactId>common-constant</artifactId>
          <version>${common.version}</version>
      </dependency>
+     <dependency>
+         <groupId>com.lanf</groupId>
+         <artifactId>common-cache</artifactId>
+         <version>${common.version}</version>
+     </dependency>
  </dependencies>
 </project>

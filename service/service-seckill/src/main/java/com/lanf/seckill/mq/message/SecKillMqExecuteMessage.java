@@ -1,5 +1,6 @@
 package com.lanf.seckill.mq.message;
 
+import com.lanf.seckill.model.enums.SeckillModeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -16,7 +17,7 @@ public class SecKillMqExecuteMessage implements Serializable {
     @ApiModelProperty(value = "秒杀商品ID")
     private Long secKillItemId;
 
-
+    private SeckillModeEnum seckillModeEnum;
 
 
 

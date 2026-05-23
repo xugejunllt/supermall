@@ -1,6 +1,5 @@
 package com.lanf.order.mq.listener;
 
-import com.lanf.api.order.model.enums.OrderProcessStepEnum;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.SecKillPlaneCreateOrderSuccessMessage;
 import com.lanf.common.utils.BigDecimalUtils;
@@ -15,8 +14,6 @@ import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
 import com.lanf.order.model.enums.OrderTypeEnum;
 import com.lanf.order.mq.constant.OrderMqGroupName;
-import com.lanf.order.mq.constant.OrderMqTopicName;
-import com.lanf.order.mq.message.SecKillOrderCancelMessage;
 import com.lanf.order.service.order.IOrderItemService;
 import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.order.IOrderStatusTraceService;
@@ -33,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -54,7 +50,7 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
     @Override
     public void onMessage(SecKillPlaneMessage message) {
 
-        log.info("接收到秒杀单消息：{}", message);
+        log.info("接收到秒杀单消息,创建秒杀订单开始：{}", message);
         BigDecimal totalMoney = BigDecimalUtils.multiply(message.getUnitPrice(), BigDecimal.valueOf(message.getQuantity()));
         Long orderId = IdUtils.generateId();
         OrderDO orderDO = getOrderDO(message, orderId, totalMoney);
@@ -88,16 +84,13 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
         successMessage.setWarehouseId(message.getWarehouseId());
         successMessage.setQuantity(message.getQuantity());
 
-        //
-        SecKillOrderCancelMessage message1 = new SecKillOrderCancelMessage();
-        message1.setOrderId(orderId);
-        message1.setOrderNumber(message.getOrderNumber());
+
         //
         Date date = new Date();
         OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
         orderStatusTraceDO.setOrderId(orderId);
         orderStatusTraceDO.setFromStatus(null);
-        orderStatusTraceDO.setToStatus(OrderStatusEnum.WAIT_CONFIRM);
+        orderStatusTraceDO.setToStatus(OrderStatusEnum.WAIT_PAY);
         orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
         orderStatusTraceDO.setTenantId(message.getTenantId());
         orderStatusTraceDO.setUserId(message.getUserId());
@@ -111,11 +104,7 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
         orderStatusTraceService.save(orderStatusTraceDO);
         rocketMqClient.sendMessage(OrderClientTopicName.SEC_KILL_PLANE_CREATE_ORDER_SUCCESS_EVENT_TOPIC,
                 JsonUtils.toJsonString(successMessage));
-        /**
-         * 发送延迟消息 10分钟如果订单没有确认完成 那么进行取消
-         */
-        rocketMqClient.sendDelayMessage(OrderMqTopicName.SEC_KILL_ORDER_CANCEL_TOPIC,
-                JsonUtils.toJsonString(message1), TimeUnit.MINUTES, 10);
+
     }
 
     private static OrderDO getOrderDO(SecKillPlaneMessage message, Long orderId, BigDecimal totalMoney) {
@@ -129,9 +118,8 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
         orderDO.setTotalMoney(totalMoney);
         orderDO.setActualPayMoney(totalMoney);
         orderDO.setTakeAddress(message.getTakeAddress());
-        orderDO.setStatus(OrderStatusEnum.WAIT_CONFIRM);
+        orderDO.setStatus(OrderStatusEnum.WAIT_PAY);
         orderDO.setOrderType(OrderTypeEnum.SEC_KILL);
-        orderDO.setOrderProcessSteps(OrderProcessStepEnum.ORDER_CREATED.getCode().toString());
         orderDO.setAfterSaleDays(message.getAfterSaleDays());
         orderDO.setDiscountAmount(new BigDecimal(0));
         return orderDO;

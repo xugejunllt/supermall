@@ -1,10 +1,13 @@
 package com.lanf.seckill.service.strategy.impl;
 
 import com.lanf.cache.service.RedissonCacheService;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.model.dto.PlaceDTO;
 import com.lanf.seckill.model.enums.SeckillModeEnum;
+import com.lanf.seckill.mq.constant.SecKillMqTopicName;
+import com.lanf.seckill.mq.message.SecKillMqExecuteMessage;
 import com.lanf.seckill.service.strategy.AbstractSecKillStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +51,16 @@ import static com.lanf.seckill.service.impl.SecKillActivityServiceImpl.SECKILL_I
              * 秒杀成功
              */
             log.info("秒杀成功userId={},secKillItemId={}",userId,secKillItemId);
-            secKillSuccessHandle(userId, secKillItemId);
+            /**
+             * 秒杀请求发送到mq队列排队
+             */
+            SecKillMqExecuteMessage message = new SecKillMqExecuteMessage();
+            message.setUserId(dto.getUserId());
+            message.setSecKillItemId(dto.getSeckillItemId());
+            message.setSeckillModeEnum(SeckillModeEnum.REAL_TIME);
+
+            rocketMqClient.sendMessage(SecKillMqTopicName.SEC_KILL_MQ_EXECUTE_TOPIC,
+                    JsonUtils.toJsonString(message));
         } else if (decremented == -1 || participateCount == -1) {
             /**
              * redis 异常 允许用户重试

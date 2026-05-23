@@ -52,6 +52,7 @@ import com.lanf.welfare.model.bo.DiscountInfoBO;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
 import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
 import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
+import com.lanf.welfare.mq.message.SecKillPlaneMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -784,6 +785,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         log.info("取消订单成功");
     }
 
+
     private CancelOrderEventMessage buildCancelOrderEventMessage(CancelOrderDTO dto ){
 
 
@@ -814,6 +816,15 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             orderGoodsInfoList.add(orderGoodsInfo);
         }
         return orderGoodsInfoList;
+    }
+    @Override
+    public void createSecKillOrder(SecKillPlaneMessage message) {
+
+    }
+
+    @Override
+    public void startCreateSecKillOrder(CreateSecKillOrderDTO dto) {
+
     }
 
 }

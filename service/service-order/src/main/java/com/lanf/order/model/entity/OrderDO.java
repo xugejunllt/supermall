@@ -73,14 +73,7 @@ public class OrderDO extends BaseEntity {
      * 订单类型 0：普通订单 ,1:秒杀单
      */
     private OrderTypeEnum orderType;
-    /***
-     * order_process_steps  当秒杀单时有值
-     * 0：订单创建成功
-     * 1：交易单创建成功
-     * 2：库存扣减成功
-     * 3：库存扣减失败
-     */
-    private String orderProcessSteps;
+
 
     /**
      * 售后有效期，如果多个商品不同售后期，那么取最大的

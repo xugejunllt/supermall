@@ -7,7 +7,18 @@ import lombok.Getter;
 
 @Getter
 public enum SeckillModeEnum {
+    /**
+     *
+     * 低价值商品 允许超卖 特点：响应快
+     *
+     * 实际扣减冻结库存时 可能正常用户 下单了 但是冻结库存被扣减为0了
+     * 所以避免这种情况发生 提前将普通商品进行下架
+     *
+     */
     REAL_TIME(0, "实时秒杀"),
+    /**
+     * 高价值商品 不允许超卖
+     */
     MQ_QUEUE(1, "MQ排队秒杀");
     
     @EnumValue
