@@ -26,10 +26,9 @@ public class MybatisPlusConfig {
     @Bean
     public MybatisPlusInterceptor addPaginationInnerInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
-        //向Mybatis过滤器链中添加分页拦截器
+        interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(new MultiTenantHandler(properties)));
         interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
         interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
-        interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(new MultiTenantHandler(properties)));
 
         return interceptor;
     }
