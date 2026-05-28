@@ -1,4 +1,4 @@
-package com.lanf.order.model.query;
+package com.lanf.api.order.model.query;
 
 import com.lanf.constant.model.query.PageQuery;
 import lombok.Data;

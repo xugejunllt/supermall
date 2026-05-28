@@ -1,4 +1,4 @@
-package com.lanf.order.model.dto;
+package com.lanf.api.order.model.dto;
 
 import com.lanf.api.order.model.bo.AddressJson;
 import lombok.Data;

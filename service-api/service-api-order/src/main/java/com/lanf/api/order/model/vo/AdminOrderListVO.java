@@ -1,4 +1,4 @@
-package com.lanf.order.model.vo;
+package com.lanf.api.order.model.vo;
 
 import lombok.Data;
 
