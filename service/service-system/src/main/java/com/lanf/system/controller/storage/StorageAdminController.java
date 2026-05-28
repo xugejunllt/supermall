@@ -4,6 +4,7 @@ import com.lanf.api.storage.api.StorageApiService;
 import com.lanf.api.storage.model.dto.*;
 import com.lanf.api.storage.model.query.*;
 import com.lanf.api.storage.model.vo.*;
+import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -149,6 +150,26 @@ public class StorageAdminController {
     public Result<PageResult<StockPreorderPublishLogPageVO>> stockPreorderPublishLogPageQuery(StockPreorderPublishLogPageQuery query) {
         log.info("分页查询库存预售发布日志:query{}", query);
         return storageApiService.stockPreorderPublishLogPageQuery(query);
+    }
+
+    // ==================== AfterSalesIntStockOrder 售后入库单管理 ====================
+
+    @PostMapping("/inStock")
+    public Result<Void> inStock(@Validated @RequestBody AfterSalesIntStockDTO dto) {
+        log.info("销售入库单入库:dto{}", dto);
+        return storageApiService.inStock(dto);
+    }
+
+    @GetMapping("/afterSalesIntStockOrderPageQuery")
+    public Result<PageResult<AfterSalesIntStockOrderPageVO>> afterSalesIntStockOrderPageQuery(PageQuery query) {
+        log.info("分页查询售后入库单:query{}", query);
+        return storageApiService.afterSalesIntStockOrderPageQuery(query);
+    }
+
+    @GetMapping("/afterSalesIntStockOrderDetailQuery")
+    public Result<AfterSalesIntStockOrderDetailVO> afterSalesIntStockOrderDetailQuery(Long id) {
+        log.info("销售入库单详细:id{}", id);
+        return storageApiService.afterSalesIntStockOrderDetailQuery(id);
     }
 
 }

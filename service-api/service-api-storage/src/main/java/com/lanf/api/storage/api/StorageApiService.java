@@ -3,6 +3,7 @@ package com.lanf.api.storage.api;
 import com.lanf.api.storage.model.dto.*;
 import com.lanf.api.storage.model.query.*;
 import com.lanf.api.storage.model.vo.*;
+import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -96,5 +97,16 @@ public interface StorageApiService {
 
     @GetMapping("/storage/admin/stockPreorderPublishLog/stockPreorderPublishLogPageQuery")
     Result<PageResult<StockPreorderPublishLogPageVO>> stockPreorderPublishLogPageQuery(@SpringQueryMap StockPreorderPublishLogPageQuery query);
+
+    // ==================== AfterSalesIntStockOrder 售后入库单管理 ====================
+
+    @PostMapping("/storage/admin/afterSalesIntStockOrder/inStockAfterSalesIntStockOrder")
+    Result<Void> inStock(@RequestBody AfterSalesIntStockDTO dto);
+
+    @GetMapping("/storage/admin/afterSalesIntStockOrder/afterSalesIntStockOrderPageQuery")
+    Result<PageResult<AfterSalesIntStockOrderPageVO>> afterSalesIntStockOrderPageQuery(@SpringQueryMap PageQuery query);
+
+    @GetMapping("/storage/admin/afterSalesIntStockOrder/afterSalesIntStockOrderDetailQuery")
+    Result<AfterSalesIntStockOrderDetailVO> afterSalesIntStockOrderDetailQuery(@RequestParam("id") Long id);
 
 }

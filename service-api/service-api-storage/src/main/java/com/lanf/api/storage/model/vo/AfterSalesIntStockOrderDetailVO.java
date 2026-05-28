@@ -6,10 +6,9 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class SalesOutStockOrderDetailVO implements Serializable {
+public class AfterSalesIntStockOrderDetailVO implements Serializable {
 
 
     private List<PurchaseInStockOrderItemDetailVO> purchaseStorageOrderItemDetailVOList;
+
 }
-
-

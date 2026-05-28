@@ -509,7 +509,6 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         if (storageOrderItemDetailsList.isEmpty()) {
             throw new BizException("销售出库单商品不存在");
         }
-        String warehouseName =null;
 
         List<PurchaseInStockOrderItemDetailVO> purchaseStorageOrderItemDetailVOList =
                 BeanCopyUtils.copyBeanList(storageOrderItemDetailsList, PurchaseInStockOrderItemDetailVO.class);
@@ -519,9 +518,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         });
         SalesOutStockOrderDetailVO purchaseStorageOrderDetailVO = new SalesOutStockOrderDetailVO();
         BeanCopyUtils.copy(storageOrderDO, purchaseStorageOrderDetailVO);
-        purchaseStorageOrderDetailVO.setCode(storageOrderDO.getCode());
         purchaseStorageOrderDetailVO.setPurchaseStorageOrderItemDetailVOList(purchaseStorageOrderItemDetailVOList);
-        purchaseStorageOrderDetailVO.setWarehouseName(warehouseName);
         return purchaseStorageOrderDetailVO;
     }
 }

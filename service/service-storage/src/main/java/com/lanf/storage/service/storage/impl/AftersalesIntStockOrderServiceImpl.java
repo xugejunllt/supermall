@@ -1,23 +1,34 @@
 package com.lanf.storage.service.storage.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
+import com.lanf.api.storage.model.dto.AfterSalesIntStockDTO;
 import com.lanf.api.storage.model.enums.StorageStatusEnum;
+import com.lanf.api.storage.model.vo.AfterSalesIntStockOrderDetailVO;
+import com.lanf.api.storage.model.vo.AfterSalesIntStockOrderPageVO;
+import com.lanf.api.storage.model.vo.PurchaseInStockOrderItemDetailVO;
+import com.lanf.api.storage.mq.constant.StorageClientTopicName;
+import com.lanf.api.storage.mq.message.AfterSalesInStockFinishMessage;
+import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.mapper.AftersalesIntStockOrderMapper;
-import com.lanf.api.storage.model.dto.AfterSalesIntStockDTO;
-import com.lanf.storage.model.entity.*;
-import com.lanf.api.storage.mq.constant.StorageClientTopicName;
-import com.lanf.api.storage.mq.message.AfterSalesInStockFinishMessage;
+import com.lanf.storage.model.entity.AfterSalesIntStockOrderDO;
+import com.lanf.storage.model.entity.InOutStockOrderItemDO;
+import com.lanf.storage.model.entity.StockDO;
+import com.lanf.storage.model.entity.StockFlowDO;
 import com.lanf.storage.service.stock.IStockFlowService;
 import com.lanf.storage.service.stock.IStockService;
 import com.lanf.storage.service.storage.IAfterSalesIntStockOrderService;
@@ -110,6 +121,51 @@ public class AftersalesIntStockOrderServiceImpl extends ServiceImpl<AftersalesIn
         //进行保存
         this.save(afterSalesIntStockOrderDO);
         iInOutStockOrderItemService.saveBatch(inOutStockOrderItemDOList);
+    }
+
+    @Override
+    public PageResult<AfterSalesIntStockOrderPageVO> afterSalesIntStockOrderPageQuery(PageQuery query) {
+
+        IPage<AfterSalesIntStockOrderDO> page = new Page<>(query.getPage(), query.getPageSize());
+        IPage<AfterSalesIntStockOrderDO> pageQuery = this.lambdaQuery().
+                orderByDesc(BaseEntity::getCreateTime)
+                .page(page);
+
+        if (pageQuery.getRecords().isEmpty()) {
+
+            return PageResult.emptyResult();
+        }
+        PageResult<AfterSalesIntStockOrderPageVO> result = new PageResult<>();
+        result.setTotal(pageQuery.getTotal());
+        result.setSize(pageQuery.getSize());
+        result.setRecords(BeanCopyUtils.copyBeanList(pageQuery.getRecords(), AfterSalesIntStockOrderPageVO.class));
+
+        return result;
+    }
+
+    @Override
+    public AfterSalesIntStockOrderDetailVO afterSalesIntStockOrderDetailQuery(Long id) {
+
+        AfterSalesIntStockOrderDO storageOrderDO = this.getById(id);
+        if (storageOrderDO == null) {
+            throw new BizException("销售出库单不存在");
+        }
+        List<InOutStockOrderItemDO> storageOrderItemDetailsList = storageOrderItemDetailsService.
+                lambdaQuery().eq(InOutStockOrderItemDO::getInOutStockOrderId, id).list();
+        if (storageOrderItemDetailsList.isEmpty()) {
+            throw new BizException("销售出库单商品不存在");
+        }
+
+        List<PurchaseInStockOrderItemDetailVO> purchaseStorageOrderItemDetailVOList =
+                BeanCopyUtils.copyBeanList(storageOrderItemDetailsList, PurchaseInStockOrderItemDetailVO.class);
+        purchaseStorageOrderItemDetailVOList.forEach(a -> {
+            //实际入库数量 = 总数量-剩余数量
+            a.setActualQuantity(a.getTotalQuantity() - a.getSurplusQuantity());
+        });
+        AfterSalesIntStockOrderDetailVO purchaseStorageOrderDetailVO = new AfterSalesIntStockOrderDetailVO();
+        BeanCopyUtils.copy(storageOrderDO, purchaseStorageOrderDetailVO);
+        purchaseStorageOrderDetailVO.setPurchaseStorageOrderItemDetailVOList(purchaseStorageOrderItemDetailVOList);
+        return purchaseStorageOrderDetailVO;
     }
 
     @Transactional
