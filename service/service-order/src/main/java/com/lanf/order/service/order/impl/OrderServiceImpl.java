@@ -3,8 +3,14 @@ package com.lanf.order.service.order.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.order.model.bo.AddressJson;
+import com.lanf.api.order.model.bo.DiscountInfoJson;
+import com.lanf.api.order.model.bo.ShippingInfoBO;
+import com.lanf.api.order.model.query.OrderDetailQuery;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
+import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
+import com.lanf.api.order.model.vo.OrderItemVO;
 import com.lanf.api.order.mq.message.InOutStockOrderItem;
 import com.lanf.api.order.mq.message.OrderShippedMessage;
 import com.lanf.api.order.mq.message.OrderWaitOutboundMessage;
@@ -104,6 +110,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     private IExpressService expressService;
     @Autowired
     private IShippingInfoService shippingInfoService;
+
+
 
     @Transactional
     @Override
@@ -648,6 +656,50 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         resultVo.setRecords(voList);
 
         return resultVo;
+    }
+
+    @Override
+    public OrderDetailForAdminVO orderDetailForAdminQuery(OrderDetailQuery query) {
+
+        OrderDO orderDO = this.lambdaQuery()
+                .eq(OrderDO::getId, query.getOrderId())
+                .eq(OrderDO::getUserId, query.getUserId())
+                .one();
+        if (orderDO == null) {
+            return null;
+        }
+
+        ShippingInfoDO shippingInfoDO = shippingInfoService.lambdaQuery()
+                .eq(ShippingInfoDO::getOrderId, query.getOrderId())
+                .eq(ShippingInfoDO::getUserId, query.getUserId())
+                .one();
+
+
+        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery()
+                .eq(OrderItemDO::getOrderId, query.getOrderId())
+                .eq(OrderItemDO::getUserId, query.getUserId())
+                .list();
+
+        OrderDetailForAdminVO detailForAdminVO = BeanCopyUtils.copyBean(orderDO, OrderDetailForAdminVO.class);
+
+        String takeAddress = orderDO.getTakeAddress();
+        if (takeAddress != null) {
+            AddressJson takeAddressJson = JsonUtils.toObject(takeAddress, AddressJson.class);
+            detailForAdminVO.setTakeAddressJson(takeAddressJson);
+        }
+        String discountInfo = orderDO.getDiscountInfo();
+        if (discountInfo != null) {
+            List<DiscountInfoJson> discountInfoJsonList = JsonUtils.toList(discountInfo, DiscountInfoJson.class);
+            detailForAdminVO.setDiscountInfoBOS(discountInfoJsonList);
+        }
+        if (shippingInfoDO != null) {
+            ShippingInfoBO shippingInfoBO = BeanCopyUtils.copyBean(shippingInfoDO, ShippingInfoBO.class);
+            detailForAdminVO.setShippingInfoBO(shippingInfoBO);
+        }
+        List<OrderItemVO> orderItemVOS = BeanCopyUtils.copyBeanList(orderItemDOList, OrderItemVO.class);
+        detailForAdminVO.setOrderItemVOList(orderItemVOS);
+
+        return detailForAdminVO;
     }
 
 

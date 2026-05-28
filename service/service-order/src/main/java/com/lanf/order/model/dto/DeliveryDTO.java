@@ -1,6 +1,6 @@
 package com.lanf.order.model.dto;
 
-import com.lanf.order.model.bo.FromAddressJson;
+import com.lanf.api.order.model.bo.AddressJson;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -26,6 +26,6 @@ public class DeliveryDTO implements Serializable {
     private String trackingNumber;
 
     @NotNull(message = "发货地址不能为空")
-    private FromAddressJson fromAddressJson;
+    private AddressJson fromAddressJson;
 
 }

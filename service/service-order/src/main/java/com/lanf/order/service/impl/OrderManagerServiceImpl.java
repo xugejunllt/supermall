@@ -35,7 +35,7 @@ import com.lanf.order.model.entity.MainOrderDO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
-import com.lanf.order.model.enums.OrderTypeEnum;
+import com.lanf.api.order.model.enums.OrderTypeEnum;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;

@@ -1,6 +1,8 @@
 package com.lanf.order.controller.admin;
 
 
+import com.lanf.api.order.model.query.OrderDetailQuery;
+import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import com.lanf.order.model.dto.AllowOutboundDTO;
@@ -55,7 +57,13 @@ public class OrderAdminController {
     }
 
 
+    @GetMapping("/orderDetailForAdminQuery")
+    public Result<OrderDetailForAdminVO> orderDetailForAdminQuery(@Validated  OrderDetailQuery query) {
 
+        log.info("admin查询订单详细:{}", query);
+
+        return Result.ok(orderService.orderDetailForAdminQuery(query));
+    }
 
 }
 

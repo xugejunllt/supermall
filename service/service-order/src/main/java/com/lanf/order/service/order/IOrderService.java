@@ -1,7 +1,9 @@
 package com.lanf.order.service.order;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.api.order.model.query.OrderDetailQuery;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
+import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
 import com.lanf.api.storage.mq.message.SalesOutStockOrderFinishMessage;
 import com.lanf.constant.model.vo.PageResult;
@@ -94,6 +96,9 @@ public interface IOrderService extends IService<OrderDO> {
      *
      */
     PageResult<OrderPageVO> orderPageQuery(OrderPageQuery query);
+
+    OrderDetailForAdminVO orderDetailForAdminQuery(OrderDetailQuery query);
+
 
 
 }
