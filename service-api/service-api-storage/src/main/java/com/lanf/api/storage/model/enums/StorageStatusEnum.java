@@ -16,7 +16,6 @@ public enum StorageStatusEnum {
     COMPLETED(2, "出库完成");
 
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
 
@@ -25,7 +24,10 @@ public enum StorageStatusEnum {
         this.name = name;
     }
 
-
+    @JsonValue
+    public Integer getCode() {
+        return code;
+    }
 
     @JsonCreator
     public static StorageStatusEnum getByCode(Integer code) {

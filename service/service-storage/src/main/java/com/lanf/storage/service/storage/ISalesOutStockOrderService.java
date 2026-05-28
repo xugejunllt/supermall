@@ -29,6 +29,6 @@ public interface ISalesOutStockOrderService extends IService<SalesOutStockOrderD
 
     PageResult<SalesOutStockOrderPageVO> salesOutStockOrderPageQuery(SalesOutStockOrderPageQuery query);
 
-    SalesOutStockOrderDetailVO salesOutStockOrderDetail(Long id);
+    SalesOutStockOrderDetailVO salesOutStockOrderDetailQuery(Long id);
 
 }

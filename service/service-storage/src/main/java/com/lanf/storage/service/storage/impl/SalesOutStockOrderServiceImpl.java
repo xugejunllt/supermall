@@ -484,37 +484,21 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
                 orderByDesc(BaseEntity::getUpdateTime)
                 .page(page);
 
-//        if (purchaseStorageOrderPage.getRecords().isEmpty()) {
-//
-//            return PageResult.emptyResult(SalesOutStockOrderPageVO.class);
-//        }
-//
-//        PageResult<SalesOutStockOrderPageVO> pageResult = PageResult.toPageResult(page, SalesOutStockOrderPageVO.class);
+        if (purchaseStorageOrderPage.getRecords().isEmpty()){
 
-        List<SalesOutStockOrderDO> records = purchaseStorageOrderPage.getRecords();
-        /**
-         * 填充关联属性
-         */
-//        //用set接收 去重
-//        Set<Long> warehouseIdList = records.stream().map(SalesOutStockOrderDO::getWarehouseId).collect(Collectors.toSet());
-//        ThreadLocalUtils.addIgnoreTableName(true);
-//
-//        Map<Long, WarehouseDO> warehouseMap = warehouseService.lambdaQuery().in(WarehouseDO::getId, warehouseIdList).list().stream().
-//                collect(Collectors.toMap(WarehouseDO::getId, Function.identity()));
-//
-//        pageResult.getRecords().forEach(vo -> {
-//            WarehouseDO warehouseDO = warehouseMap.get(vo.getWarehouseId());
-//            if (warehouseDO != null) {
-//                vo.setWarehouseName(warehouseDO.getName());
-//            }
-//
-//        });
+            return PageResult.emptyResult();
+        }
 
-        return null;
+        PageResult<SalesOutStockOrderPageVO> result = new PageResult<>();
+        result.setTotal(purchaseStorageOrderPage.getTotal());
+        result.setSize(purchaseStorageOrderPage.getSize());
+        result.setRecords(BeanCopyUtils.copyBeanList(purchaseStorageOrderPage.getRecords(), SalesOutStockOrderPageVO.class));
+
+        return result;
     }
 
     @Override
-    public SalesOutStockOrderDetailVO salesOutStockOrderDetail(Long id) {
+    public SalesOutStockOrderDetailVO salesOutStockOrderDetailQuery(Long id) {
 
         SalesOutStockOrderDO storageOrderDO = this.getById(id);
         if (storageOrderDO == null) {

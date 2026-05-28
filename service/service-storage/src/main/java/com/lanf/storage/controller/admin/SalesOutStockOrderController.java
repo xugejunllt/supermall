@@ -45,12 +45,12 @@ public class SalesOutStockOrderController {
         return Result.ok(salesOutStockOrderService.salesOutStockOrderPageQuery(query));
     }
 
-    @GetMapping("/salesOutStockOrderDetail")
-    public Result<SalesOutStockOrderDetailVO> salesOutStockOrderDetail(Long id) {
+    @GetMapping("/salesOutStockOrderDetailQuery")
+    public Result<SalesOutStockOrderDetailVO> salesOutStockOrderDetailQuery(Long id) {
 
         log.info("出库单详细:id{}", id);
 
-        return Result.ok(salesOutStockOrderService.salesOutStockOrderDetail(id));
+        return Result.ok(salesOutStockOrderService.salesOutStockOrderDetailQuery(id));
     }
 
 }

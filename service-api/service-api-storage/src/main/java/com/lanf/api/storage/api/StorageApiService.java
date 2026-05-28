@@ -76,8 +76,8 @@ public interface StorageApiService {
     @GetMapping("/storage/admin/salesOutStockOrder/salesOutStockOrderPageQuery")
     Result<PageResult<SalesOutStockOrderPageVO>> salesOutStockOrderPageQuery(@SpringQueryMap SalesOutStockOrderPageQuery query);
 
-    @GetMapping("/storage/admin/salesOutStockOrder/salesOutStockOrderDetail")
-    Result<SalesOutStockOrderDetailVO> salesOutStockOrderDetail(@RequestParam("id")Long id);
+    @GetMapping("/storage/admin/salesOutStockOrder/salesOutStockOrderDetailQuery")
+    Result<SalesOutStockOrderDetailVO> salesOutStockOrderDetailQuery(@RequestParam("id")Long id);
 
     // ==================== Stock 库存管理 ====================
 

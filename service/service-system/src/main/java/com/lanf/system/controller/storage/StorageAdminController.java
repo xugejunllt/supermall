@@ -115,10 +115,10 @@ public class StorageAdminController {
         return storageApiService.salesOutStockOrderPageQuery(query);
     }
 
-    @GetMapping("/salesOutStockOrderDetail")
-    public Result<SalesOutStockOrderDetailVO> salesOutStockOrderDetail(Long id) {
+    @GetMapping("/salesOutStockOrderDetailQuery")
+    public Result<SalesOutStockOrderDetailVO> salesOutStockOrderDetailQuery(Long id) {
         log.info("销售出库单详细:id{}", id);
-        return storageApiService.salesOutStockOrderDetail(id);
+        return storageApiService.salesOutStockOrderDetailQuery(id);
     }
 
     // ==================== Stock 库存管理 ====================
