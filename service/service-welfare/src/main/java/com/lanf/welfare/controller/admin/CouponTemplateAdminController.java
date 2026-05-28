@@ -1,12 +1,14 @@
 package com.lanf.welfare.controller.admin;
 
 
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
-import com.lanf.welfare.model.dto.CouponTemplateRevokeDTO;
-import com.lanf.welfare.model.entity.CouponTemplateDO;
-import com.lanf.welfare.model.query.CouponTemplatePageQuery2;
+import com.lanf.constant.utils.UserContext;
+import com.lanf.welfare.model.dto.AddCouponTemplateDTO;
+import com.lanf.welfare.model.dto.RevokeCouponTemplateDTO;
+import com.lanf.welfare.model.query.CouponTemplateForAdminPageQuery;
 import com.lanf.welfare.model.vo.CouponPurposeVO;
+import com.lanf.welfare.model.vo.CouponTemplatePageVO;
 import com.lanf.welfare.service.ICouponTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,44 +34,47 @@ public class CouponTemplateAdminController {
     private ICouponTemplateService couponTemplateService;
 
     @PostMapping("/couponTemplateAdd")
-    public Result couponTemplateAdd(@Validated @RequestBody CouponTemplateAddDTO dto) {
+    public Result<Void> couponTemplateAdd(@Validated @RequestBody AddCouponTemplateDTO dto) {
 
         log.info("添加优惠券模板:{}:dto", dto);
-        dto.setAdminUserId(UserIdContext.getUserId());
-        couponTemplateService.couponTemplateAdd(dto);
+        dto.setAdminUserId(UserContext.getUserId());
+        couponTemplateService.addCouponTemplate(dto);
 
         return Result.ok();
     }
+
     /**
      * 获取优惠券用途列表
      */
-    @GetMapping("/purpose/list")
-    public Result<List<CouponPurposeVO>> getCouponPurposeList() {
+    @GetMapping("/couponPurposeListQuery")
+    public Result<List<CouponPurposeVO>> couponPurposeListQuery() {
 
-           log.info("查询优惠卷用途");
+        log.info("查询优惠卷用途");
 
-        return Result.ok(couponTemplateService.couponPurposeList());
+        return Result.ok(couponTemplateService.couponPurposeListQuery());
     }
 
-    @GetMapping("/couponTemplatePage")
-    public Result<PageResult<CouponTemplateDO>> couponTemplatePage(@Validated CouponTemplatePageQuery2 query) {
+    @GetMapping("/couponTemplatePageQuery")
+    public Result<PageResult<CouponTemplatePageVO>> couponTemplatePageQuery(@Validated CouponTemplateForAdminPageQuery query) {
 
         log.info("分页查询优惠券模板:{}", query);
 
-        return Result.ok(couponTemplateService.couponTemplatePage(query));
+        return Result.ok(couponTemplateService.couponTemplatePageQuery(query));
     }
+
     /**
      * 撤销优惠券模板
      */
-    @PostMapping("/revoke")
-    public Result<Void> revokeCouponTemplate(@RequestBody @Validated CouponTemplateRevokeDTO dto) {
-        
-        log.info("撤销优惠券模板[{}]",dto.getCouponTemplateId());
+    @PostMapping("/revokeCouponTemplate")
+    public Result<Void> revokeCouponTemplate(@RequestBody @Validated RevokeCouponTemplateDTO dto) {
 
-       couponTemplateService.couponTemplateRevoke(dto);
-        
+        log.info("撤销优惠券模板[{}]", dto.getCouponTemplateId());
+
+        couponTemplateService.revokeCouponTemplate(dto);
+
         return Result.ok();
-        
+
     }
+
 }
 

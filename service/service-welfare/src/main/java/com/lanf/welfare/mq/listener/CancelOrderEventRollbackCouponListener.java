@@ -1,4 +1,4 @@
-package com.lanf.welfare.mq;
+package com.lanf.welfare.mq.listener;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;

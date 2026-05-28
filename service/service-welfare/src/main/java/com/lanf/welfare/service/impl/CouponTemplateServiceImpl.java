@@ -1,31 +1,37 @@
 package com.lanf.welfare.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.common.utils.*;
+import com.lanf.cache.aop.DistributedLock;
+import com.lanf.cache.constant.RedisCacheConstants;
+import com.lanf.cache.service.RedissonCacheService;
+import com.lanf.common.utils.AutoIgnoreTenantContext;
+import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.IStringUtils;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
-import com.lanf.cache.aop.DistributedLock;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.utils.IdUtils;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.constant.web.PageResult;
-import com.lanf.cache.constant.RedisCacheConstants;
-import com.lanf.mybatis.utils.IdUtils;
-import com.lanf.rocketmq.model.message.DeductCouponTemplateCountMsg;
-import com.lanf.security.utils.AdminSessionCache;
 import com.lanf.system.api.SystemService;
 import com.lanf.welfare.mapper.CouponTemplateMapper;
 import com.lanf.welfare.model.bo.*;
-import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
-import com.lanf.welfare.model.dto.CouponTemplateRevokeDTO;
+import com.lanf.welfare.model.dto.AddCouponTemplateDTO;
+import com.lanf.welfare.model.dto.RevokeCouponTemplateDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
 import com.lanf.welfare.model.entity.CouponTemplateHistoryDO;
 import com.lanf.welfare.model.entity.CouponTemplateRevokeDO;
 import com.lanf.welfare.model.enums.CouponPurpose;
 import com.lanf.welfare.model.enums.CouponTemplateStatus;
 import com.lanf.welfare.model.enums.CouponType;
-import com.lanf.welfare.model.query.CouponTemplatePageQuery2;
+import com.lanf.welfare.model.query.CouponTemplateForAdminPageQuery;
 import com.lanf.welfare.model.vo.CouponPurposeVO;
 import com.lanf.welfare.model.vo.CouponTemplateListVO;
+import com.lanf.welfare.model.vo.CouponTemplatePageVO;
+import com.lanf.welfare.mq.message.DeductCouponTemplateCountMessage;
 import com.lanf.welfare.service.ICouponTemplateHistoryService;
 import com.lanf.welfare.service.ICouponTemplateRevokeService;
 import com.lanf.welfare.service.ICouponTemplateService;
@@ -52,20 +58,20 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     @Autowired
     private SystemService systemService;
     @Autowired
-    private RedisCache redisCache;
+    private RedissonCacheService redissonCacheService;
     @Autowired
     private ICouponTemplateHistoryService couponTemplateHistoryService;
 
     @Autowired
     private ICouponTemplateRevokeService couponTemplateRevokeService;
 
-    @Autowired
-    private CouponCacheService couponCacheService;
+//    @Autowired
+//    private CouponCacheService couponCacheService;
 
     @DistributedLock(key = "#dto.adminUserId")//防止重复点击提交
     @Transactional
     @Override
-    public void couponTemplateAdd(CouponTemplateAddDTO dto) {
+    public void addCouponTemplate(AddCouponTemplateDTO dto) {
 
         checkAdd(dto);
         CouponTemplateDO couponTemplate = new CouponTemplateDO();
@@ -98,7 +104,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     }
 
 
-    private String buildUseCondition(CouponTemplateAddDTO dto) {
+    private String buildUseCondition(AddCouponTemplateDTO dto) {
 
         Integer couponType = dto.getType();
 
@@ -120,7 +126,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     }
 
-    private void checkAdd(CouponTemplateAddDTO dto) {
+    private void checkAdd(AddCouponTemplateDTO dto) {
 
         /**
          * 自动校验不能添加 手动校验
@@ -200,7 +206,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     }
 
     @Override
-    public List<CouponPurposeVO> couponPurposeList() {
+    public List<CouponPurposeVO> couponPurposeListQuery() {
 
         /**
          * 过滤
@@ -228,18 +234,29 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     }
 
     private boolean platformTenant() {
-        String tenantCode = AdminSessionCache.getSysUser().getTenantCode();
-        return Constants.ADMIN_TENANT_CODE.equals(tenantCode);
+        return Constants.PLATFORM_BUSINESS_ID.equals(UserContext.getTenantId());
     }
 
 
     @Override
-    public PageResult<CouponTemplateDO> couponTemplatePage(CouponTemplatePageQuery2 query) {
-        IPage<CouponTemplateDO> page = this.lambdaQuery().
-                orderByDesc(BaseEntity::getUpdateTime).
-                page(PageResult.buildIPage(query, CouponTemplateDO.class));
+    public PageResult<CouponTemplatePageVO> couponTemplatePageQuery(CouponTemplateForAdminPageQuery query) {
 
-        return PageResult.toPageResult(page);
+
+        IPage<CouponTemplateDO> page = new Page<>(query.getPage(), query.getPageSize());
+
+        IPage<CouponTemplateDO> pageQuery = this.lambdaQuery().
+                orderByDesc(BaseEntity::getUpdateTime).
+                page(page);
+        if (pageQuery.getRecords().isEmpty()){
+
+            return PageResult.emptyResult();
+        }
+        PageResult<CouponTemplatePageVO> result = new PageResult<>();
+        result.setTotal(pageQuery.getTotal());
+        result.setSize(pageQuery.getSize());
+        result.setRecords(BeanCopyUtils.copyBeanList(pageQuery.getRecords(), CouponTemplatePageVO.class));
+
+        return result;
     }
 
     @Override
@@ -272,7 +289,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     private void filterRevoke(List<CacheCouponTemplateListBO> listVOList) {
 
 
-        Set<Long> cacheSet = redisCache.getCacheSet(RedisCacheConstants.COUPON_REVOKE);
+        Set<String> cacheSet = redissonCacheService.getSetMembers(RedisCacheConstants.COUPON_REVOKE);
         if (IStringUtils.isEmpty(cacheSet)){
             List<CouponTemplateRevokeDO> templateRevokeDOS = loadDBCouponTemplateRevokeDO();
             if (IStringUtils.isEmpty(templateRevokeDOS)){
@@ -281,18 +298,18 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
             Set<Long> templateIdSet = templateRevokeDOS.stream().
                     map(CouponTemplateRevokeDO::getCouponTemplateId).
                     collect(Collectors.toSet());
-            couponCacheService.setRevokeCouponCache(templateIdSet);
+           // couponCacheService.setRevokeCouponCache(templateIdSet);
 
         }
-        Set<Long> templateIdSet =  couponCacheService.getRevokeCouponCache();
-        //过滤正在废弃的优惠卷模板
-        listVOList.removeIf(next -> {
-            boolean contains = templateIdSet.contains(next.getId());
-            if (contains ){
-                log.info("正在废弃的优惠券:[{}]",next.getId());
-            }
-            return contains ;
-        } );
+//        Set<Long> templateIdSet =  couponCacheService.getRevokeCouponCache();
+//        //过滤正在废弃的优惠卷模板
+//        listVOList.removeIf(next -> {
+//            boolean contains = templateIdSet.contains(next.getId());
+//            if (contains ){
+//                log.info("正在废弃的优惠券:[{}]",next.getId());
+//            }
+//            return contains ;
+//        } );
     }
 
     private List<CouponTemplateRevokeDO> loadDBCouponTemplateRevokeDO() {
@@ -325,18 +342,13 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
 
     private List<CacheCouponTemplateListBO> buildCouponTemplateList(Long shopId) {
-        List<CacheCouponTemplateListBO> cache = couponCacheService.getShopCouponCache(shopId);
+//        List<CacheCouponTemplateListBO> cache = couponCacheService.getShopCouponCache(shopId);
         List<CacheCouponTemplateListBO> listVOList = null;
-        if (cache == null) {
+        listVOList = loadDBCouponTemplateList(shopId);
+        if (IStringUtils.isEmpty(listVOList)) {
 
-            listVOList = loadDBCouponTemplateList(shopId);
-            if (IStringUtils.isEmpty(listVOList)) {
-
-                return new ArrayList<>();
-            }
-            couponCacheService.setShopCouponCache(shopId, listVOList);
+            return new ArrayList<>();
         }
-        listVOList = couponCacheService.getShopCouponCache(shopId);
 
         return listVOList;
     }
@@ -382,27 +394,24 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     public Map<String, String> buildShopCouponRemainCount(Long shopId) {
         // key:优惠卷id value:剩余数量
-        Map<String, String> remainCountCache = couponCacheService.getShopCouponRemainCountCache(shopId);
-        if (remainCountCache.isEmpty()) {
+        Map<String, String> remainCountCache = new HashMap<>();
+        List<CacheCouponTemplateListBO> couponTemplateListBOList = loadDBCouponTemplateList(shopId);
 
-            List<CacheCouponTemplateListBO> couponTemplateListBOList = loadDBCouponTemplateList(shopId);
-
-            if (IStringUtils.isEmpty(couponTemplateListBOList)) {
-                return new HashMap<>();
-            }
-            List<ShopCouponRemainCountCacheBO> couponRemainCountCacheBOList = couponTemplateListBOList.stream()
-                    .map(template -> {
-                        ShopCouponRemainCountCacheBO bo = new ShopCouponRemainCountCacheBO();
-                        bo.setCouponTemplateId(template.getId());
-                        bo.setRemainCount(template.getRemainCount());
-                        return bo;
-                    })
-                    .collect(Collectors.toList());
-
-            couponCacheService.setShopCouponRemainCountCache(shopId, couponRemainCountCacheBOList);
-            remainCountCache = couponCacheService.getShopCouponRemainCountCache(shopId);
-
+        if (IStringUtils.isEmpty(couponTemplateListBOList)) {
+            return new HashMap<>();
         }
+        List<ShopCouponRemainCountCacheBO> couponRemainCountCacheBOList = couponTemplateListBOList.stream()
+                .map(template -> {
+                    ShopCouponRemainCountCacheBO bo = new ShopCouponRemainCountCacheBO();
+                    bo.setCouponTemplateId(template.getId());
+                    bo.setRemainCount(template.getRemainCount());
+                    return bo;
+                })
+                .collect(Collectors.toList());
+
+//        couponCacheService.setShopCouponRemainCountCache(shopId, couponRemainCountCacheBOList);
+//        remainCountCache = couponCacheService.getShopCouponRemainCountCache(shopId);
+
         // key 优惠卷id value:剩余数量
         return remainCountCache;
     }
@@ -451,7 +460,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     @Transactional
     @Override
-    public void couponTemplateRevoke(CouponTemplateRevokeDTO dto) {
+    public void revokeCouponTemplate(RevokeCouponTemplateDTO dto) {
 
         Long couponTemplateId = dto.getCouponTemplateId();
         CouponTemplateDO templateDO = this.getById(couponTemplateId);
@@ -491,14 +500,14 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         couponTemplateRevokeService.save(couponTemplateRevokeDO);
 
         if (CouponPurpose.SHOP.getCode().equals(templateDO.getCouponType())) {
-            //删除店铺优惠卷缓存
-            couponCacheService.removeShopCouponCache(templateDO.getShopId());
-            couponCacheService.removeShopCouponRemainCountCache(templateDO.getShopId());
+//            //删除店铺优惠卷缓存
+//            couponCacheService.removeShopCouponCache(templateDO.getShopId());
+//            couponCacheService.removeShopCouponRemainCountCache(templateDO.getShopId());
         }
 
     }
     @Override
-    public void deductCouponTemplateCount(DeductCouponTemplateCountMsg message) {
+    public void deductCouponTemplateCount(DeductCouponTemplateCountMessage message) {
 
         Integer deductCount = message.getDeductCount();
         Long couponTemplateId = message.getCouponTemplateId();

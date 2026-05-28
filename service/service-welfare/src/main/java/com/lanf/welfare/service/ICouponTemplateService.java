@@ -1,14 +1,15 @@
 package com.lanf.welfare.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.constant.web.PageResult;
-import com.lanf.rocketmq.model.message.DeductCouponTemplateCountMsg;
-import com.lanf.welfare.model.dto.CouponTemplateAddDTO;
-import com.lanf.welfare.model.dto.CouponTemplateRevokeDTO;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.welfare.model.dto.AddCouponTemplateDTO;
+import com.lanf.welfare.model.dto.RevokeCouponTemplateDTO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
-import com.lanf.welfare.model.query.CouponTemplatePageQuery2;
+import com.lanf.welfare.model.query.CouponTemplateForAdminPageQuery;
 import com.lanf.welfare.model.vo.CouponPurposeVO;
 import com.lanf.welfare.model.vo.CouponTemplateListVO;
+import com.lanf.welfare.model.vo.CouponTemplatePageVO;
+import com.lanf.welfare.mq.message.DeductCouponTemplateCountMessage;
 
 import java.util.List;
 import java.util.Map;
@@ -22,11 +23,12 @@ import java.util.Map;
  * @since 2024-08-01
  */
 public interface ICouponTemplateService extends IService<CouponTemplateDO> {
-    void couponTemplateAdd(CouponTemplateAddDTO dto);
 
-    List<CouponPurposeVO> couponPurposeList();
+    void addCouponTemplate(AddCouponTemplateDTO dto);
 
-    PageResult<CouponTemplateDO> couponTemplatePage(CouponTemplatePageQuery2 query);
+    List<CouponPurposeVO> couponPurposeListQuery();
+
+    PageResult<CouponTemplatePageVO> couponTemplatePageQuery(CouponTemplateForAdminPageQuery query);
 
     /**
      * 查询店铺优惠卷模板列表
@@ -39,7 +41,7 @@ public interface ICouponTemplateService extends IService<CouponTemplateDO> {
      * 作废优惠卷模板
      *
      */
-    void couponTemplateRevoke(CouponTemplateRevokeDTO dto);
+    void revokeCouponTemplate(RevokeCouponTemplateDTO dto);
     /**
      * 构建优惠卷模板剩余数量 缓存
      *
@@ -51,5 +53,5 @@ public interface ICouponTemplateService extends IService<CouponTemplateDO> {
      * 扣减优惠卷模板数量
      *
      */
-     void  deductCouponTemplateCount(DeductCouponTemplateCountMsg message);
+     void  deductCouponTemplateCount(DeductCouponTemplateCountMessage message);
 }

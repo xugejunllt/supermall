@@ -12,7 +12,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class CouponTemplateAddDTO implements Serializable {
+public class AddCouponTemplateDTO implements Serializable {
 
     /**
      * 用途 0:店铺优惠卷,1:注册发放 ,2:会员等级升级

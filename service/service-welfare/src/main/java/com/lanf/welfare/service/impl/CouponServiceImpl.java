@@ -8,7 +8,6 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.tcc.service.ITccOperationService;
 import com.lanf.welfare.mapper.CouponMapper;
-import com.lanf.welfare.model.bo.DeductShopCouponRemainCountCacheBO;
 import com.lanf.welfare.model.bo.DiscountInfoBO;
 import com.lanf.welfare.model.bo.FullDiscountUseConditionBO;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
@@ -51,8 +50,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
     private ICouponTemplateService couponTemplateService;
 
 
-    @Autowired
-    private  CouponCacheService couponCacheService;
+
     @Autowired
     private TransactionTemplate transactionTemplate;
 
@@ -132,23 +130,16 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
 
 
     private void ductCouponCount(Long couponTemplateId, Long shopId){
-        DeductShopCouponRemainCountCacheBO bo = couponCacheService.
-                deductShopCouponRemainCountCache(shopId, couponTemplateId);
-        Integer resultStatus = bo.getResultStatus();
-        if ( resultStatus == -1){
-            //key不存在
-            Map<String, String> remainCount = couponTemplateService.buildShopCouponRemainCount(shopId);
-            if (remainCount.isEmpty()){
-                log.info("店铺优惠卷不存在");
-                throw new BizException("店铺优惠卷不存在");
-            }
-
-        } else if (resultStatus == 0){
-            log.info("店铺优惠卷数量不足");
-            throw new BizException("店铺优惠卷数量不足");
-        } else if (resultStatus == 1){
-            log.info("扣减店铺优惠卷成功");
+//        DeductShopCouponRemainCountCacheBO bo = couponCacheService.
+//                deductShopCouponRemainCountCache(shopId, couponTemplateId);
+        int resultStatus = -1;
+        //key不存在
+        Map<String, String> remainCount = couponTemplateService.buildShopCouponRemainCount(shopId);
+        if (remainCount.isEmpty()){
+            log.info("店铺优惠卷不存在");
+            throw new BizException("店铺优惠卷不存在");
         }
+
     }
 
     private void validateCouponTemplate(ReceiveShopCouponDTO dto){

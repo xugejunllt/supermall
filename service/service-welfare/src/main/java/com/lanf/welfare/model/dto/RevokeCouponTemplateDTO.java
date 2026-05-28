@@ -5,7 +5,7 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class CouponTemplateRevokeDTO {
+public class RevokeCouponTemplateDTO {
 
     @NotNull(message = "优惠券模板ID不能为空")
     private Long couponTemplateId;
