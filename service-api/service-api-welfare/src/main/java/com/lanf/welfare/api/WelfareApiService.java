@@ -1,17 +1,17 @@
 package com.lanf.welfare.api;
 
 
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
-import com.lanf.welfare.model.dto.UseCouponDTO;
-import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
-import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
-import com.lanf.welfare.model.vo.CouponVO;
-import com.lanf.welfare.model.vo.UseCouponVO;
+import com.lanf.welfare.model.dto.*;
+import com.lanf.welfare.model.query.CouponTemplateForAdminPageQuery;
+import com.lanf.welfare.model.vo.*;
 import org.dromara.hmily.annotation.Hmily;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -46,4 +46,28 @@ public interface WelfareApiService {
 
     @PostMapping("/welfare/api/queryByIdSet")
     public Result<List<CouponVO>> queryByIdSet(@Validated @RequestBody Set<Long> idSet);
+
+    /**
+     * 添加优惠券模板
+     */
+    @PostMapping("/welfare/admin/couponTemplate/addCouponTemplate")
+    public Result<Void> addCouponTemplate(@Validated @RequestBody AddCouponTemplateDTO dto);
+
+    /**
+     * 获取优惠券用途列表
+     */
+    @GetMapping("/welfare/admin/couponTemplate/couponPurposeListQuery")
+    public Result<List<CouponPurposeVO>> couponPurposeListQuery();
+
+    /**
+     * 分页查询优惠券模板
+     */
+    @GetMapping("/welfare/admin/couponTemplate/couponTemplatePageQuery")
+    public Result<PageResult<CouponTemplatePageVO>> couponTemplatePageQuery(@SpringQueryMap CouponTemplateForAdminPageQuery query);
+
+    /**
+     * 撤销优惠券模板
+     */
+    @PostMapping("/welfare/admin/couponTemplate/revokeCouponTemplate")
+    public Result<Void> revokeCouponTemplate(@RequestBody @Validated RevokeCouponTemplateDTO dto);
 }
