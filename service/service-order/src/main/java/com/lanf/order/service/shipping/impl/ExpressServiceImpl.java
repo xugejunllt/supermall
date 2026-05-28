@@ -8,9 +8,9 @@ import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.mapper.ExpressMapper;
-import com.lanf.order.model.dto.AddExpressDTO;
+import com.lanf.api.order.model.dto.AddExpressDTO;
 import com.lanf.order.model.entity.ExpressDO;
-import com.lanf.order.model.vo.ExpressPageVO;
+import com.lanf.api.order.model.vo.ExpressPageVO;
 import com.lanf.order.service.shipping.IExpressService;
 import org.springframework.stereotype.Service;
 

@@ -1,5 +1,6 @@
 package com.lanf.api.order.api;
 
+import com.lanf.api.order.model.dto.AddExpressDTO;
 import com.lanf.api.order.model.dto.AllowOutboundDTO;
 import com.lanf.api.order.model.dto.CancelOrderApiDTO;
 import com.lanf.api.order.model.dto.DeliveryDTO;
@@ -7,10 +8,9 @@ import com.lanf.api.order.model.query.ContrastBillOrderQuery;
 import com.lanf.api.order.model.query.OrderDetailQuery;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.query.ReconciliationOrderItemQuery;
-import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
-import com.lanf.api.order.model.vo.OrderDocumentVO;
-import com.lanf.api.order.model.vo.OrderVO2;
-import com.lanf.api.order.model.vo.ReconciliationOrderItemVO;
+import com.lanf.api.order.model.vo.*;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import org.dromara.hmily.annotation.Hmily;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -68,4 +68,14 @@ public interface OrderApiService {
 
     @GetMapping("/order/admin/order/orderDetailForAdminQuery")
     public Result<OrderDetailForAdminVO> orderDetailForAdminQuery(@SpringQueryMap OrderDetailQuery query);
+
+
+    @PostMapping("/order/admin/express/addExpress")
+    public Result<Void> addExpress( @RequestBody AddExpressDTO dto);
+
+    @GetMapping("/order/admin/express/expressPageQuery")
+    public Result<PageResult<ExpressPageVO>> expressPageQuery(@SpringQueryMap PageQuery query);
+
+
+
 }

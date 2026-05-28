@@ -1,4 +1,4 @@
-package com.lanf.order.model.vo;
+package com.lanf.api.order.model.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -6,17 +6,16 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class ExpressPageVO implements Serializable {
+public class AddExpressDTO implements Serializable {
 
-    private Long id;
+
+    private String companyCode;
 
     @ApiModelProperty(value = "快递名称")
     private String expressName;
 
     @ApiModelProperty(value = "快递公司")
     private String expressCompany;
-    //快递100快递公司编码表
-    private String companyCode;
 
     @ApiModelProperty(value = "省")
     private String province;
