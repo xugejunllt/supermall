@@ -94,4 +94,16 @@ public enum OrderStatusEnum {
         }
         return null;
     }
+
+    public static OrderStatusEnum getByTag(String tag) {
+        if (tag == null) {
+            return null;
+        }
+        for (OrderStatusEnum typeEnum : OrderStatusEnum.values()) {
+            if (tag.equals(typeEnum.getTag())) {
+                return typeEnum;
+            }
+        }
+        return null;
+    }
 }

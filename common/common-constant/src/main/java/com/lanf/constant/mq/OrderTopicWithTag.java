@@ -7,13 +7,6 @@ public class OrderTopicWithTag {
      */
     public static final String ORDER_EVENT_TOPIC = "ORDER_EVENT_TOPIC";
 
-    // --- 消息 Tag 定义 (用于过滤不同状态的订单事件) ---
-
-    /**
-     * Tag: 待确认 (秒杀场景)
-     */
-    public static final String TAG_WAIT_CONFIRM = "WAIT_CONFIRM";
-
     /**
      * Tag: 待付款
      */

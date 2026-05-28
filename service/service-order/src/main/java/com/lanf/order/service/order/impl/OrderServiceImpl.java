@@ -8,15 +8,14 @@ import com.lanf.api.order.model.bo.DiscountInfoJson;
 import com.lanf.api.order.model.bo.ShippingInfoBO;
 import com.lanf.api.order.model.dto.AllowOutboundDTO;
 import com.lanf.api.order.model.dto.DeliveryDTO;
+import com.lanf.api.order.model.query.AdminOrderSearchQuery;
 import com.lanf.api.order.model.query.OrderDetailQuery;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
+import com.lanf.api.order.model.vo.AdminOrderListVO;
 import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
 import com.lanf.api.order.model.vo.OrderItemVO;
-import com.lanf.api.order.mq.message.InOutStockOrderItem;
-import com.lanf.api.order.mq.message.OrderShippedMessage;
-import com.lanf.api.order.mq.message.OrderWaitOutboundMessage;
-import com.lanf.api.order.mq.message.SignOrderMessage;
+import com.lanf.api.order.mq.message.*;
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.search.api.SearchApiService;
 import com.lanf.api.search.model.query.OrderSearchQuery;
@@ -36,14 +35,14 @@ import com.lanf.logistics.api.LogisticsApiService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.mapper.OrderMapper;
 import com.lanf.order.model.bo.OrderIdAndUserId;
-import com.lanf.order.model.dto.*;
+import com.lanf.order.model.dto.CreateOrderDTO;
+import com.lanf.order.model.dto.OrderItemDTO;
+import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.*;
 import com.lanf.order.model.enums.ShippingStatusEnum;
 import com.lanf.order.model.enums.SubStatusEnum;
-import com.lanf.api.order.model.query.AdminOrderSearchQuery;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
-import com.lanf.api.order.model.vo.AdminOrderListVO;
 import com.lanf.order.model.vo.OrderItemPageVO;
 import com.lanf.order.model.vo.OrderListVO;
 import com.lanf.order.model.vo.OrderPageVO;
@@ -478,14 +477,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         orderStatusTraceDO.setUserId(userId);
         orderStatusTraceDO.setTenantId(orderDO.getTenantId());
         orderStatusTraceService.save(orderStatusTraceDO);
-//        /**
-//         * 发布订单出库成功事件
-//         */
-//        OrderOutBoundedMessage message = new OrderOutBoundedMessage();
-//        message.setOrderId(orderId);
-//        rocketMqClient.sendMessage( OrderClientTopicName.ORDER_OUT_BOUNDED_EVENT_TOPIC,
-//                JsonUtils.toJsonString(message));
-
+        /**
+         * 发布订单出库成功事件
+         */
+        OrderOutBoundedMessage message2 = new OrderOutBoundedMessage();
+        message2.setOrderId(orderId);
+        rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+                OrderStatusEnum.OUTBOUNDED.getTag(), JsonUtils.toJsonString(message2),
+                orderDO.getId().toString());
 
     }
 
