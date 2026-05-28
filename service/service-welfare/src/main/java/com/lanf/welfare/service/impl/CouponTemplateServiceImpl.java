@@ -91,7 +91,6 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         couponTemplate.setRemainCount(dto.getTotalCount());
         //默认已发布
         couponTemplate.setStatus(CouponTemplateStatus.PUSH.getCode());
-        couponTemplate.setVersion(1L);
         couponTemplate.setId(couponTemplateId);
         /**
          * 构建发布历史
@@ -260,20 +259,14 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     }
 
     @Override
-    public List<CouponTemplateListVO> listShopCouponTemplate(Long shopId) {
+    public List<CouponTemplateListVO> shopCouponTemplateListQuery(Long shopId) {
 
 
-        List<CacheCouponTemplateListBO> listVOList = buildCouponTemplateList( shopId);
-        //过滤数量不足的优惠卷
-        filterNotCount(shopId, listVOList);
+        List<CacheCouponTemplateListBO> listVOList = loadDBCouponTemplateList(shopId);
         if (IStringUtils.isEmpty(listVOList)) {
             return new ArrayList<>();
         }
-        //过滤领取时间已结束的优惠卷
-        filterEnded(  listVOList);
-        if (IStringUtils.isEmpty(listVOList)) {
-            return new ArrayList<>();
-        }
+
 //        //过滤已作废的优惠卷
 //        filterRevoke(listVOList);
 //        if (IStringUtils.isEmpty(listVOList)) {
@@ -342,9 +335,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
 
     private List<CacheCouponTemplateListBO> buildCouponTemplateList(Long shopId) {
-//        List<CacheCouponTemplateListBO> cache = couponCacheService.getShopCouponCache(shopId);
-        List<CacheCouponTemplateListBO> listVOList = null;
-        listVOList = loadDBCouponTemplateList(shopId);
+        List<CacheCouponTemplateListBO> listVOList = loadDBCouponTemplateList(shopId);
+
         if (IStringUtils.isEmpty(listVOList)) {
 
             return new ArrayList<>();
@@ -354,41 +346,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     }
 
 
-    /**
-     * 过滤数量不足的优惠卷
-     */
-    private void filterNotCount(Long shopId,
-                                          List<CacheCouponTemplateListBO> listVOList) {
 
-        /**
-         * 过滤 优惠卷剩余数量不足的
-         */
-
-        // key 优惠卷id value:剩余数量
-        Map<String, String> remainCountCacheMap = buildShopCouponRemainCount( shopId);
-        Iterator<CacheCouponTemplateListBO> iterator = listVOList.iterator();
-
-        while (iterator.hasNext()) {
-
-            CacheCouponTemplateListBO next = iterator.next();
-            Long id = next.getId();
-            String remainCounts = remainCountCacheMap.get(id.toString());
-            if (remainCounts == null) {
-                //告警
-                iterator.remove();
-                log.error("优惠卷剩余数量缓存为空[{}]", id);
-            } else {
-                int remainCount = Integer.parseInt(remainCounts);
-                if (remainCount < 1) {
-                    //剩余数量小于1 不展示
-                    log.info("优惠卷剩余数量小于1[{}]", id);
-                    iterator.remove();
-                }
-            }
-
-
-        }
-    }
 
 
 
@@ -427,7 +385,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                 .gt(CouponTemplateDO::getRemainCount, 0)
                 .eq(CouponTemplateDO::getStatus, CouponTemplateStatus.PUSH.getCode())
                 .eq(CouponTemplateDO::getShopId, shopId)
-                .eq(CouponTemplateDO::getCouponType, CouponPurpose.SHOP.getCode())
+                .eq(CouponTemplateDO::getPurpose, CouponPurpose.SHOP.getCode())
                 .list();
         if (IStringUtils.isEmpty(templateDOList)) {
             log.info("DB数据为空");
@@ -499,7 +457,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         couponTemplateHistoryService.save(templateHistoryDO);
         couponTemplateRevokeService.save(couponTemplateRevokeDO);
 
-        if (CouponPurpose.SHOP.getCode().equals(templateDO.getCouponType())) {
+        if (CouponPurpose.SHOP.getCode().equals(templateDO.getPurpose())) {
 //            //删除店铺优惠卷缓存
 //            couponCacheService.removeShopCouponCache(templateDO.getShopId());
 //            couponCacheService.removeShopCouponRemainCountCache(templateDO.getShopId());

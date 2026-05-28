@@ -33,8 +33,8 @@ public class CouponTemplateAdminController {
     @Autowired
     private ICouponTemplateService couponTemplateService;
 
-    @PostMapping("/couponTemplateAdd")
-    public Result<Void> couponTemplateAdd(@Validated @RequestBody AddCouponTemplateDTO dto) {
+    @PostMapping("/addCouponTemplate")
+    public Result<Void> addCouponTemplate(@Validated @RequestBody AddCouponTemplateDTO dto) {
 
         log.info("添加优惠券模板:{}:dto", dto);
         dto.setAdminUserId(UserContext.getUserId());

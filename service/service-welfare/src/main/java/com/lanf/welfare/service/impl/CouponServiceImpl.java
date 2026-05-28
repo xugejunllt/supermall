@@ -60,34 +60,29 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
     private IOrderCouponService orderCouponService;
 
 
+    @Transactional
     @DistributedLock(key = "#dto.userId")//防止重复领取
     @Override
     public void receiveShopCoupon(ReceiveShopCouponDTO dto) {
 
         validateCouponTemplate( dto);
-        //扣减店铺优惠券数量
-        ductCouponCount(dto.getCouponTemplateId(), dto.getShopId());
+        CouponTemplateDO templateDO = couponTemplateService.getById(dto.getCouponTemplateId());
+
+        Integer updateRemainCount = templateDO.getRemainCount() - 1;
         //插入优惠卷
         CouponDO couponDO = buildCouponDO(dto);
 
-//        //保存
-//        SendMqMessageDTO sendMqMessageDTO = buildSendMqMessageDTO(dto);
-//
-//        transactionTemplate.execute(status -> {
-//            try {
-//                this.save(couponDO);
-//                sendMqMessageService.createSendMqMessage(sendMqMessageDTO);
-//                // 如果一切正常，事务会自动提交
-//                return null;
-//            } catch (Exception e) {
-//                // 发生异常时手动回滚
-//                status.setRollbackOnly();
-//                throw e;
-//
-//            }
-//        });
-//        //发送mq 扣減DB优惠卷模板数量
-//        sendMqMessageService.sendMqMessage(sendMqMessageDTO);
+        boolean update = couponTemplateService.lambdaUpdate()
+                .eq(BaseEntity::getId, templateDO.getId())
+                .eq(CouponTemplateDO::getVersion, templateDO.getVersion())
+                .set(CouponTemplateDO::getReceiveCount, updateRemainCount)
+                .set(CouponTemplateDO::getVersion, templateDO.getVersion() + 1)
+                .update();
+        if ( !update){
+            log.error("更新优惠卷模板数量失败");
+            throw new BizException("更新优惠卷模板数量失败");
+        }
+        this.save(couponDO);
     }
 
 
@@ -99,7 +94,7 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         CouponDO couponDO = new CouponDO();
         couponDO.setCouponTemplateId(couponTemplateId);
         couponDO.setUserId(dto.getUserId());
-        couponDO.setCouponType(templateDO.getCouponType());
+        couponDO.setCouponType(templateDO.getPurpose());
         couponDO.setShopId(templateDO.getShopId());
         couponDO.setName(templateDO.getName());
         couponDO.setTitle(templateDO.getTitle());
@@ -109,38 +104,13 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         couponDO.setUseStartTime(templateDO.getUseStartTime());
         couponDO.setUseEndTime(templateDO.getUseEndTime());
         couponDO.setCouponTemplateVersion(templateDO.getVersion());
-        couponDO.setVersion(1L);
-
 
         return couponDO;
     }
 
-//    private SendMqMessageDTO buildSendMqMessageDTO(ReceiveShopCouponDTO dto){
-//
-//        String key = dto.getUserId()+":"+dto.getCouponTemplateId();
-//        String bizKeyValue = EventCodeEnum.buildBizKey(key, EventCodeEnum.DEDUCT_COUPON_TEMPLATE_COUNT.getCode());
-//        DeductCouponTemplateCountMsg msg = new DeductCouponTemplateCountMsg();
-//        msg.setBizKeyValue(bizKeyValue);
-//        msg.setCouponTemplateId(dto.getCouponTemplateId());
-//        msg.setDeductCount(1);
-//
-//        return new SendMqMessageDTO(TopicName.DEDUCT_COUPON_TEMPLATE_COUNT_TOPIC,msg);
-//    }
 
 
 
-    private void ductCouponCount(Long couponTemplateId, Long shopId){
-//        DeductShopCouponRemainCountCacheBO bo = couponCacheService.
-//                deductShopCouponRemainCountCache(shopId, couponTemplateId);
-        int resultStatus = -1;
-        //key不存在
-        Map<String, String> remainCount = couponTemplateService.buildShopCouponRemainCount(shopId);
-        if (remainCount.isEmpty()){
-            log.info("店铺优惠卷不存在");
-            throw new BizException("店铺优惠卷不存在");
-        }
-
-    }
 
     private void validateCouponTemplate(ReceiveShopCouponDTO dto){
 

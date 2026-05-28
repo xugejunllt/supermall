@@ -34,12 +34,12 @@ public class CouponTemplateAppController {
      * @param shopId
      * @return
      */
-    @GetMapping("/listShopCouponTemplate")
-    public Result< List<CouponTemplateListVO>> listShopCouponTemplate(@Validated Long shopId) {
+    @GetMapping("/shopCouponTemplateListQuery")
+    public Result< List<CouponTemplateListVO>> shopCouponTemplateListQuery(@Validated Long shopId) {
 
         log.info("查询优惠券模板列表:{}:query",shopId);
 
-        return Result.ok(couponTemplateService.listShopCouponTemplate(shopId));
+        return Result.ok(couponTemplateService.shopCouponTemplateListQuery(shopId));
     }
 
 }

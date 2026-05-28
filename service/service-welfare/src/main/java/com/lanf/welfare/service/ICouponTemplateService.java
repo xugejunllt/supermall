@@ -35,7 +35,7 @@ public interface ICouponTemplateService extends IService<CouponTemplateDO> {
      *
      *
      */
-    List<CouponTemplateListVO> listShopCouponTemplate(Long shopId);
+    List<CouponTemplateListVO> shopCouponTemplateListQuery(Long shopId);
 
     /**
      * 作废优惠卷模板

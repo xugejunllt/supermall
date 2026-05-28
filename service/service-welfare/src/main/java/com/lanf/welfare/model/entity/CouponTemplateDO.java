@@ -28,7 +28,7 @@ private static final long serialVersionUID=1L;
      * 1、2只能由平台管理员发放
      *
      */
-    private Integer couponType;
+    private Integer purpose;
 
     /**
      * 店铺id purpose =0有值
