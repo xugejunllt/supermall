@@ -1,13 +1,12 @@
-package com.lanf.finance.controller.admin;
+package com.lanf.pay.controller.admin;
 
 
-import com.lanf.constant.model.vo.PageResult;
-import com.lanf.constant.result.Result;
 import com.lanf.api.pay.model.dto.AddPayAccountDTO;
 import com.lanf.api.pay.model.query.PayAccountPageQuery;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
 import com.lanf.api.pay.model.vo.PayAccountPageVO;
-import com.lanf.finance.service.IMoneyFlowService;
-import com.lanf.finance.service.IPayAccountService;
+import com.lanf.pay.service.account.IPayAccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -20,13 +19,12 @@ public class PayAccountController {
 
     @Autowired
     private IPayAccountService payAccountService;
-    @Autowired
-    private IMoneyFlowService moneyFlowService;
-    @PostMapping("/payAccountAdd")
-    public Result<Void> payAccountAdd(@Validated @RequestBody AddPayAccountDTO dto) {
+
+    @PostMapping("/addPayAccount")
+    public Result<Void> addPayAccount(@Validated @RequestBody AddPayAccountDTO dto) {
 
         log.info("添加支付账户");
-        payAccountService.payAccountAdd(dto);
+        payAccountService.addPayAccount(dto);
         return Result.ok();
     }
 

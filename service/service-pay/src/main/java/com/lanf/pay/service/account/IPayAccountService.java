@@ -1,13 +1,12 @@
-package com.lanf.finance.service;
+package com.lanf.pay.service.account;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.constant.model.vo.PageResult;
 import com.lanf.api.pay.model.dto.AddPayAccountDTO;
-import com.lanf.finance.model.dto.PayAccountDTO;
-import com.lanf.finance.model.entity.PayAccountDO;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.api.pay.model.query.PayAccountPageQuery;
-import com.lanf.finance.model.vo.PayAccountApiVO;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.api.pay.model.vo.PayAccountPageVO;
+import com.lanf.pay.model.entity.PayAccountDO;
 
 /**
  * <p>
@@ -21,21 +20,17 @@ public interface IPayAccountService extends IService<PayAccountDO> {
 
 
 
-
-    PayAccountApiVO payAccountQuery(PayAccountDTO dto);
+    String getByTenantIdAccount(Long tentId, PayChannelEnum accountType);
 
     /**
      * 添加支付账户
      *
      *
      */
-    void payAccountAdd(AddPayAccountDTO dto);
+    void addPayAccount(AddPayAccountDTO dto);
 
     PageResult<PayAccountPageVO> payAccountPageQuery(PayAccountPageQuery query);
 
 
-
-
-    PayAccountDO getByMerchantIdAccount(Long merchantId,Integer accountType);
 
 }

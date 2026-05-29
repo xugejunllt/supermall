@@ -34,5 +34,14 @@ public class PayMqGroupName {
 
     public static final String CANCEL_ORDER_CANCEL_PAY_ORDER_GROUP = "CANCEL_ORDER_CANCEL_PAY_ORDER_GROUP";
     public static final String AFTER_SALES_REFUND_GROUP = "AFTER_SALES_REFUND_GROUP";
+    public static final String SIGN_ORDER_EVENT_FINANCE_GROUP = "SIGN_ORDER_EVENT_FINANCE_GROUP";
+    /**
+     * 转账成功通知
+     */
+    public static final String TRANSFER_SUCCESS_UPDATE_SETTLEMENT_GROUP = "TRANSFER_SUCCESS_UPDATE_SETTLEMENT_GROUP";
 
+    /**
+     * 结算任务消费组
+     */
+    public static final String SETTLEMENT_TASK_GROUP = "SETTLEMENT_TASK_GROUP";
 }

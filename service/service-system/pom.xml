@@ -94,6 +94,11 @@
             <artifactId>service-api-order</artifactId>
             <version>${service.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>service-api-pay</artifactId>
+            <version>${service.version}</version>
+        </dependency>
     </dependencies>
 
 

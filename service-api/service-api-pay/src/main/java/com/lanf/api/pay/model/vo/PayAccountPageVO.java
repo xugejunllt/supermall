@@ -1,28 +1,25 @@
-package com.lanf.finance.model.vo;
+package com.lanf.api.pay.model.vo;
 
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
 public class PayAccountPageVO implements Serializable {
+
     /**
      * 账户类型 0:支付宝
      */
-    private Integer accountType;
+    private PayChannelEnum accountType;
 
     /**
      * 账户
      */
     private String account;
 
-    //初期余额
-    private BigDecimal startRemainMoney;
 
-    //当前余额
-    private BigDecimal remainMoney;
     private Long id;
 
     private Date createTime;

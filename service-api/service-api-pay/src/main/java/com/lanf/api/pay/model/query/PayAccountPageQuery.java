@@ -1,4 +1,4 @@
-package com.lanf.finance.model.query;
+package com.lanf.api.pay.model.query;
 
 import com.lanf.constant.model.query.PageQuery;
 import lombok.Data;

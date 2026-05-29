@@ -1,23 +1,21 @@
-package com.lanf.finance.service.impl;
+package com.lanf.pay.service.account.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.pay.model.dto.AddPayAccountDTO;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.query.PayAccountPageQuery;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
-import com.lanf.finance.mapper.PayAccountMapper;
-import com.lanf.api.pay.model.dto.AddPayAccountDTO;
-import com.lanf.finance.model.dto.PayAccountDTO;
-import com.lanf.finance.model.entity.PayAccountDO;
-import com.lanf.api.pay.model.query.PayAccountPageQuery;
-import com.lanf.finance.model.vo.PayAccountApiVO;
 import com.lanf.api.pay.model.vo.PayAccountPageVO;
-import com.lanf.finance.service.IPayAccountService;
 import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.pay.mapper.PayAccountMapper;
+import com.lanf.pay.model.entity.PayAccountDO;
+import com.lanf.pay.service.account.IPayAccountService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -33,48 +31,37 @@ import java.util.List;
 public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAccountDO> implements IPayAccountService {
 
 
-
-
-
-
     @Override
-    public PayAccountApiVO payAccountQuery(PayAccountDTO dto) {
+    public String getByTenantIdAccount(Long tentId, PayChannelEnum accountType) {
 
-        PayAccountDO payAccountDO = this.lambdaQuery().
-                eq(dto.getBusinessId() != null, PayAccountDO::getTenantId, dto.getBusinessId()).
-                eq(PayAccountDO::getAccountType, dto.getAccountType()).one();
-
-        if (payAccountDO == null) {
+        PayAccountDO accountDO = this.lambdaQuery()
+                .eq(PayAccountDO::getTenantId, tentId)
+                .one();
+        if (accountDO == null){
+            log.error("支付账户不存在");
             throw new BizException("支付账户不存在");
         }
-        PayAccountApiVO vo = new PayAccountApiVO();
-        BeanCopyUtils.copy(payAccountDO, vo);
 
-        return vo;
+        return accountDO.getAccount();
     }
 
-    @Transactional
     @Override
-    public void payAccountAdd(AddPayAccountDTO dto) {
+    public void addPayAccount(AddPayAccountDTO dto) {
 
         String account = dto.getAccount();
-        Long businessId = UserContext.getTenantId();
 
         //其他校验
         PayAccountDO payAccountDO1 = this.lambdaQuery().
-                eq(PayAccountDO::getAccount, account).
                 eq(PayAccountDO::getAccountType,dto.getAccountType()).
                 one();
 
         if (payAccountDO1 != null) {
-            log.error("同个支付类型账户只能存在一个");
+            log.warn("同个支付类型账户只能存在一个");
             throw new BizException("同个支付类型账户只能存在一个");
         }
 
         PayAccountDO payAccountDO = new PayAccountDO();
         BeanCopyUtils.copy(dto, payAccountDO);
-        payAccountDO.setRemainMoney(dto.getStartRemainMoney());
-        payAccountDO.setTenantId(businessId);
 
         this.save(payAccountDO);
 
@@ -104,13 +91,5 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
         return result;
     }
 
-    @Override
-    public PayAccountDO getByMerchantIdAccount(Long merchantId, Integer accountType) {
 
-
-        return this.lambdaQuery()
-                .eq(PayAccountDO::getTenantId, merchantId)
-                .eq(PayAccountDO::getAccountType, accountType)
-                .one();
-    }
 }

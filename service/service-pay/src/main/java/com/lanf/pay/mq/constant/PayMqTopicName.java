@@ -32,5 +32,8 @@ public class PayMqTopicName {
      * 转账查询结果处理
      */
     public static final String TRANSFER_QUERY_RESULT_TOPIC = "TRANSFER_QUERY_RESULT_TOPIC";
-
+    /**
+     * 结算任务topic
+     */
+    public static final String SETTLEMENT_TASK_TOPIC = "SETTLEMENT_TASK_TOPIC";
 }

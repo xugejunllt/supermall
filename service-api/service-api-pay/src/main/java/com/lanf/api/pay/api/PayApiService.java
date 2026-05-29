@@ -1,18 +1,21 @@
 package com.lanf.api.pay.api;
 
-import com.lanf.api.pay.model.dto.*;
-import com.lanf.api.pay.model.query.TradeOrderBathQuery;
-import com.lanf.api.pay.model.vo.*;
+import com.lanf.api.pay.model.dto.AddPayAccountDTO;
+import com.lanf.api.pay.model.dto.CreateMergeTradeOrderDTO;
+import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
+import com.lanf.api.pay.model.query.PayAccountPageQuery;
+import com.lanf.api.pay.model.vo.CreateMergeTradeOrderVO;
+import com.lanf.api.pay.model.vo.PayAccountPageVO;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import org.dromara.hmily.annotation.Hmily;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.List;
 
 @Component
 @FeignClient(name = "service-pay",url = "localhost:9009")
@@ -22,36 +25,20 @@ public interface PayApiService {
     @PostMapping("/pay/api/createPayOrder")
     public Result<Void> createPayOrder(@RequestBody CreateTradeOrderDTO dto);
 
-
     @Hmily
     @PostMapping("/pay/api/createMergeTradeOrder")
     public Result<CreateMergeTradeOrderVO> createMergeTradeOrder(@RequestBody CreateMergeTradeOrderDTO dto);
 
+    @PostMapping("/pay/admin/payAccount/addPayAccount")
+    public Result<Void> addPayAccount(@Validated @RequestBody AddPayAccountDTO dto);
 
 
-    @Deprecated
-    @Hmily
-    @PostMapping("/pay/api/pay/placeSinglePayOrder")
-    public Result<CreatePayOrderVO> placeSinglePayOrder(@RequestBody PlaceSinglePayOrderDTO dto);
+    @GetMapping("/pay/admin/payAccount/payAccountPageQuery")
+    public Result<PageResult<PayAccountPageVO>> payAccountPageQuery(@SpringQueryMap PayAccountPageQuery query);
 
-    @Deprecated
-    @PostMapping("/pay/payApi/createPayOrder")
-    public Result<CreatePayOrderVO> createPayOrder(@RequestBody PlaceSinglePayOrderDTO dto);
 
-    @Deprecated
-    @GetMapping("/pay/payApi/queryOrderTradeByOrderId")
-    public Result<OrderTradeVO> queryOrderTradeByOrderId(@RequestParam("orderId") Long orderId);
 
-    @Deprecated
-    @PostMapping("/pay/payApi/transferAccounts")
-    public Result<TransferAccountsVO> transferAccounts(@RequestBody TransferAccountsDTO dto);
 
-    @Deprecated
-    @PostMapping("/pay/payApi/tradeOrderBathQuery")
-    public Result<List<TradeOrderBathVO>> tradeOrderBathQuery(@RequestBody TradeOrderBathQuery query);
 
-    @Deprecated
-    @GetMapping("/pay/payApi/queryTradeStatus")
-    public Result<TradeStatusVO> queryTradeStatus(@RequestParam("orderId") Long orderId);
 }
 
