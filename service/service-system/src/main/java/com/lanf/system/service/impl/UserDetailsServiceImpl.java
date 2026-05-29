@@ -2,7 +2,6 @@ package com.lanf.system.service.impl;
 
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.constant.Constants;
-import com.lanf.constant.utils.TenantContextHolder;
 import com.lanf.security.model.bo.AdminUser;
 import com.lanf.security.model.bo.AdminUserBO;
 import com.lanf.system.mapper.SysUserMapper;
@@ -55,34 +54,29 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         MerchantDO merchantDO;
         SysUserDO sysUser;
         List<String> userPermsList;
-        try {
-            TenantContextHolder.setSkipTenant( true);
-            merchantDO = merchantService.lambdaQuery()
-                    .eq(MerchantDO::getTenantCode, tenantCode).one();
 
-            if (merchantDO == null) {
-                throw new UsernameNotFoundException("租户不存在！");
-            }
-            sysUser = sysUserService.lambdaQuery()
-                    .eq(SysUserDO::getUsername, username)
-                    .eq(SysUserDO::getTenantId, merchantDO.getTenantId())
-                    .one();
-            if (sysUser == null) {
-                throw new UsernameNotFoundException("租户不存在！");
-            }
+        merchantDO = merchantService.lambdaQuery()
+                .eq(MerchantDO::getTenantCode, tenantCode).one();
 
-            /**
-             * 排除权限 非平台账号
-             */
-            userPermsList = sysMenuService.findUserPermsList(sysUser.getId() + "", username);
-            if ( !permissionFilter.isPlatformAdminAccount(sysUser.getUsername(),sysUser.getTenantId())){
-                log.info("非平台租户,开始过滤按钮权限");
-                userPermsList = permissionFilter.excludeButton(userPermsList);
-            }
-        } finally {
-            TenantContextHolder.clear();
+        if (merchantDO == null) {
+            throw new UsernameNotFoundException("租户不存在！");
+        }
+        sysUser = sysUserService.lambdaQuery()
+                .eq(SysUserDO::getUsername, username)
+                .eq(SysUserDO::getTenantId, merchantDO.getId())
+                .one();
+        if (sysUser == null) {
+            throw new UsernameNotFoundException("租户不存在！");
         }
 
+        /**
+         * 排除权限 非平台账号
+         */
+        userPermsList = sysMenuService.findUserPermsList(sysUser.getId() + "", username);
+        if (!permissionFilter.isPlatformAdminAccount(sysUser.getUsername(), sysUser.getTenantId())) {
+            log.info("非平台租户,开始过滤按钮权限");
+            userPermsList = permissionFilter.excludeButton(userPermsList);
+        }
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
         for (String perm : userPermsList) {
@@ -97,8 +91,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new AdminUserBO(sysUserBO, authorities);
 
     }
-
-
 
 
 }

@@ -160,6 +160,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         list.add("/img/**");
         list.add("/admin/system/index/getI18n");
         list.add("/auth/refreshToken");
+        list.add("/app/merchant/registerMerchant");
         String arr[] = list.toArray(new String[0]);
         web.ignoring().antMatchers(arr);
     }

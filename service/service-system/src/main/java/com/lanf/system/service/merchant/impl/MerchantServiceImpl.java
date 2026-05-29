@@ -67,7 +67,6 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, MerchantDO>
         companySave.setPhoneNumber(companyRegister.getPhoneNumber());
         companySave.setStatus(CompanyStatusEnum.IN.getCode());
         companySave.setTenantCode(tenantCode);
-        companySave.setTenantId(tenantId);
         return  companySave;
     }
     private void  validateRegisterMerchant(MerchantRegisterDTO companyRegister){
@@ -117,10 +116,9 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, MerchantDO>
         sysUser.setMobile(company.getPhoneNumber());
         sysUser.setHeadUrl("http://yaxincheng.oss-cn-shenzhen.aliyuncs.com/images/1722712091070.png?Expires=2040664091&OSSAccessKeyId=LTAI5tDUawmj1r1teFxZBWYo&Signature=0fsf0Nu1FVqEn22WnQRSIt9%2Biwk%3D");
         sysUser.setStatus(1);
-        sysUser.setTenantId(company.getTenantId());
         //这里与spring security同一个加密器加密 因为它登入时比较的是加密的密码
         sysUser.setPassword(customMd5PasswordEncoder.encode(password));
-
+        sysUser.setTenantId(company.getId());
         return  sysUser;
     }
 
