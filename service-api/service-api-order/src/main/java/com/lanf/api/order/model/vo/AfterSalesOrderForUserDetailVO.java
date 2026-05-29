@@ -1,9 +1,9 @@
-package com.lanf.order.model.vo;
+package com.lanf.api.order.model.vo;
 
-import com.lanf.order.model.enums.AfterSalesTypeEnum;
-import com.lanf.order.model.enums.IncomeStatusEnum;
-import com.lanf.order.model.enums.MainStatusEnum;
-import com.lanf.order.model.enums.SubStatus;
+import com.lanf.constant.model.enums.order.AfterSalesTypeEnum;
+import com.lanf.constant.model.enums.order.IncomeStatusEnum;
+import com.lanf.constant.model.enums.order.MainStatusEnum;
+import com.lanf.constant.model.enums.order.SubStatus;
 import lombok.Data;
 
 import java.io.Serializable;

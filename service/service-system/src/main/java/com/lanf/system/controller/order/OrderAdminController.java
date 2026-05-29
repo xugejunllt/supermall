@@ -3,8 +3,13 @@ package com.lanf.system.controller.order;
 import com.lanf.api.order.api.OrderApiService;
 import com.lanf.api.order.model.dto.AddExpressDTO;
 import com.lanf.api.order.model.dto.AllowOutboundDTO;
+import com.lanf.api.order.model.dto.BusinessAgreeDTO;
+import com.lanf.api.order.model.dto.BusinessReceiverDTO;
+import com.lanf.api.order.model.dto.CompleteRefundDTO;
 import com.lanf.api.order.model.dto.DeliveryDTO;
 import com.lanf.api.order.model.query.OrderDetailQuery;
+import com.lanf.api.order.model.vo.AfterSalesOrderForUserDetailVO;
+import com.lanf.api.order.model.vo.AfterSalesOrderForUserPageVO;
 import com.lanf.api.order.model.vo.ExpressPageVO;
 import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
 import com.lanf.constant.model.query.PageQuery;
@@ -52,6 +57,36 @@ public class OrderAdminController {
 
         log.info("分页查询快递公司");
         return orderApiService.expressPageQuery(query);
+    }
+
+    @GetMapping("/afterSalesOrderForUserPageQuery")
+    public Result<PageResult<AfterSalesOrderForUserPageVO>> afterSalesOrderForUserPageQuery(@Validated PageQuery query) {
+        log.info("分页查询售后单:query{}", query);
+        return orderApiService.afterSalesOrderForUserPageQuery(query);
+    }
+
+    @GetMapping("/afterSalesOrderForUserDetailQuery")
+    public Result<AfterSalesOrderForUserDetailVO> afterSalesOrderForUserDetailQuery(@RequestParam("id") Long id) {
+        log.info("售后单详细:query{}", id);
+        return orderApiService.afterSalesOrderForUserDetailQuery(id);
+    }
+
+    @PostMapping("/businessAgree")
+    public Result<Void> businessAgree(@RequestBody @Validated BusinessAgreeDTO dto) {
+        log.info("商家同意:dto{}", dto);
+        return orderApiService.businessAgree(dto);
+    }
+
+    @PostMapping("/businessReceiver")
+    public Result<Void> businessReceiver(@RequestBody @Validated BusinessReceiverDTO dto) {
+        log.info("商家签收商品:dto{}", dto);
+        return orderApiService.businessReceiver(dto);
+    }
+
+    @PostMapping("/completeRefund")
+    public Result<Void> completeRefund(@RequestBody @Validated CompleteRefundDTO dto) {
+        log.info("发起退款:dto{}", dto);
+        return orderApiService.completeRefund(dto);
     }
 
 }

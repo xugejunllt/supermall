@@ -4,11 +4,11 @@ package com.lanf.order.controller.admin;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.order.model.dto.BusinessAgreeDTO;
-import com.lanf.order.model.dto.BusinessReceiverDTO;
-import com.lanf.order.model.dto.CompleteRefundDTO;
-import com.lanf.order.model.vo.AfterSalesOrderForUserDetailVO;
-import com.lanf.order.model.vo.AfterSalesOrderForUserPageVO;
+import com.lanf.api.order.model.dto.BusinessAgreeDTO;
+import com.lanf.api.order.model.dto.BusinessReceiverDTO;
+import com.lanf.api.order.model.dto.CompleteRefundDTO;
+import com.lanf.api.order.model.vo.AfterSalesOrderForUserDetailVO;
+import com.lanf.api.order.model.vo.AfterSalesOrderForUserPageVO;
 import com.lanf.order.service.aftersales.IAfterSalesOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,7 @@ public class AfterSalesOrderForAdminController {
     }
 
     @GetMapping("/afterSalesOrderForUserDetailQuery")
-    public Result<AfterSalesOrderForUserDetailVO> afterSalesOrderForUserDetailQuery(Long id) {
+    public Result<AfterSalesOrderForUserDetailVO> afterSalesOrderForUserDetailQuery(@RequestParam("id") Long id) {
 
         log.info("售后单详细:query{}", id);
 

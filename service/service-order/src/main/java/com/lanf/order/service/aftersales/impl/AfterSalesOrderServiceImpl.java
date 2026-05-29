@@ -8,25 +8,30 @@ import com.lanf.aftersales.mq.AftersalesClientTopicName;
 import com.lanf.aftersales.mq.message.CloseOrderMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
+import com.lanf.api.order.model.dto.BusinessAgreeDTO;
+import com.lanf.api.order.model.dto.BusinessReceiverDTO;
+import com.lanf.api.order.model.dto.CompleteRefundDTO;
+import com.lanf.api.order.model.vo.AfterSalesOrderForUserDetailVO;
+import com.lanf.api.order.model.vo.AfterSalesOrderForUserPageVO;
+import com.lanf.api.order.model.vo.AfterSalesOrderItemVO;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
+import com.lanf.api.order.mq.message.AfterSalesRefundMessage;
 import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.enums.order.MainStatusEnum;
+import com.lanf.constant.model.enums.order.SubStatus;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.mapper.AfterSalesOrderMapper;
-import com.lanf.order.model.dto.*;
+import com.lanf.order.model.dto.AddAfterSalesOrderDTO;
+import com.lanf.order.model.dto.UserDeliveryDTO;
 import com.lanf.order.model.entity.AfterSalesOrderDO;
 import com.lanf.order.model.entity.AfterSalesOrderItemDO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
-import com.lanf.order.model.enums.MainStatusEnum;
-import com.lanf.order.model.enums.SubStatus;
-import com.lanf.order.model.vo.AfterSalesOrderForUserDetailVO;
-import com.lanf.order.model.vo.AfterSalesOrderForUserPageVO;
-import com.lanf.order.model.vo.AfterSalesOrderItemVO;
 import com.lanf.order.service.aftersales.IAfterSalesOrderItemService;
 import com.lanf.order.service.aftersales.IAfterSalesOrderService;
 import com.lanf.order.service.order.IOrderItemService;
@@ -40,8 +45,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -161,27 +164,9 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
             return PageResult.emptyResult();
         }
         List<AfterSalesOrderDO> records = result.getRecords();
-        List<Long> idList = records.stream().map(BaseEntity::getId).collect(Collectors.toList());
 
-        List<AfterSalesOrderItemDO> list = afterSalesOrderItemService.lambdaQuery().in(AfterSalesOrderItemDO::getAfterSalesOrderId,
-                idList).list();
-        Map<Long, List<AfterSalesOrderItemDO>> itemMap = list.stream()
-                .collect(Collectors.groupingBy(AfterSalesOrderItemDO::getAfterSalesOrderId));
+        List<AfterSalesOrderForUserPageVO> afterSalesOrderPageForUserVOList = BeanCopyUtils.copyBeanList(records, AfterSalesOrderForUserPageVO.class);
 
-        List<AfterSalesOrderForUserPageVO> afterSalesOrderPageForUserVOList = records.stream()
-                .map(a -> {
-                    AfterSalesOrderForUserPageVO vo = new AfterSalesOrderForUserPageVO();
-                    vo.setId(a.getId());
-                    vo.setMainStatus(a.getMainStatus());
-                    return vo;
-                }).collect(Collectors.toList());
-        for (AfterSalesOrderForUserPageVO vo : afterSalesOrderPageForUserVOList){
-
-            List<AfterSalesOrderItemDO> afterSalesOrderItemDOS = itemMap.get(vo.getId());
-
-            List<AfterSalesOrderItemVO> afterSalesOrderItemVOS = BeanCopyUtils.copyBeanList(afterSalesOrderItemDOS, AfterSalesOrderItemVO.class);
-            vo.setAfterSalesOrderItemVOList(afterSalesOrderItemVOS);
-        }
 
         PageResult<AfterSalesOrderForUserPageVO> result1 = new PageResult<>();
         result1.setTotal(page.getTotal());
@@ -267,9 +252,9 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
             log.error("售后单不存在{}", id);
             throw new BizException("售后单不存在");
         }
-//        if (!SubStatus.NO_SIGN.equals(salesOrderDO.getSubStatus())) {
-//            throw new BizException("售后单状态异常");
-//        }
+        if (!SubStatus.NO_SIGN.equals(salesOrderDO.getSubStatus())) {
+            throw new BizException("售后单状态异常");
+        }
         boolean update = this.lambdaUpdate().eq(AfterSalesOrderDO::getId, id)
                 .eq(AfterSalesOrderDO::getVersion, salesOrderDO.getVersion())
                 .set(AfterSalesOrderDO::getSubStatus, SubStatus.SIGNED.getCode())
@@ -278,8 +263,6 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         if ( !update) {
             throw new BizException("售后单更新失败");
         }
-
-        //商家同意退款
         /**
          * 创建销售退款退款入库单
          */
@@ -323,10 +306,10 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
             throw new BizException("售后单不存在");
         }
 
-//        if (!SubStatus.REFUND_PROCESS.equals(salesOrderDO.getSubStatus())) {
-//            log.error("售后单状态异常:afterSalesOrderId={},subStatus={}", id, salesOrderDO.getSubStatus());
-//            throw new BizException("售后单状态异常，当前不是退款处理中状态");
-//        }
+        if (!SubStatus.REFUND_PROCESS.equals(salesOrderDO.getSubStatus())) {
+            log.error("售后单状态异常:afterSalesOrderId={},subStatus={}", id, salesOrderDO.getSubStatus());
+            throw new BizException("售后单状态异常，当前不是退款处理中状态");
+        }
 
         boolean update = this.lambdaUpdate()
                 .eq(AfterSalesOrderDO::getId, id)
@@ -344,11 +327,11 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         /**
          * 进行售后退款
          */
-//        AfterSalesRefundMessage message = new AfterSalesRefundMessage();
-//        message.setOrderId(salesOrderDO.getOrderId());
-//        message.setAfterSalesOrderId(id);
-//        rocketMqClient.sendMessage(OrderClientTopicName.AFTER_SALES_REFUND_TOPIC,
-//                JsonUtils.toJsonString(message));
+        AfterSalesRefundMessage message = new AfterSalesRefundMessage();
+        message.setOrderId(salesOrderDO.getOrderId());
+        message.setAfterSalesOrderId(id);
+        rocketMqClient.sendMessage(OrderClientTopicName.AFTER_SALES_REFUND_TOPIC,
+                JsonUtils.toJsonString(message));
         /**
          * 关闭订单
          *

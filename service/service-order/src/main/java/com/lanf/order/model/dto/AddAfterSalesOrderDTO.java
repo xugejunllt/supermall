@@ -1,6 +1,6 @@
 package com.lanf.order.model.dto;
 
-import com.lanf.order.model.enums.AfterSalesTypeEnum;
+import com.lanf.constant.model.enums.order.AfterSalesTypeEnum;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;

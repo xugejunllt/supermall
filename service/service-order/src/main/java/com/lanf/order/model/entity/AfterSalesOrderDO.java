@@ -2,10 +2,10 @@ package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.order.model.enums.AfterSalesTypeEnum;
-import com.lanf.order.model.enums.IncomeStatusEnum;
-import com.lanf.order.model.enums.MainStatusEnum;
-import com.lanf.order.model.enums.SubStatus;
+import com.lanf.constant.model.enums.order.AfterSalesTypeEnum;
+import com.lanf.constant.model.enums.order.IncomeStatusEnum;
+import com.lanf.constant.model.enums.order.MainStatusEnum;
+import com.lanf.constant.model.enums.order.SubStatus;
 import lombok.Data;
 
 import java.math.BigDecimal;
