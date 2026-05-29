@@ -2,7 +2,6 @@ package com.lanf.finance.controller.admin;
 
 
 import com.lanf.finance.service.IMoneyFlowService;
-import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,8 +22,7 @@ public class MoneyFlowController {
 
     @Autowired
     private IMoneyFlowService moneyFlowService;
-    @Autowired
-    private RocketMqClient rocketMqClient;
+
 
 
 

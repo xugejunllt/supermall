@@ -20,6 +20,5 @@ public class PayAccountAddDTO implements Serializable {
 
     //初期余额
     private BigDecimal startRemainMoney;
-    //用途 0:订单账号
-    private Integer useTo;
+
 }

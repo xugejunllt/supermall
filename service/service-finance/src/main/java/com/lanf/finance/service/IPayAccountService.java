@@ -7,6 +7,7 @@ import com.lanf.finance.model.dto.PayAccountDTO;
 import com.lanf.finance.model.entity.PayAccountDO;
 import com.lanf.finance.model.query.PayAccountPageQuery;
 import com.lanf.finance.model.vo.PayAccountApiVO;
+import com.lanf.finance.model.vo.PayAccountPageVO;
 
 /**
  * <p>
@@ -30,7 +31,7 @@ public interface IPayAccountService extends IService<PayAccountDO> {
      */
     void payAccountAdd(PayAccountAddDTO dto);
 
-    PageResult<PayAccountDO> payAccountPage(PayAccountPageQuery query);
+    PageResult<PayAccountPageVO> payAccountPageQuery(PayAccountPageQuery query);
 
 
 

@@ -1,27 +1,15 @@
-package com.lanf.finance.model.entity;
+package com.lanf.finance.model.vo;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.finance.model.enums.RecordTypeEnum;
-import com.lanf.mybatis.base.BaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
-/**
- * <p>
- * 资金流水
- * </p>
- *
- * @author 江帅帅 Jss_forever
- * @since 2024-06-22
- */
 @Data
-@TableName("money_flow")
-public class MoneyFlowDO extends BaseEntity {
-
-    private static final long serialVersionUID = 1L;
-
+public class MoneyFlowPageVO implements Serializable {
 
     /**
      * 流水号
@@ -36,7 +24,8 @@ public class MoneyFlowDO extends BaseEntity {
 
     private RecordTypeEnum recordType;
 
-
+    @ApiModelProperty(value = "收入支出金额")
+    private BigDecimal incomeMoney;
 
     @ApiModelProperty(value = "收支账户")
     private String incomeAccount;
@@ -51,6 +40,11 @@ public class MoneyFlowDO extends BaseEntity {
     @ApiModelProperty(value = "变更后账户余额")
     private BigDecimal afterRemainMoney;
 
+    private Long id;
+
+    private Date createTime;
+
+    private Date updateTime;
 
 
 }

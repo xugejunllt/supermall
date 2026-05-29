@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.finance.mapper.PayAccountMapper;
 import com.lanf.finance.model.dto.PayAccountAddDTO;
@@ -14,10 +13,13 @@ import com.lanf.finance.model.dto.PayAccountDTO;
 import com.lanf.finance.model.entity.PayAccountDO;
 import com.lanf.finance.model.query.PayAccountPageQuery;
 import com.lanf.finance.model.vo.PayAccountApiVO;
+import com.lanf.finance.model.vo.PayAccountPageVO;
 import com.lanf.finance.service.IPayAccountService;
 import com.lanf.mybatis.base.BaseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * <p>
@@ -56,11 +58,7 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
     public void payAccountAdd(PayAccountAddDTO dto) {
 
         String account = dto.getAccount();
-        Integer accountType = dto.getAccountType();
         Long businessId = UserContext.getTenantId();
-        /**
-         * 远程查询支付宝账户 初期余额是否相等
-         */
 
         //其他校验
         PayAccountDO payAccountDO1 = this.lambdaQuery().
@@ -69,20 +67,12 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
                 one();
 
         if (payAccountDO1 != null) {
+            log.error("同个支付类型账户只能存在一个");
             throw new BizException("同个支付类型账户只能存在一个");
         }
-        payAccountDO1 = this.lambdaQuery().
-                eq(PayAccountDO::getAccountType, accountType).
-                one();
-        if (payAccountDO1 != null) {
-            throw new BizException("同个用途账户只能有一个");
-        }
-
 
         PayAccountDO payAccountDO = new PayAccountDO();
         BeanCopyUtils.copy(dto, payAccountDO);
-        Long id = IdUtils.generateId();
-        payAccountDO.setId(id);
         payAccountDO.setRemainMoney(dto.getStartRemainMoney());
         payAccountDO.setTenantId(businessId);
 
@@ -91,18 +81,27 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
     }
 
     @Override
-    public PageResult<PayAccountDO> payAccountPage(PayAccountPageQuery query) {
+    public PageResult<PayAccountPageVO> payAccountPageQuery(PayAccountPageQuery query) {
 
 
         IPage<PayAccountDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<PayAccountDO> payAccountPage = this.lambdaQuery().
                 eq(PayAccountDO::getTenantId, UserContext.getTenantId()).
                 eq(query.getAccountType() != null, PayAccountDO::getAccountType, query.getAccountType()).
-                orderByDesc(BaseEntity::getId).
+                orderByDesc(BaseEntity::getUpdateTime).
                 page(page);
+        if (payAccountPage.getRecords().isEmpty()){
 
+            return PageResult.emptyResult();
+        }
 
-        return null;
+        List<PayAccountPageVO> payAccountPageVOS = BeanCopyUtils.copyBeanList(payAccountPage.getRecords(), PayAccountPageVO.class);
+        PageResult<PayAccountPageVO> result = new PageResult<>(payAccountPageVOS);
+        result.setTotal(payAccountPage.getTotal());
+        result.setSize(payAccountPage.getSize());
+        result.setRecords(payAccountPageVOS);
+
+        return result;
     }
 
     @Override

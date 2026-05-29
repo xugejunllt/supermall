@@ -1,8 +1,13 @@
 package com.lanf.finance.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.finance.model.bo.AddMoneyFlow;
 import com.lanf.finance.model.entity.MoneyFlowDO;
+import com.lanf.finance.model.query.SumIncomeMoneyQuery;
+import com.lanf.finance.model.vo.MoneyFlowPageVO;
+import com.lanf.finance.model.vo.SumIncomeMoneyVO;
 
 /**
  * <p>
@@ -20,4 +25,8 @@ public interface IMoneyFlowService extends IService<MoneyFlowDO> {
      */
     void addMoneyFlow(AddMoneyFlow addMoneyFlow);
 
+
+    PageResult<MoneyFlowPageVO> moneyFlowPageQuery(PageQuery pageQuery);
+
+    SumIncomeMoneyVO sumIncomeMoneyQuery(SumIncomeMoneyQuery query);
 }
