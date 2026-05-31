@@ -1,11 +1,14 @@
 package com.lanf.welfare.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
 import com.lanf.welfare.model.dto.ReceiveShopCouponDTO;
 import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
 import com.lanf.welfare.model.entity.CouponDO;
 import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
+import com.lanf.welfare.model.vo.CouponPageVO;
 
 /**
  * <p>
@@ -35,4 +38,11 @@ public interface ICouponService extends IService<CouponDO> {
      */
 
     CalculateDiscountAmountVO useMultipleCoupon(UseMultipleCouponDTO dto);
+
+    /**
+     * 获取可使用的优惠卷模板列表
+     *
+     */
+    PageResult<CouponPageVO> couponPageQuery(PageQuery query);
+
 }

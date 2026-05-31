@@ -1,15 +1,23 @@
 package com.lanf.welfare.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.cache.aop.DistributedLock;
+import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.tcc.service.ITccOperationService;
 import com.lanf.welfare.mapper.CouponMapper;
 import com.lanf.welfare.model.bo.DiscountInfoBO;
+import com.lanf.welfare.model.bo.DiscountUseConditionBO;
 import com.lanf.welfare.model.bo.FullDiscountUseConditionBO;
+import com.lanf.welfare.model.bo.NoConditionUseConditionBO;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;
 import com.lanf.welfare.model.dto.ReceiveShopCouponDTO;
 import com.lanf.welfare.model.dto.UseMultipleCouponDTO;
@@ -17,7 +25,9 @@ import com.lanf.welfare.model.entity.CouponDO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
 import com.lanf.welfare.model.entity.OrderCouponDO;
 import com.lanf.welfare.model.enums.CouponTemplateStatus;
+import com.lanf.welfare.model.enums.CouponType;
 import com.lanf.welfare.model.vo.CalculateDiscountAmountVO;
+import com.lanf.welfare.model.vo.CouponPageVO;
 import com.lanf.welfare.service.ICouponService;
 import com.lanf.welfare.service.ICouponTemplateService;
 import com.lanf.welfare.service.IOrderCouponService;
@@ -337,6 +347,8 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
 
         return amountResult;
     }
+
+
     /**
      * 构建业务键用于TCC事务操作
      *
@@ -397,6 +409,48 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         orderCouponService.removeByIds(orderCouponIds);
 
 
+    }
+    @Override
+    public PageResult<CouponPageVO> couponPageQuery(PageQuery query) {
+
+        IPage<CouponDO> page = new Page<>(query.getPage(), query.getPageSize());
+
+        IPage<CouponDO> pageQuery = this.lambdaQuery()
+                .gt(CouponDO::getUseEndTime, new Date())
+                .eq(CouponDO::getStatus, 0)
+                .eq(CouponDO::getUserId, UserContext.getUserId())
+                .orderByDesc(BaseEntity::getUpdateTime).
+                page(page);
+        if (pageQuery.getRecords().isEmpty()){
+
+            return PageResult.emptyResult();
+        }
+        List<CouponDO> records = pageQuery.getRecords();
+        List<CouponPageVO> couponPageVOS = BeanCopyUtils.copyBeanList(records, CouponPageVO.class);
+        for (CouponPageVO couponTemplateDO : couponPageVOS) {
+
+            Integer type = couponTemplateDO.getType();
+            String useCondition = couponTemplateDO.getUseCondition();
+            if (CouponType.DISCOUNT.getCode().equals(type)) {
+                DiscountUseConditionBO conditionBO = JsonUtils.toObject(useCondition, DiscountUseConditionBO.class);
+                couponTemplateDO.setDiscountUseCondition(conditionBO);
+            }
+            if (CouponType.FULL.getCode().equals(type)) {
+                FullDiscountUseConditionBO conditionBO = JsonUtils.toObject(useCondition, FullDiscountUseConditionBO.class);
+                couponTemplateDO.setFullDiscountUseCondition(conditionBO);
+            }
+            if (CouponType.FIXED.getCode().equals(type)) {
+                NoConditionUseConditionBO conditionBO = JsonUtils.toObject(useCondition, NoConditionUseConditionBO.class);
+                couponTemplateDO.setNoConditionUseCondition(conditionBO);
+            }
+            couponTemplateDO.setUseCondition(null);
+        }
+        PageResult<CouponPageVO> result = new PageResult<>();
+        result.setTotal(pageQuery.getTotal());
+        result.setSize(pageQuery.getSize());
+        result.setRecords(couponPageVOS);
+
+        return result;
     }
 
 }
