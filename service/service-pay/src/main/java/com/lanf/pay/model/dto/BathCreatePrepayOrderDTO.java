@@ -9,7 +9,7 @@ import java.io.Serializable;
 public class BathCreatePrepayOrderDTO implements Serializable {
 
     @NotNull(message = "主订单id不能为空")
-    private Long mainOrderId;
+    private String mainOrderNumber;
 
     /**
      * 支付类型 0支付宝 1微信 2银联 

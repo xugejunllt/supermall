@@ -16,7 +16,6 @@ import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.order.IOrderStatusTraceService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.message.OrderPayInfo;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
@@ -152,9 +151,8 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             log.info("单笔支付订单处理开始");
 
             Date date = new Date();
-            OrderPayInfo orderPayInfo = message.getOrderPayInfoList().get(0);
             OrderDO orderDO = orderService.lambdaQuery()
-                    .eq(OrderDO::getId, orderPayInfo.getOrderId())
+                    .eq(OrderDO::getId, message.getOrderId())
                     .eq(OrderDO::getUserId, userId)
                     .one();
             updateOrderStatusCheck(orderDO);

@@ -352,7 +352,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     public CreatePrepayOrderVO bathCreatePrepayOrder(BathCreatePrepayOrderDTO dto) {
 
         BathTradeOrderDO bathTradeOrderDO = bathTradeOrderService.lambdaQuery()
-                .eq(BathTradeOrderDO::getMainOrderId, dto.getMainOrderId()).one();
+                .eq(BathTradeOrderDO::getMainOrderNumber, dto.getMainOrderNumber()).one();
 
         if (bathTradeOrderDO == null) {
             log.warn("批量交易单不存在");

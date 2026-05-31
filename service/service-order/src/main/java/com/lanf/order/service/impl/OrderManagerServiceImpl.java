@@ -493,6 +493,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          */
         SubmitCartVO submitCartVO = new SubmitCartVO();
         submitCartVO.setMainOrderNumber(dto.getBathCreateOrderDTO().getMainOrderNumber());
+        log.info("订单提交成功，订单编号：{}", submitCartVO.getMainOrderNumber());
         return submitCartVO;
     }
 

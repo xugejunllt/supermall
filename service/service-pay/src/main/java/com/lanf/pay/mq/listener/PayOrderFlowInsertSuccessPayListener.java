@@ -24,7 +24,6 @@ import com.lanf.pay.service.trade.TradeSuccessHandler;
 import com.lanf.pay.service.trade.TradeSuccessHandlerFactory;
 import com.lanf.pay.service.trade.impl.PayRetryPolicyCacheService;
 import com.lanf.rocketmq.model.TopicName;
-import com.lanf.rocketmq.model.message.OrderPayInfo;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +34,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -272,7 +270,8 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
              * 发送mq
              */
 
-            TradeSuccessEventMessage message = buildTradeSuccessEventMessage(bathTradeOrderDO.getMainOrderId(), tradeOrderDOList);
+            TradeSuccessEventMessage message = buildTradeSuccessEventMessage(bathTradeOrderDO.getMainOrderId(),
+                    bathTradeOrderDO.getUserId());
 
             rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
 
@@ -282,20 +281,12 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
     }
 
     private TradeSuccessEventMessage buildTradeSuccessEventMessage( Long mainOrderId
-            , List<TradeOrderDO> tradeOrderDOList) {
-        List<OrderPayInfo> orderPayInfoList = new ArrayList<>();
-        for (TradeOrderDO tradeOrderDO : tradeOrderDOList) {
+            , Long userId) {
 
-            OrderPayInfo orderPayInfo = new OrderPayInfo();
-            orderPayInfo.setOrderId(tradeOrderDO.getOrderId());
-            orderPayInfoList.add(orderPayInfo);
-
-        }
         TradeSuccessEventMessage message = new TradeSuccessEventMessage();
         message.setBathPay(true);
         message.setMainOrderId(mainOrderId);
-        message.setOrderPayInfoList(orderPayInfoList);
-        message.setUserId(orderPayInfoList.get(0).getOrderId());
+        message.setUserId(userId);
         return message;
     }
 
@@ -367,14 +358,10 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
     }
 
     private TradeSuccessEventMessage buildTradeSuccessEventMessage(TradeOrderDO tradeOrderDO) {
-        List<OrderPayInfo> orderPayInfoList = new ArrayList<>();
-        OrderPayInfo orderPayInfo = new OrderPayInfo();
-        orderPayInfo.setOrderId(tradeOrderDO.getOrderId());
-        orderPayInfoList.add(orderPayInfo);
+
         TradeSuccessEventMessage message = new TradeSuccessEventMessage();
         message.setBathPay(false);
-        message.setMainOrderId(tradeOrderDO.getOrderId());
-        message.setOrderPayInfoList(orderPayInfoList);
+        message.setOrderId(tradeOrderDO.getOrderId());
         message.setUserId(tradeOrderDO.getUserId());
         return message;
     }

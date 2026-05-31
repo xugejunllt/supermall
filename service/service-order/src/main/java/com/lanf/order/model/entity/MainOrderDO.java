@@ -49,7 +49,6 @@ public class MainOrderDO extends BaseEntity {
     private Integer payStatus;
 
     private Long version;
-    private Long tenantId;
 
 
 }
