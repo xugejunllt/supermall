@@ -8,4 +8,6 @@ import java.io.Serializable;
 public class PlaceOrderVO implements Serializable {
 
     private String orderNumber;
+    private Long orderId;
+
 }
