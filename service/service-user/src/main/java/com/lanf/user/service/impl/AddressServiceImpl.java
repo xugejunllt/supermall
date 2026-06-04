@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import static com.lanf.constant.constant.RedisKeyConstants.ADDRESS_CACHE_KEY_PREFIX;
@@ -37,11 +38,12 @@ import static com.lanf.constant.constant.RedisKeyConstants.ADDRESS_CACHE_KEY_PRE
 public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> implements IAddressService {
 
     @Autowired
-    private RedissonCacheService redissonCacheService; // 确保注入了缓存服务
-
+    private RedissonCacheService redissonCacheService;
 
     // 缓存过期时间：7天
-    private static final long ADDRESS_CACHE_EXPIRE_MINUTES = 7*24*60;
+    private static final long ADDRESS_CACHE_EXPIRE_MINUTES = 7 * 24 * 60;
+    // 随机偏移范围：0~60分钟，用于防止缓存雪崩
+    private static final long CACHE_EXPIRE_RANDOM_OFFSET_MINUTES = 60;
 
     @Override
     @DistributedLock(key = "#dto.userId")
@@ -75,16 +77,14 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
     public List<AddressListVO> addressListQuery() {
         Long userId = UserContext.getUserId();
         
-        // 1. 构建缓存 Key
         String cacheKey = String.format(ADDRESS_CACHE_KEY_PREFIX, userId);
 
-        // 2. 尝试从缓存获取
-       String cachedList = redissonCacheService.get(cacheKey);
+        String cachedList = redissonCacheService.get(cacheKey);
 
         if (cachedList != null) {
             return JsonUtils.toList(cachedList, AddressListVO.class);
         }
-        // 3. 缓存未命中，查询数据库
+
         List<AddressDO> list = this.lambdaQuery()
                 .eq(AddressDO::getUserId, userId)
                 .orderByDesc(BaseEntity::getUpdateTime)
@@ -94,12 +94,10 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
             return new ArrayList<>();
         }
 
-        // 4. 转换 VO
         List<AddressListVO> voList = BeanCopyUtils.copyBeanList(list, AddressListVO.class);
 
-        // 5. 写入缓存 (JSON 字符串形式存储在 String 结构中)
         redissonCacheService.set(cacheKey, JsonUtils.toJsonString(voList),
-                ADDRESS_CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
+                calculateRandomExpireTime(), TimeUnit.MINUTES);
 
         return voList;
     }
@@ -128,5 +126,15 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
         // ✅ 清除该用户的地址列表缓存
         String cacheKey = String.format(ADDRESS_CACHE_KEY_PREFIX, UserContext.getUserId());
         redissonCacheService.delete(cacheKey);
+    }
+
+    /**
+     * 计算带随机偏移的缓存过期时间，防止缓存雪崩
+     *
+     * @return 实际过期时间（分钟）
+     */
+    private long calculateRandomExpireTime() {
+        long randomOffset = ThreadLocalRandom.current().nextLong(CACHE_EXPIRE_RANDOM_OFFSET_MINUTES + 1);
+        return ADDRESS_CACHE_EXPIRE_MINUTES + randomOffset;
     }
 }

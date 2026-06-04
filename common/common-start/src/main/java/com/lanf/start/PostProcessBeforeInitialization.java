@@ -24,6 +24,9 @@ public class PostProcessBeforeInitialization implements BeanPostProcessor {
 
             return bean;
         }
+        //将 JVM 的默认时区设置为东八区（北京时间）
+        //代码里调用 new Date()、SimpleDateFormat 格式化、LocalDateTime.now()
+        // 等操作，如果没有显式指定时区，都会默认使用北京时间而不是服务器本地时间。
         TimeZone.setDefault(TimeZone.getTimeZone("GMT+8"));
         init = true;
         return bean;

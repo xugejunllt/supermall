@@ -25,14 +25,14 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
 
 
     @Override
-    public void tryOperation(String bizKey, String parameter) {
+    public boolean tryOperation(String bizKey, String parameter) {
 
 
-        tryOperation( bizKey,  parameter,  null);
+      return   tryOperation( bizKey,  parameter,  null);
     }
 
     @Override
-    public void tryOperation(String bizKey, String parameter, String shardingValue) {
+    public boolean tryOperation(String bizKey, String parameter, String shardingValue) {
         HmilyTransactionContext hmilyTransactionContext = HmilyContextHolder.get();
 
         TccOperationDO one = this.lambdaQuery()
@@ -40,8 +40,8 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
                 .eq(shardingValue!=null, TccOperationDO::getShardingValue, shardingValue)
                 .one();
         if (one != null) {
-            log.info("bizKey重复");
-            throw new BizException("bizKey重复");
+            log.warn("bizKey重复");
+            return  false;
         }
 
         TccOperationDO tccOperationDO = new TccOperationDO();
@@ -55,10 +55,10 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
             this.save(tccOperationDO);
         } catch (DuplicateKeyException e) {
 
-
             log.info("bizKey重复");
-            throw new BizException("bizKey重复");
+            return false;
         }
+        return  true;
     }
 
     /**
@@ -169,30 +169,12 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
         return true;
     }
 
-    @Override
-    public void addInterruptedFlag(String bizKey, String interruptedException) {
 
-
-        addInterruptedFlag( bizKey,  interruptedException, null);
-
-    }
 
     @Override
     public void addInterruptedFlag(String bizKey, String interruptedException, String shardingValue) {
         HmilyTransactionContext hmilyTransactionContext = HmilyContextHolder.get();
 
-        TccOperationDO one = this.lambdaQuery().eq(TccOperationDO::getBizKey, bizKey).one();
-        if (one != null) {
-
-            this.lambdaUpdate()
-                    .eq(BaseEntity::getId, one.getId())
-                    .eq(shardingValue!=null, TccOperationDO::getShardingValue, shardingValue)
-                    .set(TccOperationDO::getInterruptedFlag, 1)
-                    .set(TccOperationDO::getInterruptedException, interruptedException)
-                    .update();
-            return;
-
-        }
 
         TccOperationDO tccOperationDO = new TccOperationDO();
         tccOperationDO.setBizKey(bizKey);
@@ -204,10 +186,7 @@ public class TccOperationServiceImpl extends ServiceImpl<TccOperationMapper, Tcc
         try {
             this.save(tccOperationDO);
         } catch (DuplicateKeyException e) {
-            /**
-             * 数据库压力大时  tcc_operation根据bizKey分表
-             * 提高性能
-             */
+
 
             log.info("bizKey重复");
             throw new BizException("bizKey重复");

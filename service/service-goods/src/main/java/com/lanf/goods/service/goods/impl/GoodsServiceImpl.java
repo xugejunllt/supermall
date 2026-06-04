@@ -23,7 +23,6 @@ import com.lanf.common.utils.ThreadLocalUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
-import com.lanf.goods.constant.GoodsCodeEnum;
 import com.lanf.goods.constant.GoodsRedisKeyConstants;
 import com.lanf.goods.mapper.GoodsMapper;
 import com.lanf.goods.model.entity.*;
@@ -43,7 +42,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -89,6 +91,13 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     
     @Autowired
     private RedissonCacheService redissonCacheService;
+
+    /**
+     * 商品详情加载中的 Future 缓存
+     * key: goodsId, value: 正在加载商品详情的 CompletableFuture
+     * 用于防止缓存击穿：保证同一时刻只有一个线程从 DB 加载
+     */
+    private static final ConcurrentHashMap<Long, CompletableFuture<GoodsDetailForUserVO>> GOODS_DETAIL_LOADING_FUTURES = new ConcurrentHashMap<>();
 
     @DistributedLock(key = "#dto.code")
     @Transactional
@@ -358,26 +367,27 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         }
     }
     /**
-     *
-     *
-     *
-     *
+     * 用户端商品详情查询（CompletableFuture 防缓存击穿版）
+     * 核心逻辑：
+     * 1. 先查 Redis 缓存
+     * 2. 缓存未命中时，使用 ConcurrentHashMap.computeIfAbsent 保证只有一个线程从 DB 加载
+     * 3. 其他线程阻塞等待 200ms，超时返回降级数据
+     * 4. 加载完成后写入 Redis 并清理 Future
      */
     @Override
     public GoodsDetailForUserVO goodsDetailForUserQuery(Long id) {
         String cacheKey = GoodsRedisKeyConstants.getGoodsDetailUserKey(id);
-        
+
+        // 1. 先查缓存
         String cachedJson = redissonCacheService.get(cacheKey);
-        
         if (RedissonCacheService.isRedisErrorValue(cachedJson)) {
             log.warn("Redis 服务异常，直接查询数据库, goodsId={}", id);
-            return buildFallbackData(id);
+            return loadGoodsDetailFromDB(id);
         }
         if (RedissonCacheService.isCacheNullValue(cachedJson)) {
-            log.info("商品详情缓存为空值，返回降级数据, goodsId={}", id);
-            return buildFallbackData(id);
+            log.error("商品详情缓存为空值，返回降级数据, goodsId={}", id);
+           return buildFallbackData(id);
         }
-        
         if (cachedJson != null) {
             try {
                 GoodsDetailForUserVO cachedResult = JsonUtils.toObject(cachedJson, GoodsDetailForUserVO.class);
@@ -388,29 +398,53 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
                 log.error("解析商品详情缓存失败, goodsId={}", id, e);
             }
         }
-        
-        String lockKey = GoodsRedisKeyConstants.getGoodsDetailUserLockKey(id);
-        boolean locked = distributedLocker.getLock(lockKey);
-        
-        try {
-            if (!locked) {
-                log.warn("获取商品详情分布式锁失败, goodsId={}", id);
-                throw new BizException(GoodsCodeEnum.LOCK_FAIL.getCode(), GoodsCodeEnum.LOCK_FAIL.getMessage());
-            }
 
-            GoodsDetailForUserVO result = loadGoodsDetailFromDB(id);
+        // 2. 缓存未命中，使用 CompletableFuture 防缓存击穿
+        //    computeIfAbsent 保证只有一个线程能创建 Future 并执行 DB 加载
+        CompletableFuture<GoodsDetailForUserVO> future = GOODS_DETAIL_LOADING_FUTURES.computeIfAbsent(id, goodsId -> {
+            return CompletableFuture.supplyAsync(() -> {
+                log.info("CompletableFuture 从 DB 加载商品详情, goodsId={}", goodsId);
+                try {
+                    return loadGoodsDetailFromDB(goodsId);
+                } catch (Exception e) {
+                    log.error("从 DB 加载商品详情异常, goodsId={}", goodsId, e);
+                    throw new BizException("从 DB 加载商品详情异常");
+                }
+            }).whenComplete((result, ex) -> {
+                // 加载完成后：写入缓存 + 清理 Future
+                GOODS_DETAIL_LOADING_FUTURES.remove(goodsId);
+                if (ex == null) {
+                    if (result == null) {
+                        // 商品不存在，缓存空值
+                        redissonCacheService.set(cacheKey, RedissonCacheService.CACHE_NULL_VALUE,
+                                GoodsRedisKeyConstants.GOODS_DETAIL_USER_NULL_EXP_TIME, TimeUnit.MINUTES);
+                    } else {
+                        // 写入正常缓存
+                        redissonCacheService.set(cacheKey, JsonUtils.toJsonString(result),
+                                GoodsRedisKeyConstants.GOODS_DETAIL_USER_EXP_TIME, TimeUnit.MINUTES);
+                    }
+                } else {
+                    log.error("商品详情异步加载异常, goodsId={}", goodsId, ex);
+                }
+            });
+        });
+
+        // 3. 阻塞等待 200ms
+        try {
+            GoodsDetailForUserVO result = future.get(200, java.util.concurrent.TimeUnit.MILLISECONDS);
             if (result == null) {
-                redissonCacheService.set(cacheKey, RedissonCacheService.CACHE_NULL_VALUE, GoodsRedisKeyConstants.GOODS_DETAIL_USER_NULL_EXP_TIME, TimeUnit.MINUTES);
-                log.info("商品不存在，缓存空值并返回降级数据, goodsId={}", id);
+                log.info("商品不存在，返回降级数据, goodsId={}", id);
                 return buildFallbackData(id);
             }
-            redissonCacheService.set(cacheKey, JsonUtils.toJsonString(result), GoodsRedisKeyConstants.GOODS_DETAIL_USER_EXP_TIME, TimeUnit.MINUTES);
-            
             return result;
-        } finally {
-            if (locked) {
-                distributedLocker.unlock(lockKey);
-            }
+        } catch (TimeoutException e) {
+            log.warn("商品详情加载超时(200ms)，返回降级数据, goodsId={}", id);
+            return buildFallbackData(id);
+        } catch (Exception e) {
+            log.error("获取商品详情异常, goodsId={}", id, e);
+            // 异常情况也从 Map 中清理，避免死锁
+            GOODS_DETAIL_LOADING_FUTURES.remove(id);
+            return buildFallbackData(id);
         }
     }
     /**

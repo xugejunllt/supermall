@@ -408,9 +408,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         dto.setShopId(orderDTO.getShopId());
         dto.setTotalAmount(totalAmount);
         dto.setCouponIds(orderDTO.getCouponIds());
-        // RpcResultParser.parseResult(welfareApiService.useMultipleCoupon(dto));
+        CalculateDiscountAmountVO amountVO = RpcResultParser.parseResult(welfareApiService.useMultipleCoupon(dto));
 
-        return new CalculateDiscountAmountVO();
+        return amountVO;
     }
 
     private DeductStockVO deductStock(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO) {

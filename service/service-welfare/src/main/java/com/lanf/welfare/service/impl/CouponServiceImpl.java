@@ -325,7 +325,10 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         String bizKey = buildUseMultipleCouponBizKey(dto.getOrderId());
 
         List<OrderCouponDO> couponDOList = new ArrayList<>();
-        tccOperationService.tryOperation(bizKey,null);
+        boolean operation = tccOperationService.tryOperation(bizKey, null);
+        if (!operation){
+            return amountResult;
+        }
         for (Long couponId : useCouponIds){
             CouponDO couponDO = couponDOMap.get(couponId);
 

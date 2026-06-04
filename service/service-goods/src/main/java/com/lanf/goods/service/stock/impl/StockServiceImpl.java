@@ -200,7 +200,11 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         /**
          * DB操作
          */
-        tccOperationService.tryOperation(bizKey, JsonUtils.toJsonString(deductStockParameterBO), goodsId1.toString());
+        boolean operation = tccOperationService.tryOperation(bizKey, JsonUtils.toJsonString(deductStockParameterBO), goodsId1.toString());
+        if (!operation) {
+            log.warn("重复冻结库存");
+            return deductStockVO;
+        }
         boolean update = this.lambdaUpdate().
                 eq(StockDO::getId, stockDO.getId()).
                 eq(StockDO::getVersion, stockDO.getVersion()).

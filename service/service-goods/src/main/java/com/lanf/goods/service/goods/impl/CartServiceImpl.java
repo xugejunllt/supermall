@@ -100,6 +100,7 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         GoodsDO goodsDO = goodsService.getById(goodsSkuDO.getGoodsId());
         Long shopId = goodsDO.getShopId();
         CartDO existingCartDO = this.lambdaQuery()
+                .eq(CartDO::getShopId, goodsDO.getShopId())
                 .eq(CartDO::getGoodsId, goodsId)
                 .eq(CartDO::getSkuCode, skuCode)
                 .eq(CartDO::getUserId, userId)

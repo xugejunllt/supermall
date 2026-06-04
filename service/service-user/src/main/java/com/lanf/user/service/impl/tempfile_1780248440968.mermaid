@@ -1,0 +1,42 @@
+flowchart TD
+    subgraph 注册流程
+        A[用户输入手机号] --> B[调用 /registerSendCode]
+        B --> C[生成验证码存入Redis]
+        C --> D[发送短信验证码]
+        D --> E[用户输入验证码+设备信息]
+        E --> F[调用 /register]
+        F --> G[校验验证码+手机号唯一性]
+        G --> H[插入 user 表]
+        H --> I[发送MQ用户注册事件]
+        I --> J[返回注册成功]
+    end
+
+    subgraph 登录流程
+        K[用户输入手机号] --> L[调用 /loginSendCode]
+        L --> M[生成验证码存入Redis]
+        M --> N[发送短信验证码]
+        N --> O[用户输入验证码+设备信息]
+        O --> P[调用 /login]
+        P --> Q[校验验证码+用户状态]
+        Q --> R[记录 user_login_log]
+        R --> S[生成JWT双Token]
+        S --> T[Token写入Redis]
+        T --> U[返回 UserTokenInfoVO]
+    end
+
+    subgraph Token刷新流程
+        V[Access Token即将过期] --> W[调用 /refreshToken]
+        W --> X[解析Refresh Token]
+        X --> Y[校验设备ID一致性]
+        Y --> Z[校验Redis缓存匹配]
+        Z --> AA[生成新双Token]
+        AA --> AB[覆盖Redis旧缓存]
+        AB --> AC[返回新Token]
+    end
+
+    subgraph 查询流程
+        AD[调用 /userDetailQuery] --> AE[从UserContext获取userId]
+        AE --> AF[查询user表]
+        AF --> AG[查询用户等级]
+        AG --> AH[返回UserDetailVO]
+    end
