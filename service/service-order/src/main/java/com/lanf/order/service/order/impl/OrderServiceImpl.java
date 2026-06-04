@@ -117,7 +117,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Transactional
     @Override
     public void createOrder(CreateOrderDTO dto) {
-        log.info("创建订单开始:{}", dto);
 
         OrderDO orderDO = OrderServiceUtils.buildOrderDO(dto);
         //单笔下单时 只有一个商品
@@ -133,14 +132,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         orderStatusTraceDO.setTenantId(dto.getTenantId());
         orderStatusTraceDO.setRemark("用户下单");
         try {
-            log.info("插入的订单信息{}",orderDO);
-            //order_number 为唯一索引 作为兜底 避免重复下单
             this.save(orderDO);
         } catch (DuplicateKeyException e) {
             log.info("订单已存在");
             return;
         }
-        log.info("插入的订单商品信息{}",orderItemDO);
         orderItemService.save(orderItemDO);
         orderStatusTraceService.save(orderStatusTraceDO);
 
