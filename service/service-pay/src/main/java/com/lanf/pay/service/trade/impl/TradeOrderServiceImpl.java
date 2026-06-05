@@ -311,6 +311,12 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             log.info("交易单状态异常");
             throw new BizException("交易单状态异常");
         }
+        Date expireTime = tradeOrderDO.getExpireTime();
+        if (expireTime.before(new Date())) {
+            log.warn("交易单已过期");
+            throw new BizException("交易单已过期");
+        }
+
 
         Integer payType = dto.getPayType();
         String orderStr = null;
@@ -418,6 +424,14 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             log.warn("交易单状态异常");
             throw new BizException("交易单状态异常");
         }
+        Date expireTime = bathTradeOrderDO.getExpireTime();
+        if (expireTime.before(new Date())) {
+            log.warn("交易单已过期");
+            throw new BizException("交易单已过期");
+        }
+
+
+
         Integer payType = dto.getPayType();
         String orderStr = null;
 
