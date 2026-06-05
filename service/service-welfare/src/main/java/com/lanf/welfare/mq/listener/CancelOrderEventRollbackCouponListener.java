@@ -1,8 +1,8 @@
 package com.lanf.welfare.mq.listener;
 
-import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.exception.BizException;
 import com.lanf.api.order.mq.constant.OrderClientTopicName;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.welfare.model.entity.CouponDO;
@@ -48,17 +48,17 @@ public class CancelOrderEventRollbackCouponListener implements RocketMQListener<
             return;
         }
         List<Long> couponIdList = couponDOList.stream().map(OrderCouponDO::getCouponId).collect(Collectors.toList());
-        List<CouponDO> couponDOList1 = couponService.lambdaQuery().in(CouponDO::getId, couponIdList).list();
+        List<CouponDO> couponDOList1 = couponService
+                .lambdaQuery()
+                .eq(CouponDO::getStatus, CouponStatusStatus.USE.getCode())
+                .in(CouponDO::getId, couponIdList).list();
         if ( couponDOList1.isEmpty()){
             log.error("用户优惠卷不存在");
             return;
         }
         for (CouponDO couponDO : couponDOList1) {
 
-            if ( !CouponStatusStatus.USE.getCode().equals(couponDO.getStatus())){
-                log.error("优惠卷状态异常");
-                return;
-            }
+
             boolean update = couponService.lambdaUpdate()
                     .eq(CouponDO::getId, couponDO.getId())
                     .eq(CouponDO::getVersion, couponDO.getVersion())
@@ -67,7 +67,7 @@ public class CancelOrderEventRollbackCouponListener implements RocketMQListener<
                     .update();
             if ( !update){
                 log.warn("优惠卷更新失败");
-                throw new BizException("优惠卷更新失败");
+                throw new MessageRetryConsumeException("优惠卷更新失败");
             }
         }
     }
