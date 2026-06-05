@@ -84,9 +84,6 @@ private static final long serialVersionUID=1L;
      */
     private Date expireTime;
 
-    /**
-     * 过期时间间隔（秒）
-     */
     private Integer expireInterval;
 
     private String passBackParams;

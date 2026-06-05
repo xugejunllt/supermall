@@ -112,13 +112,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Autowired
     private IShippingInfoService shippingInfoService;
 
-
+    @Autowired
+    private OrderServiceUtils orderServiceUtils;
 
     @Transactional
     @Override
     public void createOrder(CreateOrderDTO dto) {
 
-        OrderDO orderDO = OrderServiceUtils.buildOrderDO(dto);
+        OrderDO orderDO = orderServiceUtils.buildOrderDO(dto);
         //单笔下单时 只有一个商品
         OrderItemDTO orderItemDTO = dto.getOrderItems().get(0);
         OrderItemDO orderItemDO = BeanCopyUtils.copyBean(orderItemDTO, OrderItemDO.class);

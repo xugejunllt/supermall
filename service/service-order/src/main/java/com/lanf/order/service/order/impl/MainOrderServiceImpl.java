@@ -50,6 +50,8 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
     private IOrderService orderService;
     @Autowired
     private IOrderStatusTraceService orderStatusTraceService;
+    @Autowired
+    private OrderServiceUtils orderServiceUtils;
 
     @Transactional
     @Override
@@ -163,7 +165,7 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
     }
     private List<OrderDO> buildOrderDOList(List<CreateOrderDTO> createOrderDTOList) {
         return createOrderDTOList.stream()
-                .map(OrderServiceUtils::buildOrderDO)
+                .map(a -> orderServiceUtils.buildOrderDO(a))
                 .collect(Collectors.toList());
     }
     private List<OrderItemDO> buildOrderItemDOList(List<CreateOrderDTO> createOrderDTOList) {

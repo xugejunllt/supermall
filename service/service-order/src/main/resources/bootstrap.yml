@@ -41,3 +41,7 @@ server:
 
 express100:
   callback: 350fc4ac.nat123.fun/logistics/out/expressPush
+
+order:
+  #订单超时自动关单时间 小于支付订单超时 时间
+  expireInterval: 55

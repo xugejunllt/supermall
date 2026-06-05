@@ -7,6 +7,7 @@ import com.lanf.api.order.model.enums.OrderTypeEnum;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * <p>
@@ -79,7 +80,12 @@ public class OrderDO extends BaseEntity {
      * 售后有效期，如果多个商品不同售后期，那么取最大的
      */
     private Integer afterSaleDays;
+    /**
+     * 过期时间
+     */
+    private Date expireTime;
 
+    private Integer expireInterval;
     /**
      * 版本号
      */
