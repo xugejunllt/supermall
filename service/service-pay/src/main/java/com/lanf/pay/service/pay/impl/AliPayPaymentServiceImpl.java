@@ -159,7 +159,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
                  * 如果发生退款 进入此状态
                  */
                 TradeStatusBO tradeStatusBO = new TradeStatusBO();
-                tradeStatusBO.setTradeStatus(TradeStatusEnum.TRADE_FINISHED);
+                tradeStatusBO.setTradeStatus(TradeStatusEnum.TRADE_SUCCESS);
                 return tradeStatusBO;
             }
         } catch (Exception e) {
