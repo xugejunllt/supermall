@@ -10,6 +10,7 @@ import com.lanf.api.goods.model.vo.CalculateOrderTotalAmountVO;
 import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
+import com.lanf.api.order.model.enums.OrderTypeEnum;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.api.order.mq.message.SecKillPlaneCreateOrderSuccessMessage;
 import com.lanf.api.pay.api.PayApiService;
@@ -35,11 +36,11 @@ import com.lanf.order.model.entity.MainOrderDO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderItemDO;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
-import com.lanf.api.order.model.enums.OrderTypeEnum;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;
+import com.lanf.order.mq.constant.OrderMqTopicName;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.service.order.IMainOrderService;
 import com.lanf.order.service.order.IOrderItemService;
@@ -47,6 +48,7 @@ import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.order.IOrderStatusTraceService;
 import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
+import com.lanf.rocketmq.model.message.CancelExpiredOrderMessage;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.model.message.OrderGoodsInfo;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -61,6 +63,7 @@ import com.lanf.welfare.mq.message.SecKillPlaneMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,6 +73,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -100,7 +104,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private IMainOrderService mainOrderService;
     @Autowired
     private SecKillResultCache secKillResultCache;
-
+    @Value("${order.expireInterval}")
+    private  Long expireInterval;
     @Override
     public CalculateOrderAmountVO calculateOrderAmount(CalculateOrderAmountDTO dto) {
 
@@ -232,9 +237,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
 
-    /**
-     *
-     */
+
     @Override
     public void confirmPlaceOrder(PlaceOrderDTO orderDTO) {
         /**
@@ -387,11 +390,27 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             throw new BizException("实际支付金额不能小于0");
         }
     }
-
-    private void sendOrderCreateSuccessMessage(Long orderId, Long userId) {
+    @Transactional
+    public void sendOrderCreateSuccessMessage(Long orderId, Long userId) {
         OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
         message.setOrderId(orderId);
         message.setUserId(userId);
+
+        CancelExpiredOrderMessage message2 = new CancelExpiredOrderMessage();
+        message.setOrderId(orderId);
+        message.setUserId(userId);
+
+        /**
+         *
+         * 发送延迟 关单消息 提前5分钟
+         *
+         */
+        rocketMqClient.sendDelayMessage(OrderMqTopicName.CANCEL_EXPIRED_ORDER_TOPIC,
+                JsonUtils.toJsonString(message2), TimeUnit.MINUTES, (int) (expireInterval-5));
+
+        /**
+         * 发送订单创建成功消息
+         */
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.WAIT_PAY.getTag(), JsonUtils.toJsonString(message),
                 orderId.toString());
@@ -804,9 +823,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
                 OrderStatusEnum.CANCELLED.getTag(), JsonUtils.toJsonString(orderEventMessage),
                 orderDO.getId().toString());
 
-        if (dto.getRunnable() != null) {
-            dto.getRunnable().run();
-        }
+
         log.info("取消订单成功");
     }
 

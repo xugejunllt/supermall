@@ -9,6 +9,8 @@ public class CancelExpiredOrderMessage implements Serializable {
 
     private Long orderId;
 
-    private Integer cancelSource;
+    private Long userId;
+
+
 
 }
