@@ -16,5 +16,8 @@ public class PrepayPayTypeDO extends BaseEntity {
 
 
     private Integer payType;
-
+    /**
+     * 预支付订单信息
+     */
+    private String orderStr;
 }
