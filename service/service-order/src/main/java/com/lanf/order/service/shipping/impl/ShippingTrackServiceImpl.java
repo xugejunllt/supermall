@@ -43,7 +43,6 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
         for (AddShippingTrackBO shippingTrackBO : shippingTrackBOList) {
 
             ShippingTrackDO trackDO = getShippingTrackDO(shippingTrackBO, bo);
-            // 手动填充 MyBatis-Plus 自动字段（自定义 SQL 不走自动填充）
             trackDO.setId(IdUtils.generateId());
             trackDO.setCreateTime(now);
             trackDO.setUpdateTime(now);
