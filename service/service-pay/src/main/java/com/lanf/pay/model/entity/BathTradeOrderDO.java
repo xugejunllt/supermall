@@ -1,6 +1,7 @@
 package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import lombok.Data;
 
@@ -62,7 +63,10 @@ private static final long serialVersionUID=1L;
      * 过期时间
      */
     private Date expireTime;
-
+    /**
+     * 支付方式：0：支付宝，1：微信，2：银行卡
+     */
+    private PayChannelEnum payType;
     /**
      * 过期时间间隔
      */

@@ -9,7 +9,6 @@ import com.lanf.common.utils.*;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.finance.model.enums.RecordTypeEnum;
-import com.lanf.finance.mq.constant.FinanceClientTopicName;
 import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.pay.model.bo.CallbackResultBO;
 import com.lanf.pay.model.bo.PassbackParams;
@@ -23,6 +22,7 @@ import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -65,7 +65,7 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
             responsePayFail(dto.getResponse());
         }
     }
-
+    @Transactional
     @Override
     public PaySuccessHandleResultBO paySuccessHandleBO(PaySuccessHandleBO paySuccessHandleBO) {
         CallbackResultBO resultBO = paySuccessHandleBO.getResultBO();
@@ -80,10 +80,10 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
         try {
             passbackParams = JsonUtils.toObject(strPassbackParams, PassbackParams.class);
             boolean verified = PayServiceUtils.verifyPassbackParams(passbackParams);
-//            if (!verified) {
-//                log.error("回调参数签名异常");
-//                return new PaySuccessHandleResultBO(false);
-//            }
+            if (!verified) {
+                log.error("回调参数签名异常");
+                return new PaySuccessHandleResultBO(false);
+            }
            log.info("回调参数验证成功");
         } catch (Exception e) {
             log.error("回调处理异常",e);
@@ -116,23 +116,18 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
         PayOrderFlowDO payOrderFlowDO = buildPayOrderFlowDO(payType, resultBO);
         PayOrderFlowInsertSuccessMessage message = buildPayOrderFlowInsertSuccessMessage(resultBO, payType);
 
-
         try {
-            AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(resultBO);
 
             payOrderFlowService.save(payOrderFlowDO);
-            /**
-             * 下游业务处理
-             */
-            rocketMqClient.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC, JsonUtils.toJsonString(message));
-            /**
-             * 添加资金流水
-             */
-            rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
+
         } catch (DuplicateKeyException e) {
             log.info("支付流水已存在,重复插入");
             return new PaySuccessHandleResultBO(true);
         }
+        /**
+         * 下游业务处理
+         */
+        rocketMqClient.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC, JsonUtils.toJsonString(message));
         return new PaySuccessHandleResultBO(true);
     }
 
