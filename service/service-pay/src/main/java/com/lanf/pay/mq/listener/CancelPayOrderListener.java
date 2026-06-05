@@ -2,7 +2,6 @@ package com.lanf.pay.mq.listener;
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.pay.model.bo.CancelWaitPayOrderBO;
 import com.lanf.pay.model.bo.TradeStatusBO;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.entity.RefundOrderDO;
@@ -69,11 +68,7 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
                 return;
             case UNKNOWN:
                 log.info("取消未知状态支付订单");
-                CancelWaitPayOrderBO cancelWaitPayOrderBO = new CancelWaitPayOrderBO();
-                cancelWaitPayOrderBO.setOutTradeNo(message.getOutTradeNo());
-                cancelWaitPayOrderBO.setPayType(message.getPayType());
-                cancelWaitPayOrderBO.setCurrentPayStatus(TradeStatusEnum.UNKNOWN.getCode());
-                paymentCancelRecordService.cancelWaitPayOrder(cancelWaitPayOrderBO);
+               paymentService.cancelPendingOrder(outTradeNo);
                 return;
             case TRADE_SUCCESS:
 

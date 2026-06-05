@@ -325,7 +325,11 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             String msg = response.getMsg();
             String subMsg = response.getSubMsg();
             log.info("响应结果,code={},msg={},subMsg={}", code, msg, subMsg);
-
+            if (!"10000".equals(code)) {
+                log.warn("退款失败:outTradeNo={},code={},msg={}",
+                        outTradeNo, code, response.getSubMsg());
+                throw new MessageRetryConsumeException("退款失败");
+            }
 
         } catch (Exception e) {
             log.error("发起支付宝退款异常:outTradeNo={}", outTradeNo, e);

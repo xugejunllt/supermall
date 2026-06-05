@@ -5,16 +5,8 @@ package com.lanf.pay.mq.listener;
  */
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
-import com.lanf.constant.model.enums.pay.RefundEventTypeEnum;
-import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
-import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
-import com.lanf.constant.model.enums.FlowNoPrefixEnum;
-import com.lanf.finance.model.enums.RecordTypeEnum;
-import com.lanf.finance.mq.constant.FinanceClientTopicName;
-import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.pay.model.bo.RefundQueryResultBO;
 import com.lanf.pay.model.entity.RefundOrderDO;
 import com.lanf.pay.model.entity.RefundOrderFlowDO;
@@ -93,8 +85,6 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
         }
         RefundOrderFlowDO refundOrderFlowDO = buildRefundOrderFlowDO(refundQueryResultBO, orderDO);
 
-        BigDecimal incomeMoney = refundOrderFlowDO.getReturnMoney();
-        AddMoneyFlowMessage addMoneyFlowMessage = buildAddMoneyFlowMessage(incomeMoney, orderDO);
 
         try {
             refundOrderFlowService.save(refundOrderFlowDO);
@@ -113,10 +103,6 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
             log.warn("更新退款单失败");
             throw new MessageRetryConsumeException("更新退款单失败");
         }
-            /**
-             * 插入资金流水
-             */
-            rocketMqClient.sendMessage(FinanceClientTopicName.MONEY_FLOW_RECORD_TOPIC, JsonUtils.toJsonString(addMoneyFlowMessage));
 
     }
 
@@ -141,33 +127,6 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
     }
 
 
-    private AddMoneyFlowMessage buildAddMoneyFlowMessage(BigDecimal incomeMoney, RefundOrderDO orderDO) {
-
-
-        RefundEventTypeEnum refundEventType = orderDO.getRefundEventType();
-        RecordTypeEnum recordTypeEnum = null;
-
-        if (refundEventType
-
-                .equals(RefundEventTypeEnum.CANCEL_PAID_ORDER)) {
-            recordTypeEnum = RecordTypeEnum.CANCEL_ORDER_REFUND;
-
-        } else if (refundEventType
-                .equals(RefundEventTypeEnum.AFTER_SALES_REFUND)) {
-            recordTypeEnum = RecordTypeEnum.AFTER_SALES_REFUND;
-        } else {
-            log.error("退款事件类型异常");
-            throw new BizException("退款事件类型异常");
-        }
-        AddMoneyFlowMessage moneyFlowMessage = new AddMoneyFlowMessage();
-        moneyFlowMessage.setIncomeMoney(incomeMoney);
-        moneyFlowMessage.setRecordType(recordTypeEnum);
-        moneyFlowMessage.setFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.MONEY_FLOW, orderDO.getId().toString()));
-        moneyFlowMessage.setTenantId(Constants.PLATFORM_BUSINESS_ID);
-        moneyFlowMessage.setBizOrderId(orderDO.getBizOrderId());
-
-        return moneyFlowMessage;
-    }
 
 
 }
