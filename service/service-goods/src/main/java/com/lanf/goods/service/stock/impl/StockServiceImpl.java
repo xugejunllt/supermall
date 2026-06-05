@@ -824,7 +824,6 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery()
                 .eq(UserStockFlowDO::getGoodsId, orderGoodsInfo.getGoodsId())
                 .eq(UserStockFlowDO::getFlowNo, flowNo)
-                .eq(UserStockFlowDO::getGoodsId, orderGoodsInfo.getGoodsId())
                 .one();
         if (stockFlowDO != null) {
             log.warn("库存已回滚");

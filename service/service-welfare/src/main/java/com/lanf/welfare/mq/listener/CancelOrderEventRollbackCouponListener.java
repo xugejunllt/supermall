@@ -1,7 +1,7 @@
 package com.lanf.welfare.mq.listener;
 
-import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
@@ -26,7 +26,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@RocketMQMessageListener(topic = OrderClientTopicName.ORDER_CANCEL_EVENT_TOPIC, consumerGroup = TopicName.CANCEL_ORDER_EVENT_WELFARE_GROUP)
+@RocketMQMessageListener(topic = OrderTopicWithTag.ORDER_EVENT_TOPIC,
+        consumerGroup = TopicName.CANCEL_ORDER_EVENT_WELFARE_GROUP,
+        selectorExpression = OrderTopicWithTag.TAG_CANCELLED
+
+)
 public class CancelOrderEventRollbackCouponListener implements RocketMQListener<CancelOrderEventMessage> {
 
     @Autowired
@@ -53,7 +57,7 @@ public class CancelOrderEventRollbackCouponListener implements RocketMQListener<
                 .eq(CouponDO::getStatus, CouponStatusStatus.USE.getCode())
                 .in(CouponDO::getId, couponIdList).list();
         if ( couponDOList1.isEmpty()){
-            log.error("用户优惠卷不存在");
+            log.warn("用户优惠卷不存在");
             return;
         }
         for (CouponDO couponDO : couponDOList1) {
