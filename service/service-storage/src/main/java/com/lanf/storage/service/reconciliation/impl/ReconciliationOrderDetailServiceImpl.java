@@ -1,10 +1,27 @@
 package com.lanf.storage.service.reconciliation.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.goods.api.GoodsApiService;
+import com.lanf.api.goods.model.query.ReconciliationStockFlowQuery;
+import com.lanf.api.goods.model.vo.ReconciliationStockFlowVO;
+import com.lanf.api.order.api.OrderApiService;
+import com.lanf.api.order.model.query.ReconciliationOrderItemQuery;
+import com.lanf.api.order.model.vo.ReconciliationOrderItem;
+import com.lanf.api.order.model.vo.ReconciliationOrderItemVO;
+import com.lanf.api.storage.model.enums.ReconciliationOrderStatusEnum;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.constant.result.RpcResultParser;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.storage.mapper.ReconciliationOrderDetailMapper;
+import com.lanf.storage.model.bo.AddReconciliationOrderDetailBO;
 import com.lanf.storage.model.entity.ReconciliationOrderDetailDO;
 import com.lanf.storage.service.reconciliation.IReconciliationOrderDetailService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * <p>
@@ -16,5 +33,73 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ReconciliationOrderDetailServiceImpl extends ServiceImpl<ReconciliationOrderDetailMapper, ReconciliationOrderDetailDO> implements IReconciliationOrderDetailService {
+    @Autowired
+    private OrderApiService orderApiService;
 
+    @Autowired
+    private GoodsApiService goodsApiService;
+
+
+    @Override
+    public void addReconciliationOrderDetail(AddReconciliationOrderDetailBO bo) {
+        Long orderId = bo.getOrderId();
+        ReconciliationOrderItemQuery query = new ReconciliationOrderItemQuery();
+        query.setOrderId(orderId);
+        query.setOrderStatus(bo.getToOrderStatus());
+
+        OrderStatusEnum orderStatus = bo.getToOrderStatus();
+        ReconciliationOrderStatusEnum reconciliationOrderStatus = null;
+        switch (orderStatus) {
+            case WAIT_PAY:
+                reconciliationOrderStatus = ReconciliationOrderStatusEnum.PENDING_OUTBOUND;
+                break;
+            case OUTBOUNDED:
+                reconciliationOrderStatus = ReconciliationOrderStatusEnum.OUTBOUNDED;
+                break;
+            case CANCELLED:
+                reconciliationOrderStatus = ReconciliationOrderStatusEnum.CANCELLED;
+                break;
+
+        }
+        ReconciliationOrderDetailDO oned = this.lambdaQuery()
+                .eq(ReconciliationOrderDetailDO::getOrderId, orderId)
+                .eq(ReconciliationOrderDetailDO::getOrderStatus, reconciliationOrderStatus)
+                .one();
+        if (oned != null) {
+            log.warn("订单入库单已存在");
+            return;
+        }
+        ReconciliationOrderItemVO parseResult = null;
+        try {
+            parseResult = RpcResultParser.parseResult(orderApiService.reconciliationOrderItemQuery(query));
+        } catch (Exception e) {
+            throw new MessageRetryConsumeException("查询订单轨迹异常");
+        }
+
+        ReconciliationStockFlowQuery query2 = new ReconciliationStockFlowQuery();
+        query2.setOrderId(orderId);
+        query2.setUserStockFlowEventType(bo.getUserStockFlowEventType());
+        ReconciliationStockFlowVO flowVO = null;
+        try {
+            flowVO = RpcResultParser.parseResult(goodsApiService.reconciliationStockFlowQuery(query2));
+        } catch (Exception e) {
+            log.warn("查询库存流水异常");
+            throw new MessageRetryConsumeException(" 查询库存流水异常");
+        }
+
+
+        List<ReconciliationOrderItem> orderItemVOS = parseResult.getOrderItemVOS();
+        ReconciliationOrderDetailDO reconciliationOrderDetailDO = new ReconciliationOrderDetailDO();
+        reconciliationOrderDetailDO.setOrderId(orderId);
+        reconciliationOrderDetailDO.setOrderStatus(reconciliationOrderStatus);
+        reconciliationOrderDetailDO.setOrderItems(JsonUtils.toJsonString(orderItemVOS));
+        reconciliationOrderDetailDO.setBathId(parseResult.getCreateDate());
+        reconciliationOrderDetailDO.setStockFlows(JsonUtils.toJsonString(flowVO.getReconciliationStockFlowList()));
+
+        try {
+            this.save(reconciliationOrderDetailDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("库存对账单已存在");
+        }
+    }
 }

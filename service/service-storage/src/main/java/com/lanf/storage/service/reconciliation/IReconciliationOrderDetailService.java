@@ -1,6 +1,7 @@
 package com.lanf.storage.service.reconciliation;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.storage.model.bo.AddReconciliationOrderDetailBO;
 import com.lanf.storage.model.entity.ReconciliationOrderDetailDO;
 
 /**
@@ -12,5 +13,8 @@ import com.lanf.storage.model.entity.ReconciliationOrderDetailDO;
  * @since 2026-05-06
  */
 public interface IReconciliationOrderDetailService extends IService<ReconciliationOrderDetailDO> {
+
+
+    void addReconciliationOrderDetail(AddReconciliationOrderDetailBO bo);
 
 }

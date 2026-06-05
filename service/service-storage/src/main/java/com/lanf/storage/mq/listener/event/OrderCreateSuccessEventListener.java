@@ -1,12 +1,13 @@
 package com.lanf.storage.mq.listener.event;
 
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
-import com.lanf.api.storage.mq.message.AddReconciliationOrderDetail;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.storage.model.bo.AddReconciliationOrderDetailBO;
 import com.lanf.storage.mq.constant.StorageMqGroupName;
+import com.lanf.storage.service.reconciliation.IReconciliationOrderDetailService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -28,22 +29,18 @@ import org.springframework.stereotype.Component;
 public class OrderCreateSuccessEventListener implements RocketMQListener<OrderCreateSuccessMessage> {
 
      @Autowired
-     private RocketMqClient rocketMqClient;
+     private IReconciliationOrderDetailService reconciliationOrderDetailService;
 
 
      @Override
      public void onMessage(OrderCreateSuccessMessage message) {
 
-          AddReconciliationOrderDetail message2 = new AddReconciliationOrderDetail();
-          message2.setOrderId(message.getOrderId());
-          message2.setToOrderStatus(OrderStatusEnum.WAIT_PAY);
-          message2.setUserStockFlowEventType(UserStockFlowEventTypeEnum.ORDER_OUTBOUND);
-//          /**
-//           * 发送延迟消息 10 分钟 下游数据可能还没有插入成功
-//           */
-//          rocketMqClient.sendDelayMessage(StorageClientTopicName.ADD_RECONCILIATION_ORDER_TOPIC,
-//                  JsonUtils.toJsonString(message2), DelayLevelEnum.LEVEL_14);
-
+          log.info("订单创建成功消息,添加订单对账单:{}", JsonUtils.toJsonString(message));
+          AddReconciliationOrderDetailBO bo = new AddReconciliationOrderDetailBO();
+          bo.setOrderId(message.getOrderId());
+          bo.setToOrderStatus(OrderStatusEnum.WAIT_PAY);
+          bo.setUserStockFlowEventType(UserStockFlowEventTypeEnum.ORDER_OUTBOUND);
+          reconciliationOrderDetailService.addReconciliationOrderDetail(bo);
 
 
      }
