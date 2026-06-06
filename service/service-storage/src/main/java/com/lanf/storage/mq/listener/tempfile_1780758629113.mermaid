@@ -1,0 +1,12 @@
+flowchart LR
+    subgraph PENDING_OUTBOUND
+        A[仅检查<br/>USER_STOCK_FLOW_MISSING]
+    end
+    
+    subgraph OUTBOUNDED
+        B[检查全部四种差异]
+    end
+    
+    subgraph CANCELLED
+        C[检查库存是否已释放]
+    end

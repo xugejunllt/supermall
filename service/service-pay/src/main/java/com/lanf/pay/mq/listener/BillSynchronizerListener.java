@@ -92,9 +92,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
 
         }
 
-        /**
-         * 这里继续优化 先下载 下载完成 解析账单
-         */
+
         Integer code = message.getPayChannel().getCode();
         PaymentService paymentService = paymentServiceFactory.getPaymentService(code);
 
