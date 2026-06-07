@@ -14,6 +14,7 @@ import com.lanf.api.goods.model.vo.StockPageVO;
 import com.lanf.api.user.api.UserCacheService;
 import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
@@ -43,7 +44,10 @@ import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.hmily.annotation.HmilyTCC;
+import org.dromara.hmily.core.context.HmilyContextHolder;
+import org.dromara.hmily.core.context.HmilyTransactionContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -51,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -81,6 +86,10 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
 
     @Autowired
     private IShopService shopService;
+    @Autowired
+    @Qualifier("stockDeductExecutor")
+    private ExecutorService stockDeductExecutor;
+
 
     @Transactional
     @HmilyTCC(confirmMethod = "confirmDeductStock", cancelMethod = "cancelDeductStock")
@@ -93,14 +102,57 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @HmilyTCC(confirmMethod = "confirmBathDeductStock", cancelMethod = "cancelBathDeductStock")
     @Override
     public void bathDeductStock(BathDeductStockDTO deductStockDTO) {
-        log.info("批量冻结库存");
-        /**
-         * 只能使用 同步调用
-         */
-        for (DeductStockDTO dto : deductStockDTO.getDeductStockDTOList()) {
-            deductStock(dto, false);
+        log.info("批量冻结库存，并行扣减");
+
+        List<DeductStockDTO> dtoList = deductStockDTO.getDeductStockDTOList();
+        if (dtoList == null || dtoList.isEmpty()) {
+            return;
+        }
+
+        // ⭐ 获取当前 Hmily 上下文，用于传递到子线程
+        HmilyTransactionContext parentContext = HmilyContextHolder.get();
+        IStockService iStockService = BeanUtil.getBean(IStockService.class);
+        // ⭐ 并行提交所有扣减任务
+        List<CompletableFuture<Void>> futures = dtoList.stream()
+                .map(dto -> CompletableFuture.runAsync(() -> {
+                    // 子线程传递 Hmily 上下文（TCC 事务一致性必需）
+                    if (parentContext != null) {
+                        HmilyContextHolder.set(parentContext);
+                    }
+                    try {
+                        iStockService.deductStock(dto, false);  // 执行原有单条扣减
+                    } finally {
+                        if (parentContext != null) {
+                            HmilyContextHolder.remove();
+                        }
+                    }
+                }, stockDeductExecutor))
+                .collect(Collectors.toList());
+
+        // ⭐ 等待所有任务完成，超时 200ms
+        try {
+            CompletableFuture<Void> allFuture = CompletableFuture.allOf(
+                    futures.toArray(new CompletableFuture[0])
+            );
+            allFuture.get(200, TimeUnit.MILLISECONDS);  // ⭐ 超时 100ms
+
+        } catch (TimeoutException e) {
+            // ⭐ 超时：取消未完成的任务
+            futures.forEach(f -> f.cancel(true));
+            log.error("批量扣减库存超时，已取消所有任务");
+            throw new BizException("批量扣减库存超时，请稍后重试");
+
+        } catch (ExecutionException e) {
+            // 任一任务执行失败
+            log.error("批量扣减库存失败", e.getCause());
+            throw new BizException("批量扣减库存失败: " + e.getCause().getMessage());
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BizException("批量扣减库存被中断");
         }
     }
+
 
     /**
      * 可以发送给消息队列 异步处理
@@ -108,8 +160,11 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @Override
     public void confirmBathDeductStock(BathDeductStockDTO deductStockDTO) {
         log.info("批量扣减库存");
+
+        IStockService iStockService = BeanUtil.getBean(IStockService.class);
+
         for (DeductStockDTO dto : deductStockDTO.getDeductStockDTOList()) {
-            confirmDeductStock(dto);
+            iStockService.confirmDeductStock(dto);
         }
 
     }
@@ -120,8 +175,10 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @Override
     public void cancelBathDeductStock(BathDeductStockDTO deductStockDTO) {
         log.info("批量回滚库存");
+        IStockService iStockService = BeanUtil.getBean(IStockService.class);
+
         for (DeductStockDTO dto : deductStockDTO.getDeductStockDTOList()) {
-            cancelDeductStock(dto);
+            iStockService.cancelDeductStock(dto);
         }
 
     }
