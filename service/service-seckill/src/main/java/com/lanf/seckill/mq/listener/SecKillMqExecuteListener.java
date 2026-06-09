@@ -128,8 +128,7 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
             if (!updated) {
                 //7.1.4 乐观锁更新失败，标记为已售罄，抛异常触发RocketMQ重试（默认3次）
                 log.warn("更新秒杀商品失败,秒杀失败");
-                secKillResultCache.addResult(message.getUserId(), message.getSecKillItemId(),
-                        SecKillResultEnum.SOLD_OUT);
+
                 throw new MessageRetryConsumeException("更新秒杀商品失败,秒杀失败");
             }
 

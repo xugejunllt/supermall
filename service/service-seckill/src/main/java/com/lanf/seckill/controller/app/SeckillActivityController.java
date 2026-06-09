@@ -95,9 +95,6 @@ public class SeckillActivityController {
             case SUCCESS_ORDER_CREATING:
                 message = "订单生成中,请稍后再试";
                 break;
-            case FAILED:
-                message = "系统繁忙,请联系客服处理";
-                break;
             case SOLD_OUT:
                 message = "秒杀失败,商品已售空";
                 break;

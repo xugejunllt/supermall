@@ -10,8 +10,7 @@ public enum SecKillResultEnum {
 
     SUCCESS_ORDER_CREATING(0, "秒杀成功，订单生成中"),
     SUCCESS_ORDER_CREATED(1, "订单生成完成"),
-    FAILED(2, "秒杀失败"),
-    SOLD_OUT(3, "商品已售罄");
+    SOLD_OUT(2, "商品已售罄");
     @EnumValue
     private final Integer code;
     private final String name;
