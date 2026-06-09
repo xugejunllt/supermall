@@ -860,6 +860,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return orderGoodsInfoList;
     }
 
+    @Transactional
     @HmilyTCC(confirmMethod = "confirmCreateSecKillOrder", cancelMethod = "cancelCreateSecKillOrder")
     @Override
     public void createSecKillOrder(SecKillPlaneMessage message) {
@@ -906,6 +907,15 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
         orderStatusTraceDO.setTenantId(message.getTenantId());
         orderStatusTraceDO.setUserId(message.getUserId());
+
+        //创建交易单
+        CreateTradeOrderDTO dto = new CreateTradeOrderDTO();
+        dto.setUserId(message.getUserId());
+        dto.setOrderId(message.getOrderId());
+        dto.setTradeMoney(totalMoney);
+        dto.setOrderNumber(message.getOrderNumber());
+        RpcResultParser.parseResult(payApiService.createPayOrder(dto));
+
         try {
             orderService.save(orderDO);
         } catch (DuplicateKeyException e) {
@@ -914,13 +924,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         }
         orderItemService.save(orderItemDO);
         orderStatusTraceService.save(orderStatusTraceDO);
-        //创建交易单
-        CreateTradeOrderDTO dto = new CreateTradeOrderDTO();
-        dto.setUserId(message.getUserId());
-        dto.setOrderId(message.getOrderId());
-        dto.setTradeMoney(totalMoney);
-        dto.setOrderNumber(message.getOrderNumber());
-        RpcResultParser.parseResult(payApiService.createPayOrder(dto));
+
 
     }
 
