@@ -66,7 +66,7 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
 
         Integer beforeQuantity = stockDO.getUsableStock() + stockDO.getLockStock();
         Integer afterQuantity = beforeQuantity - message.getQuantity();
-        Integer updateUsableStock = stockDO.getUsableStock() - message.getQuantity();
+        Integer updateLockStock = stockDO.getLockStock() - message.getQuantity();
         UserStockFlowDO userStockFlowDO = new UserStockFlowDO();
         userStockFlowDO.setGoodsId(message.getGoodsId());
         userStockFlowDO.setFlowNo(flowNo);
@@ -86,7 +86,7 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
             return;
         }
         boolean update = stockService.lambdaUpdate()
-                .set(StockDO::getUsableStock, updateUsableStock)
+                .set(StockDO::getLockStock, updateLockStock)
                 .set(StockDO::getVersion, stockDO.getVersion()+1)
                 .eq(StockDO::getId, stockDO.getId())
                 .eq(StockDO::getVersion, stockDO.getVersion())
