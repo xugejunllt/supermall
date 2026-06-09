@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-@MapperScan(basePackages = {"com.lanf.seckill.mapper"})
+@MapperScan(basePackages = {"com.lanf.seckill.mapper","com.lanf.tcc.mapper"})
 @SpringBootApplication(scanBasePackages="com.lanf")
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = {"com.lanf.api.goods"})

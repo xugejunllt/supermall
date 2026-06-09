@@ -29,9 +29,11 @@ import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.seckill.service.ISecKillItemService;
 import com.lanf.web.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.hmily.annotation.HmilyTCC;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -123,7 +125,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         this.save(seckillActivityDO);
 
     }
-
+    @HmilyTCC(confirmMethod = "confirmAddAddSeckillItem", cancelMethod = "cancelAddAddSeckillItem")
     @Override
     public void addAddSeckillItem(AddSeckillItemDTO dto) {
 
@@ -136,7 +138,25 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
             log.error("活动不存在");
             throw new BizException("活动不存在");
         }
+        //冻结库存
+        seckillStockPreoccupation( dto);
 
+    }
+
+
+    private void seckillStockPreoccupation(AddSeckillItemDTO dto) {
+        SeckillStockPreoccupationDTO stockPreoccupationDTO = new SeckillStockPreoccupationDTO();
+        stockPreoccupationDTO.setBizKeyPrx(dto.getOrderNumber());
+        stockPreoccupationDTO.setSkuCode(dto.getSkuCode());
+        stockPreoccupationDTO.setWarehouseId(dto.getWarehouseId());
+        stockPreoccupationDTO.setPreQuantity(dto.getTotalStock());
+        stockPreoccupationDTO.setGoodsId(dto.getItemId());
+        RpcResultParser.parseResult(goodsApiService.seckillStockPreoccupation(stockPreoccupationDTO));
+    }
+
+
+
+    public void  confirmAddAddSeckillItem(AddSeckillItemDTO dto){
         SecKillItemDO seckillItemDO = new SecKillItemDO();
         seckillItemDO.setActivityId(dto.getActivityId());
         seckillItemDO.setItemId(dto.getItemId());
@@ -166,26 +186,17 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         seckillItemDO.setRemainingStock(dto.getTotalStock());
         seckillItemDO.setShopName(dto.getShopName());
 
-        seckillItemService.save(seckillItemDO);
+        try {
+            seckillItemService.save(seckillItemDO);
+        } catch (DuplicateKeyException e) {
+           log.warn("重复插入");
+        }
+
+    }
+    public void  cancelAddAddSeckillItem(AddSeckillItemDTO dto){
 
 
     }
-
-
-    private void seckillStockPreoccupation(AddSeckillItemDTO dto) {
-        SeckillStockPreoccupationDTO stockPreoccupationDTO = new SeckillStockPreoccupationDTO();
-        stockPreoccupationDTO.setBizKeyPrx(dto.getOrderNumber());
-        stockPreoccupationDTO.setSkuCode(dto.getSkuCode());
-        stockPreoccupationDTO.setWarehouseId(dto.getWarehouseId());
-        stockPreoccupationDTO.setPreQuantity(dto.getTotalStock());
-        stockPreoccupationDTO.setGoodsId(dto.getItemId());
-        RpcResultParser.parseResult(goodsApiService.seckillStockPreoccupation(stockPreoccupationDTO));
-    }
-
-    private String buidSeckillItemKey(String bizKeyPrx) {
-        return bizKeyPrx + "_" + "addAddSeckillItem";
-    }
-
 
     @Override
     public void launcherSeckillItem(LauncherSeckillItemDTO itemDTO) {
