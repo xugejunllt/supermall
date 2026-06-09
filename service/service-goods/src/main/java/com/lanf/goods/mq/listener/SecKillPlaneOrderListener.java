@@ -64,6 +64,14 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
                 message.getSkuCode() + ":" + message.getOrderNumber() + ":" +
                 UserStockFlowEventTypeEnum.ORDER_OUTBOUND.getCode();
 
+        UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery()
+                .eq(UserStockFlowDO::getFlowNo, flowNo)
+                .one();
+        if (stockFlowDO != null) {
+            log.warn("库存流水已添加");
+            return;
+        }
+
         Integer beforeQuantity = stockDO.getUsableStock() + stockDO.getLockStock();
         Integer afterQuantity = beforeQuantity - message.getQuantity();
         Integer updateLockStock = stockDO.getLockStock() - message.getQuantity();
