@@ -16,10 +16,7 @@ public class SecKillPlaneCreateOrderSuccessMessage implements Serializable {
     private Long userId;
 
     private BigDecimal tradeMoney;
-    /**
-     * 库存流水号
-     */
-    private String stockFlowNo;
+
 
     private String skuCode;
 

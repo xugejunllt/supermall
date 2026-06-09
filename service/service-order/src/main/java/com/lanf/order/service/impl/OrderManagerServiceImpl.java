@@ -22,7 +22,6 @@ import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
-import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.result.RpcResultParser;
@@ -893,8 +892,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         successMessage.setOrderNumber(message.getOrderNumber());
         successMessage.setUserId(message.getUserId());
         successMessage.setTradeMoney(totalMoney);
-        successMessage.setStockFlowNo(CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.STOCK_FLOW,
-                message.getOrderNumber()));
         successMessage.setSkuCode(message.getSkuCode());
         successMessage.setWarehouseId(message.getWarehouseId());
         successMessage.setQuantity(message.getQuantity());
