@@ -956,5 +956,21 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     public void cancelCreateSecKillOrder(SecKillPlaneMessage message) {
 
+        Long userId = message.getUserId();
+        Long orderId = message.getOrderId();
+
+        orderService.lambdaUpdate()
+                .eq(OrderDO::getUserId,userId)
+                .eq(OrderDO::getId, orderId)
+                .remove();
+        orderItemService.lambdaUpdate()
+                .eq(OrderItemDO::getUserId, userId)
+                .eq(OrderItemDO::getOrderId, orderId)
+                .remove();
+        orderStatusTraceService.lambdaUpdate()
+                .eq(OrderStatusTraceDO::getOrderId, userId)
+                .eq(OrderStatusTraceDO::getUserId, orderId)
+                .remove();
+
     }
 }
