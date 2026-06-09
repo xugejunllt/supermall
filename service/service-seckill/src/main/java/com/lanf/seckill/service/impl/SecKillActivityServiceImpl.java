@@ -127,7 +127,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
     }
     @HmilyTCC(confirmMethod = "confirmAddAddSeckillItem", cancelMethod = "cancelAddAddSeckillItem")
     @Override
-    public void addAddSeckillItem(AddSeckillItemDTO dto) {
+    public void addSeckillItem(AddSeckillItemDTO dto) {
 
         Long activityId = dto.getActivityId();
         SecKillActivityDO one = this.lambdaQuery()

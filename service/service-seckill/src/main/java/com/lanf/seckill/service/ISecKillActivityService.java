@@ -33,7 +33,7 @@ public interface ISecKillActivityService extends IService<SecKillActivityDO> {
      * 添加秒杀商品
      *
      */
-    void addAddSeckillItem(AddSeckillItemDTO dto);
+    void addSeckillItem(AddSeckillItemDTO dto);
 
     /**
      * 上架秒杀商品

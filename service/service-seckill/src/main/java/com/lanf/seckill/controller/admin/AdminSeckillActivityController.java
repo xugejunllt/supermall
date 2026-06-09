@@ -51,7 +51,7 @@ public class AdminSeckillActivityController {
         log.info("添加秒杀商品: dto={}", dto);
 
 
-        seckillActivityService.addAddSeckillItem(dto);
+        seckillActivityService.addSeckillItem(dto);
         return Result.ok();
 
     }
