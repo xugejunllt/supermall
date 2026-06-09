@@ -587,6 +587,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
                 .eq(StockDO::getId, one.getId())
                 .eq(StockDO::getGoodsId, dto.getGoodsId())
                 .set(StockDO::getUsableStock, usableStock + preQuantity)
+                .set(StockDO::getLockStock, one.getLockStock()-preQuantity)
                 .set(StockDO::getVersion, one.getVersion() + 1)
                 .update();
         if (!update) {
