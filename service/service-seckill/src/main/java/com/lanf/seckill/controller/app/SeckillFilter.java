@@ -127,6 +127,14 @@ public class SeckillFilter implements Filter {
             return;
         }
         String tokenKey = String.format(SECKILL_TOKEN_KEY_PRX, userId, skillItemId);
+        if ( !token.equals(redissonCacheService.get(tokenKey))) {
+            /**
+             * 与缓存token不一致 或者已经失效了
+             */
+            log.warn("token已失效或与缓存不一致");
+            ResponseUtil.outFail(response, Result.fail(100004, "太火爆了，再试一次"));
+            return;
+        }
         //每个token只能使用一次
         redissonCacheService.delete(tokenKey);
 

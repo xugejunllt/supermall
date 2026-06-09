@@ -134,7 +134,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
             CompletableFuture<Void> allFuture = CompletableFuture.allOf(
                     futures.toArray(new CompletableFuture[0])
             );
-            allFuture.get(200, TimeUnit.MILLISECONDS);  // ⭐ 超时 100ms
+            allFuture.get(200, TimeUnit.MILLISECONDS);  // ⭐ 超时 200ms
 
         } catch (TimeoutException e) {
             // ⭐ 超时：取消未完成的任务
