@@ -62,7 +62,7 @@ public class JwtUtils {
      * @param expTime 分钟
      * @return JWT Token
      */
-    public static String createTokenForUserWithMinutes(Long userId, String deviceId, long expTime) {
+    public static String createTokenForUserWithMinutes(Long userId, String deviceId, long expTime,String signKey) {
         //1.生成AES密钥作为signing key
         String signingKey = STATIC_SIGN_KEY_MANAGER.generateAesKeyBase64Only();
         //2.转换成分钟
@@ -73,7 +73,7 @@ public class JwtUtils {
                 .setSubject(SUBJECT_AUTH_USER)
                 .setExpiration(new Date(expTime))
                 .claim(CLAIM_USER_ID, userId.toString())
-                .claim(CLAIM_SIGNING_KEY, signingKey)
+                .claim(CLAIM_SIGNING_KEY, signKey)
                 .claim(CLAIM_DEVICE_ID, deviceId)
                 .signWith(SignatureAlgorithm.HS512, TOKEN_SIGN_KEY)
                 .compressWith(CompressionCodecs.GZIP)

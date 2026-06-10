@@ -53,7 +53,7 @@ public class SignTest {
 
             //1.生成Token
             log.info("步骤1：生成Token");
-            String token = JwtUtils.createTokenForUserWithMinutes(999L, "test-device", 3);
+            String token = JwtUtils.createTokenForUserWithMinutes(999L, "test-device", 3,null);
             log.info("Token长度: {}", token.length());
             JwtTokenInfo jwtTokenInfo = JwtUtils.parseUserToken(token);
              log.info("signingKey: {}", jwtTokenInfo.getExpTime());
@@ -415,13 +415,14 @@ public class SignTest {
     public void testSignWithLogin() {
         try {
             log.info("========== 开始执行【需要登录】的签名测试 ==========");
+            String signKey = signKeyManager.generateAesKeyBase64Only();
 
             // 1. 生成 JWT Token（模拟登录成功）
             log.info("步骤1：生成JWT Token（模拟登录）");
             Long userId = 1L;
             String deviceId = "test-device-001";
             long expMinutes = 30;
-            String token = JwtUtils.createTokenForUserWithMinutes(userId, deviceId, expMinutes);
+            String token = JwtUtils.createTokenForUserWithMinutes(userId, deviceId, expMinutes, signKey);
             log.info("Token生成成功, 长度: {}", token.length());
 
             // 2. 解析 Token 获取 signingKey

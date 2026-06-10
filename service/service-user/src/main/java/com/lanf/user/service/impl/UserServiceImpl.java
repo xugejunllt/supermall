@@ -36,6 +36,7 @@ import com.lanf.web.auth.RequestAuthExtractor;
 import com.lanf.web.model.bo.AuthRequestInfo;
 import com.lanf.web.model.bo.JwtTokenInfo;
 import com.lanf.web.security.keygen.RsaEncryptKeyManager;
+import com.lanf.web.security.keygen.SignKeyManager;
 import com.lanf.web.utils.IpUtil;
 import com.lanf.web.utils.JwtUtils;
 import com.lanf.web.utils.WebUtil;
@@ -50,6 +51,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static com.lanf.web.utils.JwtUtils.STATIC_SIGN_KEY_MANAGER;
 
 /**
  * <p>
@@ -86,6 +89,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     @Value("${token.user.refreshTokenExpMinutes:1000000000}")
     private Long refreshTokenExpMinutes;
+    @Autowired
+    private SignKeyManager signKeyManager;
+
 
     @Override
     @DistributedLock(key = "#dto.phoneNumber")
@@ -253,9 +259,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
         String deviceId = authRequestInfo.getDeviceId();
         String channel = authRequestInfo.getChannel();
-
-        String accessToken = JwtUtils.createTokenForUserWithMinutes(userId, deviceId, accessTokenExpMinutes);
-        String refreshToken = JwtUtils.createTokenForUserWithMinutes(userId, deviceId, refreshTokenExpMinutes);
+        String signKey = signKeyManager.generateAesKeyBase64Only();
+        String accessToken = JwtUtils.createTokenForUserWithMinutes(userId, deviceId, accessTokenExpMinutes,signKey);
+        String refreshToken = JwtUtils.createTokenForUserWithMinutes(userId, deviceId, refreshTokenExpMinutes,signKey);
 
         String accessKey = String.format(RedisKeyConstants.USER_ACCESS_TOKEN, userId, channel);
         String refreshKey = String.format(RedisKeyConstants.USER_REFRESH_TOKEN, userId, channel);
@@ -273,7 +279,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         // 返回毫秒
         tokenInfo.setAccessTokenExp(DateUtils.getExpireTimestampFromMinutes(accessTokenExpMinutes));
         tokenInfo.setRefreshTokenExp(DateUtils.getExpireTimestampFromMinutes(refreshTokenExpMinutes));
-
+        tokenInfo.setSignKey(signKey);
         return tokenInfo;
     }
 

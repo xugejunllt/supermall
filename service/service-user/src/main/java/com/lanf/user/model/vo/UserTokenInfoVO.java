@@ -16,4 +16,6 @@ public class UserTokenInfoVO {
     private Long accessTokenExp;
     
     private Long refreshTokenExp;
+
+    private String signKey;
 }
