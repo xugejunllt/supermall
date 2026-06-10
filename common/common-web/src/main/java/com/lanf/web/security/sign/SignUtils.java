@@ -2,24 +2,23 @@ package com.lanf.web.security.sign;
 
 
 import com.lanf.constant.exception.BizException;
-import com.lanf.web.security.encrypt.AesEncryptUtils;
-import com.lanf.web.security.keygen.RsaEncryptKeyManager;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * AES签名工具类
+ * HMAC-SHA256签名工具类
  */
 @Slf4j
 @Component
 public class SignUtils {
 
-    @Autowired
-    private RsaEncryptKeyManager publicKeyManager;
+    private static final String HMAC_ALGORITHM = "HmacSHA256";
 
     /**
      * 对参数进行排序并生成签名字符串
@@ -40,13 +39,40 @@ public class SignUtils {
     }
 
     /**
+     * 使用HMAC-SHA256生成签名
+     *
+     * @param keyBytes    对称签名密钥（字节数组）
+     * @param signString 待签名字符串
+     * @return Base64编码的签名值
+     */
+    public String generateSign(byte[] keyBytes, String signString) {
+        if (keyBytes == null || keyBytes.length == 0) {
+            throw new BizException("签名密钥不能为空");
+        }
+        if (signString == null || signString.isEmpty()) {
+            throw new BizException("待签名字符串不能为空");
+        }
+
+        try {
+            SecretKeySpec keySpec = new SecretKeySpec(keyBytes, HMAC_ALGORITHM);
+            Mac mac = Mac.getInstance(HMAC_ALGORITHM);
+            mac.init(keySpec);
+            byte[] hash = mac.doFinal(signString.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (Exception e) {
+            log.error("HMAC-SHA256签名生成失败", e);
+            throw new BizException("签名生成失败");
+        }
+    }
+
+    /**
      * 验证签名
-     * 
-     * @param params 参数Map（包含sign字段）
+     *
+     * @param keyBytes 对称签名密钥（字节数组）
+     * @param params   参数Map（包含sign字段）
      * @return true-验证通过，false-验证失败
      */
-    public boolean verifySign(byte[] aesKeyBytes, Map<String, Object> params) {
-
+    public boolean verifySign(byte[] keyBytes, Map<String, Object> params) {
 
         if (params == null || params.isEmpty()) {
             log.warn("签名参数为空");
@@ -60,19 +86,18 @@ public class SignUtils {
         }
 
         try {
-
-            //2.生成待验签字符串
+            // 1. 生成待验签字符串
             String signString = generateSignString(params);
             log.debug("待验签字符串: {}", signString);
-            
-            //3.使用AES密钥解密签名
-            String decryptedData = AesEncryptUtils.decryptByAes(aesKeyBytes, sign);
-            
-            //4.比较解密后的数据与原始数据是否一致
-            boolean valid = signString.equals(decryptedData);
-            log.debug("AES解密验签结果: {}, 原始数据长度: {}, 解密数据长度: {}", 
-                    valid, signString.length(), decryptedData.length());
-            
+
+            // 2. 使用HMAC-SHA256重新计算签名
+            String expectedSign = generateSign(keyBytes, signString);
+
+            // 3. 比较计算出的签名与传入的签名是否一致
+            boolean valid = sign.equals(expectedSign);
+            log.debug("HMAC-SHA256验签结果: {}, 传入签名: {}, 期望签名: {}",
+                    valid, sign, expectedSign);
+
             return valid;
         } catch (Exception e) {
             log.error("签名验证异常", e);
