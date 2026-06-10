@@ -64,8 +64,6 @@ public class JwtUtils {
      */
     public static String createTokenForUserWithMinutes(Long userId, String deviceId, long expTime) {
 
-        //1.生成AES密钥作为signing key
-        String signingKey = STATIC_SIGN_KEY_MANAGER.generateAesKeyBase64Only();
         //2.转换成分钟
         expTime = DateUtils.getExpireTimestampFromMinutes(expTime);
 
@@ -75,7 +73,6 @@ public class JwtUtils {
                 .setExpiration(new Date(expTime))
                 .claim(CLAIM_USER_ID, userId.toString())
                 .claim(CLAIM_DEVICE_ID, deviceId)
-                .claim(CLAIM_SIGNING_KEY, signingKey)
                 .signWith(SignatureAlgorithm.HS512, TOKEN_SIGN_KEY)
                 .compressWith(CompressionCodecs.GZIP)
                 .compact();
@@ -147,7 +144,6 @@ public class JwtUtils {
 
             tokenInfo.setUserId( Long.parseLong(claims.get(CLAIM_USER_ID, String.class)));
             tokenInfo.setDeviceId(claims.get(CLAIM_DEVICE_ID, String.class));
-            tokenInfo.setSigningKey(claims.get(CLAIM_SIGNING_KEY, String.class));
             tokenInfo.setExpTime(claims.getExpiration().getTime());
             return tokenInfo;
         } catch (ExpiredJwtException e) {

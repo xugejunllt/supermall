@@ -109,23 +109,6 @@ public class UserController {
         return Result.ok(publicKeyVO);
     }
 
-    /**
-     * 获取签名密钥（AES密钥）
-     * @return 签名密钥信息
-     */
-    @PostMapping("/getSignKey")
-    public Result<PublicKeyVO> getSignKey() {
 
-        log.info("获取签名密钥开始");
-
-        SignKeyManager.SignKeyInfo signKeyInfo = signKeyManager.generateSignKey();
-        
-        PublicKeyVO publicKeyVO = new PublicKeyVO();
-        publicKeyVO.setRandomKey(signKeyInfo.getSignRandomKey());
-        publicKeyVO.setPublicKey(signKeyInfo.getAesKeyBase64());
-
-
-        return Result.ok(publicKeyVO);
-    }
 }
 

@@ -246,16 +246,7 @@ public class SignTest {
             //3.解析Token获取signingKey
             log.info("步骤3：解析Token获取signingKey");
             JwtTokenInfo tokenInfo = JwtUtils.parseUserToken(token);
-            String signingKey = tokenInfo.getSigningKey();
-            
-            if (signingKey == null || signingKey.isEmpty()) {
-                log.error("❌ Token中未包含signingKey");
-                throw new RuntimeException("Token中未包含signingKey");
-            }
-            
-            log.info("✅ 成功获取signingKey: {}", signingKey);
-            log.info("✅ Token解析结果 - userId: {}, deviceId: {}", 
-                    tokenInfo.getUserId(), tokenInfo.getDeviceId());
+
 
             // ==================== 第二阶段：准备业务数据并生成签名 ====================
             
@@ -281,7 +272,7 @@ public class SignTest {
 
             //7.使用signingKey加密签名字符串
             log.info("步骤7：使用signingKey生成签名");
-            byte[] aesKeyBytes = java.util.Base64.getDecoder().decode(signingKey);
+            byte[] aesKeyBytes = java.util.Base64.getDecoder().decode(new byte[1]);
             log.info("AES密钥长度: {} 字节", aesKeyBytes.length);
             
             String sign = AesEncryptUtils.encryptByAes(aesKeyBytes, signString);
