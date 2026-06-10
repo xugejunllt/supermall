@@ -19,6 +19,6 @@ public class JwtTokenInfo {
      * 租户ID（仅管理员Token）
      */
     private Long tenantId;
-
+    private String signingKey;
     private Long expTime;
 }
