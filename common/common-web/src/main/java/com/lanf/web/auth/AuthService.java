@@ -10,6 +10,7 @@ import com.lanf.web.config.AuthPathConfig;
 import com.lanf.web.model.bo.AuthRequestInfo;
 import com.lanf.web.model.bo.FeignRequestInfo;
 import com.lanf.web.model.bo.JwtTokenInfo;
+import com.lanf.web.security.sign.SigningKeyContext;
 import com.lanf.web.utils.JwtUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -127,7 +128,8 @@ public class AuthService {
         UserContext.setUserId(jwtTokenInfo.getUserId());
         UserContext.setDeviceId(jwtTokenInfo.getDeviceId());
         UserContext.setTenantId(jwtTokenInfo.getTenantId());
-
+        // 提取并缓存signingKey到ThreadLocal
+        SigningKeyContext.setFromBase64(jwtTokenInfo.getSigningKey());
 
 
     }
