@@ -3,7 +3,6 @@ package com.lanf.user;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lanf.cache.service.RedissonCacheService;
-import com.lanf.constant.result.Result;
 import com.lanf.user.controller.app.UserController;
 import com.lanf.user.model.vo.PublicKeyVO;
 import com.lanf.web.exception.IExpiredJwtException;
@@ -56,7 +55,7 @@ public class SignTest {
 
             //1.生成Token
             log.info("步骤1：生成Token");
-            String token = JwtUtils.createTokenForUserWithDays(999L, "test-device", 3);
+            String token = JwtUtils.createTokenForUserWithMinutes(999L, "test-device", 3);
             log.info("Token长度: {}", token.length());
             JwtTokenInfo jwtTokenInfo = JwtUtils.parseUserToken(token);
              log.info("signingKey: {}", jwtTokenInfo.getExpTime());
@@ -76,9 +75,9 @@ public class SignTest {
 
                 // ==================== 第一阶段：准备密钥 ====================
 
-                Result<PublicKeyVO> signKey = userController.getSignKey();
 
-                PublicKeyVO data = signKey.getData();
+
+                PublicKeyVO data = null;
 
                 String signRandomKey = data.getRandomKey();
                 // ==================== 第二阶段：生成签名（模拟前端）====================
