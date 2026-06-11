@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.util.List;
 
 @Component
-@FeignClient(name = "service-user",url = "localhost:9006")
+@FeignClient(name = "service-user",url = "localhost:9006",fallbackFactory  = UserFeignClientFallback.class)
 public interface UserApiService {
 
     @GetMapping("/user/api/addressListQuery")

@@ -23,7 +23,7 @@ public class UserApiController {
     public Result<List<AddressListVO>> addressListQuery() {
 
         log.info("查询用户地址列表");
-
+        int i = 1 / 0;
         return Result.ok(addressService.addressListQuery());
 
     }

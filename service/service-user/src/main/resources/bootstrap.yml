@@ -34,5 +34,25 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
   type-enums-package: com.lanf.user.model.enums
 
-
+sentinel:
+  degrade:
+    rules:
+      # 核心接口：细粒度配置 每个接口单独配置
+      - resource: "createOrder"
+        grade: 1
+        count: 0.3
+        timeWindow: 10
+        minRequestAmount: 2
+        statIntervalMs: 5000
+      # 非核心接口：粗粒度兜底-多接口共用
+      - resource: "goods-service"
+        grade: 0
+        count: 1000
+        timeWindow: 30
+        minRequestAmount: 2
+      - resource: "UserApiService#addressListQuery()"
+        grade: 1              # 异常比例
+        count: 0.3            # 异常比例超过 30% 触发熔断
+        timeWindow: 10        # 熔断 10 秒
+        minRequestAmount: 2   # 最小请求数
 
