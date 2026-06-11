@@ -3,15 +3,12 @@ package com.lanf.user.controller.app;
 import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.lanf.api.user.api.UserApiService;
-import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -31,7 +28,7 @@ public class SentinelTestController {
         log.info("异常测试开始");
         // 模拟异常
 
-            int i = 1 / 0;
+        int i = 1 / 0;
 
         return Result.ok("异常测试成功");
     }
@@ -39,16 +36,17 @@ public class SentinelTestController {
     /**
      * blockHandler 降级方法
      */
-    public Result<String> createOrderBlockHandler(BlockException e)  {
+    public Result<String> createOrderBlockHandler(BlockException e) {
 
         log.error("触发降级方法");
         return Result.fail("熔断,接口降级");
     }
 
     @GetMapping("/feginTest")
-    public Result<List<AddressListVO>> feginTest() {
+    public Result<String> feginTest() {
 
-        return userApiService.addressListQuery();
+
+        return userApiService.sentinelTest();
     }
 
 }

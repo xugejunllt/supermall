@@ -24,7 +24,6 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
 
-
     @ExceptionHandler(BlockException.class)
     @ResponseBody
     public Result error(BlockException e) {
@@ -38,7 +37,7 @@ public class GlobalExceptionHandler {
 
         log.error("请求异常", e);
 
-        return Result.fail();
+        return Result.fail(CommonCodeEnum.FEIGN_DEGRADE.getCode(), CommonCodeEnum.FEIGN_DEGRADE.getMessage());
     }
 
     @ExceptionHandler(BizException.class)

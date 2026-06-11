@@ -24,6 +24,11 @@ public enum CommonCodeEnum {
     AUTH_FAILED(1003, "认证失败"),
 
     SIGN_VERIFY_FAILED(1005, "签名验证失败"),
+
+    /**
+     * Feign 调用专属异常
+     */
+    FEIGN_DEGRADE(1006, "服务繁忙,请稍后再试"),
         ;
     private final Integer code;
 

@@ -14,5 +14,13 @@ public interface UserApiService {
 
     @GetMapping("/user/api/addressListQuery")
     public Result<List<AddressListVO>> addressListQuery();
+
+
+    /**
+     * 测试sentinel 熔断
+     *
+     */
+    @GetMapping("/user/api/sentinelTest")
+    public Result<String> sentinelTest();
 }
 

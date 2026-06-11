@@ -14,4 +14,10 @@ public class UserFeignClientFallback implements UserApiService{
     public Result<List<AddressListVO>> addressListQuery() {
         return Result.fail("user服务降级");
     }
+
+    @Override
+    public Result<String> sentinelTest() {
+
+        return Result.fail("user服务降级");
+    }
 }

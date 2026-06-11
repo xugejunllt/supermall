@@ -74,6 +74,7 @@ public class SentinelDegradeConfig {
         rule.setMinRequestAmount(item.getMinRequestAmount());
         rule.setSlowRatioThreshold(item.getSlowRatioThreshold());
         rule.setStatIntervalMs(item.getStatIntervalMs());
+
         return rule;
     }
 

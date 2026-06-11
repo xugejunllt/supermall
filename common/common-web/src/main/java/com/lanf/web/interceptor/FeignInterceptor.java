@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Slf4j
 @Configuration
-public class FeignConfig {
+public class FeignInterceptor {
 
     @Bean
     public RequestInterceptor userContextInterceptor() {
