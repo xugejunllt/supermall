@@ -50,7 +50,7 @@ sentinel:
         count: 1000
         timeWindow: 30
         minRequestAmount: 2
-      - resource: "UserApiService#addressListQuery()"
+      - resource: "UserApiService#addressListQuery"
         grade: 1              # 异常比例
         count: 0.3            # 异常比例超过 30% 触发熔断
         timeWindow: 10        # 熔断 10 秒

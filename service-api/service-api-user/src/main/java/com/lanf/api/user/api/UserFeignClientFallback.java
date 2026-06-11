@@ -1,18 +1,17 @@
 package com.lanf.api.user.api;
 
+import com.lanf.api.user.model.vo.AddressListVO;
+import com.lanf.constant.result.Result;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Slf4j
 @Component
-public class UserFeignClientFallback implements FallbackFactory<UserApiService> {
-
-
+public class UserFeignClientFallback implements UserApiService{
     @Override
-    public UserApiService create(Throwable cause) {
-
-        log.error("调用服务降级:{}", cause.getMessage());
-        return null;
+    public Result<List<AddressListVO>> addressListQuery() {
+        return Result.fail("user服务降级");
     }
 }
