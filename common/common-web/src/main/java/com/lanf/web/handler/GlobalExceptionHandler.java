@@ -1,6 +1,5 @@
 package com.lanf.web.handler;
 
-import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
@@ -23,13 +22,6 @@ import java.util.List;
 @Order(2)
 public class GlobalExceptionHandler {
 
-
-    @ExceptionHandler(BlockException.class)
-    @ResponseBody
-    public Result error(BlockException e) {
-        log.warn("触发Sentinel异常");
-        return Result.fail(CommonCodeEnum.FAIL.getCode(), "触发Sentinel异常");
-    }
 
     @ExceptionHandler(Exception.class)
     @ResponseBody
