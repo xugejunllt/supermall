@@ -55,4 +55,4 @@ sentinel:
         count: 0.5            # 异常比例超过 30% 触发熔断
         timeWindow: 100        # 熔断 10 秒
         minRequestAmount: 3   # 最小请求数
-
+        statIntervalMs: 10000
