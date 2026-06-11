@@ -29,6 +29,7 @@
         <module>common-sharding-sphere</module>
         <module>common-hmily</module>
         <module>common-user-auth</module>
+        <module>common-sentinel</module>
     </modules>
 
 </project>

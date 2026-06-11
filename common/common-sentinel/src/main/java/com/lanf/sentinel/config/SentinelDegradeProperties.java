@@ -1,4 +1,4 @@
-package com.lanf.web.sentinel;
+package com.lanf.sentinel.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

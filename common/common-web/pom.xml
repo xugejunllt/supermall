@@ -41,10 +41,11 @@
             <artifactId>common-cache</artifactId>
             <version>${common.version}</version>
         </dependency>
-        <!-- Sentinel 熔断降级 -->
         <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+            <groupId>com.lanf</groupId>
+            <artifactId>common-sentinel</artifactId>
+            <version>${common.version}</version>
+
         </dependency>
     </dependencies>
 
