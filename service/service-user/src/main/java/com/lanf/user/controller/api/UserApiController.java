@@ -1,7 +1,6 @@
 package com.lanf.user.controller.api;
 
 import com.lanf.api.user.model.vo.AddressListVO;
-import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
 import com.lanf.user.service.IAddressService;
 import lombok.extern.slf4j.Slf4j;
@@ -30,12 +29,8 @@ public class UserApiController {
     @GetMapping("/sentinelTest")
     public Result<String> sentinelTest() {
 
-        try {
-            int i = 1/0;
-        } catch (Exception e) {
-            throw new BizException("业务处理异常");
-        }
 
+        int i = 1 / 0;
         return Result.ok();
 
     }

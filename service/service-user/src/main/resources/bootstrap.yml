@@ -50,9 +50,9 @@ sentinel:
         count: 1000
         timeWindow: 30
         minRequestAmount: 2
-      - resource: "UserApiService#sentinelTest"
+      - resource: "GET:http://service-user/user/api/sentinelTest"
         grade: 1              # 异常比例
-        count: 0.3            # 异常比例超过 30% 触发熔断
-        timeWindow: 10        # 熔断 10 秒
-        minRequestAmount: 2   # 最小请求数
+        count: 0.5            # 异常比例超过 30% 触发熔断
+        timeWindow: 100        # 熔断 10 秒
+        minRequestAmount: 3   # 最小请求数
 

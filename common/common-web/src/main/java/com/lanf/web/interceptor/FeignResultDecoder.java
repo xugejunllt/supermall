@@ -39,11 +39,11 @@ public class FeignResultDecoder implements Decoder {
 
             Result r = (Result) result;
             if (Objects.equals(r.getCode(), CommonCodeEnum.FEIGN_DEGRADE.getCode())) {
-
+                log.error("下游服务调用异常");
                 throw new BizException("下游服务异常");
             }
         }
-
+        log.info("fegin调用成功");
         return result;
     }
 }

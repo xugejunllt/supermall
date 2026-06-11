@@ -18,6 +18,6 @@ public class UserFeignClientFallback implements UserApiService{
     @Override
     public Result<String> sentinelTest() {
 
-        return Result.fail("user服务降级");
+        return Result.fail("user服务降级22222");
     }
 }
