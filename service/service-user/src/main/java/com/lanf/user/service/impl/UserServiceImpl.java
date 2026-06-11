@@ -52,8 +52,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.lanf.web.utils.JwtUtils.STATIC_SIGN_KEY_MANAGER;
-
 /**
  * <p>
  * User 接口
