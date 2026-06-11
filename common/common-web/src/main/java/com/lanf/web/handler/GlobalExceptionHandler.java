@@ -1,7 +1,6 @@
 package com.lanf.web.handler;
 
 import com.alibaba.csp.sentinel.slots.block.BlockException;
-import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.result.Result;
@@ -24,18 +23,13 @@ import java.util.List;
 @Order(2)
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(DegradeException.class)
-    @ResponseBody
-    public Result error(DegradeException e) {
-        log.warn("[Sentinel] 熔断降级触发，资源: {}", e.getRule().getResource());
-        return Result.fail(CommonCodeEnum.FAIL.getCode(), "服务繁忙，请稍后再试");
-    }
+
 
     @ExceptionHandler(BlockException.class)
     @ResponseBody
     public Result error(BlockException e) {
-        log.warn("[Sentinel] 流量控制触发: {}", e.getMessage());
-        return Result.fail(CommonCodeEnum.FAIL.getCode(), "服务繁忙，请稍后再试");
+        log.warn("触发Sentinel异常");
+        return Result.fail(CommonCodeEnum.FAIL.getCode(), "触发Sentinel异常");
     }
 
     @ExceptionHandler(Exception.class)
