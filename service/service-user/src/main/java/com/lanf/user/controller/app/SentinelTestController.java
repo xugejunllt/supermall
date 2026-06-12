@@ -91,7 +91,6 @@ public class SentinelTestController {
         }
     }
 
-    // ✅ 修复：参数列表与 set 方法一致，最后追加 BlockException
     public void fromRedisBlockHandler(String key, String value, long expireTime, TimeUnit timeUnit, BlockException e) {
         log.error("[Sentinel] Redis 操作触发降级，key={}", key);
         throw new BizException("Redis 操作触发降级");
