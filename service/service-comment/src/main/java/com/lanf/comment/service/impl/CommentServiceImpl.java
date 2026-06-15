@@ -21,6 +21,7 @@ import com.lanf.comment.service.CommentService;
 import com.lanf.comment.service.cache.CommentLikeCountRedisService;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
@@ -192,17 +193,25 @@ public class CommentServiceImpl implements CommentService {
         log.info("评论点赞/取消点赞, userId={}, commentId={}, like={}", userId, commentId, isLike);
 
         if (isLike) {
+            // 1. Redis Set 去重：检查用户是否已点赞
+            boolean canLike = commentLikeCountRedisService.checkAndAddLike(goodsId,userId, commentId);
+            if (!canLike) {
+                log.warn("重复点赞, userId={}, commentId={}", userId, commentId);
+                throw new BizException("您已点赞过该评论");
+            }
 
-            // 1. 写入 Redis Hash（原子递增，刷新过期时间 7 天）
+            // 2. 写入 Redis Hash（原子递增，刷新过期时间 7 天）
             commentLikeCountRedisService.incrementLikeCount(goodsId, commentId);
 
         } else {
+            // 1. 从 Redis Set 中移除点赞记录
+            commentLikeCountRedisService.removeLikeFromSet(goodsId,userId, commentId);
 
-            // 1. 写入 Redis Hash（原子递减，刷新过期时间 7 天）
+            // 2. 写入 Redis Hash（原子递减，刷新过期时间 7 天）
             commentLikeCountRedisService.decrementLikeCount(goodsId, commentId);
         }
 
-        // 2. 发送 MQ 顺序消息，下游消费更新 MongoDB 文档
+        // 3. 发送 MQ 顺序消息，下游消费更新 MongoDB 文档
         CommentLikeEventMessage eventMessage = new CommentLikeEventMessage();
         eventMessage.setGoodsId(goodsId);
         eventMessage.setCommentId(commentId);

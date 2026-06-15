@@ -1,9 +1,11 @@
 package com.lanf.comment.mq.listener;
 
+import com.lanf.comment.model.document.CommentLikeDocument;
 import com.lanf.comment.model.document.CommentStatsDocument;
 import com.lanf.comment.mq.constant.CommentMqGroupName;
 import com.lanf.comment.mq.constant.CommentMqTopicName;
 import com.lanf.comment.mq.message.CommentLikeEventMessage;
+import com.lanf.comment.repository.CommentLikeRepository;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.mongodb.client.result.UpdateResult;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +41,9 @@ public class CommentLikeEventListener implements RocketMQListener<CommentLikeEve
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private CommentLikeRepository commentLikeRepository;
+
     @Override
     public void onMessage(CommentLikeEventMessage message) {
 
@@ -48,13 +53,37 @@ public class CommentLikeEventListener implements RocketMQListener<CommentLikeEve
 
             Long commentId = message.getCommentId();
             Long goodsId = message.getGoodsId();
+            Long userId = message.getUserId();
             Boolean isLike = message.getLike();
             long delta = Boolean.TRUE.equals(isLike) ? 1 : -1;
             Date now = new Date();
 
             log.info("收到点赞事件, commentId={}, like={}, delta={}", commentId, isLike, delta);
 
-            // 查询统计文档是否存在
+            // 1. 幂等检查：查询用户点赞记录是否已存在
+            CommentLikeDocument likeRecord = commentLikeRepository.findByUserIdAndCommentId(userId, commentId);
+            if (isLike) {
+                if (likeRecord != null) {
+                    log.info("用户已有点赞记录，幂等返回, userId={}, commentId={}", userId, commentId);
+                    return;
+                }
+                // 插入点赞记录
+                CommentLikeDocument newRecord = new CommentLikeDocument();
+                newRecord.setUserId(userId);
+                newRecord.setCommentId(commentId);
+                newRecord.setGoodsId(goodsId);
+                newRecord.setCreateTime(now);
+                commentLikeRepository.save(newRecord);
+                log.info("用户点赞记录已插入, userId={}, commentId={}", userId, commentId);
+            } else {
+                // 取消点赞：删除点赞记录
+                if (likeRecord != null) {
+                    commentLikeRepository.deleteByUserIdAndCommentId(userId, commentId);
+                    log.info("用户点赞记录已删除, userId={}, commentId={}", userId, commentId);
+                }
+            }
+
+            // 2. 查询统计文档是否存在
             CommentStatsDocument stats = mongoTemplate.findOne(
                     Query.query(Criteria.where("commentId").is(commentId)),
                     CommentStatsDocument.class);

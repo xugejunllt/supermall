@@ -1,13 +1,13 @@
 package com.lanf.comment.service.cache;
 
+import com.lanf.comment.model.document.CommentLikeDocument;
 import com.lanf.comment.model.document.CommentStatsDocument;
+import com.lanf.comment.repository.CommentLikeRepository;
 import com.lanf.comment.repository.CommentStatsRepository;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
-import org.redisson.api.RMap;
-import org.redisson.api.RScript;
-import org.redisson.api.RedissonClient;
+import org.redisson.api.*;
 import org.redisson.client.codec.StringCodec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,15 +41,28 @@ public class CommentLikeCountRedisService {
     @Autowired
     private CommentStatsRepository commentStatsRepository;
 
+    @Autowired
+    private CommentLikeRepository commentLikeRepository;
+
     /**
-     * Redis Hash key 前缀
+     * Redis Hash key 前缀（存储点赞数）
      */
     private static final String LIKE_COUNT_HASH_KEY_PREFIX = "comment:like:count:";
+
+    /**
+     * Redis Set key 前缀（存储用户已点赞的评论ID，用于去重）
+     */
+    private static final String USER_LIKE_SET_KEY_PREFIX = "comment:user:like:%s:%s";
 
     /**
      * 分布式锁 key 前缀（用于初始化点赞数）
      */
     private static final String INIT_LOCK_KEY_PREFIX = "lock:comment:like:init:";
+
+    /**
+     * 分布式锁 key 前缀（用于初始化用户点赞 Set）
+     */
+    private static final String USER_LIKE_INIT_LOCK_PREFIX = "lock:comment:user:like:init:";
 
     /**
      * 过期时间（7天，单位：秒）
@@ -68,6 +81,27 @@ public class CommentLikeCountRedisService {
             "local result = redis.call('HINCRBY', KEYS[1], ARGV[1], ARGV[2]); " +
                     "redis.call('EXPIRE', KEYS[1], ARGV[3]); " +
                     "return result;";
+
+    /**
+     * Lua 脚本：检查并添加点赞记录到 Set（原子操作）
+     * <p>
+     * KEYS[1] = set key (comment:user:like:{userId})
+     * ARGV[1] = commentId
+     * <p>
+     * 返回: -1=Set不存在, 1=已存在(重复点赞), 0=新添加(成功)
+     */
+    private static final String CHECK_AND_ADD_LIKE_LUA =
+            "local exists = redis.call('EXISTS', KEYS[1]); " +
+                    "if exists == 0 then " +
+                    "    return -1; " +
+                    "end; " +
+                    "local isMember = redis.call('SISMEMBER', KEYS[1], ARGV[1]); " +
+                    "if isMember == 1 then " +
+                    "    return 1; " +
+                    "end; " +
+                    "redis.call('SADD', KEYS[1], ARGV[1]); " +
+                    "redis.call('EXPIRE', KEYS[1], " + EXPIRE_SECONDS + "); " +
+                    "return 0;";
 
     /**
      * 增加点赞数（原子操作）
@@ -258,6 +292,155 @@ public class CommentLikeCountRedisService {
         }
 
         return 0L;
+    }
+
+    // ==================== 用户点赞 Set 去重 ====================
+
+    /**
+     * 检查用户是否已点赞某条评论（带 Redis Set 去重）
+     * <p>
+     * 流程：
+     * 1. 调用 Lua 脚本检查 Set 是否存在，以及 commentId 是否已存在
+     * 2. 如果 Set 不存在（返回 -1），从 DB 加载用户所有点赞记录到 Set，然后重新判断
+     * 3. 如果已存在（返回 1），说明重复点赞，返回 false
+     * 4. 如果新添加（返回 0），返回 true
+     *
+     * @param userId    用户ID
+     * @param commentId 评论ID
+     * @return true=可以点赞（未重复）, false=已点赞（重复）
+     */
+    public boolean checkAndAddLike(Long goodsId, Long userId, Long commentId) {
+
+
+        try {
+            String key = buildUserLikeKey(goodsId, userId);
+
+            // 1. Lua 脚本原子检查并添加
+            int result = evalCheckAndAddLike(key, String.valueOf(commentId));
+
+            if (result == -1) {
+                // Set 不存在，从 DB 加载用户点赞记录
+                loadUserLikesFromDb(goodsId, userId, key);
+                // 重新判断
+                result = evalCheckAndAddLike(key, String.valueOf(commentId));
+            }
+
+            if (result == 1) {
+                // 重复点赞
+                log.info("重复点赞, userId={}, commentId={}", userId, commentId);
+                return false;
+            }
+
+            if (result == 0) {
+                // 新点赞
+                return true;
+            }
+
+            log.error("未知状态, userId={}, commentId={}, result={}", userId, commentId, result);
+            return false;
+        } catch (Exception e) {
+            log.error("点赞去重检查异常, userId={}, commentId={}", userId, commentId, e);
+            // 异常时放行（降级到 DB 层面幂等）
+            return true;
+        }
+    }
+
+    /**
+     * 从用户点赞 Set 中移除评论ID（取消点赞）
+     *
+     * @param userId    用户ID
+     * @param commentId 评论ID
+     */
+    public void removeLikeFromSet(Long goodsId, Long userId, Long commentId) {
+        try {
+            String key = buildUserLikeKey(goodsId, userId);
+            redissonClient.getSet(key, StringCodec.INSTANCE).remove(String.valueOf(commentId));
+            log.debug("从用户点赞 Set 移除, userId={}, commentId={}", userId, commentId);
+        } catch (Exception e) {
+            log.error("移除点赞记录异常, userId={}, commentId={}", userId, commentId, e);
+        }
+    }
+
+    /**
+     * 从 DB 加载用户所有点赞记录到 Redis Set
+     *
+     * @param userId 用户ID
+     * @param key    Redis Set key
+     */
+    private void loadUserLikesFromDb(Long goodsId, Long userId, String key) {
+        String lockKey = USER_LIKE_INIT_LOCK_PREFIX + userId;
+        RLock lock = redissonClient.getLock(lockKey);
+        boolean locked = false;
+        try {
+            locked = lock.tryLock(0, 3, TimeUnit.SECONDS);
+            if (!locked) {
+                log.debug("获取用户点赞初始化锁失败, userId={}", userId);
+
+                return ;
+            }
+            // 双重检查
+            if (redissonClient.getSet(key, StringCodec.INSTANCE).isExists()) {
+                return ;
+            }
+            // 从 DB 加载
+            List<CommentLikeDocument> likes = commentLikeRepository.findByGoodsIdAndUserId(goodsId, userId);
+
+            RSet<String> set = redissonClient.getSet(key, StringCodec.INSTANCE);
+
+
+            if ( IStringUtils.isEmpty(likes)){
+                log.info("DB中点赞记录为空");
+                //初始化为 -1
+                set.add("-1");
+                redissonClient.getBucket(key, StringCodec.INSTANCE).expire(EXPIRE_SECONDS, TimeUnit.SECONDS);
+                return ;
+            }
+
+            for (CommentLikeDocument like : likes) {
+                set.add(String.valueOf(like.getCommentId()));
+            }
+            // 设置过期时间
+            redissonClient.getBucket(key, StringCodec.INSTANCE).expire(EXPIRE_SECONDS, TimeUnit.SECONDS);
+            log.info("用户点赞 Set 初始化完成, userId={}, size={}", userId,
+                    likes.size());
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("加载用户点赞记录被中断, userId={}", userId, e);
+        } finally {
+            if (locked) {
+                lock.unlock();
+            }
+        }
+    }
+
+    /**
+     * 执行 Lua 脚本：检查并添加点赞记录
+     *
+     * @param key       Redis Set key
+     * @param commentId 评论ID（字符串）
+     * @return -1=Set不存在, 1=已存在, 0=新添加
+     */
+    private int evalCheckAndAddLike(String key, String commentId) {
+        RScript script = redissonClient.getScript(StringCodec.INSTANCE);
+        Long result = script.eval(
+                RScript.Mode.READ_WRITE,
+                CHECK_AND_ADD_LIKE_LUA,
+                RScript.ReturnType.INTEGER,
+                Collections.singletonList(key),
+                commentId
+        );
+        return result != null ? result.intValue() : -1;
+    }
+
+    /**
+     * 构建用户点赞 Set 的 Redis key
+     *
+     * @param userId 用户ID
+     * @return Redis key
+     */
+    private String buildUserLikeKey(Long goodsId, Long userId) {
+        return String.format(USER_LIKE_SET_KEY_PREFIX, goodsId, userId);
     }
 
     /**
