@@ -1,6 +1,10 @@
 package com.lanf.comment.service.cache;
 
+import com.lanf.comment.model.document.CommentStatsDocument;
+import com.lanf.comment.repository.CommentStatsRepository;
+import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
 import org.redisson.api.RMap;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
@@ -9,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 评论点赞数 Redis 缓存服务
@@ -33,10 +38,18 @@ public class CommentLikeCountRedisService {
     @Autowired
     private RedissonClient redissonClient;
 
+    @Autowired
+    private CommentStatsRepository commentStatsRepository;
+
     /**
      * Redis Hash key 前缀
      */
     private static final String LIKE_COUNT_HASH_KEY_PREFIX = "comment:like:count:";
+
+    /**
+     * 分布式锁 key 前缀（用于初始化点赞数）
+     */
+    private static final String INIT_LOCK_KEY_PREFIX = "lock:comment:like:init:";
 
     /**
      * 过期时间（7天，单位：秒）
@@ -53,8 +66,8 @@ public class CommentLikeCountRedisService {
      */
     private static final String INCR_LIKE_COUNT_LUA =
             "local result = redis.call('HINCRBY', KEYS[1], ARGV[1], ARGV[2]); " +
-            "redis.call('EXPIRE', KEYS[1], ARGV[3]); " +
-            "return result;";
+                    "redis.call('EXPIRE', KEYS[1], ARGV[3]); " +
+                    "return result;";
 
     /**
      * 增加点赞数（原子操作）
@@ -131,9 +144,9 @@ public class CommentLikeCountRedisService {
     /**
      * 从 Redis 获取点赞数，未命中从 MongoDB 补充（初始化场景）
      *
-     * @param goodsId      商品ID
-     * @param commentId    评论ID
-     * @param dbLikeCount  数据库中的点赞数
+     * @param goodsId     商品ID
+     * @param commentId   评论ID
+     * @param dbLikeCount 数据库中的点赞数
      * @return 点赞数
      */
     public Long getLikeCountWithFallback(Long goodsId, Long commentId, Long dbLikeCount) {
@@ -145,7 +158,12 @@ public class CommentLikeCountRedisService {
     }
 
     /**
-     * 执行原子性 HINCRBY（Lua 脚本）
+     * 执行原子性 HINCRBY（带初始化判断）
+     * <p>
+     * 流程：
+     * 1. 判断 field 是否存在于 hash 中
+     * 2. 不存在则获取分布式锁，一个线程从 DB 获取点赞数并写入 Redis
+     * 3. 获取锁失败的线程阻塞 50ms，等待初始化完成后执行 HINCRBY
      *
      * @param goodsId   商品ID
      * @param commentId 评论ID
@@ -156,23 +174,90 @@ public class CommentLikeCountRedisService {
             String key = buildKey(goodsId);
             String field = String.valueOf(commentId);
 
-            // 使用 Lua 脚本原子执行 HINCRBY + EXPIRE，避免多次网络往返
-            RScript script = redissonClient.getScript(StringCodec.INSTANCE);
-            Long result = script.eval(
-                    RScript.Mode.READ_WRITE,
-                    INCR_LIKE_COUNT_LUA,
-                    RScript.ReturnType.INTEGER,
-                    Collections.singletonList(key),
-                    field,
-                    String.valueOf(delta),
-                    String.valueOf(EXPIRE_SECONDS)
-            );
+            // 1. 判断 field 是否在 hash 中存在
+            RMap<String, String> map = redissonClient.getMap(key, StringCodec.INSTANCE);
+            if (!map.containsKey(field)) {
+                // 2. field 不存在，尝试获取分布式锁初始化
+                String lockKey = INIT_LOCK_KEY_PREFIX + commentId;
+                RLock lock = redissonClient.getLock(lockKey);
 
-            log.debug("点赞数更新成功, goodsId={}, commentId={}, delta={}, result={}",
-                    goodsId, commentId, delta, result);
+                boolean locked = false;
+                try {
+                    // 尝试获取锁：不等待（0秒），锁自动释放时间 5 秒
+                    locked = lock.tryLock(0, 5, TimeUnit.SECONDS);
+
+                    if (locked) {
+                        try {
+                            // 双重检查：再次确认 field 不存在（可能被其他线程初始化了）
+                            if (!map.containsKey(field)) {
+                                // 从 DB 获取点赞数并写入 Redis
+                                Long dbLikeCount = getLikeCountFromDb(commentId);
+                                map.put(field, String.valueOf(dbLikeCount));
+                                log.info("初始化评论点赞数缓存, commentId={}, dbLikeCount={}", commentId, dbLikeCount);
+                            }
+                        } finally {
+                            lock.unlock();
+                        }
+                    } else {
+                        // 3. 获取锁失败，阻塞 50ms 等待初始化线程完成
+                        log.debug("获取初始化锁失败, commentId={}, 等待 50ms", commentId);
+                        Thread.sleep(50);
+                        // 兜底：如果 50ms 后仍不存在 抛出异常
+                        if (!map.containsKey(field)) {
+                            /**
+                             * 打印error日志
+                             */
+                            log.error("初始化评论点赞数失败, commentId={}, 兜底初始化", commentId);
+                            throw new BizException("服务繁忙,请稍后再试!");
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.error("获取分布式锁被中断, commentId={}", commentId, e);
+                    throw new BizException("获取分布式锁被中断");
+                }
+            }
+
+            // 4. 执行 HINCRBY（此时 field 一定存在）
+            doHincrby(key, field, delta);
+
         } catch (Exception e) {
             log.error("更新点赞数异常, goodsId={}, commentId={}, delta={}", goodsId, commentId, delta, e);
+            throw e;
         }
+    }
+
+    /**
+     * 实际执行 HINCRBY 的 Lua 脚本
+     */
+    private void doHincrby(String key, String field, long delta) {
+        RScript script = redissonClient.getScript(StringCodec.INSTANCE);
+        Long result = script.eval(
+                RScript.Mode.READ_WRITE,
+                INCR_LIKE_COUNT_LUA,
+                RScript.ReturnType.INTEGER,
+                Collections.singletonList(key),
+                field,
+                String.valueOf(delta),
+                String.valueOf(EXPIRE_SECONDS)
+        );
+        log.debug("点赞数更新成功, key={}, field={}, delta={}, result={}", key, field, delta, result);
+    }
+
+    /**
+     * 从 DB 获取评论点赞数
+     *
+     * @param commentId 评论ID
+     * @return 点赞数
+     */
+    private Long getLikeCountFromDb(Long commentId) {
+
+        CommentStatsDocument stats = commentStatsRepository.findByCommentId(commentId);
+        if (stats != null && stats.getLikeCount() != null) {
+            return stats.getLikeCount();
+        }
+
+        return 0L;
     }
 
     /**

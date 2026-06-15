@@ -210,27 +210,19 @@ public class CommentServiceImpl implements CommentService {
             commentLikeCountRedisService.incrementLikeCount(goodsId, commentId);
 
         } else {
-            // 取消点赞
-            commentLikeRepository.deleteByUserIdAndCommentId(userId, commentId);
 
             // 1. 写入 Redis Hash（原子递减，刷新过期时间 7 天）
             commentLikeCountRedisService.decrementLikeCount(goodsId, commentId);
         }
 
         // 2. 查询当前 Redis 中的点赞数（作为新的点赞数）
-        Long newLikeCount = commentLikeCountRedisService.getLikeCount(goodsId, commentId);
-        if (newLikeCount == null) {
-            newLikeCount = 0L;
-        }
 
         // 3. 发送 MQ 顺序消息，下游消费更新 MongoDB 文档
         CommentLikeEventMessage eventMessage = new CommentLikeEventMessage();
         eventMessage.setGoodsId(goodsId);
         eventMessage.setCommentId(commentId);
         eventMessage.setLike(isLike);
-        eventMessage.setNewLikeCount(newLikeCount);
         eventMessage.setUserId(userId);
-        eventMessage.setEventTime(new Date());
 
         String tag = isLike ? CommentMqTopicName.COMMENT_LIKE_TAG : CommentMqTopicName.COMMENT_UNLIKE_TAG;
         rocketMqClient.sendOrderlyMessageWithTags(
@@ -239,8 +231,8 @@ public class CommentServiceImpl implements CommentService {
                 JsonUtils.toJsonString(eventMessage),
                 commentId.toString());
 
-        log.info("评论点赞操作完成, userId={}, commentId={}, like={}, newLikeCount={}",
-                userId, commentId, isLike, newLikeCount);
+        log.info("评论点赞操作完成, userId={}, commentId={}, like={}",
+                userId, commentId, isLike);
     }
 
     @Override
@@ -271,12 +263,12 @@ public class CommentServiceImpl implements CommentService {
         // 从 DB 批量补充 Redis 中不存在的点赞数
         Map<Long, Long> dbLikeCountMap = new HashMap<>();
 
-//        if (!missingCommentIds.isEmpty()) {
-//            List<CommentStatsDocument> statsList = commentStatsRepository.findByCommentIdIn(missingCommentIds);
-//            for (CommentStatsDocument stats : statsList) {
-//                dbLikeCountMap.put(stats.getCommentId(), stats.getLikeCount());
-//            }
-//        }
+        if (!missingCommentIds.isEmpty()) {
+            List<CommentStatsDocument> statsList = commentStatsRepository.findByCommentIdIn(missingCommentIds);
+            for (CommentStatsDocument stats : statsList) {
+                dbLikeCountMap.put(stats.getCommentId(), stats.getLikeCount());
+            }
+        }
         // 合并两个 map
         Map<Long, Long> finalLikeCountMap = new HashMap<>(redisLikeCountMap);
         finalLikeCountMap.putAll(dbLikeCountMap);

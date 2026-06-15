@@ -1,6 +1,5 @@
 package com.lanf.comment.mq.listener;
 
-import com.lanf.comment.model.document.CommentDocument;
 import com.lanf.comment.model.document.CommentStatsDocument;
 import com.lanf.comment.mq.constant.CommentMqGroupName;
 import com.lanf.comment.mq.constant.CommentMqTopicName;
@@ -14,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -49,20 +47,39 @@ public class CommentLikeEventListener implements RocketMQListener<String> {
             }
 
             Long commentId = message.getCommentId();
-            Long newLikeCount = message.getNewLikeCount();
+            Long goodsId = message.getGoodsId();
+            Boolean isLike = message.getLike();
+            long delta = Boolean.TRUE.equals(isLike) ? 1 : -1;
             Date now = new Date();
 
-            log.info("收到点赞事件, commentId={}, like={}, newLikeCount={}",
-                    commentId, message.getLike(), newLikeCount);
+            log.info("收到点赞事件, commentId={}, like={}, delta={}", commentId, isLike, delta);
 
-
-            // 更新统计文档的点赞数
-            mongoTemplate.updateFirst(
+            // 查询统计文档是否存在
+            CommentStatsDocument stats = mongoTemplate.findOne(
                     Query.query(Criteria.where("commentId").is(commentId)),
-                    new Update().set("likeCount", newLikeCount).set("updateTime", now),
                     CommentStatsDocument.class);
 
-            log.info("点赞事件处理完成, commentId={}, newLikeCount={}", commentId, newLikeCount);
+            if (stats == null) {
+                // 不存在：插入新文档，点赞数默认为 delta（点赞=1，取消点赞=0）
+                CommentStatsDocument newStats = new CommentStatsDocument();
+                newStats.setCommentId(commentId);
+                newStats.setGoodsId(goodsId);
+                newStats.setLikeCount(Math.max(0L, delta));
+                newStats.setReplyCount(0L);
+                newStats.setDislikeCount(0L);
+                newStats.setReportCount(0);
+                newStats.setCreateTime(now);
+                newStats.setUpdateTime(now);
+                mongoTemplate.save(newStats);
+                log.info("点赞事件处理完成, commentId={}, 新增统计文档, likeCount={}", commentId, newStats.getLikeCount());
+            } else {
+                // 存在：累加更新点赞数
+                long newLikeCount = Math.max(0, stats.getLikeCount() + delta);
+                stats.setLikeCount(newLikeCount);
+                stats.setUpdateTime(now);
+                mongoTemplate.save(stats);
+                log.info("点赞事件处理完成, commentId={}, 累加更新, likeCount={}", commentId, newLikeCount);
+            }
 
         } catch (Exception e) {
             log.error("点赞事件处理异常, message={}", messageJson, e);

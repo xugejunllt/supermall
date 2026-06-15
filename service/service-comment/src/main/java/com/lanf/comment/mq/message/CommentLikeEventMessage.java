@@ -3,7 +3,6 @@ package com.lanf.comment.mq.message;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * 评论点赞事件消息
@@ -32,18 +31,11 @@ public class CommentLikeEventMessage implements Serializable {
      */
     private Boolean like;
 
-    /**
-     * 操作后新的点赞数
-     */
-    private Long newLikeCount;
+
 
     /**
      * 用户ID
      */
     private Long userId;
 
-    /**
-     * 事件发生时间
-     */
-    private Date eventTime;
 }
