@@ -130,17 +130,6 @@ public class CommentDocument {
      */
     private String replyToUserName;
 
-    // ==================== 统计数据（冗余，便于排序展示） ====================
-
-    /**
-     * 点赞数（冗余字段，实时性要求不高时可直接读取）
-     */
-    private Long likeCount;
-
-    /**
-     * 回复数（仅一级评论有效，记录该评论下的二级回复数量）
-     */
-    private Long replyCount;
 
     // ==================== 状态管理 ====================
 

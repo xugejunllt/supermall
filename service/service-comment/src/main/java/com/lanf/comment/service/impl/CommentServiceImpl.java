@@ -33,7 +33,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -80,8 +79,6 @@ public class CommentServiceImpl implements CommentService {
         comment.setRating(dto.getRating());
         comment.setCommentType(CommentTypeEnum.FIRST_LEVEL.getCode());
         comment.setParentId(0L);
-        comment.setLikeCount(0L);
-        comment.setReplyCount(0L);
         comment.setStatus(CommentStatusEnum.NORMAL.getCode());
         comment.setTopFlag(0);
         comment.setCreateTime(now);
@@ -138,8 +135,6 @@ public class CommentServiceImpl implements CommentService {
         reply.setParentId(dto.getParentId());
         reply.setReplyToUserId(dto.getReplyToUserId());
         reply.setReplyToUserName(dto.getReplyToUserName());
-        reply.setLikeCount(0L);
-        reply.setReplyCount(0L);
         reply.setStatus(CommentStatusEnum.NORMAL.getCode());
         reply.setTopFlag(0);
         reply.setCreateTime(now);
@@ -303,8 +298,6 @@ public class CommentServiceImpl implements CommentService {
         vo.setContent(doc.getContent());
         vo.setImages(doc.getImages());
         vo.setRating(doc.getRating());
-        vo.setLikeCount(doc.getLikeCount());
-        vo.setReplyCount(doc.getReplyCount());
         vo.setTopFlag(doc.getTopFlag());
         vo.setCreateTime(doc.getCreateTime());
 
@@ -327,7 +320,6 @@ public class CommentServiceImpl implements CommentService {
         vo.setContent(doc.getContent());
         vo.setReplyToUserId(doc.getReplyToUserId());
         vo.setReplyToUserName(doc.getReplyToUserName());
-        vo.setLikeCount(doc.getLikeCount());
         vo.setCreateTime(doc.getCreateTime());
 
         if (currentUserId != null) {
