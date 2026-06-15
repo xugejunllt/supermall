@@ -26,6 +26,7 @@
         <module>service-finance</module>
         <module>service-search</module>
         <module>service-seckill</module>
+        <module>service-comment</module>
     </modules>
 
     <dependencies>
