@@ -8,10 +8,7 @@ import org.redisson.client.codec.StringCodec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 评论点赞数 Redis 缓存服务
@@ -115,11 +112,15 @@ public class CommentLikeCountRedisService {
             String key = buildKey(goodsId);
             // 使用 StringCodec 避免 Kryo 序列化问题
             RMap<String, String> map = redissonClient.getMap(key, StringCodec.INSTANCE);
-            for (Long commentId : commentIds) {
-                String value = map.get(String.valueOf(commentId));
-                if (value != null) {
-                    result.put(commentId, Long.valueOf(value));
-                }
+
+            // 批量获取（减少网络往返）
+            Set<String> fields = commentIds.stream()
+                    .map(String::valueOf)
+                    .collect(java.util.stream.Collectors.toSet());
+            Map<String, String> allValues = map.getAll(fields);
+
+            for (Map.Entry<String, String> entry : allValues.entrySet()) {
+                result.put(Long.valueOf(entry.getKey()), Long.valueOf(entry.getValue()));
             }
         } catch (Exception e) {
             log.error("批量获取点赞数异常, goodsId={}", goodsId, e);

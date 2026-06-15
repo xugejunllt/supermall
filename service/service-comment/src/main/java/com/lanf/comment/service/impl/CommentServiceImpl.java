@@ -264,16 +264,19 @@ public class CommentServiceImpl implements CommentService {
                 .collect(Collectors.toList());
         Map<Long, Long> redisLikeCountMap = commentLikeCountRedisService.batchGetLikeCount(goodsId, commentIds);
 
-        // 从 DB 补充 Redis 中不存在的点赞数
+        List<Long> missingCommentIds = commentIds.stream()
+                .filter(id -> !redisLikeCountMap.containsKey(id))
+                .collect(Collectors.toList());
+
+        // 从 DB 批量补充 Redis 中不存在的点赞数
         Map<Long, Long> dbLikeCountMap = new HashMap<>();
-        for (Long commentId : commentIds) {
-            if (!redisLikeCountMap.containsKey(commentId)) {
-                CommentStatsDocument stats = commentStatsRepository.findByCommentId(commentId);
-                if (stats != null) {
-                    dbLikeCountMap.put(commentId, stats.getLikeCount());
-                }
-            }
-        }
+
+//        if (!missingCommentIds.isEmpty()) {
+//            List<CommentStatsDocument> statsList = commentStatsRepository.findByCommentIdIn(missingCommentIds);
+//            for (CommentStatsDocument stats : statsList) {
+//                dbLikeCountMap.put(stats.getCommentId(), stats.getLikeCount());
+//            }
+//        }
         // 合并两个 map
         Map<Long, Long> finalLikeCountMap = new HashMap<>(redisLikeCountMap);
         finalLikeCountMap.putAll(dbLikeCountMap);
@@ -281,7 +284,6 @@ public class CommentServiceImpl implements CommentService {
         List<CommentVO> records = documents.stream()
                 .map(doc -> convertToCommentVO(doc, currentUserId, finalLikeCountMap))
                 .collect(Collectors.toList());
-
         PageResult<CommentVO> result = new PageResult<>();
         result.setRecords(records);
         result.setTotal(page.getTotalElements());
@@ -319,16 +321,17 @@ public class CommentServiceImpl implements CommentService {
             redisLikeCountMap = commentLikeCountRedisService.batchGetLikeCount(goodsId, commentIds);
         }
 
-        // 从 DB 补充 Redis 中不存在的点赞数
+        // 从 DB 批量补充 Redis 中不存在的点赞数
         Map<Long, Long> dbLikeCountMap = new HashMap<>();
-        for (Long commentId : commentIds) {
-            if (!redisLikeCountMap.containsKey(commentId)) {
-                CommentStatsDocument stats = commentStatsRepository.findByCommentId(commentId);
-                if (stats != null) {
-                    dbLikeCountMap.put(commentId, stats.getLikeCount());
-                }
-            }
-        }
+//        List<Long> missingCommentIds = commentIds.stream()
+//                .filter(id -> !redisLikeCountMap.containsKey(id))
+//                .collect(Collectors.toList());
+//        if (!missingCommentIds.isEmpty()) {
+//            List<CommentStatsDocument> statsList = commentStatsRepository.findByCommentIdIn(missingCommentIds);
+//            for (CommentStatsDocument stats : statsList) {
+//                dbLikeCountMap.put(stats.getCommentId(), stats.getLikeCount());
+//            }
+//        }
         // 合并两个 map
         Map<Long, Long> finalLikeCountMap = new HashMap<>(redisLikeCountMap);
         finalLikeCountMap.putAll(dbLikeCountMap);
@@ -408,12 +411,12 @@ public class CommentServiceImpl implements CommentService {
 //        Long replyCount = doc.getReplyCount();
 //        vo.setReplyCount(replyCount != null ? replyCount : 0L);
 
-        if (currentUserId != null) {
-            vo.setLikedByCurrentUser(
-                    commentLikeRepository.existsByUserIdAndCommentId(currentUserId, doc.getCommentId()));
-        } else {
-            vo.setLikedByCurrentUser(false);
-        }
+//        if (currentUserId != null) {
+//            vo.setLikedByCurrentUser(
+//                    commentLikeRepository.existsByUserIdAndCommentId(currentUserId, doc.getCommentId()));
+//        } else {
+//            vo.setLikedByCurrentUser(false);
+//        }
         return vo;
     }
 
