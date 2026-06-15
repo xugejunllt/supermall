@@ -192,19 +192,6 @@ public class CommentServiceImpl implements CommentService {
         log.info("评论点赞/取消点赞, userId={}, commentId={}, like={}", userId, commentId, isLike);
 
         if (isLike) {
-//            // 点赞
-//            CommentLikeDocument exist = commentLikeRepository.findByUserIdAndCommentId(userId, commentId);
-//            if (exist != null) {
-//                log.warn("用户已点赞, userId={}, commentId={}", userId, commentId);
-//                return;
-//            }
-//
-//            CommentLikeDocument likeDoc = new CommentLikeDocument();
-//            likeDoc.setUserId(userId);
-//            likeDoc.setCommentId(commentId);
-//            likeDoc.setGoodsId(goodsId);
-//            likeDoc.setCreateTime(new Date());
-//            commentLikeRepository.save(likeDoc);
 
             // 1. 写入 Redis Hash（原子递增，刷新过期时间 7 天）
             commentLikeCountRedisService.incrementLikeCount(goodsId, commentId);
@@ -215,9 +202,7 @@ public class CommentServiceImpl implements CommentService {
             commentLikeCountRedisService.decrementLikeCount(goodsId, commentId);
         }
 
-        // 2. 查询当前 Redis 中的点赞数（作为新的点赞数）
-
-        // 3. 发送 MQ 顺序消息，下游消费更新 MongoDB 文档
+        // 2. 发送 MQ 顺序消息，下游消费更新 MongoDB 文档
         CommentLikeEventMessage eventMessage = new CommentLikeEventMessage();
         eventMessage.setGoodsId(goodsId);
         eventMessage.setCommentId(commentId);
@@ -382,7 +367,7 @@ public class CommentServiceImpl implements CommentService {
     // ==================== 私有转换方法 ====================
 
     private CommentVO convertToCommentVO(CommentDocument doc, Long currentUserId,
-                                          Map<Long, Long> likeCountMap) {
+                                         Map<Long, Long> likeCountMap) {
         CommentVO vo = new CommentVO();
         vo.setCommentId(doc.getCommentId());
         vo.setGoodsId(doc.getGoodsId());
@@ -413,7 +398,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private CommentReplyVO convertToReplyVO(CommentDocument doc, Long currentUserId,
-                                           Map<Long, Long> likeCountMap) {
+                                            Map<Long, Long> likeCountMap) {
         CommentReplyVO vo = new CommentReplyVO();
         vo.setCommentId(doc.getCommentId());
         vo.setParentId(doc.getParentId());
