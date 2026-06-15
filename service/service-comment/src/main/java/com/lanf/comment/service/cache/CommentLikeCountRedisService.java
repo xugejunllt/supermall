@@ -434,6 +434,42 @@ public class CommentLikeCountRedisService {
     }
 
     /**
+     * 批量判断用户是否点赞过这些评论
+     * <p>
+     * 优先从 Redis Set 批量判断，Set 不存在则从 DB 加载初始化后判断。
+     *
+     * @param goodsId    商品ID
+     * @param userId     用户ID
+     * @param commentIds 评论ID列表
+     * @return Set<已点赞的评论ID>
+     */
+    public Set<Long> batchCheckUserLiked(Long goodsId, Long userId, List<Long> commentIds) {
+        Set<Long> likedCommentIds = new HashSet<>();
+        if (commentIds == null || commentIds.isEmpty() || userId == null) {
+            return likedCommentIds;
+        }
+        try {
+            String key = buildUserLikeKey(goodsId, userId);
+            RSet<String> set = redissonClient.getSet(key, StringCodec.INSTANCE);
+
+            // 如果 Set 不存在，从 DB 加载初始化
+            if (!set.isExists()) {
+                loadUserLikesFromDb(goodsId, userId, key);
+            }
+
+            // 批量判断每个 commentId 是否在 Set 中
+            for (Long commentId : commentIds) {
+                if (set.contains(String.valueOf(commentId))) {
+                    likedCommentIds.add(commentId);
+                }
+            }
+        } catch (Exception e) {
+            log.error("批量判断用户点赞异常, goodsId={}, userId={}", goodsId, userId, e);
+        }
+        return likedCommentIds;
+    }
+
+    /**
      * 构建用户点赞 Set 的 Redis key
      *
      * @param userId 用户ID

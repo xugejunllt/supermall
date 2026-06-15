@@ -21,6 +21,7 @@ import com.lanf.comment.service.CommentService;
 import com.lanf.comment.service.cache.CommentLikeCountRedisService;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
@@ -37,10 +38,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -194,10 +192,10 @@ public class CommentServiceImpl implements CommentService {
         if (isLike) {
             // 1. Redis Set 去重：检查用户是否已点赞
             boolean canLike = commentLikeCountRedisService.checkAndAddLike(goodsId,userId, commentId);
-//            if (!canLike) {
-//                log.warn("重复点赞, userId={}, commentId={}", userId, commentId);
-//                throw new BizException("您已点赞过该评论");
-//            }
+            if (!canLike) {
+                log.warn("重复点赞, userId={}, commentId={}", userId, commentId);
+                throw new BizException("您已点赞过该评论");
+            }
 
             // 2. 写入 Redis Hash（原子递增，刷新过期时间 7 天）
             commentLikeCountRedisService.incrementLikeCount(goodsId, commentId);
@@ -266,8 +264,16 @@ public class CommentServiceImpl implements CommentService {
         Map<Long, Long> finalLikeCountMap = new HashMap<>(redisLikeCountMap);
         finalLikeCountMap.putAll(dbLikeCountMap);
 
+        // 批量判断当前用户是否点赞过这些评论
+        Set<Long> likedCommentIds;
+        if (currentUserId != null && !commentIds.isEmpty()) {
+            likedCommentIds = commentLikeCountRedisService.batchCheckUserLiked(goodsId, currentUserId, commentIds);
+        } else {
+            likedCommentIds = new HashSet<>();
+        }
+
         List<CommentVO> records = documents.stream()
-                .map(doc -> convertToCommentVO(doc, currentUserId, finalLikeCountMap))
+                .map(doc -> convertToCommentVO(doc, currentUserId, finalLikeCountMap, likedCommentIds))
                 .collect(Collectors.toList());
         PageResult<CommentVO> result = new PageResult<>();
         result.setRecords(records);
@@ -301,28 +307,32 @@ public class CommentServiceImpl implements CommentService {
         List<Long> commentIds = documents.stream()
                 .map(CommentDocument::getCommentId)
                 .collect(Collectors.toList());
-        Map<Long, Long> redisLikeCountMap = new HashMap<>();
-        if (goodsId != null) {
-            redisLikeCountMap = commentLikeCountRedisService.batchGetLikeCount(goodsId, commentIds);
-        }
+        Map<Long, Long> redisLikeCountMap = commentLikeCountRedisService.batchGetLikeCount(goodsId, commentIds);
+
 
         // 从 DB 批量补充 Redis 中不存在的点赞数
         Map<Long, Long> dbLikeCountMap = new HashMap<>();
-//        List<Long> missingCommentIds = commentIds.stream()
-//                .filter(id -> !redisLikeCountMap.containsKey(id))
-//                .collect(Collectors.toList());
-//        if (!missingCommentIds.isEmpty()) {
-//            List<CommentStatsDocument> statsList = commentStatsRepository.findByCommentIdIn(missingCommentIds);
-//            for (CommentStatsDocument stats : statsList) {
-//                dbLikeCountMap.put(stats.getCommentId(), stats.getLikeCount());
-//            }
-//        }
+        List<Long> missingCommentIds = commentIds.stream()
+                .filter(id -> !redisLikeCountMap.containsKey(id))
+                .collect(Collectors.toList());
+        if (!redisLikeCountMap.isEmpty()) {
+            List<CommentStatsDocument> statsList = commentStatsRepository.findByCommentIdIn(missingCommentIds);
+            for (CommentStatsDocument stats : statsList) {
+                dbLikeCountMap.put(stats.getCommentId(), stats.getLikeCount());
+            }
+        }
         // 合并两个 map
         Map<Long, Long> finalLikeCountMap = new HashMap<>(redisLikeCountMap);
         finalLikeCountMap.putAll(dbLikeCountMap);
 
+        // 批量判断当前用户是否点赞过这些评论
+        Set<Long> likedCommentIds = new HashSet<>();
+        if (currentUserId != null && goodsId != null && !commentIds.isEmpty()) {
+            likedCommentIds = commentLikeCountRedisService.batchCheckUserLiked(goodsId, currentUserId, commentIds);
+        }
+
         List<CommentReplyVO> records = documents.stream()
-                .map(doc -> convertToReplyVO(doc, currentUserId, finalLikeCountMap))
+                .map(doc -> convertToReplyVO(doc, currentUserId, finalLikeCountMap, null))
                 .collect(Collectors.toList());
 
         PageResult<CommentReplyVO> result = new PageResult<>();
@@ -375,7 +385,7 @@ public class CommentServiceImpl implements CommentService {
     // ==================== 私有转换方法 ====================
 
     private CommentVO convertToCommentVO(CommentDocument doc, Long currentUserId,
-                                         Map<Long, Long> likeCountMap) {
+                                         Map<Long, Long> likeCountMap, Set<Long> likedCommentIds) {
         CommentVO vo = new CommentVO();
         vo.setCommentId(doc.getCommentId());
         vo.setGoodsId(doc.getGoodsId());
@@ -392,21 +402,14 @@ public class CommentServiceImpl implements CommentService {
         Long likeCount = likeCountMap.get(doc.getCommentId());
         vo.setLikeCount(likeCount != null ? likeCount : 0L);
 
-        // 回复数从文档中获取
-//        Long replyCount = doc.getReplyCount();
-//        vo.setReplyCount(replyCount != null ? replyCount : 0L);
+        // 当前用户是否已点赞
+        vo.setLikedByCurrentUser(likedCommentIds != null && likedCommentIds.contains(doc.getCommentId()));
 
-//        if (currentUserId != null) {
-//            vo.setLikedByCurrentUser(
-//                    commentLikeRepository.existsByUserIdAndCommentId(currentUserId, doc.getCommentId()));
-//        } else {
-//            vo.setLikedByCurrentUser(false);
-//        }
         return vo;
     }
 
     private CommentReplyVO convertToReplyVO(CommentDocument doc, Long currentUserId,
-                                            Map<Long, Long> likeCountMap) {
+                                            Map<Long, Long> likeCountMap, Set<Long> likedCommentIds) {
         CommentReplyVO vo = new CommentReplyVO();
         vo.setCommentId(doc.getCommentId());
         vo.setParentId(doc.getParentId());
@@ -422,12 +425,9 @@ public class CommentServiceImpl implements CommentService {
         Long likeCount = likeCountMap.get(doc.getCommentId());
         vo.setLikeCount(likeCount != null ? likeCount : 0L);
 
-        if (currentUserId != null) {
-            vo.setLikedByCurrentUser(
-                    commentLikeRepository.existsByUserIdAndCommentId(currentUserId, doc.getCommentId()));
-        } else {
-            vo.setLikedByCurrentUser(false);
-        }
+        // 当前用户是否已点赞
+        vo.setLikedByCurrentUser(likedCommentIds != null && likedCommentIds.contains(doc.getCommentId()));
+
         return vo;
     }
 }
