@@ -86,4 +86,9 @@ public class CommentStatsDocument {
      * 更新时间（统计变更时刷新）
      */
     private Date updateTime;
+
+    /**
+     * 乐观锁版本号（用于并发控制）
+     */
+    private Long version;
 }

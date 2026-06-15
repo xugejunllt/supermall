@@ -4,7 +4,8 @@ import com.lanf.comment.model.document.CommentStatsDocument;
 import com.lanf.comment.mq.constant.CommentMqGroupName;
 import com.lanf.comment.mq.constant.CommentMqTopicName;
 import com.lanf.comment.mq.message.CommentLikeEventMessage;
-import com.lanf.common.utils.JsonUtils;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
+import com.mongodb.client.result.UpdateResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -32,19 +34,17 @@ import java.util.Date;
         selectorExpression = CommentMqTopicName.COMMENT_LIKE_TAG + "||" + CommentMqTopicName.COMMENT_UNLIKE_TAG,
         consumeMode = ConsumeMode.ORDERLY
 )
-public class CommentLikeEventListener implements RocketMQListener<String> {
+public class CommentLikeEventListener implements RocketMQListener<CommentLikeEventMessage> {
 
     @Autowired
     private MongoTemplate mongoTemplate;
 
     @Override
-    public void onMessage(String messageJson) {
+    public void onMessage(CommentLikeEventMessage message) {
+
         try {
-            CommentLikeEventMessage message = JsonUtils.toObject(messageJson, CommentLikeEventMessage.class);
-            if (message == null || message.getCommentId() == null) {
-                log.warn("点赞事件消息解析失败或数据不完整, message={}", messageJson);
-                return;
-            }
+
+            log.info("收到点赞事件, message={}", message);
 
             Long commentId = message.getCommentId();
             Long goodsId = message.getGoodsId();
@@ -70,21 +70,66 @@ public class CommentLikeEventListener implements RocketMQListener<String> {
                 newStats.setReportCount(0);
                 newStats.setCreateTime(now);
                 newStats.setUpdateTime(now);
+                newStats.setVersion(1L);
                 mongoTemplate.save(newStats);
                 log.info("点赞事件处理完成, commentId={}, 新增统计文档, likeCount={}", commentId, newStats.getLikeCount());
             } else {
-                // 存在：累加更新点赞数
-                long newLikeCount = Math.max(0, stats.getLikeCount() + delta);
-                stats.setLikeCount(newLikeCount);
-                stats.setUpdateTime(now);
-                mongoTemplate.save(stats);
-                log.info("点赞事件处理完成, commentId={}, 累加更新, likeCount={}", commentId, newLikeCount);
+                // 存在：使用乐观锁更新
+                optimisticUpdateLikeCount(commentId, delta, now);
             }
 
         } catch (Exception e) {
-            log.error("点赞事件处理异常, message={}", messageJson, e);
+            log.error("点赞事件处理异常,", e);
             // 顺序消息消费异常会重试，不吞异常
-            throw new RuntimeException("点赞事件处理失败", e);
+            throw new MessageRetryConsumeException("点赞事件处理失败");
         }
+
+    }
+
+    /**
+     * 乐观锁更新点赞数
+     * <p>
+     * 使用 version 字段作为乐观锁条件，更新失败时自动重试，
+     * 避免并发场景下数据覆盖问题。
+     *
+     * @param commentId 评论ID
+     * @param delta     增量（+1 或 -1）
+     * @param now       当前时间
+     */
+    private void optimisticUpdateLikeCount(Long commentId, long delta, Date now) {
+
+        // 查询当前文档和版本号
+        CommentStatsDocument stats = mongoTemplate.findOne(
+                Query.query(Criteria.where("commentId").is(commentId)),
+                CommentStatsDocument.class);
+
+        if (stats == null) {
+            throw new RuntimeException("文档不存在, commentId=" + commentId);
+        }
+
+        long currentVersion = stats.getVersion();
+        long newLikeCount = Math.max(0, stats.getLikeCount() + delta);
+
+        // 乐观锁更新：version 作为条件
+        Update update = new Update()
+                .set("likeCount", newLikeCount)
+                .set("updateTime", now)
+                .inc("version", 1);
+
+        Query query = Query.query(
+                Criteria.where("commentId").is(commentId)
+                        .and("version").is(currentVersion));
+
+        UpdateResult result =
+                mongoTemplate.updateFirst(query, update, CommentStatsDocument.class);
+
+        if (result.getModifiedCount() > 0) {
+            log.info("点赞事件处理完成, commentId={}, likeCount={}, version={}",
+                    commentId, newLikeCount, currentVersion + 1);
+            return;
+        }
+
+
+        throw new MessageRetryConsumeException("更新点赞数失败 commentId=" + commentId);
     }
 }
