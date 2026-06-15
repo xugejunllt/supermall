@@ -18,6 +18,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.util.Date;
 
@@ -73,7 +74,12 @@ public class CommentLikeEventListener implements RocketMQListener<CommentLikeEve
                 newRecord.setCommentId(commentId);
                 newRecord.setGoodsId(goodsId);
                 newRecord.setCreateTime(now);
-                commentLikeRepository.save(newRecord);
+                try {
+                    commentLikeRepository.save(newRecord);
+                } catch ( DuplicateKeyException  e) {
+                    log.warn("重复点赞");
+                    return;
+                }
                 log.info("用户点赞记录已插入, userId={}, commentId={}", userId, commentId);
             } else {
                 // 取消点赞：删除点赞记录

@@ -21,7 +21,6 @@ import com.lanf.comment.service.CommentService;
 import com.lanf.comment.service.cache.CommentLikeCountRedisService;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
@@ -195,10 +194,10 @@ public class CommentServiceImpl implements CommentService {
         if (isLike) {
             // 1. Redis Set 去重：检查用户是否已点赞
             boolean canLike = commentLikeCountRedisService.checkAndAddLike(goodsId,userId, commentId);
-            if (!canLike) {
-                log.warn("重复点赞, userId={}, commentId={}", userId, commentId);
-                throw new BizException("您已点赞过该评论");
-            }
+//            if (!canLike) {
+//                log.warn("重复点赞, userId={}, commentId={}", userId, commentId);
+//                throw new BizException("您已点赞过该评论");
+//            }
 
             // 2. 写入 Redis Hash（原子递增，刷新过期时间 7 天）
             commentLikeCountRedisService.incrementLikeCount(goodsId, commentId);
