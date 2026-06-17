@@ -228,43 +228,57 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public PageResult<CommentVO> queryCommentPage(CommentPageQuery query) {
+        // 1. 获取当前登录用户ID和商品ID
         Long currentUserId = UserContext.getUserId();
         Long goodsId = query.getGoodsId();
         log.info("分页查询商品评论, goodsId={}", goodsId);
 
+        // 2. 构建分页条件：按创建时间降序
         Pageable pageable = PageRequest.of(query.getPage() - 1, query.getPageSize(),
                 Sort.by(Sort.Direction.DESC, "createTime"));
 
+        // 3. 从 MongoDB 分页查询一级评论列表
+        //    查询条件：指定商品、一级评论、正常状态、未删除
         Page<CommentDocument> page = commentRepository.findByGoodsIdAndCommentTypeAndStatusAndIsDeleted(
                 goodsId, CommentTypeEnum.FIRST_LEVEL.getCode(),
                 CommentStatusEnum.NORMAL.getCode(), 0, pageable);
 
         List<CommentDocument> documents = page.getContent();
 
-        // 批量获取 Redis 点赞数
+        // 4. 提取所有评论ID，用于后续批量查询点赞数据
         List<Long> commentIds = documents.stream()
                 .map(CommentDocument::getCommentId)
                 .collect(Collectors.toList());
+
+        // ==================== 批量获取点赞数（Redis → DB 回源）====================
+        // 5.1 优先从 Redis Hash 批量获取点赞数
+        //     Key: comment:like:count:{goodsId}
+        //     Field: {commentId}, Value: likeCount
         Map<Long, Long> redisLikeCountMap = commentLikeCountRedisService.batchGetLikeCount(goodsId, commentIds);
 
+        // 5.2 找出 Redis 中不存在的 commentId（缓存未命中）
         List<Long> missingCommentIds = commentIds.stream()
                 .filter(id -> !redisLikeCountMap.containsKey(id))
                 .collect(Collectors.toList());
 
-        // 从 DB 批量补充 Redis 中不存在的点赞数
+        // 5.3 从 DB 批量补充 Redis 中不存在的点赞数（缓存穿透防护）
         Map<Long, Long> dbLikeCountMap = new HashMap<>();
-
         if (!missingCommentIds.isEmpty()) {
+            // 使用 IN 查询批量获取，避免 N+1 问题
             List<CommentStatsDocument> statsList = commentStatsRepository.findByCommentIdIn(missingCommentIds);
             for (CommentStatsDocument stats : statsList) {
                 dbLikeCountMap.put(stats.getCommentId(), stats.getLikeCount());
             }
         }
-        // 合并两个 map
+
+        // 5.4 合并 Redis 和 DB 的点赞数（Redis 优先，DB 补充）
         Map<Long, Long> finalLikeCountMap = new HashMap<>(redisLikeCountMap);
         finalLikeCountMap.putAll(dbLikeCountMap);
 
-        // 批量判断当前用户是否点赞过这些评论
+        // ==================== 批量判断当前用户是否已点赞（Redis Set）====================
+        // 6. 优先从 Redis Set 批量判断用户点赞状态
+        //    Key: comment:user:like:{goodsId}:{userId}
+        //    Member: {commentId}
         Set<Long> likedCommentIds;
         if (currentUserId != null && !commentIds.isEmpty()) {
             likedCommentIds = commentLikeCountRedisService.batchCheckUserLiked(goodsId, currentUserId, commentIds);
@@ -272,9 +286,12 @@ public class CommentServiceImpl implements CommentService {
             likedCommentIds = new HashSet<>();
         }
 
+        // 7. 组装 VO：将评论文档、点赞数、点赞状态合并为前端展示数据
         List<CommentVO> records = documents.stream()
                 .map(doc -> convertToCommentVO(doc, currentUserId, finalLikeCountMap, likedCommentIds))
                 .collect(Collectors.toList());
+
+        // 8. 组装分页结果
         PageResult<CommentVO> result = new PageResult<>();
         result.setRecords(records);
         result.setTotal(page.getTotalElements());
