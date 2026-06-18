@@ -129,7 +129,7 @@ public class OrderController {
     @GetMapping("/orderDetailQuery")
     public Result<OrderDetailForAdminVO> orderDetailQuery(@Validated OrderDetailQuery query) {
 
-        log.info("admin查询订单详细:{}", query);
+        log.info("查询订单详细:{}", query);
 
         return Result.ok(orderService.orderDetailForAdminQuery(query));
     }
