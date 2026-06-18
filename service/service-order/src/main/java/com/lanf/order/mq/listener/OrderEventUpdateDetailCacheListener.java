@@ -3,9 +3,9 @@ package com.lanf.order.mq.listener;
 import com.alibaba.fastjson.JSON;
 import com.lanf.api.order.model.query.OrderDetailQuery;
 import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
+import com.lanf.constant.exception.BizException;
 import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.utils.UserContext;
-import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.order.OrderDetailCacheService;
@@ -21,7 +21,16 @@ import java.util.Map;
 
 /**
  * 订单事件监听器 - 更新订单详情缓存
- * 监听 ORDER_EVENT_TOPIC 所有订单状态变更事件，更新订单详情缓存
+ * 监听 ORDER_EVENT_TOPIC 所有订单状态变更事件（支付、发货、签收、取消等），
+ * 异步刷新订单详情缓存，实现缓存与数据库的最终一致性。
+ * 核心流程：
+ * 1.消费订单状态变更MQ消息
+ * 2.解析消息获取orderId和userId
+ * 3.设置UserContext上下文
+ * 4.调用loadOrderDetailFromDB加载最新订单详情
+ * 5.将最新数据写入Redis缓存
+ * 设计亮点：
+ * - 采用ConsumeMode.ORDERLY顺序消费，避免同一订单并发刷新导致缓存数据错乱
  *
  * @author lanf
  */
@@ -46,33 +55,33 @@ public class OrderEventUpdateDetailCacheListener implements RocketMQListener<Mes
         String body = new String(messageExt.getBody());
         log.info("收到订单事件消息, tag={}, body={}", tags, body);
 
-        // 解析消息体获取 orderId
+        //1.解析消息体获取orderId和userId
         Map<String, Object> messageMap = JSON.parseObject(body, Map.class);
         Object orderIdObj = messageMap.get("orderId");
-        if (orderIdObj == null) {
-            log.warn("订单事件消息中无orderId, tag={}, body={}", tags, body);
-            return;
+        Object userIdObj = messageMap.get("userId");
+
+        //2.校验消息中必须包含orderId和userId，缺失时直接抛异常触发MQ重试
+        if (orderIdObj == null || userIdObj == null) {
+            log.error("订单事件消息中无orderId或userId, tag={}, body={}", tags, body);
+            throw new BizException("订单事件消息中无orderId或userId");
         }
         Long orderId = Long.valueOf(orderIdObj.toString());
+        Long userId = Long.valueOf(userIdObj.toString());
 
-        // 根据 orderId 查询订单获取 userId
-        OrderDO orderDO = orderService.getById(orderId);
-        if (orderDO == null) {
-            log.warn("订单不存在, orderId={}", orderId);
-            return;
-        }
-
-        // 设置 UserContext
-        UserContext.setUserId(orderDO.getUserId());
+        //3.设置UserContext上下文，供loadOrderDetailFromDB内部获取当前用户ID
+        UserContext.setUserId(userId);
         try {
+            //4.构建查询条件，加载订单最新详情
             OrderDetailQuery query = new OrderDetailQuery();
             query.setOrderId(orderId);
             OrderDetailForAdminVO detail = orderService.loadOrderDetailFromDB(query);
+            //5.将最新订单详情写入Redis缓存，过期时间7天
             if (detail != null) {
                 orderDetailCacheService.setOrderDetailToCache(orderId, detail);
                 log.info("订单详情缓存更新成功, orderId={}", orderId);
             }
         } finally {
+            //6.清理UserContext，防止线程池复用导致上下文泄漏
             UserContext.clear();
         }
 

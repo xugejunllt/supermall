@@ -660,20 +660,30 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         return resultVo;
     }
 
+    /**
+     * Admin查询订单详情
+     * 采用Cache-Aside模式，先查缓存未命中再回源数据库，并将结果回填缓存。
+     * 设计亮点：
+     * 1.缓存命中时直接返回，降低数据库查询压力
+     * 2.缓存未命中时回源数据库，并将结果写入Redis，避免下次查询再次回源
+     * 3.订单数据变更时由MQ监听器异步刷新缓存，保证最终一致性
+     *
+     * @param query 订单详情查询条件
+     * @return 订单详情，订单不存在返回null
+     */
     @Override
     public OrderDetailForAdminVO orderDetailForAdminQuery(OrderDetailQuery query) {
-
-        // 1. 先从缓存读取
+        //1.先从缓存读取订单详情
         OrderDetailForAdminVO cached = orderDetailCacheService.getOrderDetailFromCache(query.getOrderId());
         if (cached != null) {
             log.info("订单详情缓存命中, orderId={}", query.getOrderId());
             return cached;
         }
 
-        // 2. 缓存未命中，从数据库加载
+        //2.缓存未命中，从数据库加载最新订单详情
         OrderDetailForAdminVO detail = loadOrderDetailFromDB(query);
 
-        // 3. 写入缓存
+        //3.将查询结果写入Redis缓存，供下次查询命中
         if (detail != null) {
             orderDetailCacheService.setOrderDetailToCache(query.getOrderId(), detail);
         }
