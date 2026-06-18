@@ -6,6 +6,5 @@ import lombok.Data;
 public class OrderDetailQuery {
 
     private Long orderId;
-    private Long userId;
 
 }

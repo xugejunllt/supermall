@@ -659,9 +659,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Override
     public OrderDetailForAdminVO orderDetailForAdminQuery(OrderDetailQuery query) {
 
+        Long userId = UserContext.getUserId();
         OrderDO orderDO = this.lambdaQuery()
                 .eq(OrderDO::getId, query.getOrderId())
-                .eq(OrderDO::getUserId, query.getUserId())
+                .eq(OrderDO::getUserId, userId)
                 .one();
         if (orderDO == null) {
             return null;
@@ -669,13 +670,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
         ShippingInfoDO shippingInfoDO = shippingInfoService.lambdaQuery()
                 .eq(ShippingInfoDO::getOrderId, query.getOrderId())
-                .eq(ShippingInfoDO::getUserId, query.getUserId())
+                .eq(ShippingInfoDO::getUserId, userId)
                 .one();
 
 
         List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery()
                 .eq(OrderItemDO::getOrderId, query.getOrderId())
-                .eq(OrderItemDO::getUserId, query.getUserId())
+                .eq(OrderItemDO::getUserId, userId)
                 .list();
 
         OrderDetailForAdminVO detailForAdminVO = BeanCopyUtils.copyBean(orderDO, OrderDetailForAdminVO.class);

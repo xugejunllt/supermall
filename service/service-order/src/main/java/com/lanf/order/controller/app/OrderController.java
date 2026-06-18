@@ -2,6 +2,8 @@ package com.lanf.order.controller.app;
 
 
 import com.lanf.api.goods.model.dto.ValidateCartDTO;
+import com.lanf.api.order.model.query.OrderDetailQuery;
+import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.utils.IdUtils;
@@ -15,10 +17,7 @@ import com.lanf.order.service.OrderManagerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -127,7 +126,13 @@ public class OrderController {
 
         return Result.ok(orderService.orderPageQuery(query));
     }
+    @GetMapping("/orderDetailQuery")
+    public Result<OrderDetailForAdminVO> orderDetailQuery(@Validated OrderDetailQuery query) {
 
+        log.info("admin查询订单详细:{}", query);
+
+        return Result.ok(orderService.orderDetailForAdminQuery(query));
+    }
 
 }
 
