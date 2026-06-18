@@ -36,12 +36,9 @@ public class OrderDetailCacheService {
         if (cachedValue == null || RedissonCacheService.isErrorValue(cachedValue)) {
             return null;
         }
-        try {
-            return JsonUtils.toObject(cachedValue, OrderDetailForAdminVO.class);
-        } catch (Exception e) {
-            log.error("订单详情缓存反序列化异常, orderId={}", orderId, e);
-            return null;
-        }
+
+        return JsonUtils.toObject(cachedValue, OrderDetailForAdminVO.class);
+
     }
 
     /**
