@@ -23,4 +23,9 @@ public class OrderMqGroupName {
     public static final String CLOSE_ORDER_GROUP = "CLOSE_ORDER_GROUP";
     public static final String AFTER_SALES_IN_STOCK_FINISH_GROUP = "AFTER_SALES_IN_STOCK_FINISH_GROUP";
 
+    /**
+     * 订单事件更新详情缓存
+     */
+    public static final String ORDER_EVENT_UPDATE_DETAIL_CACHE_GROUP = "ORDER_EVENT_UPDATE_DETAIL_CACHE_GROUP";
+
 }

@@ -8,6 +8,7 @@ import com.lanf.api.order.model.bo.DiscountInfoJson;
 import com.lanf.api.order.model.bo.ShippingInfoBO;
 import com.lanf.api.order.model.dto.AllowOutboundDTO;
 import com.lanf.api.order.model.dto.DeliveryDTO;
+import com.lanf.api.order.model.enums.ShippingStatusEnum;
 import com.lanf.api.order.model.query.AdminOrderSearchQuery;
 import com.lanf.api.order.model.query.OrderDetailQuery;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
@@ -39,7 +40,6 @@ import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.*;
-import com.lanf.api.order.model.enums.ShippingStatusEnum;
 import com.lanf.order.model.enums.SubStatusEnum;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
@@ -52,6 +52,7 @@ import com.lanf.order.mq.message.ShippingTrackMessage;
 import com.lanf.order.service.order.IOrderItemService;
 import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.order.IOrderStatusTraceService;
+import com.lanf.order.service.order.OrderDetailCacheService;
 import com.lanf.order.service.shipping.IExpressService;
 import com.lanf.order.service.shipping.IShippingInfoService;
 import com.lanf.order.utils.OrderServiceUtils;
@@ -114,6 +115,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
     @Autowired
     private OrderServiceUtils orderServiceUtils;
+
+    @Autowired
+    private OrderDetailCacheService orderDetailCacheService;
 
     @Transactional
     @Override
@@ -659,6 +663,26 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Override
     public OrderDetailForAdminVO orderDetailForAdminQuery(OrderDetailQuery query) {
 
+        // 1. 先从缓存读取
+        OrderDetailForAdminVO cached = orderDetailCacheService.getOrderDetailFromCache(query.getOrderId());
+        if (cached != null) {
+            log.info("订单详情缓存命中, orderId={}", query.getOrderId());
+            return cached;
+        }
+
+        // 2. 缓存未命中，从数据库加载
+        OrderDetailForAdminVO detail = loadOrderDetailFromDB(query);
+
+        // 3. 写入缓存
+        if (detail != null) {
+            orderDetailCacheService.setOrderDetailToCache(query.getOrderId(), detail);
+        }
+
+        return detail;
+    }
+
+    @Override
+    public OrderDetailForAdminVO loadOrderDetailFromDB(OrderDetailQuery query) {
         Long userId = UserContext.getUserId();
         OrderDO orderDO = this.lambdaQuery()
                 .eq(OrderDO::getId, query.getOrderId())

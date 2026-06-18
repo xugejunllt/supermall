@@ -100,5 +100,7 @@ public interface IOrderService extends IService<OrderDO> {
     OrderDetailForAdminVO orderDetailForAdminQuery(OrderDetailQuery query);
 
 
+     OrderDetailForAdminVO loadOrderDetailFromDB(OrderDetailQuery query);
+
 
 }
