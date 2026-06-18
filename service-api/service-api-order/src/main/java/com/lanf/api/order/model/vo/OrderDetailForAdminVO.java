@@ -67,4 +67,7 @@ public class OrderDetailForAdminVO implements Serializable {
 
     private List<OrderItemVO> orderItemVOList;
 
+    private List<ShippingTrackVO> trackVOList;
+
+
 }

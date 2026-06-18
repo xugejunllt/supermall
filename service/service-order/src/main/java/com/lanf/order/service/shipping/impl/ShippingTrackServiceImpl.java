@@ -1,6 +1,9 @@
 package com.lanf.order.service.shipping.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.order.model.enums.ShippingStatusEnum;
+import com.lanf.api.order.model.vo.ShippingTrackContentVO;
+import com.lanf.api.order.model.vo.ShippingTrackVO;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.order.mapper.ShippingTrackMapper;
 import com.lanf.order.model.bo.AddShippingTrackBO;
@@ -55,6 +58,7 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
     }
 
 
+
     private static ShippingTrackDO getShippingTrackDO(AddShippingTrackBO shippingTrackBO,BathAddShippingTrackBO bo) {
         ShippingTrackDO trackDO = new ShippingTrackDO();
         trackDO.setOrderId(bo.getOrderId());
@@ -68,4 +72,29 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
         trackDO.setFlowNo(shippingTrackBO.getFlowNo());
         return trackDO;
     }
+
+    @Override
+    public List<ShippingTrackVO> findShippingTrack(Long orderId) {
+
+        List<ShippingTrackVO> trackVOList = new ArrayList<>();
+        ShippingTrackVO shippingTrackVO = new ShippingTrackVO();
+        shippingTrackVO.setStatus(ShippingStatusEnum.ORDER_PLACED);
+
+
+        List<ShippingTrackContentVO> trackContentVOList = new ArrayList<>();
+        ShippingTrackContentVO contentVO = new ShippingTrackContentVO();
+        contentVO.setFinishTime(new Date());
+        contentVO.setFinishContent("下单成功");
+        trackContentVOList.add(contentVO);
+        shippingTrackVO.setTrackContentVOList(trackContentVOList);
+        trackVOList.add(shippingTrackVO);
+
+
+        return trackVOList;
+    }
+
+
+
+
+
 }

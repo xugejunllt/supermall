@@ -1,4 +1,4 @@
-package com.lanf.order.model.enums;
+package com.lanf.api.order.model.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;

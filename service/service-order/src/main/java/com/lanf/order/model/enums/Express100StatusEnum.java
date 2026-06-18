@@ -3,6 +3,7 @@ package com.lanf.order.model.enums;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.lanf.api.order.model.enums.ShippingStatusEnum;
 import lombok.Getter;
 
 /**

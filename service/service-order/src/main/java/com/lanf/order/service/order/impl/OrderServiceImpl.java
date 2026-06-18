@@ -39,7 +39,7 @@ import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.*;
-import com.lanf.order.model.enums.ShippingStatusEnum;
+import com.lanf.api.order.model.enums.ShippingStatusEnum;
 import com.lanf.order.model.enums.SubStatusEnum;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
