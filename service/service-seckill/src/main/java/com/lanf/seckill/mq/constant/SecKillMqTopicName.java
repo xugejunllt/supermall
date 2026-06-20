@@ -12,4 +12,9 @@ public class SecKillMqTopicName {
      * MQ排队秒杀执行（真正扣减库存）
      */
     public static final String SEC_KILL_MQ_EXECUTE_TOPIC = "SEC_KILL_MQ_EXECUTE_TOPIC";
+
+    /**
+     * 秒杀优惠券执行
+     */
+    public static final String SEC_KILL_COUPON_MQ_EXECUTE_TOPIC = "SEC_KILL_COUPON_MQ_EXECUTE_TOPIC";
 }

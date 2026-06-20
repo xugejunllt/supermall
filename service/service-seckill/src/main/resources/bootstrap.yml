@@ -32,9 +32,7 @@ server:
   port: 9013
   servlet:
     context-path: /seckill
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
+
 
 # application.yml
 seckill:
@@ -42,4 +40,8 @@ seckill:
     - path: /seckill/kill/iphone15
       seckillItemId: 1507911104775458816
     - path: /seckill/kill/macbook
+      seckillItemId: 1507911104775458816
+seckill-coupon:
+  url-mappings:
+    - path: /seckill/kill/coupon
       seckillItemId: 1507911104775458816

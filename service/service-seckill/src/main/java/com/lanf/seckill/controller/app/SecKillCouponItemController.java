@@ -1,0 +1,91 @@
+package com.lanf.seckill.controller.app;
+
+import com.lanf.constant.result.Result;
+import com.lanf.constant.utils.UserContext;
+import com.lanf.seckill.model.dto.GetSecKillCouponTokenDTO;
+import com.lanf.seckill.model.vo.SecKillCouponItemDetailVO;
+import com.lanf.seckill.model.vo.SecKillCouponItemVO;
+import com.lanf.seckill.model.vo.SecKillCouponTokenVO;
+import com.lanf.seckill.service.ISecKillCouponItemService;
+import com.lanf.welfare.api.SecKillResultCache;
+import com.lanf.welfare.model.enums.SecKillResultEnum;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * <p>
+ * 秒杀优惠券项目表 前端控制器（用户端）
+ * </p>
+ *
+ * @author jarven
+ * @since 2026-06-20
+ */
+@Slf4j
+@RestController
+@RequestMapping("/app/seckillCouponItem")
+public class SecKillCouponItemController {
+
+    @Autowired
+    private ISecKillCouponItemService seckillCouponItemService;
+
+    @Autowired
+    private SecKillResultCache secKillResultCache;
+
+    /**
+     * 获取秒杀优惠券列表
+     */
+    @GetMapping("/seckillCouponItemList")
+    public Result<List<SecKillCouponItemVO>> seckillCouponItemList(@RequestParam Long activityId) {
+        log.info("获取秒杀优惠券列表: activityId={}", activityId);
+        List<SecKillCouponItemVO> items = seckillCouponItemService.seckillCouponItemList(activityId);
+        return Result.ok(items);
+    }
+
+    /**
+     * 查询优惠券详情
+     */
+    @GetMapping("/seckillCouponItemDetailQuery")
+    public Result<SecKillCouponItemDetailVO> seckillCouponItemDetailQuery(@RequestParam Long secKillCouponItemId) {
+        log.info("查询秒杀优惠券详细: {}", secKillCouponItemId);
+        SecKillCouponItemDetailVO detail = seckillCouponItemService.seckillCouponItemDetailQuery(secKillCouponItemId);
+        return Result.ok(detail);
+    }
+
+    /**
+     * 获取秒杀优惠券Token
+     */
+    @PostMapping("/getSecKillCouponToken")
+    public Result<SecKillCouponTokenVO> getSecKillCouponToken(@Validated @RequestBody GetSecKillCouponTokenDTO dto) {
+        log.info("获取秒杀优惠券Token: dto={}", dto);
+        return Result.ok(seckillCouponItemService.getSecKillCouponToken(dto));
+    }
+
+    /**
+     * 前端轮询秒杀结果
+     */
+    @GetMapping("/querySecKillCouponResult")
+    public Result<String> querySecKillCouponResult(@RequestParam Long secKillCouponItemId) {
+        Long userId = UserContext.getUserId();
+        SecKillResultEnum result = secKillResultCache.getResult(userId, secKillCouponItemId);
+
+        String message = null;
+        switch (result) {
+            case SUCCESS_ORDER_CREATED:
+                message = "秒杀成功，优惠券已发放";
+                break;
+            case SUCCESS_ORDER_CREATING:
+                message = "优惠券发放中,请稍后再试";
+                break;
+            case SOLD_OUT:
+                message = "秒杀失败,优惠券已售空";
+                break;
+        }
+
+        return Result.ok(message);
+    }
+
+}

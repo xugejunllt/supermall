@@ -14,4 +14,9 @@ public class SecKillMqGroupName {
      * MQ排队秒杀执行消费组（真正扣减库存）
      */
     public static final String SEC_KILL_MQ_EXECUTE_GROUP = "SEC_KILL_MQ_EXECUTE_GROUP";
+
+    /**
+     * 秒杀优惠券执行消费组
+     */
+    public static final String SEC_KILL_COUPON_MQ_EXECUTE_GROUP = "SEC_KILL_COUPON_MQ_EXECUTE_GROUP";
 }
