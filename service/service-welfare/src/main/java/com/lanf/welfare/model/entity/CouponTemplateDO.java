@@ -24,11 +24,11 @@ private static final long serialVersionUID=1L;
 
 
     /**
-     * 优惠卷类型 0:店铺优惠卷,1:注册发放 ,2:会员等级升级
+     * 优惠卷类型 0:店铺优惠卷,1:注册发放 ,2:会员等级升级  3:秒杀劵
      * 1、2只能由平台管理员发放
      *
      */
-    private Integer purpose;
+    private Integer scene;
 
     /**
      * 店铺id purpose =0有值

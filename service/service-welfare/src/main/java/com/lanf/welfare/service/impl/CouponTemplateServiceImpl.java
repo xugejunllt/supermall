@@ -385,7 +385,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                 .gt(CouponTemplateDO::getRemainCount, 0)
                 .eq(CouponTemplateDO::getStatus, CouponTemplateStatus.PUSH.getCode())
                 .eq(CouponTemplateDO::getShopId, shopId)
-                .eq(CouponTemplateDO::getPurpose, CouponPurpose.SHOP.getCode())
+                .eq(CouponTemplateDO::getScene, CouponPurpose.SHOP.getCode())
                 .list();
         if (IStringUtils.isEmpty(templateDOList)) {
             log.info("DB数据为空");
@@ -457,7 +457,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         couponTemplateHistoryService.save(templateHistoryDO);
         couponTemplateRevokeService.save(couponTemplateRevokeDO);
 
-        if (CouponPurpose.SHOP.getCode().equals(templateDO.getPurpose())) {
+        if (CouponPurpose.SHOP.getCode().equals(templateDO.getScene())) {
 //            //删除店铺优惠卷缓存
 //            couponCacheService.removeShopCouponCache(templateDO.getShopId());
 //            couponCacheService.removeShopCouponRemainCountCache(templateDO.getShopId());
