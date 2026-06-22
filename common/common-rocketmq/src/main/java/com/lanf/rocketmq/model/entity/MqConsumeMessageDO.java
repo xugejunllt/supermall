@@ -19,6 +19,9 @@ public class MqConsumeMessageDO extends BaseEntity {
     private String messageId;
 
 
+    private String retryStrategyBeanClass;
+
+
     /**
      * 消息状态 0:待消费 1:消费成功 2:消费失败
      */

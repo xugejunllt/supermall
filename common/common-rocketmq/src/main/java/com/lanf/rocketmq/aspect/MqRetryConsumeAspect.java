@@ -1,7 +1,6 @@
 package com.lanf.rocketmq.aspect;
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.constant.exception.BizException;
 import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.entity.MqConsumeMessageDO;
@@ -18,6 +17,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -43,8 +43,6 @@ public class MqRetryConsumeAspect {
     @Autowired
     private IMqConsumeMessageService mqLocalTransactionMessageService;
 
-    @Autowired
-    private MqRetryStrategy mqRetryStrategy;
 
     @Autowired
     private MqRetryReflectExecutor mqRetryReflectExecutor;
@@ -52,6 +50,9 @@ public class MqRetryConsumeAspect {
     @Autowired
     @Qualifier("mqConsumeRetrySendExecutor")
     private Executor mqRetrySendExecutor;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     private final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
     private final ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
@@ -108,26 +109,20 @@ public class MqRetryConsumeAspect {
 
                 log.info("MQ消息消费成功，messageId:{}", messageId);
                 return result;
-            } catch (MessageRetryConsumeException e) {
-                // 5. 执行失败，捕获到 MessageRetryConsumeException，通过线程池发送到 HashedWheelTimer 中
+            } catch (Exception e) {
                 log.error("MQ消息消费失败，准备延迟重试，messageId:{}", messageId, e);
 
                 // 更新状态为失败
                 messageDO.setStatus(2);
                 messageDO.setErrorMsg(e.getMessage());
                 mqLocalTransactionMessageService.updateById(messageDO);
+                if (isRetryException(e)) {
 
-                // 通过线程池 + HashedWheelTimer 延迟重试
-                sendToRetryQueue(messageDO);
-
-               return null;
-            } catch (Exception e) {
-                log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}",
-                        messageDO.getMessageId());
-                // 更新状态为失败
-                messageDO.setStatus(2);
-                messageDO.setErrorMsg(e.getMessage());
-                mqLocalTransactionMessageService.updateById(messageDO);
+                    sendToRetryQueue(messageDO);
+                } else {
+                    log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}",
+                            messageDO.getMessageId());
+                }
                 return null;
             }
         } finally {
@@ -139,7 +134,7 @@ public class MqRetryConsumeAspect {
     /**
      * 解析消息ID（支持SpEL表达式）
      *
-     * @param joinPoint 连接点
+     * @param joinPoint           连接点
      * @param messageIdExpression 消息ID表达式
      * @return 消息ID
      */
@@ -184,15 +179,17 @@ public class MqRetryConsumeAspect {
     private MqConsumeMessageDO createMessageRecord(ProceedingJoinPoint joinPoint, MqRetryConsume mqRetryConsume, String messageId) {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         Method method = methodSignature.getMethod();
+        Class<? extends MqRetryStrategy> aClass = mqRetryConsume.retryStrategy();
+        MqRetryStrategy retryStrategy = applicationContext.getBean(aClass);
 
         MqConsumeMessageDO messageDO = new MqConsumeMessageDO();
         messageDO.setMessageId(messageId);
         messageDO.setStatus(0);
         messageDO.setRetryCount(0);
-        messageDO.setMaxRetryCount(mqRetryConsume.maxRetryCount());
+        messageDO.setMaxRetryCount(retryStrategy.maxRetryCount());
         messageDO.setClassName(method.getDeclaringClass().getName());
         messageDO.setMethodName(method.getName());
-
+        messageDO.setRetryStrategyBeanClass(aClass.getName());
         // 记录参数类型
         Class<?>[] parameterTypes = method.getParameterTypes();
         String[] paramTypeNames = new String[parameterTypes.length];
@@ -214,12 +211,24 @@ public class MqRetryConsumeAspect {
      * @param messageDO 消息记录
      */
     private void sendToRetryQueue(MqConsumeMessageDO messageDO) {
+
+        String retryStrategyBeanClass = messageDO.getRetryStrategyBeanClass();
+        Class<?> aClass = null;
+        try {
+            aClass = Class.forName(retryStrategyBeanClass);
+        } catch (ClassNotFoundException e) {
+            log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}",
+                    messageDO.getMessageId());
+            return;
+        }
+
+        MqRetryStrategy mqRetryStrategy = (MqRetryStrategy) applicationContext.getBean(aClass);
         int retryCount = messageDO.getRetryCount() + 1;
-        if (retryCount > 3) {
+        if (retryCount > mqRetryStrategy.maxRetryCount()) {
             log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}, retryCount:{}",
                     messageDO.getMessageId(), retryCount);
             // TODO: 调用钉钉Webhook API 发送告警
-            throw new BizException("超过最大重试次数");
+            return;
 
         }
 
@@ -227,7 +236,6 @@ public class MqRetryConsumeAspect {
 
         log.info("消息加入重试队列，messageId:{}, retryCount:{}, delay:{}ms",
                 messageDO.getMessageId(), retryCount, delayMillis);
-
         timer.newTimeout(timeout -> {
             mqRetrySendExecutor.execute(() -> doRetry(messageDO, retryCount));
         }, delayMillis, TimeUnit.MILLISECONDS);
@@ -236,20 +244,16 @@ public class MqRetryConsumeAspect {
     /**
      * 执行重试
      *
-     * @param messageDO   消息记录
-     * @param retryCount  重试次数
+     * @param messageDO  消息记录
+     * @param retryCount 重试次数
      */
     private void doRetry(MqConsumeMessageDO messageDO, int retryCount) {
         try {
             // 更新重试次数
             messageDO.setRetryCount(retryCount);
             mqLocalTransactionMessageService.updateById(messageDO);
-
-
-
             // 通过反射重新执行方法
             mqRetryReflectExecutor.execute(messageDO);
-
             // 反射执行成功，更新状态
             messageDO.setStatus(1);
             messageDO.setErrorMsg(null);
@@ -259,12 +263,25 @@ public class MqRetryConsumeAspect {
                     messageDO.getMessageId(), retryCount);
         } catch (Exception e) {
             log.error("MQ消息第{}次重试失败，messageId:{}", retryCount, messageDO.getMessageId(), e);
-
+            /**
+             * 第一次执行时 如果发生业务异常 那么不会进入重试队列
+             * 所以重试 接受任意异常
+             */
             // 再次加入重试队列
-            MqConsumeMessageDO freshMessage = mqLocalTransactionMessageService.getByMessageId(messageDO.getMessageId());
-            if (freshMessage != null) {
-                sendToRetryQueue(freshMessage);
-            }
+                MqConsumeMessageDO freshMessage = mqLocalTransactionMessageService.getByMessageId(messageDO.getMessageId());
+                if (freshMessage != null) {
+                    sendToRetryQueue(freshMessage);
+                }
+
         }
+    }
+
+    private boolean isRetryException(Exception e) {
+
+        if (e instanceof MessageRetryConsumeException) {
+
+            return true;
+        }
+        return false;
     }
 }

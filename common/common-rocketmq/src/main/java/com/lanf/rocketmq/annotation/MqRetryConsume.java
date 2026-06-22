@@ -1,5 +1,8 @@
 package com.lanf.rocketmq.annotation;
 
+import com.lanf.rocketmq.sevice.MqRetryStrategy;
+import com.lanf.rocketmq.sevice.impl.DefaultMqRetryStrategyImpl;
+
 import java.lang.annotation.*;
 
 /**
@@ -16,8 +19,5 @@ public @interface MqRetryConsume {
      */
     String messageId();
 
-    /**
-     * 最大重试次数，默认18次
-     */
-    int maxRetryCount() default 18;
+    Class<? extends MqRetryStrategy> retryStrategy() default DefaultMqRetryStrategyImpl.class;
 }

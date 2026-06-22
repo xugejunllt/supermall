@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @RocketMQMessageListener(topic = TopicName.SEND_SMS_TOPIC, consumerGroup = TopicName.SEND_SMS_GROUP,maxReconsumeTimes = TopicName.MAX_RECONSUME_TIMES)
 public class SendSmsListener implements RocketMQListener<SendSmsMsg> {
 
-    @MqRetryConsume(messageId = "#message.messageId", maxRetryCount = 3)
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(SendSmsMsg message) {
 
