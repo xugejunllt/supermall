@@ -34,13 +34,17 @@ public class MqMessageSendService {
      * @param messageDO 消息记录
      */
     public void sendMessage(MqSendMessageDO messageDO) {
+        sendMessage(messageDO, 1);
+    }
+
+    public void sendMessage(MqSendMessageDO messageDO, int retryCount) {
         try {
             doSend(messageDO);
             updateMessageStatus(messageDO);
             log.info("MQ消息发送成功，messageId:{}, topic:{}", messageDO.getId(), messageDO.getTopic());
         } catch (Exception e) {
             log.error("MQ消息发送失败，加入重试队列，messageId:{}, topic:{}", messageDO.getId(), messageDO.getTopic(), e);
-            mqRetryService.addToRetryQueue(messageDO, 0);
+            mqRetryService.addToRetryQueue(messageDO, retryCount + 1);
         }
     }
 
@@ -134,7 +138,6 @@ public class MqMessageSendService {
     public void updateMessageStatus(MqSendMessageDO messageDO) {
         try {
             messageDO.setStatus(1);
-            messageDO.setRetryCount(1);
             mqSendMessageService.updateById(messageDO);
         } catch (Exception e) {
             log.error("更新MQ消息状态失败，messageId:{}", messageDO.getId(), e);

@@ -1,133 +1,123 @@
 package com.lanf.rocketmq.sevice;
 
-import com.lanf.common.utils.JsonUtils;
-import com.lanf.rocketmq.model.dto.MqRetryMessageDTO;
 import com.lanf.rocketmq.model.entity.MqSendMessageDO;
+import io.netty.util.HashedWheelTimer;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
-import org.redisson.api.RScoredSortedSet;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MQ消息重试服务
- * <p>管理消息重试队列，支持延迟重试和钉钉告警</p>
+ * <p>基于 HashedWheelTimer 实现延迟重试，最大重试3次</p>
  */
 @Slf4j
 @Service
 public class MqRetryService {
 
     /**
-     * 重试队列Redis Key
-     */
-    private static final String RETRY_QUEUE_KEY = "mq:retry:queue";
-
-    /**
-     * 重试分布式锁Redis Key
-     */
-    private static final String RETRY_LOCK_KEY = "mq:retry:lock";
-
-    /**
-     * 首次重试延迟：5秒
+     * 第1次重试延迟：5秒
      */
     private static final long DELAY_5S_MS = 5 * 1000L;
 
     /**
-     * 第二次重试延迟：1分钟
+     * 第2次重试延迟：1分钟
      */
     private static final long DELAY_1M_MS = 60 * 1000L;
 
+    /**
+     * 第3次重试延迟：5分钟
+     */
+    private static final long DELAY_5M_MS = 5 * 60 * 1000L;
+
+    /**
+     * 最大重试次数
+     */
+    private static final int MAX_RETRY_COUNT = 3;
+
+    /**
+     * 延迟定时器
+     */
+    private static final HashedWheelTimer TIMER = new HashedWheelTimer(100, TimeUnit.MILLISECONDS, 512);
+
     @Autowired
-    private RedissonClient redissonClient;
+    @Qualifier("mqRetrySendExecutor")
+    private Executor mqSendExecutor;
 
     @Autowired
     private MqMessageSendService mqMessageSendService;
 
+    @Autowired
+    private IMqSendMessageService mqSendMessageService;
+
     /**
-     * 将消息加入重试队列
+     * 将消息加入重试队列（HashedWheelTimer 延迟执行）
      *
      * @param messageDO   消息记录
-     * @param retryCount  重试次数（0=首次重试，1=第二次重试）
+     * @param retryCount  重试次数（1=首次重试，2=第二次重试，3=第三次重试）
      */
     public void addToRetryQueue(MqSendMessageDO messageDO, int retryCount) {
-        try {
-            RScoredSortedSet<String> sortedSet = redissonClient.getScoredSortedSet(RETRY_QUEUE_KEY);
-            MqRetryMessageDTO retryMessage = new MqRetryMessageDTO();
-            retryMessage.setMessage(messageDO);
-            retryMessage.setRetryCount(retryCount);
-
-            long nextRetryTime = System.currentTimeMillis() + (retryCount == 0 ? DELAY_5S_MS : DELAY_1M_MS);
-            sortedSet.add(nextRetryTime, JsonUtils.toJsonString(retryMessage));
-
-            log.info("消息已加入重试队列，messageId:{}, retryCount:{}, nextRetryTime:{}",
-                    messageDO.getId(), retryCount, nextRetryTime);
-        } catch (Exception e) {
-            log.error("加入重试队列失败，messageId:{}", messageDO.getId(), e);
+        if (retryCount > MAX_RETRY_COUNT) {
+            sendDingTalkAlert(messageDO);
+            return;
         }
+
+        long delayMillis = getDelayMillis(retryCount);
+
+        log.info("消息已加入重试队列，messageId:{}, retryCount:{}, delay:{}ms",
+                messageDO.getId(), retryCount, delayMillis);
+
+        TIMER.newTimeout(timeout -> {
+            mqSendExecutor.execute(() -> doRetry(messageDO, retryCount));
+        }, delayMillis, TimeUnit.MILLISECONDS);
     }
 
     /**
-     * 定时重试发送消息，每5秒执行一次
+     * 执行重试
+     *
+     * @param messageDO   消息记录
+     * @param retryCount  当前重试次数
      */
-    @Scheduled(fixedDelay = 5000)
-    public void retrySend() {
-        RLock lock = redissonClient.getLock(RETRY_LOCK_KEY);
-        if (!lock.tryLock()) {
-            return;
-        }
-        try {
-            RScoredSortedSet<String> sortedSet = redissonClient.getScoredSortedSet(RETRY_QUEUE_KEY);
-            Collection<String> messages = sortedSet.valueRange(0, true, System.currentTimeMillis(), true);
+    private void doRetry(MqSendMessageDO messageDO, int retryCount) {
+        // 更新重试次数到 DB
+        messageDO.setRetryCount(retryCount);
+        mqSendMessageService.updateById(messageDO);
 
-            if (messages == null || messages.isEmpty()) {
-                return;
-            }
+        // 调用 MqMessageSendService.sendMessage 重新发送
+        // 内部包含 doSend + updateMessageStatus，失败会自动再次加入重试队列
+        mqMessageSendService.sendMessage(messageDO, retryCount);
+    }
 
-            for (String json : messages) {
-                sortedSet.remove(json);
-
-                MqRetryMessageDTO retryMessage = JsonUtils.toObject(json, MqRetryMessageDTO.class);
-                if (retryMessage == null || retryMessage.getMessage() == null) {
-                    log.warn("重试消息解析失败，跳过: {}", json);
-                    continue;
-                }
-
-                MqSendMessageDO messageDO = retryMessage.getMessage();
-                int retryCount = retryMessage.getRetryCount();
-
-                try {
-                    mqMessageSendService.doSend(messageDO);
-                    mqMessageSendService.updateMessageStatus(messageDO);
-                    log.info("MQ消息重试发送成功，messageId:{}, retryCount:{}", messageDO.getId(), retryCount);
-                } catch (Exception e) {
-                    log.error("MQ消息重试发送失败，messageId:{}, retryCount:{}", messageDO.getId(), retryCount, e);
-                    if (retryCount >= 1) {
-                        sendDingTalkAlert(retryMessage);
-                    } else {
-                        addToRetryQueue(messageDO, retryCount + 1);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("重试定时任务执行异常", e);
-        } finally {
-            lock.unlock();
+    /**
+     * 根据重试次数获取延迟时间
+     *
+     * @param retryCount 重试次数
+     * @return 延迟毫秒数
+     */
+    private long getDelayMillis(int retryCount) {
+        switch (retryCount) {
+            case 1:
+                return DELAY_5S_MS;
+            case 2:
+                return DELAY_1M_MS;
+            case 3:
+                return DELAY_5M_MS;
+            default:
+                return 0;
         }
     }
 
     /**
      * 发送钉钉告警（伪代码）
      *
-     * @param retryMessage 重试消息
+     * @param messageDO 消息记录
      */
-    private void sendDingTalkAlert(MqRetryMessageDTO retryMessage) {
-        MqSendMessageDO message = retryMessage.getMessage();
+    private void sendDingTalkAlert(MqSendMessageDO messageDO) {
         log.error("【钉钉告警】MQ消息多次发送失败，messageId:{}, topic:{}",
-                message.getId(), message.getTopic());
+                messageDO.getId(), messageDO.getTopic());
         // TODO: 调用钉钉Webhook API 发送告警
     }
 }
