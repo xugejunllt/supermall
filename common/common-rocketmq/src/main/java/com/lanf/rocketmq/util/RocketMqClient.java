@@ -2,6 +2,7 @@ package com.lanf.rocketmq.util;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.common.utils.StackTraceUtil;
+import com.lanf.constant.exception.BizException;
 import com.lanf.constant.utils.TraceIdUtils;
 import io.netty.util.HashedWheelTimer;
 import lombok.extern.slf4j.Slf4j;
@@ -50,9 +51,21 @@ public class RocketMqClient {
     public void syncSendOrderly(String topic, String message, String key){
         log.info("发送顺序mq消息开始:topic:{},message:{}", topic, message);
         
-        Map<String, Object> headers = buildHeadersWithTraceId();
-        Message<Object> messageWithHeader = MessageBuilder.createMessage(message, new MessageHeaders(headers));
-        rocketMQTemplate.syncSendOrderly(topic, messageWithHeader, key);
+        try {
+            Map<String, Object> headers = buildHeadersWithTraceId();
+            Message<Object> messageWithHeader = MessageBuilder.createMessage(message, new MessageHeaders(headers));
+            SendResult sendResult = rocketMQTemplate.syncSendOrderly(topic, messageWithHeader, key);
+            if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
+                String sendResultJson = JsonUtils.toJsonString(sendResult);
+                log.error("发送顺序MQ消息失败,异常状态[{}]", sendResultJson);
+                throw new BizException("发送顺序MQ消息失败");
+            } else {
+                log.info("发送顺序mq消息成功");
+            }
+        } catch (Exception e) {
+            log.error("发送顺序MQ消息失败", e);
+            throw new BizException("发送顺序MQ消息失败");
+        }
     }
 
     /**
@@ -72,12 +85,14 @@ public class RocketMqClient {
              if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())){
                  String sendResultJson = JsonUtils.toJsonString(sendResult);
                  log.error("发送MQ消息失败,异常状态[{}]", sendResultJson);
+                 throw new BizException("发送MQ消息失败");
              } else {
                  log.info("发送mq消息成功");
              }
 
         } catch (Exception e) {
             log.error("发送MQ消息失败" ,e);
+            throw new BizException("发送MQ消息失败");
         }
 
     }
@@ -102,12 +117,14 @@ public class RocketMqClient {
             if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())){
                 String sendResultJson = JsonUtils.toJsonString(sendResult);
                 log.error("发送带Tag的MQ消息失败,异常状态[{}]", sendResultJson);
+                throw new BizException("发送带Tag的MQ消息失败");
             } else {
                 log.info("发送带Tag的mq消息成功,tag:{}", tag);
             }
 
         } catch (Exception e) {
             log.error("发送带Tag的MQ消息失败,destination:{},tag:{}", destination, tag, e);
+            throw new BizException("发送带Tag的MQ消息失败");
         }
 
     }
@@ -134,12 +151,14 @@ public class RocketMqClient {
             if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
                 String sendResultJson = JsonUtils.toJsonString(sendResult);
                 log.error("发送带Tag的顺序MQ消息失败,异常状态[{}], hashKey:{}", sendResultJson, hashKey);
+                throw new BizException("发送带Tag的顺序MQ消息失败");
             } else {
                 log.info("发送带Tag的顺序mq消息成功,tag:{}, hashKey:{}, queueId:{}", tag, hashKey, sendResult.getMessageQueue().getQueueId());
             }
 
         } catch (Exception e) {
             log.error("发送带Tag的顺序MQ消息失败,destination:{},tag:{},hashKey:{}", destination, tag, hashKey, e);
+            throw new BizException("发送带Tag的顺序MQ消息失败");
         }
     }
 
@@ -169,12 +188,14 @@ public class RocketMqClient {
                 if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
                     String sendResultJson = JsonUtils.toJsonString(sendResult);
                     log.error("发送MQ消息失败,异常状态[{}]", sendResultJson);
+                    throw new BizException("发送延迟MQ消息失败");
                 } else {
                     log.info("发送mq消息成功:topic:{}", topic);
                 }
 
             } catch (Exception e) {
                 log.error("发送MQ消息失败,topic:{}", topic, e);
+                throw new BizException("发送延迟MQ消息失败");
             } finally {
                 TraceIdUtils.clearAll();
             }
@@ -191,10 +212,13 @@ public class RocketMqClient {
             Map<String, Object> headers = buildHeadersWithTraceId();
             Message<Object> messageWithHeader = MessageBuilder.createMessage(jsonMessage, new MessageHeaders(headers));
             SendResult sendResult = rocketMQTemplate.syncSend(topic, messageWithHeader);
+            if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
+                log.error("发送MQ消息失败");
+                throw new BizException("发送MQ消息失败");
+            }
         } catch (Exception e) {
-
-            //不抛异常，事务最终一致性
             log.error("发送MQ消息失败[{}]", StackTraceUtil.getStackTrace(e));
+            throw new BizException("发送MQ消息失败");
         }
 
     }
