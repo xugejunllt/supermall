@@ -18,7 +18,7 @@ public class SendSmsListener implements RocketMQListener<SendSmsMsg> {
 
     public void onMessage(SendSmsMsg message) {
 
-        log.info("消费消息成功:message{}:",message);
+        log.info("监听到短信消息:message{}:",message);
 
 
     }
