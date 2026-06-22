@@ -1,0 +1,270 @@
+package com.lanf.rocketmq.aspect;
+
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.exception.BizException;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
+import com.lanf.rocketmq.model.entity.MqConsumeMessageDO;
+import com.lanf.rocketmq.sevice.IMqConsumeMessageService;
+import com.lanf.rocketmq.sevice.MqRetryReflectExecutor;
+import com.lanf.rocketmq.sevice.MqRetryStrategy;
+import io.netty.util.HashedWheelTimer;
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.stereotype.Component;
+
+import java.lang.reflect.Method;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * MQ重试消费AOP切面
+ * <p>扫描 @MqRetryConsume 注解，实现幂等控制、状态管理和失败重试</p>
+ */
+@Slf4j
+@Aspect
+@Component
+public class MqRetryConsumeAspect {
+
+    @Autowired
+    private RedissonClient redissonClient;
+
+    @Autowired
+    private IMqConsumeMessageService mqLocalTransactionMessageService;
+
+    @Autowired
+    private MqRetryStrategy mqRetryStrategy;
+
+    @Autowired
+    private MqRetryReflectExecutor mqRetryReflectExecutor;
+
+    @Autowired
+    @Qualifier("mqConsumeRetrySendExecutor")
+    private Executor mqRetrySendExecutor;
+
+    private final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
+    private final ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
+    private final HashedWheelTimer timer = new HashedWheelTimer(100, TimeUnit.MILLISECONDS, 512);
+
+    /**
+     * SpEL表达式前缀
+     */
+    private static final String SPEL_PREFIX = "#";
+
+    /**
+     * 分布式锁前缀
+     */
+    private static final String LOCK_PREFIX = "mq:consume:";
+
+    @Around("@annotation(mqRetryConsume)")
+    public Object around(ProceedingJoinPoint joinPoint, MqRetryConsume mqRetryConsume) throws Throwable {
+        // 解析消息ID
+        String messageId = parseMessageId(joinPoint, mqRetryConsume.messageId());
+        if (messageId == null || messageId.isEmpty()) {
+            log.error("消息ID解析失败，跳过消费");
+            return null;
+        }
+
+        String lockKey = LOCK_PREFIX + messageId;
+        RLock lock = redissonClient.getLock(lockKey);
+
+        // 1. 分布式锁，获取锁失败直接return
+        if (!lock.tryLock()) {
+            log.warn("获取分布式锁失败，跳过消费，messageId:{}", messageId);
+            return null;
+        }
+
+        try {
+            // 查询或创建消费记录
+            MqConsumeMessageDO messageDO = mqLocalTransactionMessageService.getByMessageId(messageId);
+            if (messageDO == null) {
+                // 2. 插入消息--正在消费中
+                messageDO = createMessageRecord(joinPoint, mqRetryConsume, messageId);
+                mqLocalTransactionMessageService.save(messageDO);
+            } else if (messageDO.getStatus() != null && messageDO.getStatus() == 1) {
+                log.info("消息已消费成功，跳过，messageId:{}", messageId);
+                return null;
+            }
+
+            // 3. 执行目标方法
+            try {
+                Object result = joinPoint.proceed();
+
+                // 4. 执行完成，更新消息状态为已完成
+                messageDO.setStatus(1);
+                messageDO.setErrorMsg(null);
+                mqLocalTransactionMessageService.updateById(messageDO);
+
+                log.info("MQ消息消费成功，messageId:{}", messageId);
+                return result;
+            } catch (MessageRetryConsumeException e) {
+                // 5. 执行失败，捕获到 MessageRetryConsumeException，通过线程池发送到 HashedWheelTimer 中
+                log.error("MQ消息消费失败，准备延迟重试，messageId:{}", messageId, e);
+
+                // 更新状态为失败
+                messageDO.setStatus(2);
+                messageDO.setErrorMsg(e.getMessage());
+                mqLocalTransactionMessageService.updateById(messageDO);
+
+                // 通过线程池 + HashedWheelTimer 延迟重试
+                sendToRetryQueue(messageDO);
+
+               return null;
+            } catch (Exception e) {
+                log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}",
+                        messageDO.getMessageId());
+                // 更新状态为失败
+                messageDO.setStatus(2);
+                messageDO.setErrorMsg(e.getMessage());
+                mqLocalTransactionMessageService.updateById(messageDO);
+                return null;
+            }
+        } finally {
+
+            lock.unlock();
+        }
+    }
+
+    /**
+     * 解析消息ID（支持SpEL表达式）
+     *
+     * @param joinPoint 连接点
+     * @param messageIdExpression 消息ID表达式
+     * @return 消息ID
+     */
+    private String parseMessageId(ProceedingJoinPoint joinPoint, String messageIdExpression) {
+        if (messageIdExpression == null || messageIdExpression.isEmpty()) {
+            return null;
+        }
+
+        // 如果不是SpEL表达式，直接返回
+        if (!messageIdExpression.startsWith(SPEL_PREFIX)) {
+            return messageIdExpression;
+        }
+
+        try {
+            MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+            Method method = methodSignature.getMethod();
+            String[] paramNames = parameterNameDiscoverer.getParameterNames(method);
+            Object[] args = joinPoint.getArgs();
+
+            StandardEvaluationContext context = new StandardEvaluationContext();
+            if (paramNames != null) {
+                for (int i = 0; i < paramNames.length; i++) {
+                    context.setVariable(paramNames[i], args[i]);
+                }
+            }
+
+            return spelExpressionParser.parseExpression(messageIdExpression).getValue(context, String.class);
+        } catch (Exception e) {
+            log.error("解析消息ID失败，expression:{}", messageIdExpression, e);
+            return null;
+        }
+    }
+
+    /**
+     * 创建消息消费记录
+     *
+     * @param joinPoint      连接点
+     * @param mqRetryConsume 注解
+     * @param messageId      消息ID
+     * @return 消息记录
+     */
+    private MqConsumeMessageDO createMessageRecord(ProceedingJoinPoint joinPoint, MqRetryConsume mqRetryConsume, String messageId) {
+        MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+        Method method = methodSignature.getMethod();
+
+        MqConsumeMessageDO messageDO = new MqConsumeMessageDO();
+        messageDO.setMessageId(messageId);
+        messageDO.setStatus(0);
+        messageDO.setRetryCount(0);
+        messageDO.setMaxRetryCount(mqRetryConsume.maxRetryCount());
+        messageDO.setClassName(method.getDeclaringClass().getName());
+        messageDO.setMethodName(method.getName());
+
+        // 记录参数类型
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        String[] paramTypeNames = new String[parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; i++) {
+            paramTypeNames[i] = parameterTypes[i].getName();
+        }
+        messageDO.setParamTypes(JsonUtils.toJsonString(paramTypeNames));
+
+        // 记录参数值
+        Object[] args = joinPoint.getArgs();
+        messageDO.setParamValues(JsonUtils.toJsonString(args));
+
+        return messageDO;
+    }
+
+    /**
+     * 发送到重试队列（HashedWheelTimer 延迟执行）
+     *
+     * @param messageDO 消息记录
+     */
+    private void sendToRetryQueue(MqConsumeMessageDO messageDO) {
+        int retryCount = messageDO.getRetryCount() + 1;
+        if (retryCount > 3) {
+            log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}, retryCount:{}",
+                    messageDO.getMessageId(), retryCount);
+            // TODO: 调用钉钉Webhook API 发送告警
+            throw new BizException("超过最大重试次数");
+
+        }
+
+        long delayMillis = mqRetryStrategy.getDelayMillis(retryCount);
+
+        log.info("消息加入重试队列，messageId:{}, retryCount:{}, delay:{}ms",
+                messageDO.getMessageId(), retryCount, delayMillis);
+
+        timer.newTimeout(timeout -> {
+            mqRetrySendExecutor.execute(() -> doRetry(messageDO, retryCount));
+        }, delayMillis, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 执行重试
+     *
+     * @param messageDO   消息记录
+     * @param retryCount  重试次数
+     */
+    private void doRetry(MqConsumeMessageDO messageDO, int retryCount) {
+        try {
+            // 更新重试次数
+            messageDO.setRetryCount(retryCount);
+            mqLocalTransactionMessageService.updateById(messageDO);
+
+
+
+            // 通过反射重新执行方法
+            mqRetryReflectExecutor.execute(messageDO);
+
+            // 反射执行成功，更新状态
+            messageDO.setStatus(1);
+            messageDO.setErrorMsg(null);
+            mqLocalTransactionMessageService.updateById(messageDO);
+
+            log.info("MQ消息重试消费成功，messageId:{}, retryCount:{}",
+                    messageDO.getMessageId(), retryCount);
+        } catch (Exception e) {
+            log.error("MQ消息第{}次重试失败，messageId:{}", retryCount, messageDO.getMessageId(), e);
+
+            // 再次加入重试队列
+            MqConsumeMessageDO freshMessage = mqLocalTransactionMessageService.getByMessageId(messageDO.getMessageId());
+            if (freshMessage != null) {
+                sendToRetryQueue(freshMessage);
+            }
+        }
+    }
+}

@@ -1,5 +1,6 @@
 package com.lanf.constant.mq.base;
 
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.MessageLevelUtils;
 import com.lanf.constant.utils.TraceIdUtils;
 import lombok.Data;
@@ -13,6 +14,7 @@ public class BaseMessage implements Serializable {
 
     protected String traceId;
     protected Integer level;
+    protected String messageId;
 
     public BaseMessage() {
 
@@ -21,5 +23,6 @@ public class BaseMessage implements Serializable {
             traceId = "sys:"+ TraceIdUtils.generateTraceId() ;
         }
         level = MessageLevelUtils.getLevel();
+        messageId = IdUtils.generateId()+"";
     }
 }
