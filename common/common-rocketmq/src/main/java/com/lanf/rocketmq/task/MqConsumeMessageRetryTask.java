@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lanf.rocketmq.model.entity.MqConsumeMessageDO;
 import com.lanf.rocketmq.sevice.IMqConsumeMessageService;
+import com.lanf.rocketmq.sevice.MqConsumeRetryService;
 import com.lanf.rocketmq.sevice.MqRetryInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class MqConsumeMessageRetryTask {
 
     @Autowired
     private IMqConsumeMessageService mqConsumeMessageService;
+
+    @Autowired
+    private MqConsumeRetryService mqConsumeRetryService;
 
     @Autowired
     private MqRetryInstanceService mqRetryInstanceService;
@@ -80,7 +84,7 @@ public class MqConsumeMessageRetryTask {
 
                     log.info("发现待处理MqConsumeMessageDO，id:{}, messageId:{}, status:{}",
                             messageDO.getId(), messageDO.getMessageId(), messageDO.getStatus());
-                    // TODO: 根据业务需求处理消息
+                    mqConsumeRetryService.addToRetryQueue(messageDO);
                     totalCount++;
                 } catch (Exception e) {
                     log.error("处理MqConsumeMessageDO失败，id:{}", messageDO.getId(), e);

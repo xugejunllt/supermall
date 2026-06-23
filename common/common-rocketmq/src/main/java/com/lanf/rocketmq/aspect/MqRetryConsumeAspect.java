@@ -5,6 +5,7 @@ import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.entity.MqConsumeMessageDO;
 import com.lanf.rocketmq.sevice.IMqConsumeMessageService;
+import com.lanf.rocketmq.sevice.MqConsumeRetryService;
 import com.lanf.rocketmq.sevice.MqRetryReflectExecutor;
 import com.lanf.rocketmq.sevice.MqRetryStrategy;
 import io.netty.util.HashedWheelTimer;
@@ -50,6 +51,9 @@ public class MqRetryConsumeAspect {
 
     @Autowired
     private MqRetryReflectExecutor mqRetryReflectExecutor;
+
+    @Autowired
+    private MqConsumeRetryService mqConsumeRetryService;
 
     @Autowired
     @Qualifier("mqConsumeRetrySendExecutor")
@@ -150,7 +154,7 @@ public class MqRetryConsumeAspect {
 
                 if (isRetryException(e)) {
 
-                    sendToRetryQueue(messageDO);
+                    mqConsumeRetryService.addToRetryQueue(messageDO);
                 } else {
                     log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}",
                             messageDO.getMessageId());
