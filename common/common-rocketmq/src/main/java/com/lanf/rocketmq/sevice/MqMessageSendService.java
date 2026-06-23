@@ -34,7 +34,7 @@ public class MqMessageSendService {
      * @param messageDO 消息记录
      */
     public void sendMessage(MqSendMessageDO messageDO) {
-        sendMessage(messageDO, 1);
+        sendMessage(messageDO, 0);
     }
 
     public void sendMessage(MqSendMessageDO messageDO, int retryCount) {

@@ -140,7 +140,7 @@ public class MqSendMessageUtils {
     private void sendMessage(String topic, String tag, MqSendMessageTypeEnum sendMessageType,
                              String content, Integer delayTime, String messageKey) {
 
-        Date nextEstimatedCompletionAt = mqRetryService.getNextEstimatedCompletionAt(1);
+        Date nextEstimatedCompletionAt = mqRetryService.getNextEstimatedCompletionAt(0);
 
         MqSendMessageDO messageDO = new MqSendMessageDO();
         messageDO.setTopic(topic);

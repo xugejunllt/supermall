@@ -139,7 +139,7 @@ public class MqRetryService {
                 return;
             }
 
-            Date nextEstimatedCompletionAt = getNextEstimatedCompletionAt(retryCount + 1);
+            Date nextEstimatedCompletionAt = getNextEstimatedCompletionAt(retryCount);
             // 更新重试次数到 DB
             messageDO.setRetryCount(retryCount);
             messageDO.setNextEstimatedCompletionAt(nextEstimatedCompletionAt);

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MQ消息重试定时任务
@@ -58,14 +59,16 @@ public class MqMessageRetryTask {
         // 3. 扫描消息并处理
         int current = 1;
         int size = 100;
-        Date nowMinus5Min = new Date(System.currentTimeMillis() - 5 * 60 * 1000L);
+        // 超时阈值：当前时间往前推5分钟，用于判断消息是否已超时
+        // 如果消息的预期完成时间早于这个阈值，说明消息发送已超时，需要补偿重试
+        Date overdueThreshold = new Date(System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(5));
         int totalRetryCount = 0;
 
         while (true) {
             Page<MqSendMessageDO> page = new Page<>(current, size);
             QueryWrapper<MqSendMessageDO> wrapper = new QueryWrapper<>();
             wrapper.eq("status", 0);
-            wrapper.lt("next_estimated_completion_at", nowMinus5Min);
+            wrapper.lt("next_estimated_completion_at", overdueThreshold);
             wrapper.lt("retry_count", 3);
 
             Page<MqSendMessageDO> result = mqSendMessageService.page(page, wrapper);
