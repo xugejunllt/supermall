@@ -1,5 +1,6 @@
 package com.lanf.rocketmq.model.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class MqConsumeMessageDO extends BaseEntity {
 
     private String topic;
 
+    @TableField("`group`")
     private String group;
 
     private String retryStrategyBeanClass;
