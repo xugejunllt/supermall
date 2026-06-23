@@ -66,6 +66,7 @@ public class MqMessageRetryTask {
             QueryWrapper<MqSendMessageDO> wrapper = new QueryWrapper<>();
             wrapper.eq("status", 0);
             wrapper.lt("next_estimated_completion_at", nowPlus5Min);
+            wrapper.lt("retry_count", 4);
 
             Page<MqSendMessageDO> result = mqSendMessageService.page(page, wrapper);
             List<MqSendMessageDO> records = result.getRecords();
