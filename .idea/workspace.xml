@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="def1266b-857e-4950-be4c-dbead49843e2" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/common/common-rocketmq/src/main/java/com/lanf/rocketmq/task/MqMessageRetryAllocateTask.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/common-rocketmq/src/main/java/com/lanf/rocketmq/task/MqMessageRetryTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/common-rocketmq/src/main/java/com/lanf/rocketmq/task/MqMessageRetryTask.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/service/service-user/src/main/resources/bootstrap.yml" beforeDir="false" afterPath="$PROJECT_DIR$/service/service-user/src/main/resources/bootstrap.yml" afterDir="false" />
-    </list>
+    <list default="true" id="def1266b-857e-4950-be4c-dbead49843e2" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

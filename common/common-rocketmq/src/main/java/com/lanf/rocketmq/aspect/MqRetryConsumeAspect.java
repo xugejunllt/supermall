@@ -320,10 +320,14 @@ public class MqRetryConsumeAspect {
             // 再次加入重试队列
             MqConsumeMessageDO freshMessage = mqLocalTransactionMessageService.getByMessageId(messageDO.getMessageId());
             if (freshMessage != null) {
+                // 先从去重容器中移除，否则 sendToRetryQueue 会判定为重复
+                retryMessageIdSet.remove(messageId);
+                int remain = retryTaskCount.decrementAndGet();
+                log.info("准备再次入队，先清除当前去重标识，messageId:{}, 剩余任务数:{}", messageId, remain);
                 sendToRetryQueue(freshMessage);
             }
         } finally {
-            // 任务执行完成后，删除去重容器、减少任务数
+            // 任务执行完成后，减少任务数
             retryMessageIdSet.remove(messageId);
             int remain = retryTaskCount.decrementAndGet();
             log.info("消费重试任务执行完成，mqConsumeMessageId:{}, 剩余任务数:{}", messageId, remain);
