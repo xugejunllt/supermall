@@ -1,5 +1,6 @@
 package com.lanf.user.mq;
 
+import com.alibaba.fastjson.JSONObject;
 import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
@@ -19,7 +20,7 @@ public class SendSmsListener implements RocketMQListener<SendSmsMsg> {
     @Override
     public void onMessage(SendSmsMsg message) {
 
-        log.info("监听到短信消息:message{}:",message);
+        log.info("监听到短信消息:message{}:", JSONObject.toJSONString(message));
         throw new MessageRetryConsumeException("模拟短信发送异常");
 
     }

@@ -1,6 +1,9 @@
 package com.lanf.rocketmq.aspect;
 
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.mq.base.BaseMessage;
+import com.lanf.constant.utils.MessageLevelUtils;
+import com.lanf.constant.utils.TraceIdUtils;
 import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.entity.MqConsumeMessageDO;
@@ -100,6 +103,22 @@ public class MqRetryConsumeAspect {
             return null;
         }
 
+        // 从方法参数中提取 traceId 和 messageLevel
+        String traceId = null;
+        Integer messageLevel = null;
+        Object[] args = joinPoint.getArgs();
+        if (args != null && args.length > 0) {
+            Object arg = args[0];
+            if (arg instanceof BaseMessage) {
+                traceId = ((BaseMessage) arg).getTraceId();
+                messageLevel = ((BaseMessage) arg).getLevel();
+            }
+        }
+        TraceIdUtils.setTraceId(traceId);
+        if (messageLevel != null) {
+            MessageLevelUtils.setLevel(messageLevel + 1);
+        }
+
         // 从目标类上的 @RocketMQMessageListener 注解获取 topic 和 group
         String topic = null;
         String group = null;
@@ -164,6 +183,9 @@ public class MqRetryConsumeAspect {
         } finally {
 
             lock.unlock();
+            // 清理链路追踪信息
+            TraceIdUtils.clearAll();
+            MessageLevelUtils.clear();
         }
     }
 
