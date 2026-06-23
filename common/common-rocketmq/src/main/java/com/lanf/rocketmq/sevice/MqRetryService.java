@@ -100,7 +100,7 @@ public class MqRetryService {
         if (currentCount > MAX_RETRY_TASK_COUNT) {
             retryTaskCount.decrementAndGet();
             retryMessageIdSet.remove(messageId);
-            log.warn("重试任务数已达上限{}/{}，跳过添加，messageId:{}", currentCount, MAX_RETRY_TASK_COUNT, messageId);
+            sendDingTalkAlert( messageDO);
             return;
         }
 

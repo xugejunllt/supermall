@@ -25,8 +25,11 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * MQ重试消费AOP切面
@@ -57,6 +60,21 @@ public class MqRetryConsumeAspect {
     private final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
     private final ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
     private final HashedWheelTimer timer = new HashedWheelTimer(100, TimeUnit.MILLISECONDS, 512);
+
+    /**
+     * 最大重试任务数（队列中同时存在的最大任务数）
+     */
+    private static final int MAX_RETRY_TASK_COUNT = 10000;
+
+    /**
+     * 当前重试任务数统计
+     */
+    private final AtomicInteger retryTaskCount = new AtomicInteger(0);
+
+    /**
+     * 去重容器：已加入重试队列的消息ID（MqConsumeMessageDO.id）
+     */
+    private final Set<String> retryMessageIdSet = ConcurrentHashMap.newKeySet();
 
     /**
      * SpEL表达式前缀
@@ -212,6 +230,23 @@ public class MqRetryConsumeAspect {
      */
     private void sendToRetryQueue(MqConsumeMessageDO messageDO) {
 
+        String messageId = messageDO.getMessageId();
+
+        // 1. 去重检查
+        if (!retryMessageIdSet.add(messageId)) {
+            log.warn("消息已在重试队列中，跳过重复添加，mqConsumeMessageId:{}", messageId);
+            return;
+        }
+
+        // 2. 任务数上限检查
+        int currentCount = retryTaskCount.incrementAndGet();
+        if (currentCount > MAX_RETRY_TASK_COUNT) {
+            retryTaskCount.decrementAndGet();
+            retryMessageIdSet.remove(messageId);
+            log.warn("重试任务数已达上限{}/{}，跳过添加，mqConsumeMessageId:{}", currentCount, MAX_RETRY_TASK_COUNT, messageId);
+            return;
+        }
+
         String retryStrategyBeanClass = messageDO.getRetryStrategyBeanClass();
         Class<?> aClass = null;
         try {
@@ -229,15 +264,14 @@ public class MqRetryConsumeAspect {
                     messageDO.getMessageId(), retryCount);
             // TODO: 调用钉钉Webhook API 发送告警
             return;
-
         }
 
         long delayMillis = mqRetryStrategy.getDelayMillis(retryCount);
 
-        log.info("消息加入重试队列，messageId:{}, retryCount:{}, delay:{}ms",
-                messageDO.getMessageId(), retryCount, delayMillis);
+        log.info("消息加入重试队列，messageId:{}, mqConsumeMessageId:{}, retryCount:{}, delay:{}ms",
+                messageDO.getMessageId(), messageId, retryCount, delayMillis);
         timer.newTimeout(timeout -> {
-            mqRetrySendExecutor.execute(() -> doRetry(messageDO, retryCount));
+            mqRetrySendExecutor.execute(() -> doRetry(messageDO, retryCount, mqRetryStrategy));
         }, delayMillis, TimeUnit.MILLISECONDS);
     }
 
@@ -247,8 +281,24 @@ public class MqRetryConsumeAspect {
      * @param messageDO  消息记录
      * @param retryCount 重试次数
      */
-    private void doRetry(MqConsumeMessageDO messageDO, int retryCount) {
+    private void doRetry(MqConsumeMessageDO messageDO, int retryCount, MqRetryStrategy mqRetryStrategy) {
+        // 以 messageId 作为分布式锁key，防止同一消息并发重试
+        String messageId = messageDO.getMessageId();
+        String lockKey = LOCK_PREFIX + messageId;
+        RLock lock = redissonClient.getLock(lockKey);
+        boolean locked = false;
         try {
+            locked = lock.tryLock();
+            if (!locked) {
+                log.warn("获取分布式锁失败，跳过本次重试，messageId:{}", messageDO.getMessageId());
+                return;
+            }
+            messageDO = mqLocalTransactionMessageService.getByMessageId(messageDO.getMessageId());
+            if (messageDO.getRetryCount() > mqRetryStrategy.maxRetryCount()){
+               log.error("钉钉告警");
+               return;
+            }
+
             // 更新重试次数
             messageDO.setRetryCount(retryCount);
             mqLocalTransactionMessageService.updateById(messageDO);
@@ -259,20 +309,28 @@ public class MqRetryConsumeAspect {
             messageDO.setErrorMsg(null);
             mqLocalTransactionMessageService.updateById(messageDO);
 
-            log.info("MQ消息重试消费成功，messageId:{}, retryCount:{}",
-                    messageDO.getMessageId(), retryCount);
+            log.info("MQ消息重试消费成功，messageId:{}, , retryCount:{}",
+                    messageDO.getMessageId(),  retryCount);
         } catch (Exception e) {
-            log.error("MQ消息第{}次重试失败，messageId:{}", retryCount, messageDO.getMessageId(), e);
+            log.error("MQ消息第{}次重试失败，messageId:{}, mqConsumeMessageId:{}", retryCount, messageDO.getMessageId(), mqConsumeMessageId, e);
             /**
              * 第一次执行时 如果发生业务异常 那么不会进入重试队列
              * 所以重试 接受任意异常
              */
             // 再次加入重试队列
-                MqConsumeMessageDO freshMessage = mqLocalTransactionMessageService.getByMessageId(messageDO.getMessageId());
-                if (freshMessage != null) {
-                    sendToRetryQueue(freshMessage);
-                }
-
+            MqConsumeMessageDO freshMessage = mqLocalTransactionMessageService.getByMessageId(messageDO.getMessageId());
+            if (freshMessage != null) {
+                sendToRetryQueue(freshMessage);
+            }
+        } finally {
+            // 任务执行完成后，删除去重容器、减少任务数
+            retryMessageIdSet.remove(messageId);
+            int remain = retryTaskCount.decrementAndGet();
+            log.info("消费重试任务执行完成，mqConsumeMessageId:{}, 剩余任务数:{}", messageId, remain);
+            // 释放分布式锁
+            if (locked) {
+                lock.unlock();
+            }
         }
     }
 
