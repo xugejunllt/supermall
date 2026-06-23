@@ -312,7 +312,7 @@ public class MqRetryConsumeAspect {
             log.info("MQ消息重试消费成功，messageId:{}, , retryCount:{}",
                     messageDO.getMessageId(),  retryCount);
         } catch (Exception e) {
-            log.error("MQ消息第{}次重试失败，messageId:{}, mqConsumeMessageId:{}", retryCount, messageDO.getMessageId(), mqConsumeMessageId, e);
+            log.error("MQ消息第{}次重试失败，messageId:{},", retryCount, messageDO.getMessageId(), e);
             /**
              * 第一次执行时 如果发生业务异常 那么不会进入重试队列
              * 所以重试 接受任意异常
