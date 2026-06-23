@@ -33,9 +33,9 @@ public class MqMessageRetryTask {
     private MqRetryInstanceService mqRetryInstanceService;
 
     /**
-     * 每10秒执行一次
+     * 每10分钟执行一次
      */
-    @Scheduled(cron = "0/10 * * * * ?")
+    @Scheduled(cron = "0 0/10 * * * ?")
     public void retryPendingMessages() {
         log.info("开始扫描正在发送中的MQ消息，准备重试");
 

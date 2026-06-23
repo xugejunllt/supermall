@@ -26,7 +26,7 @@ public class MqMessageRetryAllocateTask {
     /**
      * 每1分钟执行一次，分配编号
      */
-    @Scheduled(cron = "0/10 * * * * ?")
+    @Scheduled(cron = "0 0/1 * * * ?")
     public void allocateServiceNumbers() {
         String lockKey = mqRetryInstanceService.getLockKey();
         boolean locked = false;
