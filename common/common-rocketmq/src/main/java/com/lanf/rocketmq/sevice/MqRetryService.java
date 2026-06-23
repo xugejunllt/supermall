@@ -1,5 +1,6 @@
 package com.lanf.rocketmq.sevice;
 
+import com.lanf.cache.service.DistributedLocker;
 import com.lanf.rocketmq.model.entity.MqSendMessageDO;
 import io.netty.util.HashedWheelTimer;
 import lombok.extern.slf4j.Slf4j;
@@ -8,8 +9,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * MQ消息重试服务
@@ -40,6 +44,21 @@ public class MqRetryService {
     private static final int MAX_RETRY_COUNT = 3;
 
     /**
+     * 最大重试任务数（队列中同时存在的最大任务数）
+     */
+    private static final int MAX_RETRY_TASK_COUNT = 10000;
+
+    /**
+     * 当前重试任务数统计
+     */
+    private final AtomicInteger retryTaskCount = new AtomicInteger(0);
+
+    /**
+     * 去重容器：已加入重试队列的消息ID
+     */
+    private final Set<Long> retryMessageIdSet = ConcurrentHashMap.newKeySet();
+
+    /**
      * 延迟定时器
      */
     private static final HashedWheelTimer TIMER = new HashedWheelTimer(100, TimeUnit.MILLISECONDS, 512);
@@ -54,6 +73,9 @@ public class MqRetryService {
     @Autowired
     private IMqSendMessageService mqSendMessageService;
 
+    @Autowired
+    private DistributedLocker distributedLocker;
+
     /**
      * 将消息加入重试队列（HashedWheelTimer 延迟执行）
      *
@@ -62,17 +84,33 @@ public class MqRetryService {
      */
     public void addToRetryQueue(MqSendMessageDO messageDO, int retryCount) {
         if (retryCount > MAX_RETRY_COUNT) {
-            sendDingTalkAlert(messageDO);
+
+            return;
+        }
+
+        // 1. 去重检查
+        Long messageId = messageDO.getId();
+        if (!retryMessageIdSet.add(messageId)) {
+            log.warn("消息已在重试队列中，跳过重复添加，messageId:{}", messageId);
+            return;
+        }
+
+        // 2. 任务数上限检查
+        int currentCount = retryTaskCount.incrementAndGet();
+        if (currentCount > MAX_RETRY_TASK_COUNT) {
+            retryTaskCount.decrementAndGet();
+            retryMessageIdSet.remove(messageId);
+            log.warn("重试任务数已达上限{}/{}，跳过添加，messageId:{}", currentCount, MAX_RETRY_TASK_COUNT, messageId);
             return;
         }
 
         long delayMillis = getDelayMillis(retryCount);
 
         log.info("消息已加入重试队列，messageId:{}, retryCount:{}, delay:{}ms",
-                messageDO.getId(), retryCount, delayMillis);
+                messageId, retryCount, delayMillis);
 
         TIMER.newTimeout(timeout -> {
-            mqSendExecutor.execute(() -> doRetry(messageDO, retryCount));
+            mqSendExecutor.execute(() -> doRetry(messageDO, retryCount, messageId));
         }, delayMillis, TimeUnit.MILLISECONDS);
     }
 
@@ -81,19 +119,46 @@ public class MqRetryService {
      *
      * @param messageDO   消息记录
      * @param retryCount  当前重试次数
+     * @param messageId   消息ID（用于去重和计数）
      */
-    private void doRetry(MqSendMessageDO messageDO, int retryCount) {
+    private void doRetry(MqSendMessageDO messageDO, int retryCount, Long messageId) {
+        // 以 messageId 作为分布式锁key，防止同一消息并发重试
+        String lockKey = "mq:retry:lock:" + messageId;
+        boolean locked = false;
+        try {
+            locked = distributedLocker.getLock(lockKey);
+            if (!locked) {
+                log.warn("获取分布式锁失败，跳过本次重试，messageId:{}", messageId);
+                return;
+            }
 
+            MqSendMessageDO sendMessageDO = mqSendMessageService.getById(messageDO.getId());
+            Integer retryCount1 = sendMessageDO.getRetryCount();
+            if (retryCount1 >= MAX_RETRY_COUNT) {
+                sendDingTalkAlert(messageDO);
+                return;
+            }
 
-        Date nextEstimatedCompletionAt = getNextEstimatedCompletionAt(retryCount + 1);
-        // 更新重试次数到 DB
-        messageDO.setRetryCount(retryCount);
-        messageDO.setNextEstimatedCompletionAt(nextEstimatedCompletionAt);
-        mqSendMessageService.updateById(messageDO);
+            Date nextEstimatedCompletionAt = getNextEstimatedCompletionAt(retryCount + 1);
+            // 更新重试次数到 DB
+            messageDO.setRetryCount(retryCount);
+            messageDO.setNextEstimatedCompletionAt(nextEstimatedCompletionAt);
+            mqSendMessageService.updateById(messageDO);
 
-        // 调用 MqMessageSendService.sendMessage 重新发送
-        // 内部包含 doSend + updateMessageStatus，失败会自动再次加入重试队列
-        mqMessageSendService.sendMessage(messageDO, retryCount);
+            // 调用 MqMessageSendService.sendMessage 重新发送
+            // 内部包含 doSend + updateMessageStatus，失败会自动再次加入重试队列
+            mqMessageSendService.sendMessage(messageDO, retryCount);
+        } catch (Exception e) {
+            log.error("MQ消息重试执行异常，messageId:{}, retryCount:{}", messageId, retryCount, e);
+        } finally {
+            // 任务执行完成后，删除去重容器、减少任务数、释放锁
+            retryMessageIdSet.remove(messageId);
+            int remain = retryTaskCount.decrementAndGet();
+            if (locked) {
+                distributedLocker.unlock(lockKey);
+            }
+            log.info("重试任务执行完成，messageId:{}, 剩余任务数:{}", messageId, remain);
+        }
     }
 
     /**
