@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lanf.rocketmq.model.entity.MqSendMessageDO;
 import com.lanf.rocketmq.sevice.IMqSendMessageService;
+import com.lanf.rocketmq.sevice.MqRetryInstanceService;
 import com.lanf.rocketmq.sevice.MqRetryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,8 @@ import java.util.List;
 
 /**
  * MQ消息重试定时任务
- * <p>每5分钟扫描一次正在发送中且预计完成时间已超前的消息，触发重试</p>
+ * <p>每10秒扫描一次正在发送中且预计完成时间已超前的消息，触发重试</p>
+ * <p>编号由 {@link MqMessageRetryAllocateTask} 统一分配，本任务只负责读取</p>
  */
 @Slf4j
 @Component
@@ -27,13 +29,33 @@ public class MqMessageRetryTask {
     @Autowired
     private MqRetryService mqRetryService;
 
+    @Autowired
+    private MqRetryInstanceService mqRetryInstanceService;
+
     /**
-     * 每5分钟执行一次
+     * 每10秒执行一次
      */
-    @Scheduled(cron = "0 0/5 * * * ?")
+    @Scheduled(cron = "0/10 * * * * ?")
     public void retryPendingMessages() {
         log.info("开始扫描正在发送中的MQ消息，准备重试");
 
+        // 1. 获取当前实例的编号
+        Integer serviceNumber = mqRetryInstanceService.getServiceNumber();
+        if (serviceNumber == null) {
+            log.warn("当前实例编号未分配，跳过本次扫描，等待MqMessageRetryAllocateTask分配编号");
+            return;
+        }
+
+        // 2. 获取实例总数（用于取模）
+        Integer instanceCount = mqRetryInstanceService.getInstanceCount();
+        if (instanceCount == null || instanceCount <= 0) {
+            log.warn("实例总数未获取到，跳过本次扫描");
+            return;
+        }
+
+        log.info("当前服务编号: {}/{}, serviceName: {}", serviceNumber, instanceCount, mqRetryInstanceService.getServiceName());
+
+        // 3. 扫描消息并处理
         int current = 1;
         int size = 100;
         Date nowPlus5Min = new Date(System.currentTimeMillis() + 5 * 60 * 1000L);
@@ -54,6 +76,11 @@ public class MqMessageRetryTask {
 
             for (MqSendMessageDO messageDO : records) {
                 try {
+                    // 4. 取模匹配，只处理属于自己编号的消息
+                    if (messageDO.getId() % instanceCount != serviceNumber) {
+                        continue;
+                    }
+
                     int nextRetryCount = messageDO.getRetryCount() + 1;
                     log.info("发现待重试MQ消息，messageId:{}, currentRetryCount:{}, nextRetryCount:{}",
                             messageDO.getId(), messageDO.getRetryCount(), nextRetryCount);

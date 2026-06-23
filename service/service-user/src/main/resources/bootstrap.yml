@@ -26,7 +26,7 @@ spring:
 
 
 server:
-  port: 9006
+  port: ${SERVER_PORT:9007}
   servlet:
     context-path: /user
 mybatis-plus:

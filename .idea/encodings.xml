@@ -91,10 +91,13 @@
     <file url="file://$PROJECT_DIR$/../../item/mail/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/api-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/api-gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/admin-auth/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/admin-auth/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-biz-cache/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-biz-cache/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-biz-control/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-biz-control/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-cache/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-cache/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-constant/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-constant/src/main/resources" charset="UTF-8" />
@@ -102,6 +105,7 @@
     <file url="file://$PROJECT_DIR$/common/common-elasticsearch/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-fs/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-fs/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-hmily/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-hmily/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-lock/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-lock/src/main/resources" charset="UTF-8" />
@@ -115,18 +119,27 @@
     <file url="file://$PROJECT_DIR$/common/common-rocketmq/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-seata/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-seata/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-sentinel/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-sentinel/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-sharding-sphere/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-sharding-sphere/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-shardingsphere/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-shardingsphere/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-start/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-start/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-user-auth/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-user-auth/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-util/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/common-util/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-web/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/common-web/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/spring-security/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/spring-security/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/spring-web/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/spring-web/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-api/service-api-aftersales/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-aftersales/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-finance/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-finance/src/main/resources" charset="UTF-8" />
@@ -142,10 +155,13 @@
     <file url="file://$PROJECT_DIR$/service-api/service-api-pay/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-search/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-search/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-api/service-api-seckill/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-api/service-api-seckill/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-storage/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-storage/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-system/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-system/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-api/service-api-user/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-user/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-welfare/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-api/service-api-welfare/src/main/resources" charset="UTF-8" />
@@ -153,6 +169,8 @@
     <file url="file://$PROJECT_DIR$/service-api/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service/service-aftersales/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service/service-aftersales/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service/service-comment/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service/service-comment/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service/service-file/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service/service-file/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service/service-finance/src/main/java" charset="UTF-8" />
@@ -169,6 +187,8 @@
     <file url="file://$PROJECT_DIR$/service/service-pay/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service/service-search/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service/service-search/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service/service-seckill/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service/service-seckill/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service/service-sms/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service/service-sms/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service/service-storage/src/main/java" charset="UTF-8" />

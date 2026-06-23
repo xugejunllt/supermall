@@ -4,7 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="def1266b-857e-4950-be4c-dbead49843e2" name="Changes" comment="" />
+    <list default="true" id="def1266b-857e-4950-be4c-dbead49843e2" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/common/common-rocketmq/src/main/java/com/lanf/rocketmq/task/MqMessageRetryAllocateTask.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/common-rocketmq/src/main/java/com/lanf/rocketmq/task/MqMessageRetryTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/common-rocketmq/src/main/java/com/lanf/rocketmq/task/MqMessageRetryTask.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/service/service-user/src/main/resources/bootstrap.yml" beforeDir="false" afterPath="$PROJECT_DIR$/service/service-user/src/main/resources/bootstrap.yml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -17,7 +25,7 @@
     <option name="generalSettings">
       <MavenGeneralSettings>
         <option name="mavenHome" value="$PROJECT_DIR$/../../apache-maven-3.6.1" />
-        <option name="userSettingsFile" value="D:\apache-maven-3.6.1\conf\settings.xml" />
+        <option name="userSettingsFile" value="D:\apache-maven-3.6.0\conf\settings.xml" />
       </MavenGeneralSettings>
     </option>
   </component>
@@ -34,7 +42,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
-    "last_opened_file_path": "D:/item2",
+    "last_opened_file_path": "D:/item2/mail",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0",
@@ -42,6 +50,19 @@
   }
 }]]></component>
   <component name="RunManager">
+    <configuration name="UserApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.lanf.user.UserApplication" />
+      <module name="service-user" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.lanf.user.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration default="true" type="JetRunConfigurationType">
       <module name="service-api-goods" />
       <method v="2">
@@ -55,6 +76,11 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.UserApplication" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
