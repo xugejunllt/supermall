@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -82,8 +83,12 @@ public class MqRetryService {
      * @param retryCount  当前重试次数
      */
     private void doRetry(MqSendMessageDO messageDO, int retryCount) {
+
+
+        Date nextEstimatedCompletionAt = getNextEstimatedCompletionAt(retryCount + 1);
         // 更新重试次数到 DB
         messageDO.setRetryCount(retryCount);
+        messageDO.setNextEstimatedCompletionAt(nextEstimatedCompletionAt);
         mqSendMessageService.updateById(messageDO);
 
         // 调用 MqMessageSendService.sendMessage 重新发送
@@ -109,7 +114,12 @@ public class MqRetryService {
                 return 0;
         }
     }
+    public Date getNextEstimatedCompletionAt(int retryCount){
 
+        long delayMillis = getDelayMillis(retryCount + 1);
+
+        return new Date(System.currentTimeMillis() + delayMillis);
+    }
     /**
      * 发送钉钉告警（伪代码）
      *

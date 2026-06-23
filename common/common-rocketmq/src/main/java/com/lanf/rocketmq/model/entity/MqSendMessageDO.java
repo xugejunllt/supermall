@@ -6,6 +6,8 @@ import com.lanf.rocketmq.model.enums.MqSendMessageTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * <p>
  * 
@@ -41,7 +43,10 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "重试次数")
     private Integer retryCount;
-
+    /**
+     * 下次重试完成时间 用于心跳检测
+     */
+    private Date nextEstimatedCompletionAt;
 
 
 }

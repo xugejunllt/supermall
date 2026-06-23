@@ -3,11 +3,13 @@ package com.lanf.rocketmq.util;
 import com.lanf.rocketmq.model.entity.MqSendMessageDO;
 import com.lanf.rocketmq.model.enums.MqSendMessageTypeEnum;
 import com.lanf.rocketmq.sevice.IMqSendMessageService;
+import com.lanf.rocketmq.sevice.MqRetryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -30,6 +32,8 @@ public class MqSendMessageUtils {
 
     @Autowired
     private IMqSendMessageService mqSendMessageService;
+    @Autowired
+    private MqRetryService mqRetryService;
 
     /**
      * 发送MQ消息（普通消息）
@@ -135,6 +139,9 @@ public class MqSendMessageUtils {
      */
     private void sendMessage(String topic, String tag, MqSendMessageTypeEnum sendMessageType,
                              String content, Integer delayTime, String messageKey) {
+
+        Date nextEstimatedCompletionAt = mqRetryService.getNextEstimatedCompletionAt(1);
+
         MqSendMessageDO messageDO = new MqSendMessageDO();
         messageDO.setTopic(topic);
         messageDO.setTag(tag);
@@ -144,7 +151,7 @@ public class MqSendMessageUtils {
         messageDO.setMessageKey(messageKey);
         messageDO.setStatus(0);
         messageDO.setRetryCount(0);
-
+        messageDO.setNextEstimatedCompletionAt(nextEstimatedCompletionAt);
         // 1. 保存到数据库
         boolean saved = mqSendMessageService.save(messageDO);
         if (!saved) {
