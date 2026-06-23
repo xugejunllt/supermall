@@ -58,14 +58,14 @@ public class MqMessageRetryTask {
         // 3. 扫描消息并处理
         int current = 1;
         int size = 100;
-        Date nowPlus5Min = new Date(System.currentTimeMillis() + 5 * 60 * 1000L);
+        Date nowMinus5Min = new Date(System.currentTimeMillis() - 5 * 60 * 1000L);
         int totalRetryCount = 0;
 
         while (true) {
             Page<MqSendMessageDO> page = new Page<>(current, size);
             QueryWrapper<MqSendMessageDO> wrapper = new QueryWrapper<>();
             wrapper.eq("status", 0);
-            wrapper.lt("next_estimated_completion_at", nowPlus5Min);
+            wrapper.lt("next_estimated_completion_at", nowMinus5Min);
             wrapper.lt("retry_count", 3);
 
             Page<MqSendMessageDO> result = mqSendMessageService.page(page, wrapper);

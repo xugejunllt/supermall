@@ -54,14 +54,15 @@ public class MqConsumeMessageRetryTask {
         // 3. 扫描消息并处理
         int current = 1;
         int size = 100;
-        Date nowPlus5Min = new Date(System.currentTimeMillis() + 5 * 60 * 1000L);
+        Date nowMinus5Min = new Date(System.currentTimeMillis() - 5 * 60 * 1000L);
         int totalCount = 0;
 
         while (true) {
             Page<MqConsumeMessageDO> page = new Page<>(current, size);
             QueryWrapper<MqConsumeMessageDO> wrapper = new QueryWrapper<>();
             wrapper.eq("status", 0);
-            wrapper.lt("next_estimated_completion_at", nowPlus5Min);
+            //当前时间 大于nextEstimatedCompletionAt+5分钟 空出5分钟 让延迟任务执行完毕
+            wrapper.lt("next_estimated_completion_at", nowMinus5Min);
 
             Page<MqConsumeMessageDO> result = mqConsumeMessageService.page(page, wrapper);
             List<MqConsumeMessageDO> records = result.getRecords();
