@@ -147,10 +147,7 @@ public class MqRetryConsumeAspect {
             } catch (Exception e) {
                 log.error("MQ消息消费失败，准备延迟重试，messageId:{}", messageId, e);
 
-                // 更新状态为失败
-                messageDO.setStatus(2);
-                messageDO.setErrorMsg(e.getMessage());
-                mqLocalTransactionMessageService.updateById(messageDO);
+
                 if (isRetryException(e)) {
 
                     sendToRetryQueue(messageDO);
@@ -328,7 +325,9 @@ public class MqRetryConsumeAspect {
                     mqRetryStrategy.getDelayMillis(retryCount+1));
             messageDO.setRetryCount(retryCount);
             messageDO.setNextEstimatedCompletionAt(nextEstimatedCompletionAt);
-
+            if (messageDO.getMaxRetryCount().equals(retryCount)){
+                messageDO.setStatus(2);
+            }
             mqLocalTransactionMessageService.updateById(messageDO);
             // 通过反射重新执行方法
             mqRetryReflectExecutor.execute(messageDO);
