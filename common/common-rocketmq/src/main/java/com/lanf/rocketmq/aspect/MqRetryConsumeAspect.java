@@ -25,6 +25,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -95,6 +96,22 @@ public class MqRetryConsumeAspect {
             return null;
         }
 
+        // 从目标类上的 @RocketMQMessageListener 注解获取 topic 和 group
+        String topic = null;
+        String group = null;
+        Class<?> targetClass = joinPoint.getTarget().getClass();
+        org.apache.rocketmq.spring.annotation.RocketMQMessageListener rocketMQMessageListener =
+                targetClass.getAnnotation(org.apache.rocketmq.spring.annotation.RocketMQMessageListener.class);
+        if (rocketMQMessageListener != null) {
+            topic = rocketMQMessageListener.topic();
+            group = rocketMQMessageListener.consumerGroup();
+        }
+
+        // 拼接 messageId = messageId + group
+        if (group != null && !group.isEmpty()) {
+            messageId = messageId +":"+ group;
+        }
+
         String lockKey = LOCK_PREFIX + messageId;
         RLock lock = redissonClient.getLock(lockKey);
 
@@ -109,7 +126,7 @@ public class MqRetryConsumeAspect {
             MqConsumeMessageDO messageDO = mqLocalTransactionMessageService.getByMessageId(messageId);
             if (messageDO == null) {
                 // 2. 插入消息--正在消费中
-                messageDO = createMessageRecord(joinPoint, mqRetryConsume, messageId);
+                messageDO = createMessageRecord(joinPoint, mqRetryConsume, messageId, topic, group);
                 mqLocalTransactionMessageService.save(messageDO);
             } else if (messageDO.getStatus() != null && messageDO.getStatus() == 1) {
                 log.info("消息已消费成功，跳过，messageId:{}", messageId);
@@ -192,22 +209,29 @@ public class MqRetryConsumeAspect {
      * @param joinPoint      连接点
      * @param mqRetryConsume 注解
      * @param messageId      消息ID
+     * @param topic          Topic名称
+     * @param group          消费组名称
      * @return 消息记录
      */
-    private MqConsumeMessageDO createMessageRecord(ProceedingJoinPoint joinPoint, MqRetryConsume mqRetryConsume, String messageId) {
+    private MqConsumeMessageDO createMessageRecord(ProceedingJoinPoint joinPoint, MqRetryConsume mqRetryConsume, String messageId, String topic, String group) {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         Method method = methodSignature.getMethod();
         Class<? extends MqRetryStrategy> aClass = mqRetryConsume.retryStrategy();
         MqRetryStrategy retryStrategy = applicationContext.getBean(aClass);
+        Date nextEstimatedCompletionAt = new Date(System.currentTimeMillis() +
+                retryStrategy.getDelayMillis(1));
 
         MqConsumeMessageDO messageDO = new MqConsumeMessageDO();
         messageDO.setMessageId(messageId);
+        messageDO.setTopic(topic);
+        messageDO.setGroup(group);
         messageDO.setStatus(0);
         messageDO.setRetryCount(0);
         messageDO.setMaxRetryCount(retryStrategy.maxRetryCount());
         messageDO.setClassName(method.getDeclaringClass().getName());
         messageDO.setMethodName(method.getName());
         messageDO.setRetryStrategyBeanClass(aClass.getName());
+        messageDO.setNextEstimatedCompletionAt(nextEstimatedCompletionAt);
         // 记录参数类型
         Class<?>[] parameterTypes = method.getParameterTypes();
         String[] paramTypeNames = new String[parameterTypes.length];
@@ -300,7 +324,11 @@ public class MqRetryConsumeAspect {
             }
 
             // 更新重试次数
+            Date nextEstimatedCompletionAt = new Date(System.currentTimeMillis() +
+                    mqRetryStrategy.getDelayMillis(retryCount+1));
             messageDO.setRetryCount(retryCount);
+            messageDO.setNextEstimatedCompletionAt(nextEstimatedCompletionAt);
+
             mqLocalTransactionMessageService.updateById(messageDO);
             // 通过反射重新执行方法
             mqRetryReflectExecutor.execute(messageDO);

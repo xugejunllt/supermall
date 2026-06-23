@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * MQ本地事务消息消费表
  */
@@ -18,6 +20,10 @@ public class MqConsumeMessageDO extends BaseEntity {
      */
     private String messageId;
 
+
+    private String topic;
+
+    private String group;
 
     private String retryStrategyBeanClass;
 
@@ -61,4 +67,9 @@ public class MqConsumeMessageDO extends BaseEntity {
      * 错误信息
      */
     private String errorMsg;
+
+    /**
+     * 下次重试完成时间 用于心跳检测
+     */
+    private Date nextEstimatedCompletionAt;
 }
