@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * MQ消息重试定时任务
- * <p>每5分钟扫描一次待发送且超时的消息，触发重试</p>
+ * <p>每5分钟扫描一次正在发送中且预计完成时间已超前的消息，触发重试</p>
  */
 @Slf4j
 @Component
@@ -32,19 +32,18 @@ public class MqMessageRetryTask {
      */
     @Scheduled(cron = "0 0/5 * * * ?")
     public void retryPendingMessages() {
-        log.info("开始扫描待发送MQ消息，准备重试");
+        log.info("开始扫描正在发送中的MQ消息，准备重试");
 
         int current = 1;
         int size = 100;
-        Date tenMinutesAgo = new Date(System.currentTimeMillis() - 10 * 60 * 1000L);
+        Date nowPlus5Min = new Date(System.currentTimeMillis() + 5 * 60 * 1000L);
         int totalRetryCount = 0;
 
         while (true) {
             Page<MqSendMessageDO> page = new Page<>(current, size);
             QueryWrapper<MqSendMessageDO> wrapper = new QueryWrapper<>();
             wrapper.eq("status", 0);
-            wrapper.lt("retry_count", 3);
-            wrapper.lt("create_time", tenMinutesAgo);
+            wrapper.lt("next_estimated_completion_at", nowPlus5Min);
 
             Page<MqSendMessageDO> result = mqSendMessageService.page(page, wrapper);
             List<MqSendMessageDO> records = result.getRecords();
@@ -71,6 +70,6 @@ public class MqMessageRetryTask {
             current++;
         }
 
-        log.info("待发送MQ消息扫描完成，共触发{}条消息重试", totalRetryCount);
+        log.info("正在发送中的MQ消息扫描完成，共触发{}条消息重试", totalRetryCount);
     }
 }
