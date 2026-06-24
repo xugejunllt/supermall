@@ -1,0 +1,52 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.lanf</groupId>
+        <artifactId>common-dynamics-refresh</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+
+    <artifactId>dynamics-refresh-service</artifactId>
+    <version>${common.version}</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- Nacos Discovery -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lanf</groupId>
+            <artifactId>dynamics-refresh-core</artifactId>
+            <version>${common.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>com.lanf</groupId>-->
+<!--            <artifactId>loadbalancer</artifactId>-->
+<!--            <version>1.0.0</version>-->
+<!--        </dependency>-->
+        <!--打印skywalking的TraceId到日志-->
+        <dependency>
+            <groupId>org.apache.skywalking</groupId>
+            <artifactId>apm-toolkit-logback-1.x</artifactId>
+            <version>6.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.skywalking</groupId>
+            <artifactId>apm-toolkit-trace</artifactId>
+            <version>6.6.0</version>
+        </dependency>
+    </dependencies>
+
+
+</project>

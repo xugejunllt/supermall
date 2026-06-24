@@ -30,6 +30,7 @@
         <module>common-hmily</module>
         <module>common-user-auth</module>
         <module>common-sentinel</module>
+        <module>common-dynamics-refresh</module>
     </modules>
 
 </project>
