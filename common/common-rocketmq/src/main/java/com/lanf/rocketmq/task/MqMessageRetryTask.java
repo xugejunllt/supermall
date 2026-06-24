@@ -68,6 +68,7 @@ public class MqMessageRetryTask {
             Page<MqSendMessageDO> page = new Page<>(current, size);
             QueryWrapper<MqSendMessageDO> wrapper = new QueryWrapper<>();
             wrapper.eq("status", 0);
+            // 当前时间 > next_estimated_completion_at+5分钟
             wrapper.lt("next_estimated_completion_at", overdueThreshold);
             wrapper.lt("retry_count", 3);
 
