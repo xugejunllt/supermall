@@ -1,5 +1,6 @@
 package com.lanf.dynamicsrrefresh.gatewayfilter.filter;
 
+import com.lanf.constant.exception.BizException;
 import com.lanf.dynamicsrrefresh.gatewayfilter.handle.CloseInterfaceHandle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -18,11 +19,12 @@ public class CloseInterfaceGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        log.info("接口关闭过滤器");
 
         String path = exchange.getRequest().getPath().toString();
         if (CloseInterfaceHandle.close(path)) {
             log.error("接口已关闭");
-            throw new RuntimeException("接口已关闭");
+            throw new BizException("接口已关闭");
         }
         return chain.filter(exchange);
     }

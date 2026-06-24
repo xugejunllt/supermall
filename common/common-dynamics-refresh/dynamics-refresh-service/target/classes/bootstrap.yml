@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: service-dynamicsrrefresh
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        enabled: true
+        meta-data:
+          #大版本 小版本 bug修改版本/小功能
+          appVersion: 9.7.3
+      config:
+        server-addr: localhost:8848
+        #命名空间做环境隔离
+        namespace: dynamicsrrefresh
+server:
+  port: 9023
+  servlet:
+    context-path: /dynamicsrrefresh
+

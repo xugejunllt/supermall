@@ -18,10 +18,12 @@ public class IpBlackListGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+
+        log.info("ip黑名单过滤器");
+
         HttpHeaders headers = exchange.getRequest().getHeaders();
         String ip = IpUtils.getIp(headers);
 
-        log.info("请求ip是:{}",ip);
         if (IpBlackListHandle.include(ip)){
             log.error("ip已被禁用");
             throw new RuntimeException("ip已被禁用");
