@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@MapperScan(basePackages = "com.lanf.system.mapper")
+@MapperScan(basePackages = {"com.lanf.system.mapper","com.lanf.rocketmq.mapper"})
 @SpringBootApplication(scanBasePackages="com.lanf")
 @EnableDiscoveryClient  //nacos注册
 @EnableFeignClients(basePackages = {"com.lanf.api.goods.api","com.lanf.api.storage.api",
