@@ -21,7 +21,7 @@ public class SystemTenantFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
-        // System 模块不需要多租户隔离，设置为 false
+        // System 模块需要多租户隔离，设置为 false
         TenantContextHolder.setSkipTenant(false);
 
         try {

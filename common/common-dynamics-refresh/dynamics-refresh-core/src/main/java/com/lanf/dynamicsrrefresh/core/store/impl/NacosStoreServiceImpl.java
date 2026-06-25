@@ -53,7 +53,7 @@ public class NacosStoreServiceImpl implements StoreService {
 
             publishConfig = configService.publishConfig(dataId, group, content, type);
         } catch (NacosException e) {
-            e.printStackTrace();
+            log.error("nacos发布配置异常,dataId:{},group:{}", dataId, group, e);
             throw new RuntimeException("nacos发布异常");
         }
         return publishConfig;
@@ -66,7 +66,7 @@ public class NacosStoreServiceImpl implements StoreService {
         try {
             config = configService.getConfig(dataId, group, timeoutMs);
         } catch (NacosException e) {
-            e.printStackTrace();
+            log.error("nacos查询配置异常,dataId:{},group:{}", dataId, group, e);
             throw new RuntimeException("nacos查询异常");
         }
 
@@ -106,8 +106,7 @@ public class NacosStoreServiceImpl implements StoreService {
         try {
             configService.addListener(dataId,group,listener);
         } catch (NacosException e) {
-            e.printStackTrace();
-            log.error("添加监听器失败");
+            log.error("添加监听器失败,dataId:{},group:{}", dataId, group, e);
         }
     }
 
