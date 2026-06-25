@@ -1,6 +1,7 @@
 package com.lanf.order.mq.listener;
 
 import com.lanf.api.order.mq.message.OrderPaySuccessMessage;
+import com.lanf.api.order.model.enums.ShippingStatusEnum;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
@@ -11,6 +12,10 @@ import com.lanf.order.model.entity.MainOrderDO;
 import com.lanf.order.model.entity.OrderDO;
 import com.lanf.order.model.entity.OrderStatusTraceDO;
 import com.lanf.order.model.enums.PayStatusEnum;
+import com.lanf.order.mq.constant.OrderMqTopicName;
+import com.lanf.order.mq.message.BathAddShippingTrackMessage;
+import com.lanf.order.mq.message.ShippingTrackMessage;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.order.service.order.IMainOrderService;
 import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.order.IOrderStatusTraceService;
@@ -144,6 +149,22 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                         OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(a),
                         a.getOrderId().toString());
             });
+            orderDOList.forEach(orderDO2 -> {
+                //发送物流跟踪信息
+                BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
+                bathMessage.setOrderId(orderDO2.getId());
+                bathMessage.setTenantId(orderDO2.getTenantId());
+                bathMessage.setUserId(orderDO2.getUserId());
+                List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
+                ShippingTrackMessage trackMessage = new ShippingTrackMessage();
+                trackMessage.setStatus(ShippingStatusEnum.WAREHOUSE_PROCESSING);
+                trackMessage.setFinishTime(new Date());
+                trackMessage.setFinishContent("订单已支付，等待仓库处理");
+                trackMessage.setFlowNo(IStringUtils.hashToUniqueString(orderDO2.getId() + trackMessage.getFinishContent()));
+                shippingTrackList.add(trackMessage);
+                bathMessage.setShippingTrackList(shippingTrackList);
+                rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
+            });
             log.info("批量支付订单处理成功");
 
         } else {
@@ -186,6 +207,20 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                     OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(orderPaySuccessMessage),
                     orderDO.getId().toString());
+            //发送物流跟踪信息
+            BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
+            bathMessage.setOrderId(orderDO.getId());
+            bathMessage.setTenantId(orderDO.getTenantId());
+            bathMessage.setUserId(orderDO.getUserId());
+            List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
+            ShippingTrackMessage trackMessage = new ShippingTrackMessage();
+            trackMessage.setStatus(ShippingStatusEnum.WAREHOUSE_PROCESSING);
+            trackMessage.setFinishTime(new Date());
+            trackMessage.setFinishContent("订单已支付，等待仓库处理");
+            trackMessage.setFlowNo(IStringUtils.hashToUniqueString(orderDO.getId() + trackMessage.getFinishContent()));
+            shippingTrackList.add(trackMessage);
+            bathMessage.setShippingTrackList(shippingTrackList);
+            rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
             log.info("单笔支付订单处理成功");
 
 

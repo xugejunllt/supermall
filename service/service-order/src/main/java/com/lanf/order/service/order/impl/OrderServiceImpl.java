@@ -207,6 +207,20 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.WAIT_OUTBOUND.getTag(),JsonUtils.toJsonString(outboundMessage),
                 orderDO.getId().toString());
+        //发送物流跟踪信息
+        BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
+        bathMessage.setOrderId(orderDO.getId());
+        bathMessage.setTenantId(orderDO.getTenantId());
+        bathMessage.setUserId(orderDO.getUserId());
+        List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
+        ShippingTrackMessage trackMessage = new ShippingTrackMessage();
+        trackMessage.setStatus(ShippingStatusEnum.WAREHOUSE_PROCESSING);
+        trackMessage.setFinishTime(new Date());
+        trackMessage.setFinishContent("订单正在仓库处理中");
+        trackMessage.setFlowNo(IStringUtils.hashToUniqueString(orderDO.getId() + trackMessage.getFinishContent()));
+        shippingTrackList.add(trackMessage);
+        bathMessage.setShippingTrackList(shippingTrackList);
+        rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
 
     }
 
@@ -486,6 +500,20 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.OUTBOUNDED.getTag(), JsonUtils.toJsonString(message2),
                 orderDO.getId().toString());
+        //发送物流跟踪信息
+        BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
+        bathMessage.setOrderId(orderDO.getId());
+        bathMessage.setTenantId(orderDO.getTenantId());
+        bathMessage.setUserId(orderDO.getUserId());
+        List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
+        ShippingTrackMessage trackMessage = new ShippingTrackMessage();
+        trackMessage.setStatus(ShippingStatusEnum.WAREHOUSE_PROCESSING);
+        trackMessage.setFinishTime(new Date());
+        trackMessage.setFinishContent("订单已出库");
+        trackMessage.setFlowNo(IStringUtils.hashToUniqueString(orderDO.getId() + trackMessage.getFinishContent()));
+        shippingTrackList.add(trackMessage);
+        bathMessage.setShippingTrackList(shippingTrackList);
+        rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
 
     }
 
@@ -547,6 +575,20 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.WAIT_COMMENT.getTag(),JsonUtils.toJsonString(signOrderMessage),
                 orderDO.getId().toString());
+        //发送物流跟踪信息
+        BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
+        bathMessage.setOrderId(orderDO.getId());
+        bathMessage.setTenantId(orderDO.getTenantId());
+        bathMessage.setUserId(orderDO.getUserId());
+        List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
+        ShippingTrackMessage trackMessage = new ShippingTrackMessage();
+        trackMessage.setStatus(ShippingStatusEnum.SIGNED);
+        trackMessage.setFinishTime(new Date());
+        trackMessage.setFinishContent("订单已签收");
+        trackMessage.setFlowNo(IStringUtils.hashToUniqueString(orderDO.getId() + trackMessage.getFinishContent()));
+        shippingTrackList.add(trackMessage);
+        bathMessage.setShippingTrackList(shippingTrackList);
+        rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
     }
 
     @Override

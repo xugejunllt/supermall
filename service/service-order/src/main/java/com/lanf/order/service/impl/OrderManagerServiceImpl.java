@@ -11,6 +11,7 @@ import com.lanf.api.goods.model.vo.ClearCartVO;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
 import com.lanf.api.order.model.enums.OrderTypeEnum;
+import com.lanf.api.order.model.enums.ShippingStatusEnum;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
 import com.lanf.api.order.mq.message.SecKillPlaneCreateOrderSuccessMessage;
 import com.lanf.api.pay.api.PayApiService;
@@ -40,6 +41,8 @@ import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;
 import com.lanf.order.mq.constant.OrderMqTopicName;
+import com.lanf.order.mq.message.BathAddShippingTrackMessage;
+import com.lanf.order.mq.message.ShippingTrackMessage;
 import com.lanf.order.service.OrderManagerService;
 import com.lanf.order.service.order.IMainOrderService;
 import com.lanf.order.service.order.IOrderItemService;
@@ -104,7 +107,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     @Autowired
     private SecKillResultCache secKillResultCache;
     @Value("${order.expireInterval}")
-    private  Long expireInterval;
+    private Long expireInterval;
+
     @Override
     public CalculateOrderAmountVO calculateOrderAmount(CalculateOrderAmountDTO dto) {
 
@@ -234,7 +238,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         validateCartVO.setMainOrderNumber(OrderServiceUtils.generateOrderNumber());
         return validateCartVO;
     }
-
 
 
     @Override
@@ -389,6 +392,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             throw new BizException("实际支付金额不能小于0");
         }
     }
+
     @Transactional
     public void sendOrderCreateSuccessMessage(Long orderId, Long userId) {
         OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
@@ -399,13 +403,29 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         message.setOrderId(orderId);
         message.setUserId(userId);
 
+        OrderDO orderDO = orderService.getById(orderId);
+
+        BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
+        bathMessage.setOrderId(orderId);
+        bathMessage.setTenantId(orderDO.getTenantId());
+        bathMessage.setUserId(userId);
+        List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
+        ShippingTrackMessage trackMessage = new ShippingTrackMessage();
+        trackMessage.setStatus(ShippingStatusEnum.ORDER_PLACED);
+        trackMessage.setFinishTime(new Date());
+        trackMessage.setFinishContent("订单已提交");
+        trackMessage.setFlowNo(IStringUtils.hashToUniqueString(orderId + trackMessage.getFinishContent()));
+        shippingTrackList.add(trackMessage);
+        bathMessage.setShippingTrackList(shippingTrackList);
+
+
         /**
          *
          * 发送延迟 关单消息 提前5分钟
          *
          */
         rocketMqClient.sendDelayMessage(OrderMqTopicName.CANCEL_EXPIRED_ORDER_TOPIC,
-                JsonUtils.toJsonString(message2), TimeUnit.MINUTES, (int) (expireInterval-5));
+                JsonUtils.toJsonString(message2), TimeUnit.MINUTES, (int) (expireInterval - 5));
 
         /**
          * 发送订单创建成功消息
@@ -413,7 +433,11 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.WAIT_PAY.getTag(), JsonUtils.toJsonString(message),
                 orderId.toString());
-    }
+
+        rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
+
+
+}
 
 
     private CalculateDiscountAmountVO useMultipleCoupon(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, BigDecimal totalAmount) {
@@ -822,7 +846,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
                 OrderStatusEnum.CANCELLED.getTag(), JsonUtils.toJsonString(orderEventMessage),
                 orderDO.getId().toString());
 
-
         log.info("取消订单成功");
     }
 
@@ -950,6 +973,20 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.WAIT_PAY.getTag(), JsonUtils.toJsonString(message2),
                 message.getOrderId().toString());
+        //发送物流跟踪信息
+        BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
+        bathMessage.setOrderId(message.getOrderId());
+        bathMessage.setTenantId(message.getTenantId());
+        bathMessage.setUserId(message.getUserId());
+        List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
+        ShippingTrackMessage trackMessage = new ShippingTrackMessage();
+        trackMessage.setStatus(ShippingStatusEnum.ORDER_PLACED);
+        trackMessage.setFinishTime(new Date());
+        trackMessage.setFinishContent("订单已提交");
+        trackMessage.setFlowNo(IStringUtils.hashToUniqueString(message.getOrderId() + trackMessage.getFinishContent()));
+        shippingTrackList.add(trackMessage);
+        bathMessage.setShippingTrackList(shippingTrackList);
+        rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
         secKillResultCache.addResult(message.getUserId(), message.getSecKillItemId(), SecKillResultEnum.SUCCESS_ORDER_CREATED);
     }
 
@@ -960,7 +997,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         Long orderId = message.getOrderId();
 
         orderService.lambdaUpdate()
-                .eq(OrderDO::getUserId,userId)
+                .eq(OrderDO::getUserId, userId)
                 .eq(OrderDO::getId, orderId)
                 .remove();
         orderItemService.lambdaUpdate()
