@@ -9,6 +9,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -56,6 +57,10 @@ public class OrderDetailForAdminVO implements Serializable {
      * 售后有效期，如果多个商品不同售后期，那么取最大的
      */
     private Integer afterSaleDays;
+
+    private Date createTime;
+
+    private Integer payType;
 
     private ShippingInfoBO shippingInfoBO;
     /**

@@ -12,7 +12,6 @@ import com.lanf.pay.config.PayConfig;
 import com.lanf.pay.constant.PayMqGroupName;
 import com.lanf.pay.model.bo.PostTradeSuccessHandlerContext;
 import com.lanf.pay.model.entity.BathTradeOrderDO;
-import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
 import com.lanf.pay.model.enums.PaySceneEnum;
@@ -327,7 +326,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         // 【后置处理】发送交易成功事件，通知订单域更新状态
         TradeSuccessEventMessage message = buildTradeSuccessEventMessage(bathTradeOrderDO.getMainOrderId(),
                 bathTradeOrderDO.getUserId());
-
+        message.setPayType(payType);
         rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
 
 
@@ -454,6 +453,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         }
         // 【后置处理】发送交易成功事件
         TradeSuccessEventMessage message = buildTradeSuccessEventMessage(tradeOrderDO);
+        message.setPayType(payType);
         rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
     }
 

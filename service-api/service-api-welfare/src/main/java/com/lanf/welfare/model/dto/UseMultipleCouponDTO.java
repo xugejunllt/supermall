@@ -11,9 +11,6 @@ import java.util.List;
 @Data
 public class UseMultipleCouponDTO {
 
-    @NotBlank(message = "业务key前缀不能为空")
-    private String bizKeyPrx;
-
     @NotNull(message = "订单ID不能为空")
     private Long orderId;
 

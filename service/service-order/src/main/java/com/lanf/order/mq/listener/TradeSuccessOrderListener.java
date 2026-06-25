@@ -135,6 +135,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                         .eq(OrderDO::getUserId, userId)
                         .eq(OrderDO::getVersion, orderDO2.getVersion())
                         .set(OrderDO::getStatus, OrderStatusEnum.PAID.getCode())
+                        .set(OrderDO::getPayType,message.getPayType())
                         .set(OrderDO::getVersion, orderDO2.getVersion() + 1)
                         .update();
                 if (!update2) {
@@ -197,6 +198,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                     .eq(OrderDO::getUserId, userId)
                     .eq(OrderDO::getVersion, orderDO.getVersion())
                     .set(OrderDO::getStatus, OrderStatusEnum.PAID.getCode())
+                    .set(OrderDO::getPayType,message.getPayType())
                     .set(OrderDO::getVersion, orderDO.getVersion() + 1)
                     .update();
             if (!update) {

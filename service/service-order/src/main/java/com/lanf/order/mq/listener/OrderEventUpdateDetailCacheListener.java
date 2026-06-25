@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.lanf.api.order.model.query.OrderDetailQuery;
 import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
 import com.lanf.constant.mq.OrderTopicWithTag;
-import com.lanf.constant.utils.UserContext;
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.order.OrderDetailCacheService;
@@ -68,22 +67,18 @@ public class OrderEventUpdateDetailCacheListener implements RocketMQListener<Mes
         Long orderId = Long.valueOf(orderIdObj.toString());
         Long userId = Long.valueOf(userIdObj.toString());
 
-        //3.设置UserContext上下文，供loadOrderDetailFromDB内部获取当前用户ID
-        UserContext.setUserId(userId);
-        try {
-            //4.构建查询条件，加载订单最新详情
-            OrderDetailQuery query = new OrderDetailQuery();
-            query.setOrderId(orderId);
-            OrderDetailForAdminVO detail = orderService.loadOrderDetailFromDB(query);
-            //5.将最新订单详情写入Redis缓存，过期时间7天
-            if (detail != null) {
-                orderDetailCacheService.setOrderDetailToCache(orderId, detail);
-                log.info("订单详情缓存更新成功, orderId={}", orderId);
-            }
-        } finally {
-            //6.清理UserContext，防止线程池复用导致上下文泄漏
-            UserContext.clear();
+
+        //4.构建查询条件，加载订单最新详情
+        OrderDetailQuery query = new OrderDetailQuery();
+        query.setOrderId(orderId);
+        query.setUserId(userId);
+        OrderDetailForAdminVO detail = orderService.loadOrderDetailFromDB(query);
+        //5.将最新订单详情写入Redis缓存，过期时间7天
+        if (detail != null) {
+            orderDetailCacheService.setOrderDetailToCache(orderId, detail);
+            log.info("订单详情缓存更新成功, orderId={}", orderId);
         }
+
 
     }
 }

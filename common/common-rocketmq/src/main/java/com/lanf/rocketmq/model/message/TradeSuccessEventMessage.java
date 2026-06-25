@@ -3,8 +3,6 @@ package com.lanf.rocketmq.model.message;
 import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.util.List;
-
 /**
  * 交易成功事件消息
  */
@@ -20,6 +18,7 @@ public class TradeSuccessEventMessage extends BaseMessage {
 
     private Long orderId;
 
+    private Integer payType;
 
 
 }

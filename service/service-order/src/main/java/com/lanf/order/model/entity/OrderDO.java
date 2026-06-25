@@ -1,6 +1,7 @@
 package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.api.order.model.enums.OrderTypeEnum;
@@ -86,6 +87,8 @@ public class OrderDO extends BaseEntity {
     private Date expireTime;
 
     private Integer expireInterval;
+
+    private PayChannelEnum payType;
     /**
      * 版本号
      */

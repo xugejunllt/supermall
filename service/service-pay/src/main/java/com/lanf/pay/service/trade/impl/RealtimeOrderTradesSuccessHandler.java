@@ -21,6 +21,7 @@ public class RealtimeOrderTradesSuccessHandler implements TradeSuccessHandler {
         log.info("交易成功后置处理:{}",context);
         TradeOrderDO tradeOrderDO = context.getTradeOrderDO();
         TradeSuccessEventMessage message = buildTradeSuccessEventMessage(tradeOrderDO);
+        message.setPayType(context.getPayType());
         rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
     }
 
