@@ -12,8 +12,9 @@ import com.lanf.order.model.dto.*;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.vo.*;
-import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.OrderManagerService;
+import com.lanf.order.service.order.IOrderService;
+import com.lanf.order.service.shipping.IShippingTrackService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -37,6 +38,8 @@ public class OrderController {
 
     @Autowired
     private OrderManagerService orderManagerService;
+    @Autowired
+    private IShippingTrackService shippingTrackService;
 
 
     /**

@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.order.model.enums.ShippingStatusEnum;
 import com.lanf.api.order.model.vo.ShippingTrackContentVO;
 import com.lanf.api.order.model.vo.ShippingTrackVO;
+import com.lanf.cache.service.RedissonCacheService;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.order.mapper.ShippingTrackMapper;
 import com.lanf.order.model.bo.AddShippingTrackBO;
@@ -18,6 +20,9 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -34,11 +39,16 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
     @Autowired
     private IShippingInfoService shippingInfoService;
 
+    @Autowired
+    private RedissonCacheService redissonCacheService;
+
+    private static final String SHIPPING_TRACK_CACHE_KEY_PREFIX = "shippingTrack:";
+
 
     @Override
     public void bathAddShippingTrack(BathAddShippingTrackBO bo) {
 
-        log.info("批量插入参数:{}",bo);
+        log.info("批量插入参数:{}", bo);
         List<AddShippingTrackBO> shippingTrackBOList = bo.getShippingTrackBOList();
         List<ShippingTrackDO> trackDOList = new ArrayList<>(shippingTrackBOList.size());
 
@@ -54,12 +64,12 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
         }
         log.info("批量插入的数据:{}", trackDOList);
         baseMapper.insertIgnoreBatch(trackDOList);
-
+        //构建缓存
+        findShippingTrackFromDB(bo.getOrderId());
     }
 
 
-
-    private static ShippingTrackDO getShippingTrackDO(AddShippingTrackBO shippingTrackBO,BathAddShippingTrackBO bo) {
+    private static ShippingTrackDO getShippingTrackDO(AddShippingTrackBO shippingTrackBO, BathAddShippingTrackBO bo) {
         ShippingTrackDO trackDO = new ShippingTrackDO();
         trackDO.setOrderId(bo.getOrderId());
         trackDO.setStatus(shippingTrackBO.getStatus());
@@ -76,25 +86,57 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
     @Override
     public List<ShippingTrackVO> findShippingTrack(Long orderId) {
 
+        String cacheKey = SHIPPING_TRACK_CACHE_KEY_PREFIX + orderId;
+        // 1. 从缓存中读取
+        String cacheValue = redissonCacheService.get(cacheKey);
+        if (cacheValue != null && !RedissonCacheService.isErrorValue(cacheValue)) {
+            return JsonUtils.toList(cacheValue, ShippingTrackVO.class);
+        }
+
+        return findShippingTrackFromDB(orderId);
+    }
+
+    private List<ShippingTrackVO> findShippingTrackFromDB(Long orderId) {
+
+        String cacheKey = SHIPPING_TRACK_CACHE_KEY_PREFIX + orderId;
+
+        // 2. 缓存未命中，从DB加载
+        List<ShippingTrackDO> trackDOList = this.lambdaQuery()
+                .eq(ShippingTrackDO::getOrderId, orderId)
+                .list();
+
+        // 3. 按status分组，并构建VO
+        Map<ShippingStatusEnum, List<ShippingTrackDO>> statusGroup = trackDOList.stream()
+                .collect(Collectors.groupingBy(ShippingTrackDO::getStatus));
+
         List<ShippingTrackVO> trackVOList = new ArrayList<>();
-        ShippingTrackVO shippingTrackVO = new ShippingTrackVO();
-        shippingTrackVO.setStatus(ShippingStatusEnum.ORDER_PLACED);
+        for (Map.Entry<ShippingStatusEnum, List<ShippingTrackDO>> entry : statusGroup.entrySet()) {
+            ShippingTrackVO trackVO = new ShippingTrackVO();
+            trackVO.setStatus(entry.getKey());
 
+            // 相同status的内容按finishTime降序
+            List<ShippingTrackContentVO> contentVOList = entry.getValue().stream()
+                    .sorted((a, b) -> b.getFinishTime().compareTo(a.getFinishTime()))
+                    .map(doItem -> {
+                        ShippingTrackContentVO contentVO = new ShippingTrackContentVO();
+                        contentVO.setFinishTime(doItem.getFinishTime());
+                        contentVO.setFinishContent(doItem.getFinishContent());
+                        return contentVO;
+                    })
+                    .collect(Collectors.toList());
 
-        List<ShippingTrackContentVO> trackContentVOList = new ArrayList<>();
-        ShippingTrackContentVO contentVO = new ShippingTrackContentVO();
-        contentVO.setFinishTime(new Date());
-        contentVO.setFinishContent("下单成功");
-        trackContentVOList.add(contentVO);
-        shippingTrackVO.setTrackContentVOList(trackContentVOList);
-        trackVOList.add(shippingTrackVO);
+            trackVO.setTrackContentVOList(contentVOList);
+            trackVOList.add(trackVO);
+        }
 
+        // 4. 按ShippingStatusEnum code值降序排序
+        trackVOList.sort((a, b) -> b.getStatus().getCode().compareTo(a.getStatus().getCode()));
+
+        // 5. 写入缓存，过期时间7天
+        redissonCacheService.set(cacheKey, JsonUtils.toJsonString(trackVOList), 7, TimeUnit.DAYS);
 
         return trackVOList;
     }
-
-
-
 
 
 }

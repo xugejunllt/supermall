@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@MapperScan(basePackages = {"com.lanf.order.mapper","com.lanf.tcc.mapper"})
+@MapperScan(basePackages = {"com.lanf.order.mapper","com.lanf.tcc.mapper","com.lanf.rocketmq.mapper"})
 
 @SpringBootApplication(scanBasePackages="com.lanf",
 
