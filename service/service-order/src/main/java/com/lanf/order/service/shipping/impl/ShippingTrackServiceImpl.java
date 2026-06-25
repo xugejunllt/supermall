@@ -1,6 +1,7 @@
 package com.lanf.order.service.shipping.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.order.model.bo.ShippingInfoBO;
 import com.lanf.api.order.model.enums.ShippingStatusEnum;
 import com.lanf.api.order.model.vo.ShippingTrackContentVO;
 import com.lanf.api.order.model.vo.ShippingTrackVO;
@@ -10,6 +11,7 @@ import com.lanf.constant.utils.IdUtils;
 import com.lanf.order.mapper.ShippingTrackMapper;
 import com.lanf.order.model.bo.AddShippingTrackBO;
 import com.lanf.order.model.bo.BathAddShippingTrackBO;
+import com.lanf.order.model.entity.ShippingInfoDO;
 import com.lanf.order.model.entity.ShippingTrackDO;
 import com.lanf.order.model.vo.ShippingTrackDetailVO;
 import com.lanf.order.service.shipping.IShippingInfoService;
@@ -44,12 +46,12 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
     private RedissonCacheService redissonCacheService;
 
     private static final String SHIPPING_TRACK_CACHE_KEY_PREFIX = "shippingTrack:";
+    private static final String SHIPPING_TRACK_DETAIL_CACHE_KEY_PREFIX = "shippingTrackDetail:";
 
 
     @Override
     public void bathAddShippingTrack(BathAddShippingTrackBO bo) {
 
-        log.info("批量插入参数:{}", bo);
         List<AddShippingTrackBO> shippingTrackBOList = bo.getShippingTrackBOList();
         List<ShippingTrackDO> trackDOList = new ArrayList<>(shippingTrackBOList.size());
 
@@ -63,22 +65,47 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
             trackDO.setIsDeleted(0);
             trackDOList.add(trackDO);
         }
-        log.info("批量插入的数据:{}", trackDOList);
         baseMapper.insertIgnoreBatch(trackDOList);
         //构建缓存
-        findShippingTrackFromDB(bo.getOrderId());
+        loadShippingTrackDetailFromDB(bo.getOrderId());
     }
 
     @Override
     public ShippingTrackDetailVO shippingTrackDetailQuery(Long orderId) {
+        String cacheKey = SHIPPING_TRACK_DETAIL_CACHE_KEY_PREFIX + orderId;
+        // 1. 从缓存中读取
+        String cacheValue = redissonCacheService.get(cacheKey);
+        if (cacheValue != null && !RedissonCacheService.isErrorValue(cacheValue)) {
+            return JsonUtils.toObject(cacheValue, ShippingTrackDetailVO.class);
+        }
+        return loadShippingTrackDetailFromDB( orderId);
+    }
+    private ShippingTrackDetailVO loadShippingTrackDetailFromDB(Long orderId){
+
+        String cacheKey = SHIPPING_TRACK_DETAIL_CACHE_KEY_PREFIX + orderId;
+
+
         ShippingTrackDetailVO shippingTrackDetailVO = new ShippingTrackDetailVO();
 
-        List<ShippingTrackVO> shippingTrack = findShippingTrack(orderId);
+        // 查询物流信息
+        ShippingInfoDO shippingInfoDO = shippingInfoService.lambdaQuery()
+                .eq(ShippingInfoDO::getOrderId, orderId)
+                .one();
+        if (shippingInfoDO != null) {
+            ShippingInfoBO shippingInfoBO = new ShippingInfoBO();
+            shippingInfoBO.setLogisticsCompany(shippingInfoDO.getLogisticsCompany());
+            shippingInfoBO.setTrackingNumber(shippingInfoDO.getTrackingNumber());
+            shippingTrackDetailVO.setShippingInfoBO(shippingInfoBO);
+        }
+
+        List<ShippingTrackVO> shippingTrack = findShippingTrackFromDB(orderId);
         shippingTrackDetailVO.setTrackVOList(shippingTrack);
+
+        // 2. 写入缓存，过期时间7天
+        redissonCacheService.set(cacheKey, JsonUtils.toJsonString(shippingTrackDetailVO), 7, TimeUnit.DAYS);
 
         return shippingTrackDetailVO;
     }
-
 
     private static ShippingTrackDO getShippingTrackDO(AddShippingTrackBO shippingTrackBO, BathAddShippingTrackBO bo) {
         ShippingTrackDO trackDO = new ShippingTrackDO();
@@ -97,21 +124,14 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
     @Override
     public List<ShippingTrackVO> findShippingTrack(Long orderId) {
 
-        String cacheKey = SHIPPING_TRACK_CACHE_KEY_PREFIX + orderId;
-        // 1. 从缓存中读取
-        String cacheValue = redissonCacheService.get(cacheKey);
-        if (cacheValue != null && !RedissonCacheService.isErrorValue(cacheValue)) {
-            return JsonUtils.toList(cacheValue, ShippingTrackVO.class);
-        }
+
 
         return findShippingTrackFromDB(orderId);
     }
 
     private List<ShippingTrackVO> findShippingTrackFromDB(Long orderId) {
 
-        String cacheKey = SHIPPING_TRACK_CACHE_KEY_PREFIX + orderId;
 
-        // 2. 缓存未命中，从DB加载
         List<ShippingTrackDO> trackDOList = this.lambdaQuery()
                 .eq(ShippingTrackDO::getOrderId, orderId)
                 .list();
@@ -142,9 +162,6 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
 
         // 4. 按ShippingStatusEnum code值降序排序
         trackVOList.sort((a, b) -> b.getStatus().getCode().compareTo(a.getStatus().getCode()));
-
-        // 5. 写入缓存，过期时间7天
-        redissonCacheService.set(cacheKey, JsonUtils.toJsonString(trackVOList), 7, TimeUnit.DAYS);
 
         return trackVOList;
     }

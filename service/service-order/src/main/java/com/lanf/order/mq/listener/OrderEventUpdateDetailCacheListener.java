@@ -73,6 +73,7 @@ public class OrderEventUpdateDetailCacheListener implements RocketMQListener<Mes
         query.setOrderId(orderId);
         query.setUserId(userId);
         OrderDetailForAdminVO detail = orderService.loadOrderDetailFromDB(query);
+        log.info("订单详情查询结果, orderId={}, detail={}", orderId, detail.getStatus());
         //5.将最新订单详情写入Redis缓存，过期时间7天
         if (detail != null) {
             orderDetailCacheService.setOrderDetailToCache(orderId, detail);
