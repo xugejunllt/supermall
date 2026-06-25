@@ -104,12 +104,6 @@ public class OrderTest {
         assertEquals(new BigDecimal("100.00"), result.getTotalMoney(), "订单金额应匹配");
         assertEquals(new BigDecimal("90.00"), result.getActualPayMoney(), "实付金额应匹配");
 
-        // 5. 验证物流轨迹
-        assertNotNull(result.getTrackVOList(), "物流轨迹列表不应为空");
-        assertEquals(1, result.getTrackVOList().size(), "应有1个物流状态分组");
-        assertEquals(ShippingStatusEnum.ORDER_PLACED, result.getTrackVOList().get(0).getStatus(), "状态应为ORDER_PLACED");
-        assertEquals(1, result.getTrackVOList().get(0).getTrackContentVOList().size(), "应有1条物流记录");
-        assertEquals("订单已提交", result.getTrackVOList().get(0).getTrackContentVOList().get(0).getFinishContent(), "内容应匹配");
 
         log.info("orderDetailForAdminQuery 测试结果: {}", JsonUtils.toJsonString(result));
 

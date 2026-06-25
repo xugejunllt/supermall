@@ -14,6 +14,8 @@ import java.util.List;
 @Data
 public class OrderDetailForAdminVO implements Serializable {
 
+    private Long id ;
+
     private String shopName;
     /**
      * 用户id
@@ -67,7 +69,7 @@ public class OrderDetailForAdminVO implements Serializable {
 
     private List<OrderItemVO> orderItemVOList;
 
-    private List<ShippingTrackVO> trackVOList;
+
 
 
 }

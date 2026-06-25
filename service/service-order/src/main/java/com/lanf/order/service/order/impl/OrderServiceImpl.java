@@ -12,7 +12,10 @@ import com.lanf.api.order.model.enums.ShippingStatusEnum;
 import com.lanf.api.order.model.query.AdminOrderSearchQuery;
 import com.lanf.api.order.model.query.OrderDetailQuery;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
-import com.lanf.api.order.model.vo.*;
+import com.lanf.api.order.model.vo.AdminOrderListVO;
+import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
+import com.lanf.api.order.model.vo.OrderDocumentVO;
+import com.lanf.api.order.model.vo.OrderItemVO;
 import com.lanf.api.order.mq.message.*;
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.search.api.SearchApiService;
@@ -70,7 +73,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -718,33 +720,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Override
     public OrderDetailForAdminVO orderDetailForAdminQuery(OrderDetailQuery query) {
 
-        // 并行查询订单详情和物流轨迹，超时时间3秒
-        CompletableFuture<OrderDetailForAdminVO> orderDetailFuture = CompletableFuture.supplyAsync(
-                () -> findOrderDetail(query), searchTaskExecutor);
-
-        CompletableFuture<List<ShippingTrackVO>> shippingTrackFuture = CompletableFuture.supplyAsync(
-                () -> shippingTrackService.findShippingTrack(query.getOrderId()), searchTaskExecutor);
-
-        try {
-            CompletableFuture.allOf(orderDetailFuture, shippingTrackFuture).get(3, TimeUnit.SECONDS);
-
-            OrderDetailForAdminVO orderDetail = orderDetailFuture.get();
-            List<ShippingTrackVO> trackVOList = shippingTrackFuture.get();
-
-            if (orderDetail != null) {
-                orderDetail.setTrackVOList(trackVOList);
-            }
-
-            return orderDetail;
-        } catch (TimeoutException | InterruptedException | ExecutionException e) {
-            log.warn("查询订单详情或物流轨迹超时, orderId={}", query.getOrderId(), e);
-            throw new BizException("查询订单详情超时");
-        }
-    }
-
-
-    private OrderDetailForAdminVO findOrderDetail(OrderDetailQuery query) {
-
+        query.setUserId(UserContext.getUserId());
         //1.先从缓存读取订单详情
         OrderDetailForAdminVO cached = orderDetailCacheService.getOrderDetailFromCache(query.getOrderId());
         if (cached != null) {
@@ -766,9 +742,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
 
 
+
+
     @Override
     public OrderDetailForAdminVO loadOrderDetailFromDB(OrderDetailQuery query) {
-        Long userId = UserContext.getUserId();
+
+        Long userId = query.getUserId();
+        log.info("加载订单详情, userId={}", userId);
         OrderDO orderDO = this.lambdaQuery()
                 .eq(OrderDO::getId, query.getOrderId())
                 .eq(OrderDO::getUserId, userId)

@@ -11,6 +11,7 @@ import com.lanf.order.mapper.ShippingTrackMapper;
 import com.lanf.order.model.bo.AddShippingTrackBO;
 import com.lanf.order.model.bo.BathAddShippingTrackBO;
 import com.lanf.order.model.entity.ShippingTrackDO;
+import com.lanf.order.model.vo.ShippingTrackDetailVO;
 import com.lanf.order.service.shipping.IShippingInfoService;
 import com.lanf.order.service.shipping.IShippingTrackService;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +67,16 @@ public class ShippingTrackServiceImpl extends ServiceImpl<ShippingTrackMapper, S
         baseMapper.insertIgnoreBatch(trackDOList);
         //构建缓存
         findShippingTrackFromDB(bo.getOrderId());
+    }
+
+    @Override
+    public ShippingTrackDetailVO shippingTrackDetailQuery(Long orderId) {
+        ShippingTrackDetailVO shippingTrackDetailVO = new ShippingTrackDetailVO();
+
+        List<ShippingTrackVO> shippingTrack = findShippingTrack(orderId);
+        shippingTrackDetailVO.setTrackVOList(shippingTrack);
+
+        return shippingTrackDetailVO;
     }
 
 

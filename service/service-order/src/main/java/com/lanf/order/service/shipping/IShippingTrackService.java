@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.api.order.model.vo.ShippingTrackVO;
 import com.lanf.order.model.bo.BathAddShippingTrackBO;
 import com.lanf.order.model.entity.ShippingTrackDO;
+import com.lanf.order.model.vo.ShippingTrackDetailVO;
 
 import java.util.List;
 
@@ -22,6 +23,8 @@ public interface IShippingTrackService extends IService<ShippingTrackDO> {
      *
      */
     void bathAddShippingTrack(BathAddShippingTrackBO bo);
+
+    ShippingTrackDetailVO  shippingTrackDetailQuery(Long orderId);
 
     List<ShippingTrackVO> findShippingTrack(Long orderId);
 }

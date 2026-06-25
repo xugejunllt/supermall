@@ -136,6 +136,11 @@ public class OrderController {
 
         return Result.ok(orderService.orderDetailForAdminQuery(query));
     }
+    @GetMapping("/shippingTrackDetailQuery")
+    public Result<ShippingTrackDetailVO> shippingTrackDetailQuery(Long orderId) {
 
+
+        return Result.ok(shippingTrackService.shippingTrackDetailQuery(orderId));
+    }
 }
 

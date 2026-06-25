@@ -3,7 +3,6 @@ package com.lanf.order.mq.listener;
 import com.alibaba.fastjson.JSON;
 import com.lanf.api.order.model.query.OrderDetailQuery;
 import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
-import com.lanf.constant.exception.BizException;
 import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.order.mq.constant.OrderMqGroupName;
@@ -63,7 +62,8 @@ public class OrderEventUpdateDetailCacheListener implements RocketMQListener<Mes
         //2.校验消息中必须包含orderId和userId，缺失时直接抛异常触发MQ重试
         if (orderIdObj == null || userIdObj == null) {
             log.error("订单事件消息中无orderId或userId, tag={}, body={}", tags, body);
-            throw new BizException("订单事件消息中无orderId或userId");
+//            throw new BizException("订单事件消息中无orderId或userId");
+            return;
         }
         Long orderId = Long.valueOf(orderIdObj.toString());
         Long userId = Long.valueOf(userIdObj.toString());
