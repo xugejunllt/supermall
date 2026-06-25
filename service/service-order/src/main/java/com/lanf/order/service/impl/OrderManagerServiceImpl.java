@@ -28,6 +28,7 @@ import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
+import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.model.bo.BuildBathCreateOrderBO;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.StartSubmitCartBO;
@@ -403,7 +404,10 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         message.setOrderId(orderId);
         message.setUserId(userId);
 
-        OrderDO orderDO = orderService.getById(orderId);
+        OrderDO orderDO = orderService.lambdaQuery()
+                .eq(BaseEntity::getId, orderId)
+                .eq(OrderDO::getUserId, userId)
+                .one();
 
         BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
         bathMessage.setOrderId(orderId);
