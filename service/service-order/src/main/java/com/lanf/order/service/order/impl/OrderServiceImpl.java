@@ -666,9 +666,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Override
     public PageResult<OrderPageVO> orderPageQuery(OrderPageQuery query) {
 
+
         IPage<OrderDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<OrderDO> result =  this.lambdaQuery()
                 .eq(OrderDO::getUserId, UserContext.getUserId())
+                .in(!IStringUtils.isEmpty(query.getOrderIdList()),BaseEntity::getId, query.getOrderIdList())
                 .in(query.getStatus()!=null && !query.getStatus().isEmpty(), OrderDO::getStatus, query.getStatus())
                 .orderByDesc(BaseEntity::getId)
                 .page(page);

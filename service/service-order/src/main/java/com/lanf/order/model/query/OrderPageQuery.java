@@ -9,6 +9,8 @@ import java.util.List;
 @Data
 public class OrderPageQuery extends PageQuery {
 
+    private String searchWord;
+
     private List<Integer> status;
 
     private List<Long> orderIdList;

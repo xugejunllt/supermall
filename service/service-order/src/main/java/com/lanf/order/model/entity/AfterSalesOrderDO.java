@@ -38,12 +38,12 @@ public class AfterSalesOrderDO extends BaseEntity {
     private AfterSalesTypeEnum afterSalesType;
 
     /**
-     *
+     *用户页面操作控制
      */
     private MainStatusEnum mainStatus;
 
     /**
-     * 子状态
+     * 子状态 页面展示 当前正在发生什么
      */
     private SubStatus subStatus;
 
