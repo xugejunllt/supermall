@@ -192,8 +192,8 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         return this.lambdaQuery()
                 .eq(CouponDO::getUserId, userId)                        // 指定用户
                 .eq(CouponDO::getStatus, 0)                             // 状态为可用（未使用）
-                .ge(CouponDO::getUseStartTime, new Date())              // 使用开始时间小于等于当前时间
-                .le(CouponDO::getUseEndTime, new Date())                // 使用结束时间大于等于当前时间
+                .le(CouponDO::getUseStartTime, new Date())              // 使用开始时间 <= 当前时间（优惠券已开始）
+                .ge(CouponDO::getUseEndTime, new Date())                // 使用结束时间 >= 当前时间（未过期）
                 .in(couponIds != null && !couponIds.isEmpty(), CouponDO::getId, couponIds)
                 .list();
     }
@@ -202,11 +202,13 @@ public class CouponServiceImpl extends ServiceImpl<CouponMapper, CouponDO> imple
         List<DiscountInfoBO> list = new ArrayList<>();
         for (CouponDO coupon : coupons){
             DiscountInfoBO bo = new DiscountInfoBO();
+            bo.setCouponId(coupon.getId());
+            bo.setType(coupon.getType());
             bo.setName(coupon.getName());
             bo.setTitle(coupon.getTitle());
             // 解析优惠券金额
             bo.setDiscountAmount(parseDiscountAmount(coupon));
-            list .add(bo);
+            list.add(bo);
         }
         return list;
     }

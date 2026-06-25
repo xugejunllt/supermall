@@ -5,6 +5,7 @@ import com.lanf.api.order.model.enums.OrderTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -22,7 +23,10 @@ public class OrderPageVO implements Serializable {
      * 订单编号
      */
     private String orderNumber;
-
+    /**
+     * 过期时间
+     */
+    private Date expireTime;
     /**
      * 0:待付款, 1:待出库 2：已出库 3：已发货，4：已完成，5：已取消 6.已关闭
      */

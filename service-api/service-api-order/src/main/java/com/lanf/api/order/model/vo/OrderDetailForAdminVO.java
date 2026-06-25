@@ -61,6 +61,10 @@ public class OrderDetailForAdminVO implements Serializable {
     private Date createTime;
 
     private Integer payType;
+    /**
+     * 过期时间
+     */
+    private Date expireTime;
 
     private ShippingInfoBO shippingInfoBO;
     /**

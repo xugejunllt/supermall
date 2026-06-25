@@ -672,7 +672,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                 .in(query.getStatus()!=null && !query.getStatus().isEmpty(), OrderDO::getStatus, query.getStatus())
                 .orderByDesc(BaseEntity::getId)
                 .page(page);
-        
+
         if (result.getRecords().isEmpty()){
             return PageResult.emptyResult();
         }
@@ -769,7 +769,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                 .list();
 
         OrderDetailForAdminVO detailForAdminVO = BeanCopyUtils.copyBean(orderDO, OrderDetailForAdminVO.class);
-
+        if (orderDO.getPayType() != null){
+            detailForAdminVO.setPayType(orderDO.getPayType().getCode());
+        }
         String takeAddress = orderDO.getTakeAddress();
         if (takeAddress != null) {
             AddressJson takeAddressJson = JsonUtils.toObject(takeAddress, AddressJson.class);
