@@ -957,7 +957,6 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private  OrderDO getOrderDO(SecKillPlaneMessage message, Long orderId, BigDecimal totalMoney) {
 
         AddressListVO defaultAddress = userCacheService.getDefaultAddress();
-        log.info("用户默认收货地址:{}", defaultAddress);
         Date expireTime = DateUtils.addMinutes(new Date(), expireInterval);
 
         OrderDO orderDO = new OrderDO();
