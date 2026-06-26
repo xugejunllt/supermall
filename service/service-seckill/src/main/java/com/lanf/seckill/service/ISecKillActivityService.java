@@ -7,6 +7,7 @@ import com.lanf.seckill.model.dto.GetSeckillTokenDTO;
 import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
 import com.lanf.seckill.model.entity.SecKillActivityDO;
 import com.lanf.seckill.model.query.SeckillItemPageQuery;
+import com.lanf.seckill.model.vo.SecKillActivityListVO;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
@@ -59,11 +60,13 @@ public interface ISecKillActivityService extends IService<SecKillActivityDO> {
     /**
      * 获取秒杀令牌（动态秒杀链接）
      * 秒杀开始时生成一次性 token，用于后续下单验证
-     * 
+     *
      * @return 秒杀令牌信息
      */
     SeckillTokenVO getSeckillToken( GetSeckillTokenDTO dto);
 
+
+    List<SecKillActivityListVO> seckillActivityListQuery();
 
 
 }

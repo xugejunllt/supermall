@@ -148,7 +148,7 @@ public class SeckillFilter implements Filter {
             ResponseUtil.outSuccess(response, Result.ok());
 
         } catch (BizException e) {
-            log.error("秒杀异常");
+            log.error("秒杀异常",e);
             ResponseUtil.outFail(response, Result.fail(e.getCode(), e.getMessage()));
 
         } catch (Exception e) {

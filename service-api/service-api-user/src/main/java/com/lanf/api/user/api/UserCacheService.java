@@ -11,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import static com.lanf.constant.constant.RedisKeyConstants.ADDRESS_CACHE_KEY_PREFIX;
 @Slf4j
@@ -46,5 +48,30 @@ public class UserCacheService {
         // 3. 缓存未命中，调用远程服务获取
         log.info("远程调用加载用户地址列表");
         return userApiService.addressListQuery();
+    }
+
+    public  AddressListVO getDefaultAddress() {
+        Result<List<AddressListVO>> listResult = addressListQuery();
+        List<AddressListVO> listVOList = RpcResultParser.parseResult(listResult);
+
+        Optional<AddressListVO> first = listVOList.stream().filter(
+                        data -> data.getDefaultAddress().equals(0))
+                .findFirst();
+        if (first.isPresent()) {
+            return first.get();
+        } else {
+            AddressListVO addressListVO = new AddressListVO();
+            addressListVO.setConsignee("刘先生");
+            addressListVO.setPhone("183209811823");
+            addressListVO.setArea("安徽省-合肥市-瑶海区");
+            addressListVO.setAddress("桃园街道");
+            addressListVO.setAreaCode("440305");
+            addressListVO.setLatitude(new BigDecimal(39.9042));
+            addressListVO.setLongitude(new BigDecimal(116.4074));
+
+            return addressListVO;
+        }
+
+
     }
 }

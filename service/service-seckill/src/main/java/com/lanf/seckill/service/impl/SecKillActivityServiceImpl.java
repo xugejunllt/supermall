@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.cache.service.RedissonCacheService;
+import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
@@ -20,8 +21,8 @@ import com.lanf.seckill.model.dto.GetSeckillTokenDTO;
 import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
 import com.lanf.seckill.model.entity.SecKillActivityDO;
 import com.lanf.seckill.model.entity.SecKillItemDO;
-import com.lanf.seckill.model.enums.SeckillActivityStatusEnum;
 import com.lanf.seckill.model.query.SeckillItemPageQuery;
+import com.lanf.seckill.model.vo.SecKillActivityListVO;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
@@ -105,26 +106,25 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
      */
     private static final long TOKEN_EXPIRE_SECONDS = 60L;
 
+    /**
+     * 秒杀活动列表缓存 key 前缀
+     */
+    private static final String SECKILL_ACTIVITY_LIST_KEY = "seckill:activity:list";
+
+    /**
+     * 秒杀活动列表缓存过期时间（秒）7天
+     */
+    private static final long SECKILL_ACTIVITY_LIST_EXPIRE_SECONDS = 7 * 24 * 60 * 60L;
+
     @Override
     public void addSeckillActivity(AddSeckillActivityDTO dto) {
 
-        Date endTime = dto.getEndTime();
-
-        if (endTime.before(new Date())) {
-            log.warn("活动结束时间不能早于当前时间");
-            throw new BizException("活动结束时间不能早于当前时间");
-        }
-
         SecKillActivityDO seckillActivityDO = new SecKillActivityDO();
         seckillActivityDO.setName(dto.getName());
-        seckillActivityDO.setStartTime(dto.getStartTime());
-        seckillActivityDO.setEndTime(dto.getEndTime());
-        //简单处理 默认开始 实际秒杀时间以秒杀开始时间为准 提前预热
-        seckillActivityDO.setStatus(SeckillActivityStatusEnum.IN_PROGRESS);
-        seckillActivityDO.setTenantId(UserContext.getTenantId());
         this.save(seckillActivityDO);
-
+        redissonCacheService.delete(SECKILL_ACTIVITY_LIST_KEY);
     }
+
     @HmilyTCC(confirmMethod = "confirmAddAddSeckillItem", cancelMethod = "cancelAddAddSeckillItem")
     @Override
     public void addSeckillItem(AddSeckillItemDTO dto) {
@@ -139,7 +139,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
             throw new BizException("活动不存在");
         }
         //冻结库存
-        seckillStockPreoccupation( dto);
+        seckillStockPreoccupation(dto);
 
     }
 
@@ -155,8 +155,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
     }
 
 
-
-    public void  confirmAddAddSeckillItem(AddSeckillItemDTO dto){
+    public void confirmAddAddSeckillItem(AddSeckillItemDTO dto) {
         SecKillItemDO seckillItemDO = new SecKillItemDO();
         seckillItemDO.setActivityId(dto.getActivityId());
         seckillItemDO.setItemId(dto.getItemId());
@@ -180,8 +179,8 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         seckillItemDO.setTenantId(UserContext.getTenantId());
         seckillItemDO.setGoodsName(dto.getGoodsName());
         seckillItemDO.setSkuId(dto.getSkuId());
-        seckillItemDO.setGoodsVersion(dto.getGoodsVersion());
-        seckillItemDO.setSkuVersion(dto.getSkuVersion());
+        seckillItemDO.setStartTime(dto.getStartTime());
+        seckillItemDO.setEndTime(dto.getEndTime());
         seckillItemDO.setSecKillMode(dto.getSecKillMode());
         seckillItemDO.setRemainingStock(dto.getTotalStock());
         seckillItemDO.setShopName(dto.getShopName());
@@ -189,11 +188,12 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         try {
             seckillItemService.save(seckillItemDO);
         } catch (DuplicateKeyException e) {
-           log.warn("重复插入");
+            log.warn("重复插入");
         }
 
     }
-    public void  cancelAddAddSeckillItem(AddSeckillItemDTO dto){
+
+    public void cancelAddAddSeckillItem(AddSeckillItemDTO dto) {
 
 
     }
@@ -210,8 +210,6 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
             throw new BizException("商品不存在");
         }
         Long activityId = one.getActivityId();
-        SecKillActivityDO activityDO = this.lambdaQuery().eq(SecKillActivityDO::getId, activityId)
-                .one();
 
         boolean update = seckillItemService.lambdaUpdate()
                 .eq(SecKillItemDO::getId, seckillItemId)
@@ -222,11 +220,11 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
             throw new BizException("更新失败");
         }
 
-        long cacheExpireSeconds = calculateCacheExpireSeconds(activityDO.getEndTime());
+        long cacheExpireSeconds = calculateCacheExpireSeconds(one.getEndTime());
 
-        cacheSeckillItemList(one, activityDO, activityId, cacheExpireSeconds);
+        cacheSeckillItemList(one, activityId, cacheExpireSeconds);
 
-        cacheSeckillItemDetail(one, activityDO, activityId, cacheExpireSeconds);
+        cacheSeckillItemDetail(one, activityId, cacheExpireSeconds);
 
         cacheSeckillItemStock(one, activityId, cacheExpireSeconds);
 
@@ -235,10 +233,11 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
     /**
      * 缓存秒杀商品列表
      */
-    private void cacheSeckillItemList(SecKillItemDO item, SecKillActivityDO activity,
+    private void cacheSeckillItemList(SecKillItemDO item,
                                       Long activityId, long cacheExpireSeconds) {
-        SeckillItemList seckillItemList = getSeckillItemList(item, activity);
+        SeckillItemList seckillItemList = getSeckillItemList(item);
         String data = JsonUtils.toJsonString(seckillItemList);
+        log.info("添加的缓存商品列表数据是:{}", data);
         String keyPrefix = String.format(SECKILL_ITEM_LIST_KEY_PRX, activityId);
 
         RedisKeyGenerator.ALL_DIGIT_SUFFIXES.forEach(digit -> {
@@ -252,9 +251,9 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
     /**
      * 缓存秒杀商品详情
      */
-    private void cacheSeckillItemDetail(SecKillItemDO item, SecKillActivityDO activity,
+    private void cacheSeckillItemDetail(SecKillItemDO item,
                                         Long activityId, long cacheExpireSeconds) {
-        SeckillItemDetail detail = getSeckillItemDetail(item, activity);
+        SeckillItemDetail detail = getSeckillItemDetail(item);
         String data = JsonUtils.toJsonString(detail);
         String keyPrefix = String.format(SECKILL_ITEM_DETAIL_KEY_PRX, item.getId());
 
@@ -287,25 +286,26 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
                 activityId, item.getId(), totalStock);
     }
 
-    private static SeckillItemList getSeckillItemList(SecKillItemDO one, SecKillActivityDO activityDO) {
+    private static SeckillItemList getSeckillItemList(SecKillItemDO one) {
         SeckillItemList seckillItemList = new SeckillItemList();
         seckillItemList.setActivityId(one.getActivityId());
         seckillItemList.setSeckillItemId(one.getId());
-        seckillItemList.setStartTime(activityDO.getStartTime());
+        seckillItemList.setStartTime(one.getStartTime());
         seckillItemList.setItemTitle(one.getItemTitle());
         seckillItemList.setItemImage(one.getItemImage());
         seckillItemList.setAttributes(one.getAttributes());
         seckillItemList.setOriginalPrice(one.getOriginalPrice());
         seckillItemList.setSeckillPrice(one.getSeckillPrice());
+        seckillItemList.setEndTime(one.getEndTime());
         return seckillItemList;
     }
 
-    private static SeckillItemDetail getSeckillItemDetail(SecKillItemDO one, SecKillActivityDO activityDO) {
+    private static SeckillItemDetail getSeckillItemDetail(SecKillItemDO one) {
         SeckillItemDetail detail = new SeckillItemDetail();
         detail.setActivityId(one.getActivityId());
         detail.setSeckillItemId(one.getId());
-        detail.setStartTime(activityDO.getStartTime());
-        detail.setEndTime(activityDO.getEndTime());
+        detail.setStartTime(one.getStartTime());
+        detail.setEndTime(one.getEndTime());
         detail.setItemTitle(one.getItemTitle());
         detail.setItemImage(one.getItemImage());
         detail.setAttributes(one.getAttributes());
@@ -404,7 +404,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         vo.setAttributes(itemList.getAttributes());
         vo.setOriginalPrice(itemList.getOriginalPrice());
         vo.setSeckillPrice(itemList.getSeckillPrice());
-
+        vo.setEndTime(itemList.getEndTime());
         return vo;
     }
 
@@ -543,6 +543,28 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         vo.setToken(skillToken);
         vo.setOrderUrl(urlMapping.getPath());
         return vo;
+    }
+
+    @Override
+    public List<SecKillActivityListVO> seckillActivityListQuery() {
+
+        String cacheKey = SECKILL_ACTIVITY_LIST_KEY;
+        String cacheData = redissonCacheService.get(cacheKey);
+
+        if ( !IStringUtils.isEmpty(cacheData) && !RedissonCacheService.isErrorValue(cacheData)) {
+            log.info("秒杀活动列表缓存命中:key={}", cacheKey);
+            return JsonUtils.toList(cacheData, SecKillActivityListVO.class);
+        }
+
+        List<SecKillActivityDO> list = this.lambdaQuery().list();
+        if (list.isEmpty()) {
+            return null;
+        }
+
+        List<SecKillActivityListVO> voList = BeanCopyUtils.copyBeanList(list, SecKillActivityListVO.class);
+        redissonCacheService.set(cacheKey, JsonUtils.toJsonString(voList), SECKILL_ACTIVITY_LIST_EXPIRE_SECONDS, TimeUnit.SECONDS);
+        log.info("秒杀活动列表缓存设置成功:key={}, expire={}秒", cacheKey, SECKILL_ACTIVITY_LIST_EXPIRE_SECONDS);
+        return voList;
     }
 
 

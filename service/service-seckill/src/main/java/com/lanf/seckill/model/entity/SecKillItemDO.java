@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * <p>
@@ -20,8 +21,7 @@ import java.math.BigDecimal;
 @TableName("sec_kill_item")
 public class SecKillItemDO extends BaseEntity {
 
-private static final long serialVersionUID=1L;
-
+    private static final long serialVersionUID = 1L;
 
     private Long shopId;
 
@@ -87,13 +87,13 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "skuId")
     private Long skuId;
 
-    //商品版本
-    private Long goodsVersion;
-    //sku 版本
-    private Long skuVersion;
+    @ApiModelProperty(value = "活动开始时间")
+    private Date startTime;
+
+    @ApiModelProperty(value = "活动结束时间")
+    private Date endTime;
 
     private Long version;
-
 
 
 }

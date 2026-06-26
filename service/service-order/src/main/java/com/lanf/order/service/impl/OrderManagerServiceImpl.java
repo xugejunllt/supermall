@@ -110,6 +110,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     @Value("${order.expireInterval}")
     private Long expireInterval;
 
+
+
     @Override
     public CalculateOrderAmountVO calculateOrderAmount(CalculateOrderAmountDTO dto) {
 
@@ -952,7 +954,12 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     }
 
-    private static OrderDO getOrderDO(SecKillPlaneMessage message, Long orderId, BigDecimal totalMoney) {
+    private  OrderDO getOrderDO(SecKillPlaneMessage message, Long orderId, BigDecimal totalMoney) {
+
+        AddressListVO defaultAddress = userCacheService.getDefaultAddress();
+        log.info("用户默认收货地址:{}", defaultAddress);
+        Date expireTime = DateUtils.addMinutes(new Date(), expireInterval);
+
         OrderDO orderDO = new OrderDO();
         orderDO.setId(orderId);
         orderDO.setShopId(message.getShopId());
@@ -962,11 +969,13 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderDO.setOrderNumber(message.getOrderNumber());
         orderDO.setTotalMoney(totalMoney);
         orderDO.setActualPayMoney(totalMoney);
-        orderDO.setTakeAddress(message.getTakeAddress());
         orderDO.setStatus(OrderStatusEnum.WAIT_PAY);
         orderDO.setOrderType(OrderTypeEnum.SEC_KILL);
-        orderDO.setAfterSaleDays(message.getAfterSaleDays());
+        orderDO.setAfterSaleDays(0);
         orderDO.setDiscountAmount(new BigDecimal(0));
+        orderDO.setTakeAddress(JsonUtils.toJsonString(defaultAddress));
+        orderDO.setExpireInterval( expireInterval.intValue());
+        orderDO.setExpireTime(expireTime);
         return orderDO;
     }
 

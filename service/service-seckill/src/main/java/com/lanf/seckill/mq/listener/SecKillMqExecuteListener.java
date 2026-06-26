@@ -171,18 +171,18 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
         secKillPlaneMessage.setShopName(killItemDO.getShopName());
 
         //3.设置租户和用户信息
-        secKillPlaneMessage.setTenantId(killItemDO.getTenantId());
+        Long tenantId = killItemDO.getTenantId();
+        if (tenantId == null) {
+            tenantId = 9999L;
+        }
+        secKillPlaneMessage.setTenantId(tenantId);
         secKillPlaneMessage.setUserId(userId);
 
         //4.设置订单基础信息
         secKillPlaneMessage.setOrderNumber(CodeGenerateUtils.generateOrderNumber());
         secKillPlaneMessage.setOrderId(orderId);
 
-        //5.设置收货地址信息（秒杀商品默认取默认收货地址，此处为空）
-        secKillPlaneMessage.setTakeAddress(null);
-
         //6.设置售后信息（秒杀商品默认无售后）
-        secKillPlaneMessage.setAfterSaleDays(0);
 
         //7.设置商品基本信息
         secKillPlaneMessage.setGoodsId(killItemDO.getItemId());
@@ -201,8 +201,8 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
         secKillPlaneMessage.setWarehouseId(killItemDO.getWarehouseId());
 
         //10.设置版本信息（用于下游乐观锁校验）
-        secKillPlaneMessage.setGoodsVersion(killItemDO.getGoodsVersion());
-        secKillPlaneMessage.setSkuVersion(killItemDO.getSkuVersion());
+        secKillPlaneMessage.setGoodsVersion(0L);
+        secKillPlaneMessage.setSkuVersion(0L);
 
         //11.设置秒杀商品关联ID
         secKillPlaneMessage.setSecKillItemId(killItemDO.getId());

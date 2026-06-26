@@ -1,6 +1,5 @@
 package com.lanf.seckill.model.bo;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -17,8 +16,9 @@ public class SeckillItemList implements Serializable {
     @ApiModelProperty(value = "所属活动ID")
     private Long activityId;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date startTime;
+
+    private Date endTime;
     /**
      * 秒杀商品ID
      */

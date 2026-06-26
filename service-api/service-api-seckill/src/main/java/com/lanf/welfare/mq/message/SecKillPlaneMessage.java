@@ -26,15 +26,6 @@ public class SecKillPlaneMessage extends BaseMessage {
     @ApiModelProperty(value = "订单编号")
     private String orderNumber;
 
-    @ApiModelProperty(value = "收货地址")
-    private String takeAddress;
-
-    /**
-     * 售后有效期，如果多个商品不同售后期，那么取最大的
-     */
-    private Integer afterSaleDays;
-
-
     //订单项目信息
     @ApiModelProperty(value = "商品id")
     private Long goodsId;

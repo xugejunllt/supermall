@@ -144,14 +144,6 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
         }
 
         Long activityId = one.getActivityId();
-        SecKillActivityDO activityDO = seckillActivityService.lambdaQuery()
-                .eq(SecKillActivityDO::getId, activityId)
-                .one();
-        if (activityDO == null) {
-            log.error("活动不存在");
-            throw new BizException("活动不存在");
-        }
-
         boolean update = this.lambdaUpdate()
                 .eq(SecKillCouponItemDO::getId, secKillCouponItemId)
                 .set(SecKillCouponItemDO::getShelfStatus, 1)
@@ -161,11 +153,11 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
             throw new BizException("更新失败");
         }
 
-        long cacheExpireSeconds = calculateCacheExpireSeconds(activityDO.getEndTime());
+        long cacheExpireSeconds = calculateCacheExpireSeconds(one.getEndTime());
 
-        cacheSeckillCouponList(one, activityDO, activityId, cacheExpireSeconds);
+        cacheSeckillCouponList(one, activityId, cacheExpireSeconds);
 
-        cacheSeckillCouponDetail(one, activityDO, activityId, cacheExpireSeconds);
+        cacheSeckillCouponDetail(one, activityId, cacheExpireSeconds);
 
         cacheSeckillCouponStock(one, activityId, cacheExpireSeconds);
 
@@ -174,9 +166,9 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
     /**
      * 缓存秒杀优惠券列表
      */
-    private void cacheSeckillCouponList(SecKillCouponItemDO item, SecKillActivityDO activity,
+    private void cacheSeckillCouponList(SecKillCouponItemDO item,
                                         Long activityId, long cacheExpireSeconds) {
-        SecKillCouponItemVO vo = convertToVO(item, activity);
+        SecKillCouponItemVO vo = convertToVO(item);
         String data = JsonUtils.toJsonString(vo);
         String keyPrefix = String.format(SECKILL_COUPON_LIST_KEY_PRX, activityId);
 
@@ -191,9 +183,9 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
     /**
      * 缓存秒杀优惠券详情
      */
-    private void cacheSeckillCouponDetail(SecKillCouponItemDO item, SecKillActivityDO activity,
+    private void cacheSeckillCouponDetail(SecKillCouponItemDO item,
                                           Long activityId, long cacheExpireSeconds) {
-        SecKillCouponItemDetailVO detailVO = convertToDetailVO(item, activity);
+        SecKillCouponItemDetailVO detailVO = convertToDetailVO(item);
         String data = JsonUtils.toJsonString(detailVO);
         log.info("添加缓存中的数据:{}", data);
         String keyPrefix = String.format(SECKILL_COUPON_DETAIL_KEY_PRX, item.getId());
@@ -368,21 +360,21 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
         return vo;
     }
 
-    private SecKillCouponItemVO convertToVO(SecKillCouponItemDO item, SecKillActivityDO activity) {
+    private SecKillCouponItemVO convertToVO(SecKillCouponItemDO item) {
         SecKillCouponItemVO vo = new SecKillCouponItemVO();
         vo.setSecKillCouponItemId(item.getId());
         vo.setActivityId(item.getActivityId());
         vo.setCouponTemplateId(item.getCouponTemplateId());
         vo.setCouponName(item.getCouponName());
         vo.setCouponTitle(item.getCouponTitle());
-        vo.setStartTime(activity.getStartTime());
-        vo.setEndTime(activity.getEndTime());
+        vo.setStartTime(item.getStartTime());
+        vo.setEndTime(item.getEndTime());
         vo.setTotalStock(item.getTotalStock());
         vo.setRemainingStock(item.getRemainingStock());
         return vo;
     }
 
-    private SecKillCouponItemDetailVO convertToDetailVO(SecKillCouponItemDO item, SecKillActivityDO activity) {
+    private SecKillCouponItemDetailVO convertToDetailVO(SecKillCouponItemDO item) {
         SecKillCouponItemDetailVO vo = new SecKillCouponItemDetailVO();
         vo.setSecKillCouponItemId(item.getId());
         vo.setActivityId(item.getActivityId());
@@ -390,8 +382,8 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
         vo.setCouponName(item.getCouponName());
         vo.setCouponTitle(item.getCouponTitle());
         vo.setSecKillMode(item.getSecKillMode().getCode());
-        vo.setStartTime(activity.getStartTime());
-        vo.setEndTime(activity.getEndTime());
+        vo.setStartTime(item.getStartTime());
+        vo.setEndTime(item.getEndTime());
         vo.setTotalStock(item.getTotalStock());
         vo.setRemainingStock(item.getRemainingStock());
         vo.setLimitPerUser(item.getLimitPerUser());

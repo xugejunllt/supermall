@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Data
 public class AddSeckillItemDTO implements Serializable {
@@ -58,9 +59,10 @@ public class AddSeckillItemDTO implements Serializable {
     @ApiModelProperty(value = "skuId")
     private Long skuId;
 
-    //商品版本
-    private Long goodsVersion;
-    //sku 版本
-    private Long skuVersion;
+    @ApiModelProperty(value = "活动开始时间")
+    private Date startTime;
+
+    @ApiModelProperty(value = "活动结束时间")
+    private Date endTime;
 
 }
