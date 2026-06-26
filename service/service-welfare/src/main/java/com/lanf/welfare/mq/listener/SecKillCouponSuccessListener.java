@@ -1,7 +1,9 @@
 package com.lanf.welfare.mq.listener;
 
+import com.lanf.welfare.api.SecKillResultCache;
 import com.lanf.welfare.model.entity.CouponDO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
+import com.lanf.welfare.model.enums.SecKillResultEnum;
 import com.lanf.welfare.mq.constant.SecKillClientTopicName;
 import com.lanf.welfare.mq.constant.WelfareMqGroupName;
 import com.lanf.welfare.mq.message.SecKillCouponSuccessMessage;
@@ -32,6 +34,8 @@ public class SecKillCouponSuccessListener implements RocketMQListener<SecKillCou
 
     @Autowired
     private ICouponService couponService;
+    @Autowired
+    private SecKillResultCache secKillResultCache;
 
     @Transactional
     @Override
@@ -76,7 +80,7 @@ public class SecKillCouponSuccessListener implements RocketMQListener<SecKillCou
             log.warn("用户优惠券已存在: userId={}, couponTemplateId={}", userId, couponTemplateId);
             return;
         }
-
+        secKillResultCache.addResult(userId, message.getSecKillCouponItemId(), SecKillResultEnum.SUCCESS_ORDER_CREATED);
         log.info("秒杀优惠券发放成功: userId={}, couponTemplateId={}", userId, couponTemplateId);
     }
 
