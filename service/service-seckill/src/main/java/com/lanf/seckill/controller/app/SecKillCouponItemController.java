@@ -52,15 +52,6 @@ public class SecKillCouponItemController {
         return Result.ok(items);
     }
 
-    /**
-     * 查询优惠券详情
-     */
-    @GetMapping("/seckillCouponItemDetailQuery")
-    public Result<SecKillCouponItemDetailVO> seckillCouponItemDetailQuery(@RequestParam Long secKillCouponItemId) {
-        log.info("查询秒杀优惠券详细: {}", secKillCouponItemId);
-        SecKillCouponItemDetailVO detail = seckillCouponItemService.seckillCouponItemDetailQuery(secKillCouponItemId);
-        return Result.ok(detail);
-    }
 
     /**
      * 获取秒杀优惠券Token
