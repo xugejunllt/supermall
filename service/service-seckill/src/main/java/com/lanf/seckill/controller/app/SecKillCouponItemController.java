@@ -1,7 +1,10 @@
 package com.lanf.seckill.controller.app;
 
+import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.utils.UserContext;
+import com.lanf.seckill.mapper.SecKillCouponRecordMapper;
+import com.lanf.seckill.model.dto.DeleteCacheDTO;
 import com.lanf.seckill.model.dto.GetSecKillCouponTokenDTO;
 import com.lanf.seckill.model.vo.SecKillCouponItemDetailVO;
 import com.lanf.seckill.model.vo.SecKillCouponItemVO;
@@ -34,14 +37,18 @@ public class SecKillCouponItemController {
 
     @Autowired
     private SecKillResultCache secKillResultCache;
-
+    @Autowired
+    private SecKillCouponRecordMapper secKillCouponRecordMapper;
+    @Autowired
+    private RedissonCacheService redissonCacheService;
     /**
      * 获取秒杀优惠券列表
      */
     @GetMapping("/seckillCouponItemList")
-    public Result<List<SecKillCouponItemVO>> seckillCouponItemList(@RequestParam Long activityId) {
-        log.info("获取秒杀优惠券列表: activityId={}", activityId);
-        List<SecKillCouponItemVO> items = seckillCouponItemService.seckillCouponItemList(activityId);
+    public Result<List<SecKillCouponItemVO>> seckillCouponItemList() {
+
+        log.info("获取秒杀优惠券列表:");
+        List<SecKillCouponItemVO> items = seckillCouponItemService.seckillCouponItemList();
         return Result.ok(items);
     }
 
@@ -87,5 +94,16 @@ public class SecKillCouponItemController {
 
         return Result.ok(message);
     }
+    @PostMapping("/deleteCache")
+    public Result<Void> deleteCache(@RequestBody DeleteCacheDTO dto) {
 
+        log.info("删除用户秒杀缓存记录:{}",dto);
+        secKillCouponRecordMapper.deleteAll();
+        String participatedKey = String.format("seckill:coupon:user:participated:%s:%s",
+                UserContext.getUserId(), dto.getSecKillItemId());
+        log.info("删除的缓存key"+participatedKey);
+        redissonCacheService.delete(participatedKey);
+
+        return Result.ok();
+    }
 }

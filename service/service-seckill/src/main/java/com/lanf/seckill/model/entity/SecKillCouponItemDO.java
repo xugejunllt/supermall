@@ -22,8 +22,6 @@ public class SecKillCouponItemDO extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty(value = "所属活动ID")
-    private Long activityId;
 
     @ApiModelProperty(value = "优惠券模板ID")
     private Long couponTemplateId;

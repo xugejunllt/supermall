@@ -18,9 +18,7 @@ public class AddSecKillCouponItemDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @NotNull(message = "活动ID不能为空")
-    @ApiModelProperty(value = "所属活动ID")
-    private Long activityId;
+
 
     @NotNull(message = "优惠券模板ID不能为空")
     @ApiModelProperty(value = "优惠券模板ID")

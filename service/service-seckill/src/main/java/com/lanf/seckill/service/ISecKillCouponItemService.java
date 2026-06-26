@@ -41,7 +41,7 @@ public interface ISecKillCouponItemService extends IService<SecKillCouponItemDO>
      * @param activityId
      * @return
      */
-    List<SecKillCouponItemVO> seckillCouponItemList(Long activityId);
+    List<SecKillCouponItemVO> seckillCouponItemList();
 
     /**
      * 查询秒杀优惠券详情

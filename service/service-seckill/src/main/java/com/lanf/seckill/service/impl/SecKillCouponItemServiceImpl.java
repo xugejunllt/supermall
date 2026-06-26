@@ -12,7 +12,6 @@ import com.lanf.seckill.mapper.SecKillCouponItemMapper;
 import com.lanf.seckill.model.dto.AddSecKillCouponItemDTO;
 import com.lanf.seckill.model.dto.GetSecKillCouponTokenDTO;
 import com.lanf.seckill.model.dto.LauncherSecKillCouponItemDTO;
-import com.lanf.seckill.model.entity.SecKillActivityDO;
 import com.lanf.seckill.model.entity.SecKillCouponItemDO;
 import com.lanf.seckill.model.vo.SecKillCouponItemDetailVO;
 import com.lanf.seckill.model.vo.SecKillCouponItemVO;
@@ -68,7 +67,7 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
     /**
      * 缓存活动优惠券列表
      */
-    private static final String SECKILL_COUPON_LIST_KEY_PRX = "seckill:coupon:list:%s";
+    private static final String SECKILL_COUPON_LIST_KEY_PRX = "seckill:coupon:list";
 
     /**
      * 缓存活动优惠券详情
@@ -93,14 +92,7 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
     @Override
     public void addSecKillCouponItem(AddSecKillCouponItemDTO dto) {
 
-        Long activityId = dto.getActivityId();
-        SecKillActivityDO one = seckillActivityService.lambdaQuery()
-                .eq(SecKillActivityDO::getId, activityId)
-                .one();
-        if (one == null) {
-            log.error("活动不存在");
-            throw new BizException("活动不存在");
-        }
+
 
         Date endTime = dto.getEndTime();
         if (endTime.before(new Date())) {
@@ -109,7 +101,6 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
         }
 
         SecKillCouponItemDO couponItemDO = new SecKillCouponItemDO();
-        couponItemDO.setActivityId(dto.getActivityId());
         couponItemDO.setCouponTemplateId(dto.getCouponTemplateId());
         couponItemDO.setCouponName(dto.getCouponName());
         couponItemDO.setCouponTitle(dto.getCouponTitle());
@@ -143,7 +134,6 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
             throw new BizException("优惠券不存在");
         }
 
-        Long activityId = one.getActivityId();
         boolean update = this.lambdaUpdate()
                 .eq(SecKillCouponItemDO::getId, secKillCouponItemId)
                 .set(SecKillCouponItemDO::getShelfStatus, 1)
@@ -155,11 +145,11 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
 
         long cacheExpireSeconds = calculateCacheExpireSeconds(one.getEndTime());
 
-        cacheSeckillCouponList(one, activityId, cacheExpireSeconds);
+        cacheSeckillCouponList(one, cacheExpireSeconds);
 
-        cacheSeckillCouponDetail(one, activityId, cacheExpireSeconds);
+        cacheSeckillCouponDetail(one, cacheExpireSeconds);
 
-        cacheSeckillCouponStock(one, activityId, cacheExpireSeconds);
+        cacheSeckillCouponStock(one, cacheExpireSeconds);
 
     }
 
@@ -167,24 +157,23 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
      * 缓存秒杀优惠券列表
      */
     private void cacheSeckillCouponList(SecKillCouponItemDO item,
-                                        Long activityId, long cacheExpireSeconds) {
+                                        long cacheExpireSeconds) {
         SecKillCouponItemVO vo = convertToVO(item);
         String data = JsonUtils.toJsonString(vo);
-        String keyPrefix = String.format(SECKILL_COUPON_LIST_KEY_PRX, activityId);
+        String keyPrefix = String.format(SECKILL_COUPON_LIST_KEY_PRX);
 
         RedisKeyGenerator.ALL_DIGIT_SUFFIXES.forEach(digit -> {
             String generateKey = redisKeyGenerator.generateKey(keyPrefix, digit);
             redissonCacheService.addToList(generateKey, data, cacheExpireSeconds, TimeUnit.SECONDS);
         });
 
-        log.info("秒杀优惠券列表缓存成功: activityId={}, secKillCouponItemId={}", activityId, item.getId());
     }
 
     /**
      * 缓存秒杀优惠券详情
      */
     private void cacheSeckillCouponDetail(SecKillCouponItemDO item,
-                                          Long activityId, long cacheExpireSeconds) {
+                                         long cacheExpireSeconds) {
         SecKillCouponItemDetailVO detailVO = convertToDetailVO(item);
         String data = JsonUtils.toJsonString(detailVO);
         log.info("添加缓存中的数据:{}", data);
@@ -195,27 +184,25 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
             redissonCacheService.set(generateKey, data, cacheExpireSeconds, TimeUnit.SECONDS);
         });
 
-        log.info("秒杀优惠券详情缓存成功: activityId={}, secKillCouponItemId={}", activityId, item.getId());
     }
 
     /**
      * 缓存秒杀优惠券库存（只存储在一个节点）
      */
-    private void cacheSeckillCouponStock(SecKillCouponItemDO item, Long activityId, long cacheExpireSeconds) {
+    private void cacheSeckillCouponStock(SecKillCouponItemDO item,  long cacheExpireSeconds) {
 
         String stockKey = String.format(SECKILL_COUPON_STOCK_KEY_PRX, item.getId());
 
         Integer totalStock = item.getTotalStock();
         if (totalStock == null || totalStock < 0) {
-            log.warn("库存数量异常: activityId={}, secKillCouponItemId={}, totalStock={}",
-                    activityId, item.getId(), totalStock);
+            log.warn("库存数量异常:  secKillCouponItemId={}, totalStock={}"
+                    ,item.getId(), totalStock);
             totalStock = 0;
         }
 
         redissonCacheService.setAtomicLong(stockKey, totalStock, cacheExpireSeconds, TimeUnit.SECONDS);
 
-        log.info("秒杀优惠券库存缓存成功: activityId={}, secKillCouponItemId={}, totalStock={}",
-                activityId, item.getId(), totalStock);
+
     }
 
     /**
@@ -247,14 +234,10 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
     }
 
     @Override
-    public List<SecKillCouponItemVO> seckillCouponItemList(Long activityId) {
+    public List<SecKillCouponItemVO> seckillCouponItemList() {
 
-        if (activityId == null) {
-            log.warn("活动ID不能为空");
-            return Collections.emptyList();
-        }
 
-        String keyPrefix = String.format(SECKILL_COUPON_LIST_KEY_PRX, activityId);
+        String keyPrefix = String.format(SECKILL_COUPON_LIST_KEY_PRX);
         Integer randomDigit = RedisKeyGenerator.getRandomDigitSuffix();
         String key = redisKeyGenerator.generateKey(keyPrefix, randomDigit);
 
@@ -363,7 +346,6 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
     private SecKillCouponItemVO convertToVO(SecKillCouponItemDO item) {
         SecKillCouponItemVO vo = new SecKillCouponItemVO();
         vo.setSecKillCouponItemId(item.getId());
-        vo.setActivityId(item.getActivityId());
         vo.setCouponTemplateId(item.getCouponTemplateId());
         vo.setCouponName(item.getCouponName());
         vo.setCouponTitle(item.getCouponTitle());
@@ -377,7 +359,6 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
     private SecKillCouponItemDetailVO convertToDetailVO(SecKillCouponItemDO item) {
         SecKillCouponItemDetailVO vo = new SecKillCouponItemDetailVO();
         vo.setSecKillCouponItemId(item.getId());
-        vo.setActivityId(item.getActivityId());
         vo.setCouponTemplateId(item.getCouponTemplateId());
         vo.setCouponName(item.getCouponName());
         vo.setCouponTitle(item.getCouponTitle());
