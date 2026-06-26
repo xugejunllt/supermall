@@ -84,6 +84,7 @@ public class SeckillActivityController {
 
         Long userId = UserContext.getUserId();
         SecKillResultEnum result = secKillResultCache.getResult(userId, query.getSecKillItemId());
+
         /**
          * 返回友好提示
          */
