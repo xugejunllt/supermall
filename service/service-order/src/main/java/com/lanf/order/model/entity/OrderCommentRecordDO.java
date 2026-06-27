@@ -14,7 +14,7 @@ import lombok.Data;
  */
 @Data
 @TableName("order_comment_record")
-public class OrderCommentRecord extends BaseEntity {
+public class OrderCommentRecordDO extends BaseEntity {
 private static final long serialVersionUID=1L;
 
     private Long userId;

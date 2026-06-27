@@ -72,7 +72,7 @@ public class CommentServiceImpl implements CommentService {
     public Long publishComment(PublishCommentMessage dto) {
 
         Long userId = dto.getUserId();
-        Long commentId = IdUtils.generateId();
+        Long commentId = dto.getCommentId();
         Date now = new Date();
 
         CommentDocument comment = new CommentDocument();

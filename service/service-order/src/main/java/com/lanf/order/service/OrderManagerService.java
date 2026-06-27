@@ -66,6 +66,10 @@ public interface OrderManagerService {
      */
     void createSecKillOrder(SecKillPlaneMessage message);
 
-
+    /**
+     * 发布商品评论
+     *
+     */
+    void publishComment(PublishCommentDTO dto);
 
 }

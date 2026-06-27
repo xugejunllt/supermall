@@ -1,7 +1,7 @@
 package com.lanf.order.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lanf.order.model.entity.OrderCommentRecord;
+import com.lanf.order.model.entity.OrderCommentRecordDO;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.lanf.order.model.entity.OrderCommentRecord;
  * @author jarven
  * @since 2026-06-27
  */
-public interface OrderCommentRecord0Mapper extends BaseMapper<OrderCommentRecord> {
+public interface OrderCommentRecord0Mapper extends BaseMapper<OrderCommentRecordDO> {
 
 }

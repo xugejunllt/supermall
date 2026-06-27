@@ -37,4 +37,6 @@ public class PublishCommentMessage extends BaseMessage {
      */
     private Integer rating;
 
+    private Long commentId;
+
 }

@@ -145,7 +145,9 @@ public class OrderController {
 
     @PostMapping("/publishComment")
     public Result<Long> publishComment(@Validated @RequestBody PublishCommentDTO dto) {
+
         log.info("发布评论:dto={}", dto);
+        orderManagerService.publishComment(dto);
         return Result.ok(null);
     }
 

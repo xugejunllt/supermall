@@ -2,8 +2,8 @@ package com.lanf.order.service.order.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.order.mapper.OrderCommentRecord0Mapper;
-import com.lanf.order.model.entity.OrderCommentRecord;
-import com.lanf.order.service.order.IOrderCommentRecord0Service;
+import com.lanf.order.model.entity.OrderCommentRecordDO;
+import com.lanf.order.service.order.IOrderCommentRecordService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
  * @since 2026-06-27
  */
 @Service
-public class OrderCommentRecord0ServiceImpl extends ServiceImpl<OrderCommentRecord0Mapper, OrderCommentRecord> implements IOrderCommentRecord0Service {
+public class OrderCommentRecordServiceImpl extends ServiceImpl<OrderCommentRecord0Mapper, OrderCommentRecordDO> implements IOrderCommentRecordService {
+
 
 }

@@ -12,7 +12,9 @@ import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.ValidateCartItemVO;
 import com.lanf.api.order.model.enums.OrderTypeEnum;
 import com.lanf.api.order.model.enums.ShippingStatusEnum;
+import com.lanf.api.order.mq.constant.OrderClientTopicName;
 import com.lanf.api.order.mq.message.OrderCreateSuccessMessage;
+import com.lanf.api.order.mq.message.PublishCommentMessage;
 import com.lanf.api.order.mq.message.SecKillPlaneCreateOrderSuccessMessage;
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.pay.model.dto.CreateMergeTradeOrderDTO;
@@ -24,6 +26,7 @@ import com.lanf.cache.aop.DistributedLock;
 import com.lanf.common.utils.*;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.constant.model.enums.order.OrderSubStatus;
 import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.constant.utils.IdUtils;
@@ -33,10 +36,7 @@ import com.lanf.order.model.bo.BuildBathCreateOrderBO;
 import com.lanf.order.model.bo.OrderInitParamsBO;
 import com.lanf.order.model.bo.StartSubmitCartBO;
 import com.lanf.order.model.dto.*;
-import com.lanf.order.model.entity.MainOrderDO;
-import com.lanf.order.model.entity.OrderDO;
-import com.lanf.order.model.entity.OrderItemDO;
-import com.lanf.order.model.entity.OrderStatusTraceDO;
+import com.lanf.order.model.entity.*;
 import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
@@ -45,10 +45,7 @@ import com.lanf.order.mq.constant.OrderMqTopicName;
 import com.lanf.order.mq.message.BathAddShippingTrackMessage;
 import com.lanf.order.mq.message.ShippingTrackMessage;
 import com.lanf.order.service.OrderManagerService;
-import com.lanf.order.service.order.IMainOrderService;
-import com.lanf.order.service.order.IOrderItemService;
-import com.lanf.order.service.order.IOrderService;
-import com.lanf.order.service.order.IOrderStatusTraceService;
+import com.lanf.order.service.order.*;
 import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.message.CancelExpiredOrderMessage;
@@ -72,10 +69,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -110,6 +104,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     @Value("${order.expireInterval}")
     private Long expireInterval;
 
+    @Autowired
+    private IOrderCommentRecordService orderCommentRecordService;
 
 
     @Override
@@ -443,7 +439,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
 
 
-}
+    }
 
 
     private CalculateDiscountAmountVO useMultipleCoupon(PlaceOrderDTO orderDTO, OrderInitParamsBO orderInitParamsBO, BigDecimal totalAmount) {
@@ -954,7 +950,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
     }
 
-    private  OrderDO getOrderDO(SecKillPlaneMessage message, Long orderId, BigDecimal totalMoney) {
+
+    private OrderDO getOrderDO(SecKillPlaneMessage message, Long orderId, BigDecimal totalMoney) {
 
         AddressListVO defaultAddress = userCacheService.getDefaultAddress();
         Date expireTime = DateUtils.addMinutes(new Date(), expireInterval);
@@ -973,7 +970,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderDO.setAfterSaleDays(0);
         orderDO.setDiscountAmount(new BigDecimal(0));
         orderDO.setTakeAddress(JsonUtils.toJsonString(defaultAddress));
-        orderDO.setExpireInterval( expireInterval.intValue());
+        orderDO.setExpireInterval(expireInterval.intValue());
         orderDO.setExpireTime(expireTime);
         return orderDO;
     }
@@ -1022,4 +1019,81 @@ public class OrderManagerServiceImpl implements OrderManagerService {
                 .remove();
 
     }
+
+    @Transactional
+    @Override
+    public void publishComment(PublishCommentDTO dto) {
+
+        Long orderId = dto.getOrderId();
+        Long userId = UserContext.getUserId();
+        Long goodsId = dto.getGoodsId();
+
+        OrderDO one = orderService.lambdaQuery()
+                .eq(OrderDO::getId, orderId)
+                .eq(OrderDO::getUserId, userId)
+                .one();
+        if (one == null) {
+            log.warn("订单不存在");
+            throw new BizException("订单不存在");
+        }
+        if (!one.getSubStatus().equals(OrderSubStatus.WAIT_EVALUATE)) {
+            log.warn("订单评论状态异常");
+            throw new BizException("订单评论状态异常");
+        }
+
+        List<OrderCommentRecordDO> recordDOList = orderCommentRecordService.lambdaQuery()
+                .eq(OrderCommentRecordDO::getOrderId, orderId)
+                .eq(OrderCommentRecordDO::getUserId, userId)
+                .list();
+
+        Set<Long> saveGoodsIdSet = recordDOList.stream().map(OrderCommentRecordDO::getGoodsId).collect(Collectors.toSet());
+        if (saveGoodsIdSet.contains(goodsId)) {
+            log.warn("商品已评论");
+            throw new BizException("商品已评论");
+        }
+
+        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery()
+                .eq(OrderItemDO::getOrderId, orderId)
+                .eq(OrderItemDO::getUserId, userId)
+                .list();
+        Set<Long> allGoodsIdSet = orderItemDOList.stream().map(OrderItemDO::getGoodsId).collect(Collectors.toSet());
+        saveGoodsIdSet.add(goodsId);
+
+        boolean updateSubStatus = saveGoodsIdSet.size() == allGoodsIdSet.size();
+
+        OrderCommentRecordDO orderCommentRecordDO = new OrderCommentRecordDO();
+        orderCommentRecordDO.setUserId(userId);
+        orderCommentRecordDO.setGoodsId(goodsId);
+        orderCommentRecordDO.setOrderId(orderId);
+        orderCommentRecordDO.setTenantId(one.getTenantId());
+
+        PublishCommentMessage publishCommentMessage = BeanCopyUtils.copyBean(dto, PublishCommentMessage.class);
+        publishCommentMessage.setUserId(userId);
+        publishCommentMessage.setCommentId(IdUtils.generateId());
+
+        try {
+            orderCommentRecordService.save(orderCommentRecordDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("该商品已评论");
+            throw new BizException("该商品已评论");
+        }
+
+        boolean update = orderService.lambdaUpdate()
+                .eq(OrderDO::getId, orderId)
+                .eq(OrderDO::getUserId, userId)
+                .eq(OrderDO::getVersion, one.getVersion())
+                .set(OrderDO::getSubStatus, updateSubStatus ?
+                        OrderSubStatus.EVALUATED : OrderSubStatus.WAIT_EVALUATE)
+                .set(OrderDO::getVersion, one.getVersion() + 1)
+                .update();
+        if (!update) {
+            log.warn("订单更新失败");
+            throw new BizException("订单更新失败");
+        }
+        rocketMqClient.sendMessage(OrderClientTopicName.PUBLISH_COMMENT_TOPIC,
+                JsonUtils.toJsonString(publishCommentMessage));
+
+
+    }
+
 }
