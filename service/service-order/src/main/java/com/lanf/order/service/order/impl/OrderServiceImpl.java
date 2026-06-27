@@ -41,6 +41,7 @@ import com.lanf.order.model.dto.CreateOrderDTO;
 import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.*;
+import com.lanf.order.model.enums.OrderAutoCloseStatusEnum;
 import com.lanf.order.model.enums.SubStatusEnum;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
@@ -50,10 +51,7 @@ import com.lanf.order.model.vo.OrderPageVO;
 import com.lanf.order.mq.constant.OrderMqTopicName;
 import com.lanf.order.mq.message.BathAddShippingTrackMessage;
 import com.lanf.order.mq.message.ShippingTrackMessage;
-import com.lanf.order.service.order.IOrderItemService;
-import com.lanf.order.service.order.IOrderService;
-import com.lanf.order.service.order.IOrderStatusTraceService;
-import com.lanf.order.service.order.OrderDetailCacheService;
+import com.lanf.order.service.order.*;
 import com.lanf.order.service.shipping.IExpressService;
 import com.lanf.order.service.shipping.IShippingInfoService;
 import com.lanf.order.service.shipping.IShippingTrackService;
@@ -123,6 +121,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
     @Autowired
     private OrderDetailCacheService orderDetailCacheService;
+    @Autowired
+    private IOrderAutoCloseService orderAutoCloseService;
+
+
 
     @Transactional
     @Override
@@ -561,6 +563,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         signOrderMessage.setTenantId(orderDO.getTenantId());
 
 
+        OrderAutoCloseDO orderAutoClose = new OrderAutoCloseDO();
+        orderAutoClose.setOrderId(orderId);
+        orderAutoClose.setUserId(UserContext.getUserId());
+        orderAutoClose.setAutoCloseTime(DateUtils.addHour(new Date(), orderDO.getAfterSaleDays() * 24L));
+        orderAutoClose.setStatus(OrderAutoCloseStatusEnum.PENDING);
+
         /**
          * 订单更新信息
          */
@@ -576,6 +584,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             log.warn("订单状态更新异常");
             throw new BizException("订单状态更新异常");
         }
+        orderAutoCloseService.save(orderAutoClose);
+
         orderStatusTraceService.save(orderStatusTraceDO);
         //发送订单签收事件
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,

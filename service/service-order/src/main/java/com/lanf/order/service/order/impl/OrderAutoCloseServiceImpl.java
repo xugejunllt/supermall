@@ -2,7 +2,7 @@ package com.lanf.order.service.order.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.order.mapper.OrderAutoCloseMapper;
-import com.lanf.order.model.entity.OrderAutoClose;
+import com.lanf.order.model.entity.OrderAutoCloseDO;
 import com.lanf.order.service.order.IOrderAutoCloseService;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +15,6 @@ import org.springframework.stereotype.Service;
  * @since 2026-06-27
  */
 @Service
-public class OrderAutoCloseServiceImpl extends ServiceImpl<OrderAutoCloseMapper, OrderAutoClose> implements IOrderAutoCloseService {
+public class OrderAutoCloseServiceImpl extends ServiceImpl<OrderAutoCloseMapper, OrderAutoCloseDO> implements IOrderAutoCloseService {
 
 }

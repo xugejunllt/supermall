@@ -1,7 +1,7 @@
 package com.lanf.order.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lanf.order.model.entity.OrderAutoClose;
+import com.lanf.order.model.entity.OrderAutoCloseDO;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.lanf.order.model.entity.OrderAutoClose;
  * @author jarven
  * @since 2026-06-27
  */
-public interface OrderAutoCloseMapper extends BaseMapper<OrderAutoClose> {
+public interface OrderAutoCloseMapper extends BaseMapper<OrderAutoCloseDO> {
 
 }

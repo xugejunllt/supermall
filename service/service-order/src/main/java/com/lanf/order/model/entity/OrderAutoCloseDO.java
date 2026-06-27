@@ -17,7 +17,7 @@ import java.util.Date;
  */
 @Data
 @TableName("order_auto_close")
-public class OrderAutoClose extends BaseEntity {
+public class OrderAutoCloseDO extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 

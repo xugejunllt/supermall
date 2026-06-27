@@ -1,7 +1,7 @@
 package com.lanf.order.service.order;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.order.model.entity.OrderAutoClose;
+import com.lanf.order.model.entity.OrderAutoCloseDO;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.lanf.order.model.entity.OrderAutoClose;
  * @author jarven
  * @since 2026-06-27
  */
-public interface IOrderAutoCloseService extends IService<OrderAutoClose> {
+public interface IOrderAutoCloseService extends IService<OrderAutoCloseDO> {
 
 }
