@@ -28,6 +28,7 @@ import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.constant.model.enums.order.OrderSubStatus;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.result.RpcResultParser;
@@ -567,6 +568,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                 .eq(OrderDO::getUserId, UserContext.getUserId())
                 .eq(BaseEntity::getId, orderDO.getId())
                 .eq(OrderDO::getVersion, orderDO.getVersion())
+                .set(OrderDO::getSubStatus, OrderSubStatus.WAIT_EVALUATE)
                 .set(OrderDO::getStatus, OrderStatusEnum.RECEIVED)
                 .set(OrderDO::getVersion, orderDO.getVersion() + 1)
                 .update();

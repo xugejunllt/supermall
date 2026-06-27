@@ -1,10 +1,11 @@
 package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.api.order.model.enums.OrderTypeEnum;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.constant.model.enums.order.OrderSubStatus;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.api.order.model.enums.OrderTypeEnum;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -70,6 +71,8 @@ public class OrderDO extends BaseEntity {
      * 0:待付款, 1:待出库 2：已出库 3：已发货，4：已完成，5：已取消 6.已关闭
      */
     private OrderStatusEnum status;
+
+    private OrderSubStatus subStatus;
 
     /**
      * 订单类型 0：普通订单 ,1:秒杀单

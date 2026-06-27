@@ -29,14 +29,14 @@ public enum OrderStatusEnum {
      * 2.如果超过7天没有评价，系统自动评价
      *
      */
-    CANCELLED(7, "已取消", OrderTopicWithTag.TAG_CANCELLED),
+    CANCELLED(6, "已取消", OrderTopicWithTag.TAG_CANCELLED),
     /**
      *
      *
      *  1.售后完成
      *
      */
-    CLOSED(8, "已关闭,订单已终结", OrderTopicWithTag.TAG_CLOSED),
+    CLOSED(7, "已关闭,订单已终结", OrderTopicWithTag.TAG_CLOSED),
 
     ;
     @EnumValue
