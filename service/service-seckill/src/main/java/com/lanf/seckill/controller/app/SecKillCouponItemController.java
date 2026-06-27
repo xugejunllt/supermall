@@ -6,7 +6,6 @@ import com.lanf.constant.utils.UserContext;
 import com.lanf.seckill.mapper.SecKillCouponRecordMapper;
 import com.lanf.seckill.model.dto.DeleteCacheDTO;
 import com.lanf.seckill.model.dto.GetSecKillCouponTokenDTO;
-import com.lanf.seckill.model.vo.SecKillCouponItemDetailVO;
 import com.lanf.seckill.model.vo.SecKillCouponItemVO;
 import com.lanf.seckill.model.vo.SecKillCouponTokenVO;
 import com.lanf.seckill.service.ISecKillCouponItemService;
