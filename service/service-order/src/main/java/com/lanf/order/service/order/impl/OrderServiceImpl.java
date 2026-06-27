@@ -65,10 +65,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -677,9 +674,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     public PageResult<OrderPageVO> orderPageQuery(OrderPageQuery query) {
 
 
+        Boolean querySubStatus = query.getQuerySubStatus();
+
         IPage<OrderDO> page = new Page<>(query.getPage(), query.getPageSize());
         IPage<OrderDO> result =  this.lambdaQuery()
                 .eq(OrderDO::getUserId, UserContext.getUserId())
+                .eq(Boolean.TRUE.equals(querySubStatus), OrderDO::getSubStatus, OrderSubStatus.WAIT_EVALUATE)
                 .in(!IStringUtils.isEmpty(query.getOrderIdList()),BaseEntity::getId, query.getOrderIdList())
                 .in(query.getStatus()!=null && !query.getStatus().isEmpty(), OrderDO::getStatus, query.getStatus())
                 .orderByDesc(BaseEntity::getId)
