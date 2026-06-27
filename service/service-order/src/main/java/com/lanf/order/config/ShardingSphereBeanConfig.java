@@ -170,7 +170,26 @@ public class ShardingSphereBeanConfig {
         );
         shardingRuleConfig.getTables().add(orderRule);
 
-        // 3. 配置 order_item 表的分片规则（每个库 2 张表）
+        // 3. 配置 order_comment_record 表的分片规则（每个库 2 张表，策略与 orders 一致）
+        ShardingTableRuleConfiguration orderCommentRecordRule = new ShardingTableRuleConfiguration(
+                "order_comment_record",
+                "ds${0..1}.order_comment_record_${0..1}"
+        );
+        orderCommentRecordRule.setDatabaseShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "database-sharding-algorithm"
+                )
+        );
+        orderCommentRecordRule.setTableShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "table-sharding-algorithm"
+                )
+        );
+        shardingRuleConfig.getTables().add(orderCommentRecordRule);
+
+        // 4. 配置 order_item 表的分片规则（每个库 2 张表）
         ShardingTableRuleConfiguration orderItemRule = new ShardingTableRuleConfiguration(
                 "order_item",
                 "ds${0..1}.order_item_${0..1}"
@@ -189,7 +208,7 @@ public class ShardingSphereBeanConfig {
         );
         shardingRuleConfig.getTables().add(orderItemRule);
 
-        // 4. 配置 order_status_trace 表的分片规则（每个库 2 张表）
+        // 5. 配置 order_status_trace 表的分片规则（每个库 2 张表）
         ShardingTableRuleConfiguration orderStatusTraceRule = new ShardingTableRuleConfiguration(
                 "order_status_trace",
                 "ds${0..1}.order_status_trace_${0..1}"
@@ -208,35 +227,35 @@ public class ShardingSphereBeanConfig {
         );
         shardingRuleConfig.getTables().add(orderStatusTraceRule);
 
-        // 5. 配置 express 表：不参与分库分表，默认路由到 ds0（order_db_0）
+        // 6. 配置 express 表：不参与分库分表，默认路由到 ds0（order_db_0）
         ShardingTableRuleConfiguration expressRule = new ShardingTableRuleConfiguration(
                 "express",
                 "ds0.express"
         );
         shardingRuleConfig.getTables().add(expressRule);
 
-        // 6. 配置 shipping_info 表：不参与分库分表，默认路由到 ds0（order_db_0）
+        // 7. 配置 shipping_info 表：不参与分库分表，默认路由到 ds0（order_db_0）
         ShardingTableRuleConfiguration shippingInfoRule = new ShardingTableRuleConfiguration(
                 "shipping_info",
                 "ds0.shipping_info"
         );
         shardingRuleConfig.getTables().add(shippingInfoRule);
 
-        // 7. 配置 shipping_track 表：不参与分库分表，默认路由到 ds0（order_db_0）
+        // 8. 配置 shipping_track 表：不参与分库分表，默认路由到 ds0（order_db_0）
         ShardingTableRuleConfiguration shippingTrackRule = new ShardingTableRuleConfiguration(
                 "shipping_track",
                 "ds0.shipping_track"
         );
         shardingRuleConfig.getTables().add(shippingTrackRule);
 
-        // 8. 配置 after_sales_order 表：不参与分库分表，默认路由到 ds0（order_db_0）
+        // 9. 配置 after_sales_order 表：不参与分库分表，默认路由到 ds0（order_db_0）
         ShardingTableRuleConfiguration afterSalesOrderRule = new ShardingTableRuleConfiguration(
                 "after_sales_order",
                 "ds0.after_sales_order"
         );
         shardingRuleConfig.getTables().add(afterSalesOrderRule);
 
-        // 9. 配置 after_sales_order_item 表：不参与分库分表，默认路由到 ds0（order_db_0）
+        // 10. 配置 after_sales_order_item 表：不参与分库分表，默认路由到 ds0（order_db_0）
         ShardingTableRuleConfiguration afterSalesOrderItemRule = new ShardingTableRuleConfiguration(
                 "after_sales_order_item",
                 "ds0.after_sales_order_item"
