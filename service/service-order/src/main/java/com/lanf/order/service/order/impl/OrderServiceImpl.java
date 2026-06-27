@@ -45,9 +45,7 @@ import com.lanf.order.model.enums.OrderAutoCloseStatusEnum;
 import com.lanf.order.model.enums.SubStatusEnum;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
-import com.lanf.order.model.vo.OrderItemPageVO;
-import com.lanf.order.model.vo.OrderListVO;
-import com.lanf.order.model.vo.OrderPageVO;
+import com.lanf.order.model.vo.*;
 import com.lanf.order.mq.constant.OrderMqTopicName;
 import com.lanf.order.mq.message.BathAddShippingTrackMessage;
 import com.lanf.order.mq.message.ShippingTrackMessage;
@@ -804,6 +802,26 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         detailForAdminVO.setOrderItemVOList(orderItemVOS);
 
         return detailForAdminVO;
+    }
+
+    @Override
+    public CommentGoodsItemVO commentGoodsItemListQuery(Long orderId) {
+
+
+        List<OrderItemDO> orderItemDOList = orderItemService.lambdaQuery()
+                .eq(OrderItemDO::getUserId, UserContext.getUserId())
+                .eq(OrderItemDO::getOrderId, orderId)
+                .list();
+        if (orderItemDOList.isEmpty()) {
+            return null;
+        }
+
+        List<CommentGoodsItemDetailVO> commentGoodsItemDetailVOS = BeanCopyUtils.copyBeanList(orderItemDOList, CommentGoodsItemDetailVO.class);
+        CommentGoodsItemVO vo = new CommentGoodsItemVO();
+        vo.setOrderId(orderId);
+        vo.setCommentGoodsItemDetailVOList(commentGoodsItemDetailVOS);
+
+        return vo;
     }
 
 

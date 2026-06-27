@@ -44,14 +44,14 @@ public class OrderController {
 
     /**
      * 生成订单编号
-     *
      */
     @PostMapping("/generateOrderNumber")
     public Result<String> generateOrderNumber() {
 
         log.info("生成订单编号");
-        return Result.ok(IdUtils.generateId()+"");
+        return Result.ok(IdUtils.generateId() + "");
     }
+
     /**
      * 下单前计算订单金额
      */
@@ -122,6 +122,7 @@ public class OrderController {
 
         return Result.ok(orderService.orderSearchQuery(query));
     }
+
     @PostMapping("/orderPageQuery")
     public Result<PageResult<OrderPageVO>> orderPageQuery(@Validated @RequestBody OrderPageQuery query) {
 
@@ -129,6 +130,7 @@ public class OrderController {
 
         return Result.ok(orderService.orderPageQuery(query));
     }
+
     @GetMapping("/orderDetailQuery")
     public Result<OrderDetailForAdminVO> orderDetailQuery(@Validated OrderDetailQuery query) {
 
@@ -136,6 +138,7 @@ public class OrderController {
 
         return Result.ok(orderService.orderDetailForAdminQuery(query));
     }
+
     @GetMapping("/shippingTrackDetailQuery")
     public Result<ShippingTrackDetailVO> shippingTrackDetailQuery(Long orderId) {
 
@@ -144,11 +147,19 @@ public class OrderController {
     }
 
     @PostMapping("/publishComment")
-    public Result<Long> publishComment(@Validated @RequestBody PublishCommentDTO dto) {
+    public Result<Void> publishComment(@Validated @RequestBody PublishCommentDTO dto) {
 
         log.info("发布评论:dto={}", dto);
         orderManagerService.publishComment(dto);
         return Result.ok(null);
+    }
+
+    @GetMapping("/commentGoodsItemListQuery")
+    public Result<CommentGoodsItemVO> commentGoodsItemListQuery(@RequestParam("orderId") Long orderId) {
+
+        log.info("查询评论商品列表 orderId:{}", orderId);
+
+        return Result.ok(orderService.commentGoodsItemListQuery(orderId));
     }
 
 }

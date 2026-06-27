@@ -1,0 +1,4 @@
+package com.lanf.order.model.query;
+
+public class commentGoodsItemListQuery {
+}

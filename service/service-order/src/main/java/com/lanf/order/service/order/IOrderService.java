@@ -1,21 +1,22 @@
 package com.lanf.order.service.order;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.api.order.model.dto.AllowOutboundDTO;
+import com.lanf.api.order.model.dto.DeliveryDTO;
+import com.lanf.api.order.model.query.AdminOrderSearchQuery;
 import com.lanf.api.order.model.query.OrderDetailQuery;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
+import com.lanf.api.order.model.vo.AdminOrderListVO;
 import com.lanf.api.order.model.vo.OrderDetailForAdminVO;
 import com.lanf.api.order.model.vo.OrderDocumentVO;
 import com.lanf.api.storage.mq.message.SalesOutStockOrderFinishMessage;
 import com.lanf.constant.model.vo.PageResult;
-import com.lanf.api.order.model.dto.AllowOutboundDTO;
 import com.lanf.order.model.dto.CreateOrderDTO;
-import com.lanf.api.order.model.dto.DeliveryDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.OrderDO;
-import com.lanf.api.order.model.query.AdminOrderSearchQuery;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
-import com.lanf.api.order.model.vo.AdminOrderListVO;
+import com.lanf.order.model.vo.CommentGoodsItemVO;
 import com.lanf.order.model.vo.OrderListVO;
 import com.lanf.order.model.vo.OrderPageVO;
 
@@ -102,5 +103,5 @@ public interface IOrderService extends IService<OrderDO> {
 
      OrderDetailForAdminVO loadOrderDetailFromDB(OrderDetailQuery query);
 
-
+    CommentGoodsItemVO commentGoodsItemListQuery(Long orderId);
 }
