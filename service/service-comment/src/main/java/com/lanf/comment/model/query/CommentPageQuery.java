@@ -1,5 +1,6 @@
 package com.lanf.comment.model.query;
 
+import com.lanf.constant.model.query.PageQuery;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -10,7 +11,7 @@ import javax.validation.constraints.NotNull;
  * @author lanf
  */
 @Data
-public class CommentPageQuery {
+public class CommentPageQuery extends PageQuery {
 
     /**
      * 商品ID
@@ -18,13 +19,5 @@ public class CommentPageQuery {
     @NotNull(message = "商品ID不能为空")
     private Long goodsId;
 
-    /**
-     * 页码
-     */
-    private Integer page = 1;
 
-    /**
-     * 每页大小
-     */
-    private Integer pageSize = 10;
 }
