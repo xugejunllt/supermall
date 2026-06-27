@@ -33,9 +33,9 @@ public class OrderTopicWithTag {
     public static final String TAG_SHIPPED = "SHIPPED";
 
     /**
-     * Tag: 待评价
+     * Tag: 已签收
      */
-    public static final String TAG_WAIT_COMMENT = "WAIT_COMMENT";
+    public static final String TAG_RECEIVED = "TAG_RECEIVED";
 
     /**
      * Tag: 已完成

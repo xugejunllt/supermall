@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.aftersales.mq.AftersalesClientTopicName;
+import com.lanf.aftersales.mq.message.CloseOrderMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
 import com.lanf.aftersales.mq.message.SalesInStockOrderItemAdd;
 import com.lanf.api.order.model.dto.BusinessAgreeDTO;
@@ -331,7 +332,15 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         message.setAfterSalesOrderId(id);
         rocketMqClient.sendMessage(OrderClientTopicName.AFTER_SALES_REFUND_TOPIC,
                 JsonUtils.toJsonString(message));
-
+        /**
+         * 关闭订单
+         *
+         */
+        CloseOrderMessage closeOrderMessage = new CloseOrderMessage();
+        closeOrderMessage.setOrderId(salesOrderDO.getOrderId());
+        closeOrderMessage.setUserId(salesOrderDO.getUserId());
+        rocketMqClient.sendMessage(OrderClientTopicName.CLOSE_ORDER_TOPIC,
+                JsonUtils.toJsonString(closeOrderMessage));
     }
 
     @Override

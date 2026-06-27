@@ -23,16 +23,20 @@ public enum OrderStatusEnum {
     WAIT_OUTBOUND(2, "待出库", OrderTopicWithTag.TAG_WAIT_OUTBOUND),
     OUTBOUNDED(3, "已出库", OrderTopicWithTag.TAG_OUTBOUNDED),
     SHIPPED(4, "已发货", OrderTopicWithTag.TAG_SHIPPED),
-    WAIT_COMMENT(5, "待评价", OrderTopicWithTag.TAG_WAIT_COMMENT),
+    RECEIVED(5, "已签收", OrderTopicWithTag.TAG_RECEIVED),
     /**
      * 1.主动评价
      * 2.如果超过7天没有评价，系统自动评价
      *
      */
-    COMPLETED(6, "已评价(已完成)", OrderTopicWithTag.TAG_COMPLETED),
-
     CANCELLED(7, "已取消", OrderTopicWithTag.TAG_CANCELLED),
-
+    /**
+     *
+     *
+     *  1.售后完成
+     *
+     */
+    CLOSED(8, "已关闭,订单已终结", OrderTopicWithTag.TAG_CLOSED),
 
     ;
     @EnumValue

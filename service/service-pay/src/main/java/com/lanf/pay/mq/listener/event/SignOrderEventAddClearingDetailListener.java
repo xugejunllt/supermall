@@ -27,7 +27,7 @@ import java.util.Date;
 @Component
 @RocketMQMessageListener(topic = OrderTopicWithTag.ORDER_EVENT_TOPIC,
         consumerGroup = PayMqGroupName.SIGN_ORDER_EVENT_FINANCE_GROUP,
-selectorExpression = OrderTopicWithTag.TAG_WAIT_COMMENT)
+selectorExpression = OrderTopicWithTag.TAG_RECEIVED)
 
 public class SignOrderEventAddClearingDetailListener implements RocketMQListener<SignOrderMessage> {
 

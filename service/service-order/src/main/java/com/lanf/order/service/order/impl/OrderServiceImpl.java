@@ -533,7 +533,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
             throw new BizException("订单不存在");
         }
         OrderStatusEnum status = orderDO.getStatus();
-        if (OrderStatusEnum.WAIT_COMMENT.equals(status)) {
+        if (OrderStatusEnum.RECEIVED.equals(status)) {
             log.warn("订单已签收");
             throw new BizException("订单已签收");
         }
@@ -546,7 +546,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
         orderStatusTraceDO.setOrderId(orderId);
         orderStatusTraceDO.setFromStatus(orderDO.getStatus());
-        orderStatusTraceDO.setToStatus(OrderStatusEnum.WAIT_COMMENT);
+        orderStatusTraceDO.setToStatus(OrderStatusEnum.RECEIVED);
         orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
         orderStatusTraceDO.setUserId(UserContext.getUserId());
         orderStatusTraceDO.setTenantId(orderDO.getTenantId());
@@ -567,7 +567,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
                 .eq(OrderDO::getUserId, UserContext.getUserId())
                 .eq(BaseEntity::getId, orderDO.getId())
                 .eq(OrderDO::getVersion, orderDO.getVersion())
-                .set(OrderDO::getStatus, OrderStatusEnum.WAIT_COMMENT)
+                .set(OrderDO::getStatus, OrderStatusEnum.RECEIVED)
                 .set(OrderDO::getVersion, orderDO.getVersion() + 1)
                 .update();
         if (!update) {
@@ -577,7 +577,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         orderStatusTraceService.save(orderStatusTraceDO);
         //发送订单签收事件
         rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
-                OrderStatusEnum.WAIT_COMMENT.getTag(),JsonUtils.toJsonString(signOrderMessage),
+                OrderStatusEnum.RECEIVED.getTag(),JsonUtils.toJsonString(signOrderMessage),
                 orderDO.getId().toString());
         //发送物流跟踪信息
         BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
