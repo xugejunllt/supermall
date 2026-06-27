@@ -47,5 +47,11 @@ public class OrderClientTopicName {
      * 关闭订单
      */
     public static final String CLOSE_ORDER_TOPIC = "CLOSE_ORDER_TOPIC";
+    /**
+     * 发布商品评论
+     */
+    public static final String PUBLISH_COMMENT_TOPIC = "PUBLISH_COMMENT_TOPIC";
+
+
 
 }

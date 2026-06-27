@@ -1,16 +1,14 @@
 package com.lanf.comment.service;
 
+import com.lanf.api.order.mq.message.PublishCommentMessage;
 import com.lanf.comment.model.dto.LikeCommentDTO;
-import com.lanf.comment.model.dto.PublishCommentDTO;
 import com.lanf.comment.model.dto.ReplyCommentDTO;
 import com.lanf.comment.model.query.CommentPageQuery;
 import com.lanf.comment.model.query.CommentReplyQuery;
+import com.lanf.comment.model.vo.CommentReplyVO;
 import com.lanf.comment.model.vo.CommentStatsVO;
 import com.lanf.comment.model.vo.CommentVO;
-import com.lanf.comment.model.vo.CommentReplyVO;
 import com.lanf.constant.model.vo.PageResult;
-
-import java.util.List;
 
 /**
  * 评论 Service 接口
@@ -22,7 +20,7 @@ public interface CommentService {
     /**
      * 发布评论（一级评论）
      */
-    Long publishComment(PublishCommentDTO dto);
+    Long publishComment(PublishCommentMessage dto);
 
     /**
      * 回复评论（二级回复）

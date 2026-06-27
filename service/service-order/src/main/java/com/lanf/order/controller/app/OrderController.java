@@ -142,5 +142,12 @@ public class OrderController {
 
         return Result.ok(shippingTrackService.shippingTrackDetailQuery(orderId));
     }
+
+    @PostMapping("/publishComment")
+    public Result<Long> publishComment(@Validated @RequestBody PublishCommentDTO dto) {
+        log.info("发布评论:dto={}", dto);
+        return Result.ok(null);
+    }
+
 }
 

@@ -1,9 +1,9 @@
 package com.lanf.comment.service.impl;
 
+import com.lanf.api.order.mq.message.PublishCommentMessage;
 import com.lanf.comment.model.document.CommentDocument;
 import com.lanf.comment.model.document.CommentStatsDocument;
 import com.lanf.comment.model.dto.LikeCommentDTO;
-import com.lanf.comment.model.dto.PublishCommentDTO;
 import com.lanf.comment.model.dto.ReplyCommentDTO;
 import com.lanf.comment.model.enums.CommentStatusEnum;
 import com.lanf.comment.model.enums.CommentTypeEnum;
@@ -69,10 +69,9 @@ public class CommentServiceImpl implements CommentService {
     private RocketMqClient rocketMqClient;
 
     @Override
-    public Long publishComment(PublishCommentDTO dto) {
-        Long userId = UserContext.getUserId();
-        log.info("发布评论, userId={}, goodsId={}", userId, dto.getGoodsId());
+    public Long publishComment(PublishCommentMessage dto) {
 
+        Long userId = dto.getUserId();
         Long commentId = IdUtils.generateId();
         Date now = new Date();
 

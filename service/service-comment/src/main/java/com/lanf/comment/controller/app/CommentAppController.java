@@ -1,7 +1,6 @@
 package com.lanf.comment.controller.app;
 
 import com.lanf.comment.model.dto.LikeCommentDTO;
-import com.lanf.comment.model.dto.PublishCommentDTO;
 import com.lanf.comment.model.dto.ReplyCommentDTO;
 import com.lanf.comment.model.query.CommentPageQuery;
 import com.lanf.comment.model.query.CommentReplyQuery;
@@ -29,15 +28,6 @@ public class CommentAppController {
     @Autowired
     private CommentService commentService;
 
-    /**
-     * 发布评论（一级评论）
-     */
-    @PostMapping("/publish")
-    public Result<Long> publishComment(@Validated @RequestBody PublishCommentDTO dto) {
-        log.info("发布评论:dto={}", dto);
-        Long commentId = commentService.publishComment(dto);
-        return Result.ok(commentId);
-    }
 
     /**
      * 回复评论（二级回复）
