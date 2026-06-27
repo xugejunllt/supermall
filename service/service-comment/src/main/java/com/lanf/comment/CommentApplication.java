@@ -3,14 +3,11 @@ package com.lanf.comment;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
-@MapperScan(basePackages = {"com.lanf.commen.mapper"})
+@MapperScan(basePackages = {"com.lanf.rocketmq.mapper"})
 @EnableDiscoveryClient
-@SpringBootApplication(scanBasePackages="com.lanf",exclude = {
-        DataSourceAutoConfiguration.class
-})
+@SpringBootApplication(scanBasePackages="com.lanf")
 //nacos注册
 public class CommentApplication {
     public static void main(String[] args) {

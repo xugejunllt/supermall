@@ -25,6 +25,8 @@ spring:
             data-id: common.yaml
           - group: common
             data-id: mongodb.yaml
+          - group: comment
+            data-id: mysql.yaml
 server:
   port: 9018
   servlet:
