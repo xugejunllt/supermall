@@ -2,7 +2,6 @@ package com.lanf.order.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -15,7 +14,7 @@ import lombok.Data;
  */
 @Data
 @TableName("order_comment_record")
-public class OrderCommentRecord0 extends BaseEntity {
+public class OrderCommentRecord extends BaseEntity {
 private static final long serialVersionUID=1L;
 
     private Long userId;
@@ -24,7 +23,6 @@ private static final long serialVersionUID=1L;
 
     private Long orderId;
 
-    @ApiModelProperty(value = "租户ID")
     private Long tenantId;
 
 

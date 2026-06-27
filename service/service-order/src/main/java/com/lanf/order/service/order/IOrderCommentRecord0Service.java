@@ -1,7 +1,7 @@
 package com.lanf.order.service.order;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.order.model.entity.OrderCommentRecord0;
+import com.lanf.order.model.entity.OrderCommentRecord;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.lanf.order.model.entity.OrderCommentRecord0;
  * @author jarven
  * @since 2026-06-27
  */
-public interface IOrderCommentRecord0Service extends IService<OrderCommentRecord0> {
+public interface IOrderCommentRecord0Service extends IService<OrderCommentRecord> {
 
 }

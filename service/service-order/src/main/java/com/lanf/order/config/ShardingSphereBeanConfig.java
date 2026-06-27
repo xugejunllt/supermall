@@ -170,7 +170,26 @@ public class ShardingSphereBeanConfig {
         );
         shardingRuleConfig.getTables().add(orderRule);
 
-        // 3. 配置 order_comment_record 表的分片规则（每个库 2 张表，策略与 orders 一致）
+        // 3. 配置 order_auto_close 表的分片规则（每个库 2 张表，策略与 orders 一致）
+        ShardingTableRuleConfiguration orderAutoCloseRule = new ShardingTableRuleConfiguration(
+                "order_auto_close",
+                "ds${0..1}.order_auto_close_${0..1}"
+        );
+        orderAutoCloseRule.setDatabaseShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "database-sharding-algorithm"
+                )
+        );
+        orderAutoCloseRule.setTableShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "user_id",
+                        "table-sharding-algorithm"
+                )
+        );
+        shardingRuleConfig.getTables().add(orderAutoCloseRule);
+
+        // 4. 配置 order_comment_record 表的分片规则（每个库 2 张表，策略与 orders 一致）
         ShardingTableRuleConfiguration orderCommentRecordRule = new ShardingTableRuleConfiguration(
                 "order_comment_record",
                 "ds${0..1}.order_comment_record_${0..1}"
