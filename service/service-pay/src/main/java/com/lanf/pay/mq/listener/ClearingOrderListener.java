@@ -6,7 +6,9 @@ import com.lanf.api.pay.mq.constant.PayClientTopicName;
 import com.lanf.api.pay.mq.message.TransferMessage;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.constant.Constants;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.pay.model.entity.ClearingDetailDO;
+import com.lanf.pay.model.entity.PayAccountDO;
 import com.lanf.pay.model.enums.ClearingStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
@@ -83,22 +85,22 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
 
     private TransferMessage buildTransferMessage(ClearingDetailDO liquidation) {
         // 商家账户
-        String account = payAccountService.getByTenantIdAccount(liquidation.getTenantId(), PayChannelEnum.ALI_PAY);
+        PayAccountDO account = payAccountService.getByTenantIdAccount(liquidation.getTenantId(), PayChannelEnum.ALI_PAY);
         //平台账户
-        String platAccount = payAccountService.getByTenantIdAccount(Constants.PLATFORM_BUSINESS_ID, PayChannelEnum.ALI_PAY);
+        PayAccountDO platAccount = payAccountService.getByTenantIdAccount(Constants.PLATFORM_BUSINESS_ID, PayChannelEnum.ALI_PAY);
         Long liquidationId = liquidation.getId();
-        String outBizNo = liquidationId.toString();
         TransferMessage transferMessage = new TransferMessage();
-        transferMessage.setOutBizNo(outBizNo);
+        transferMessage.setOutBizNo(IdUtils.generateId()+"");
         transferMessage.setMerchantId(liquidation.getTenantId());
         transferMessage.setBizOrderId(liquidationId);
         transferMessage.setEventType(TransferEventTypeEnum.ORDER_SETTLEMENT);
         //默认支付宝
         transferMessage.setTransferChannel(PayChannelEnum.ALI_PAY);
-        transferMessage.setFromAccount(platAccount);
-        transferMessage.setIncomeAccount(account);
+        transferMessage.setFromAccount(platAccount.getAccount());
+        transferMessage.setIncomeAccount(account.getAccount());
         transferMessage.setTransAmount(liquidation.getIncomeMoney());
         transferMessage.setOrderTitle("订单结算");
+        transferMessage.setIncomeAccountUserName(account.getAccountName());
         return transferMessage;
     }
 

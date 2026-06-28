@@ -54,6 +54,7 @@ private static final long serialVersionUID=1L;
      */
     private String incomeAccount;
 
+    private String incomeAccountUserName;
     /**
      * 事件类型 0：订单结算给商家，1：用户钱包提现
      */

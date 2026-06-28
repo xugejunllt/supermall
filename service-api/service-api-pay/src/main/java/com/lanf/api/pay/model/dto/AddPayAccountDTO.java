@@ -15,6 +15,7 @@ public class AddPayAccountDTO implements Serializable {
 
     @NotBlank(message = "账户不能为空")
     private String account;
-
+    @NotBlank(message = "账户名称不能为空")
+    private String accountName;
 
 }

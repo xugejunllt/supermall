@@ -73,13 +73,10 @@ public interface PaymentService {
     /**
      * 转账
      *
-     * @param outBizNo 商户转账唯一订单号
-     * @param payeeAccount 收款方支付宝账号
-     * @param amount 转账金额
-     * @param remark 转账备注
+
      * @return 转账结果
      */
-    TransferResult transfer(String outBizNo, String payeeAccount, BigDecimal amount, String remark) throws MessageRetryConsumeException;
+    TransferResult transfer(TransferBO transferBO) throws MessageRetryConsumeException;
     
     /**
      * 查询对账单下载URL

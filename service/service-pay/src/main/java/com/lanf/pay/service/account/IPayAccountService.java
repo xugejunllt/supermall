@@ -20,7 +20,7 @@ public interface IPayAccountService extends IService<PayAccountDO> {
 
 
 
-    String getByTenantIdAccount(Long tentId, PayChannelEnum accountType);
+    PayAccountDO getByTenantIdAccount(Long tentId, PayChannelEnum accountType);
 
     /**
      * 添加支付账户

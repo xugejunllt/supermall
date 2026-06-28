@@ -3,6 +3,7 @@ package com.lanf.pay.mq.listener;
 import com.lanf.api.pay.mq.constant.PayClientTopicName;
 import com.lanf.api.pay.mq.message.TransferMessage;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.pay.model.bo.TransferBO;
 import com.lanf.pay.model.bo.TransferResult;
 import com.lanf.pay.model.entity.TransferOrderDO;
 import com.lanf.pay.model.enums.TransferStatusEnum;
@@ -11,6 +12,7 @@ import com.lanf.pay.mq.message.QueryTransferResultMessage;
 import com.lanf.pay.service.pay.ITransferOrderService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -37,7 +39,7 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
     private ITransferOrderService transferOrderService;
     @Autowired
     private RocketMqClient rocketMqClient;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(TransferMessage message) {
 
@@ -64,9 +66,16 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
          * 发起转账
          */
         PaymentService paymentService = paymentServiceFactory.getPaymentService(message.getTransferChannel().getCode());
-        message.setIncomeAccount("18320911824");
-        TransferResult result = paymentService.transfer(message.getOutBizNo(),
-                message.getIncomeAccount(), message.getTransAmount(), message.getOrderTitle());
+
+        TransferBO transferBO = new TransferBO();
+        transferBO.setOutBizNo(message.getOutBizNo());
+        transferBO.setPayeeAccount(message.getIncomeAccount());
+        transferBO.setPayeeName(message.getIncomeAccountUserName());
+        transferBO.setAmount(message.getTransAmount());
+        transferBO.setRemark("商家结算");
+
+        TransferResult result = paymentService.transfer(transferBO);
+
         log.info("转账完成");
         QueryTransferResultMessage queryTransferResultMessage = getQueryTransferResultMessage(message);
         rocketMqClient.sendMessage(QUERY_TRANSFER_RESULT_TOPIC, JsonUtils.toJsonString(queryTransferResultMessage));
@@ -92,6 +101,7 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
         transferOrderDO.setIncomeAccount(message.getIncomeAccount());
         transferOrderDO.setTotalAmount(message.getTransAmount());
         transferOrderDO.setStatus(TransferStatusEnum.REFUNDING);
+        transferOrderDO.setIncomeAccountUserName(message.getIncomeAccountUserName());
 
         return transferOrderDO;
     }

@@ -32,7 +32,7 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
 
 
     @Override
-    public String getByTenantIdAccount(Long tentId, PayChannelEnum accountType) {
+    public PayAccountDO getByTenantIdAccount(Long tentId, PayChannelEnum accountType) {
 
         PayAccountDO accountDO = this.lambdaQuery()
                 .eq(PayAccountDO::getTenantId, tentId)
@@ -42,7 +42,7 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
             throw new BizException("支付账户不存在");
         }
 
-        return accountDO.getAccount();
+        return accountDO;
     }
 
     @Override

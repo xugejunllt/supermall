@@ -2,14 +2,14 @@ package com.lanf.api.pay.mq.message;
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
+import com.lanf.constant.mq.base.BaseMessage;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class TransferMessage implements Serializable {
+public class TransferMessage extends BaseMessage {
 
 
     @ApiModelProperty(value = "商家侧唯一订单号")
@@ -35,6 +35,8 @@ public class TransferMessage implements Serializable {
 
     @ApiModelProperty(value = "收款账号")
     private String incomeAccount;
+
+    private String incomeAccountUserName;
 
     @ApiModelProperty(value = "订单总金额")
     private BigDecimal transAmount;

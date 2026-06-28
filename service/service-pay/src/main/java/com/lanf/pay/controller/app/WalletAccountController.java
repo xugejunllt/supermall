@@ -11,6 +11,8 @@ import com.lanf.pay.model.query.WalletAccountFlowPageQuery;
 import com.lanf.pay.model.vo.CreateRechargeTradeOrderVO;
 import com.lanf.pay.model.vo.WalletAccountFlowPageVO;
 import com.lanf.pay.model.vo.WalletAccountVO;
+import com.lanf.pay.mq.listener.ClearingOrderListener;
+import com.lanf.pay.mq.message.ClearingOrderMessage;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,9 @@ public class WalletAccountController {
     private ITradeOrderService tradeOrderService;
     @Autowired
     private IWalletAccountService walletAccountService;
+    @Autowired
+    private ClearingOrderListener clearingOrderListener;
+
 
     /**
      * 创建充值交易单
@@ -91,6 +96,12 @@ public class WalletAccountController {
         return Result.ok(walletAccountService.walletAccountFlowPageQuery(query));
     }
 
+    @PostMapping("/onMessage")
+    public Result<Void> onMessage(@RequestBody ClearingOrderMessage message) {
 
+        log.info("手动进行结算:dto{}", message);
+        clearingOrderListener.onMessage( message);
+        return Result.ok();
+    }
 }
 

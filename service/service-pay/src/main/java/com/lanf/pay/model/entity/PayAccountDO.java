@@ -24,6 +24,8 @@ private static final long serialVersionUID=1L;
 
     private String account;
 
+    private String accountName;
+
     private Long tenantId;
 
 

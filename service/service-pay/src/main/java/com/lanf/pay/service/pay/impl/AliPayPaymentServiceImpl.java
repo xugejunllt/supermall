@@ -387,11 +387,10 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
     }
 
     @Override
-    public TransferResult transfer(String outBizNo, String payeeAccount, BigDecimal amount, String remark)
+    public TransferResult transfer(TransferBO transferBO)
             throws MessageRetryConsumeException {
-        log.info("支付宝转账开始:outBizNo={},payeeAccount={},amount={},remark={}",
-                outBizNo, payeeAccount, amount, remark);
-
+        log.info("支付宝转账开始:transferBO={}",
+                transferBO);
         TransferResult resultBO = new TransferResult();
 
         AlipayClient alipayClient = null;
@@ -400,17 +399,17 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
             AlipayFundTransUniTransferRequest request = new AlipayFundTransUniTransferRequest();
             AlipayFundTransUniTransferModel model = new AlipayFundTransUniTransferModel();
-            model.setOutBizNo(outBizNo);
-            model.setTransAmount("1.00");
-            model.setBizScene("DIRECT_TRANSFER");
+            model.setOutBizNo(transferBO.getOutBizNo());
+            model.setTransAmount(transferBO.getAmount().toString());
+             model.setBizScene("DIRECT_TRANSFER");
             model.setProductCode("TRANS_ACCOUNT_NO_PWD");
-            model.setOrderTitle("结算费用给商家");
-            model.setTransferSceneName("DIRECT_TRANSFER");
+            model.setOrderTitle("201905代发");
+            model.setTransferSceneName("佣金报酬");
 
             Participant payeeInfo = new Participant();
-            payeeInfo.setIdentity(payeeAccount);
+            payeeInfo.setIdentity(transferBO.getPayeeAccount());
             payeeInfo.setIdentityType("ALIPAY_LOGON_ID");
-            payeeInfo.setName("刘强");
+            payeeInfo.setName(transferBO.getPayeeName());
             model.setPayeeInfo(payeeInfo);
 
 
@@ -425,7 +424,6 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
             request.setBizModel(model);
             AlipayFundTransUniTransferResponse response = alipayClient.certificateExecute(request);
-
             String code = response.getCode();
             String subCode = response.getSubCode();
 
@@ -434,14 +432,15 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             if ("10000".equals(code)) {
 
                 resultBO.setTransferSuccess(true);
-                log.info("支付宝转账成功:outBizNo={},orderId={}", outBizNo, response.getOrderId());
+                log.info("支付宝转账成功:outBizNo={},orderId={}", transferBO.getOutBizNo(), response.getOrderId());
                 return resultBO;
 
             }
             log.error("支付宝转账异常");
             throw new MessageRetryConsumeException("转账异常");
+
         } catch (AlipayApiException e) {
-            log.warn("支付宝转账异常:outBizNo={}", outBizNo, e);
+            log.warn("支付宝转账异常:outBizNo={}", transferBO.getOutBizNo(), e);
             throw new MessageRetryConsumeException("转账异常");
         }
     }
