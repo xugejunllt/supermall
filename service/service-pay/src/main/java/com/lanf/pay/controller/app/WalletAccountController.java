@@ -1,20 +1,22 @@
 package com.lanf.pay.controller.app;
 
 
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.pay.model.dto.BalanceOrderDTO;
 import com.lanf.pay.model.dto.RechargeDTO;
 import com.lanf.pay.model.dto.WithdrawApplyDTO;
+import com.lanf.pay.model.query.WalletAccountFlowPageQuery;
 import com.lanf.pay.model.vo.CreateRechargeTradeOrderVO;
+import com.lanf.pay.model.vo.WalletAccountFlowPageVO;
+import com.lanf.pay.model.vo.WalletAccountVO;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -26,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
-@RequestMapping("/walletAccount")
+@RequestMapping("/app/walletAccount")
 public class WalletAccountController {
 
 
@@ -69,6 +71,24 @@ public class WalletAccountController {
         log.info("申请提现:dto{}", dto);
         walletAccountService.applyWithdraw(dto);
         return Result.ok();
+    }
+
+
+    @GetMapping("/walletAccountQuery")
+    public Result<WalletAccountVO> walletAccountQuery() {
+
+        log.info("查询钱包余额");
+
+        return Result.ok(walletAccountService.walletAccountQuery(UserContext.getUserId()));
+    }
+
+
+    @GetMapping("/walletAccountFlowPageQuery")
+    public Result<PageResult<WalletAccountFlowPageVO>> walletAccountFlowPageQuery(WalletAccountFlowPageQuery query) {
+
+        log.info("分页查询钱包账号流水,query:{} ",query);
+
+        return Result.ok(walletAccountService.walletAccountFlowPageQuery(query));
     }
 
 

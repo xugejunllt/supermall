@@ -1,5 +1,7 @@
 package com.lanf.pay.service.wallet.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.api.pay.model.enums.PayMethodEnum;
@@ -8,11 +10,13 @@ import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.api.pay.mq.constant.PayClientTopicName;
 import com.lanf.api.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.api.pay.mq.message.TransferMessage;
+import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.pay.mapper.WalletAccountMapper;
@@ -26,6 +30,9 @@ import com.lanf.pay.model.entity.WalletWithdrawDO;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.model.enums.WalletEventTypeEnum;
 import com.lanf.pay.model.enums.WithdrawStatusEnum;
+import com.lanf.pay.model.query.WalletAccountFlowPageQuery;
+import com.lanf.pay.model.vo.WalletAccountFlowPageVO;
+import com.lanf.pay.model.vo.WalletAccountVO;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.wallet.IWalletAccountFlowService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
@@ -40,6 +47,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -296,6 +304,8 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         log.info("同意提现成功，已发送转账消息，提现单ID: {}, 提现单号: {}", withdrawId, withdraw.getWithdrawNo());
     }
 
+
+
     private TransferMessage buildTransferMessage(WalletWithdrawDO withdraw) {
 
         TransferMessage message = new TransferMessage();
@@ -324,5 +334,37 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         }
        throw new BizException("提现类型不支持");
     }
+    @Override
+    public WalletAccountVO walletAccountQuery(Long userId) {
 
+        WalletAccountDO accountDO = this.lambdaQuery().eq(WalletAccountDO::getUserId, userId).one();
+        if (accountDO == null) {
+            log.warn("用户钱包账户不存在");
+           return null;
+        }
+        WalletAccountVO vo = new WalletAccountVO();
+        vo.setBalance(accountDO.getBalance());
+        vo.setWalletAccountId(accountDO.getId());
+        return vo;
+    }
+
+    @Override
+    public PageResult<WalletAccountFlowPageVO> walletAccountFlowPageQuery(WalletAccountFlowPageQuery query) {
+
+        Page<WalletAccountFlowDO> page = walletAccountFlowService.page(new Page<>(query.getPage(), query.getPageSize()),
+                new LambdaQueryWrapper<WalletAccountFlowDO>()
+                        .eq(WalletAccountFlowDO::getWalletAccountId, query.getWalletAccountId())
+                        .eq(WalletAccountFlowDO::getUserId, UserContext.getUserId())
+                        .orderByDesc(WalletAccountFlowDO::getCreateTime));
+        List<WalletAccountFlowDO> records = page.getRecords();
+        if (records.isEmpty()) {
+            return null;
+        }
+        List<WalletAccountFlowPageVO> flowPageVOS = BeanCopyUtils.copyBeanList(records, WalletAccountFlowPageVO.class);
+        PageResult<WalletAccountFlowPageVO> result = new PageResult<>();
+        result.setTotal(page.getTotal());
+        result.setRecords(flowPageVOS);
+        result.setSize(page.getSize());
+        return result;
+    }
 }

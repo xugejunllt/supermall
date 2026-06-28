@@ -17,7 +17,7 @@ import java.math.BigDecimal;
  * @since 2026-04-27
  */
 @Data
-@TableName("wallet_account")
+@TableName("wallet_account_flow")
 public class WalletAccountFlowDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;

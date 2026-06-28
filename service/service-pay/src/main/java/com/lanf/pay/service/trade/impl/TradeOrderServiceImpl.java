@@ -467,6 +467,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
     @Override
     public CreateRechargeTradeOrderVO createRechargeTradeOrder(RechargeDTO dto) {
+
         Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
         String outTradeNo = CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.TRADE_ORDER, dto.getOrderNumber());
         TradeOrderDO tradeOrderDO = new TradeOrderDO();

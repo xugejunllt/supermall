@@ -8,19 +8,23 @@ import lombok.Getter;
 @Getter
 public enum WalletEventTypeEnum {
 
-    RECHARGE(0, "充值"),
-    WITHDRAW(1, "提现"),
-    ORDER(2, "下单"),
-    CANCEL_ORDER_ROLLBACK(3, "取消订单回滚");
+    RECHARGE(0, "充值", 1),
+    WITHDRAW(1, "提现", -1),
+    ORDER(2, "下单", -1),
+    CANCEL_ORDER_ROLLBACK(3, "取消订单回滚", 1);
 
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
+    /**
+     * 收支方向：1 收入，-1 支出
+     */
+    private final Integer inOut;
 
-    WalletEventTypeEnum(Integer code, String name) {
+    WalletEventTypeEnum(Integer code, String name, Integer inOut) {
         this.code = code;
         this.name = name;
+        this.inOut = inOut;
     }
 
     @JsonValue

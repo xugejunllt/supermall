@@ -1,10 +1,14 @@
 package com.lanf.pay.service.wallet;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.model.bo.AddWalletAccount;
 import com.lanf.pay.model.dto.BalanceOrderDTO;
 import com.lanf.pay.model.dto.WithdrawApplyDTO;
 import com.lanf.pay.model.entity.WalletAccountDO;
+import com.lanf.pay.model.query.WalletAccountFlowPageQuery;
+import com.lanf.pay.model.vo.WalletAccountFlowPageVO;
+import com.lanf.pay.model.vo.WalletAccountVO;
 
 /**
  * <p>
@@ -48,4 +52,18 @@ public interface IWalletAccountService extends IService<WalletAccountDO> {
      * @param withdrawId 提现单ID
      */
     void approveWithdraw(Long withdrawId);
+
+    /**
+     * 查询钱包余额
+     *
+     *
+     */
+    WalletAccountVO walletAccountQuery(Long userId);
+
+    /**
+     * 分页查询钱包流水
+     *
+     *
+     */
+    PageResult<WalletAccountFlowPageVO> walletAccountFlowPageQuery(WalletAccountFlowPageQuery query);
 }
