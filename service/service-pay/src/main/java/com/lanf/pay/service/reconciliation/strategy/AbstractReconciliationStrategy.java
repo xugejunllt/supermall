@@ -18,7 +18,6 @@ import com.lanf.pay.service.reconciliation.IReconciliationJobLogService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -34,21 +33,19 @@ import java.util.stream.Collectors;
 public abstract class AbstractReconciliationStrategy<T> implements ReconciliationStrategy {
 
     @Autowired
-    private  IPayOrderFlowService payOrderFlowService;
+    private IPayOrderFlowService payOrderFlowService;
     @Autowired
-    private  IReconciliationDiffMarkerService reconciliationDiffMarkerService;
+    private IReconciliationDiffMarkerService reconciliationDiffMarkerService;
     @Autowired
-    private  RocketMqClient rocketMqClient;
+    private RocketMqClient rocketMqClient;
     @Autowired
-    private  IReconciliationJobLogService reconciliationJobLogService;
+    private IReconciliationJobLogService reconciliationJobLogService;
     @Autowired
     private MaxIdTrackingBatchReconciler maxIdTrackingBatchReconciler;
     @Autowired
     private IReconciliationDiffService reconciliationDiffService;
     @Autowired
     private ReconciliationDiffMapper reconciliationDiffMapper;
-
-
 
 
     protected abstract ReconciliationScanPageResult<T> doPage(ReconciliationScanPage page);
@@ -61,7 +58,7 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
 
     protected abstract ReconciliationTradeStatusEnum toReconciliationTradeStatus(T data);
 
-    protected abstract Map<String,ReconciliationTradeInfo> toReconciliationTradeInfoMap(List<String> outTradeNoList);
+    protected abstract Map<String, ReconciliationTradeInfo> toReconciliationTradeInfoMap(List<String> outTradeNoList);
 
     @Override
     public void startScan(String bathId) {
@@ -82,7 +79,7 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
             pages.setBathId(bathId);
             ReconciliationScanPageResult<T> resultPage = doPage(pages);
             List<T> dataList = resultPage.getDataList();
-            if (IStringUtils.isEmpty(dataList)){
+            if (IStringUtils.isEmpty(dataList)) {
                 log.warn("数据为空");
                 return;
             }
@@ -98,7 +95,7 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
 
             boolean saveBath = maxIdTrackingBatchReconciler.isSaveBath(bathId, getDiffType(),
                     getBusinessType(), tradeInfo.getId());
-            if ( saveBath) {
+            if (saveBath) {
                 currentPage++;
                 log.info("该批次已对账");
                 continue;
@@ -114,7 +111,7 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
 
                 SendMessageAndUpdateResult result = reconciliationJobLogService.sendMessageAndUpdate(reconciliationStartMessage, jobType,
                         bathId, currentPage, resultPage.getPages());
-                if (result.getToBreak()){
+                if (result.getToBreak()) {
                     break;
                 }
 
@@ -122,7 +119,7 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
                 /**
                  * 这批次处理 即使出现异常  也要继续处理下一批次
                  */
-               log.info("批次号 {} 批次 {} 扫描任务异常", bathId, jobType);
+                log.info("批次号 {} 批次 {} 扫描任务异常", bathId, jobType);
             }
 
             currentPage++;
@@ -139,14 +136,13 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
         ReconciliationBusinessTypeEnum businessType = start.getReconciliationBusinessType();
         boolean saveBath = maxIdTrackingBatchReconciler.isSaveBath(bathId, getDiffType(),
                 getBusinessType(), start.getBathMaxId());
-        if ( saveBath) {
+        if (saveBath) {
             log.info("该批次已对账");
             return;
         }
 
         List<ReconciliationTradeInfo> reconciliationTradeInfoList =
                 start.getReconciliationTradeInfoList();
-
 
 
         /**
@@ -156,21 +152,20 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
                 .map(ReconciliationTradeInfo::getOutTradeNo).collect(Collectors.toList());
 
 
-
-        Map<String, ReconciliationTradeInfo> tradeInfoMap = toReconciliationTradeInfoMap( outTradeNoList);
+        Map<String, ReconciliationTradeInfo> tradeInfoMap = toReconciliationTradeInfoMap(outTradeNoList);
         /**
          *
          */
         //差异集合
         List<ReconciliationDiffDO> diffList = new ArrayList<>();
-        for (ReconciliationTradeInfo reconciliationTradeInfo : reconciliationTradeInfoList){
+        for (ReconciliationTradeInfo reconciliationTradeInfo : reconciliationTradeInfoList) {
 
             String outTradeNo = reconciliationTradeInfo.getOutTradeNo();
             /**
              * 1.找出长款 or短款
              */
             ReconciliationTradeInfo tradeInfo = tradeInfoMap.get(outTradeNo);
-            if (tradeInfo == null){
+            if (tradeInfo == null) {
 
                 ReconciliationDiffDO reconciliationDiffDO = new ReconciliationDiffDO();
                 reconciliationDiffDO.setBatchId(bathId);
@@ -189,7 +184,7 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
                 //我方状态
                 ReconciliationTradeStatusEnum actualStatus = null;
 
-                if (ReconciliationDiffTypeEnum.LONG.equals(getDiffType())){
+                if (ReconciliationDiffTypeEnum.LONG.equals(getDiffType())) {
 
                     expectedStatus = reconciliationTradeInfo.getReconciliationTradeStatus();
                     actualStatus = tradeInfo.getReconciliationTradeStatus();
@@ -198,7 +193,7 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
                     actualStatus = reconciliationTradeInfo.getReconciliationTradeStatus();
                 }
 
-                if ( !expectedStatus.equals(actualStatus)){
+                if (!expectedStatus.equals(actualStatus)) {
                     ReconciliationDiffDO reconciliationDiffDO = new ReconciliationDiffDO();
                     reconciliationDiffDO.setBatchId(bathId);
                     reconciliationDiffDO.setBusinessOrderNo(outTradeNo);
@@ -217,14 +212,14 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
                  * 3.对比金额是否一致
                  */
 
-                if (ReconciliationDiffTypeEnum.LONG.equals(getDiffType())){
+                if (ReconciliationDiffTypeEnum.LONG.equals(getDiffType())) {
 
                     //三方金额
                     BigDecimal receiptMoney = null;
                     //我方金额
                     BigDecimal doReceiptMoney = null;
 
-                    if (ReconciliationDiffTypeEnum.LONG.equals(getDiffType())){
+                    if (ReconciliationDiffTypeEnum.LONG.equals(getDiffType())) {
 
                         receiptMoney = reconciliationTradeInfo.getReceiptMoney();
                         doReceiptMoney = tradeInfo.getReceiptMoney();
@@ -261,7 +256,7 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
         }
         List<ReconciliationDiffMarkerDO> diffMarkerDOList = new ArrayList<>();
 
-        for (ReconciliationTradeInfo reconciliationTradeInfo : reconciliationTradeInfoList){
+        for (ReconciliationTradeInfo reconciliationTradeInfo : reconciliationTradeInfoList) {
 
             ReconciliationDiffMarkerDO reconciliationDiffMarkerDO = new ReconciliationDiffMarkerDO();
             reconciliationDiffMarkerDO.setBatchId(bathId);
@@ -273,14 +268,11 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
         /**
          * 这里保存 系统与三方的交易单号
          */
-        try {
-            reconciliationDiffMarkerService.saveBatch(diffMarkerDOList);
 
-            reconciliationDiffService.saveBatch(diffList);
-        } catch (DuplicateKeyException e) {
-            log.warn("重复数据");
-            return;
-        }
+        reconciliationDiffMarkerService.saveBatch(diffMarkerDOList);
+
+        reconciliationDiffService.saveBatch(diffList);
+
         maxIdTrackingBatchReconciler.addMaxId(bathId, getDiffType(),
                 getBusinessType(), start.getBathMaxId());
     }

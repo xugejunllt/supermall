@@ -8,6 +8,7 @@ import com.lanf.pay.mq.message.ReconciliationStartMessage;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.reconciliation.IReconciliationDiffMarkerService;
 import com.lanf.pay.service.reconciliation.strategy.ReconciliationStrategyFactory;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -38,7 +39,7 @@ public class ReconciliationStartListener implements RocketMQListener<Reconciliat
 
     @Autowired
     private ReconciliationStrategyFactory reconciliationStrategyFactory;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(ReconciliationStartMessage message) {
 

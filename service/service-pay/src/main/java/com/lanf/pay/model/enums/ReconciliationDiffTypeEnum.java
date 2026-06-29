@@ -12,15 +12,10 @@ import lombok.Getter;
 @Getter
 public enum ReconciliationDiffTypeEnum {
 
-    /**
-     * 长款：渠道有记录，我方无记录
-     */
+
     LONG(0, "长款", "长款：渠道有记录，我方无记录"),
 
-    /**
-     * 短款：渠道无记录，我方有记录
-     *
-     */
+
     SHORT(1, "短款", "短款：渠道无记录，我方有记录"),
 
     /**

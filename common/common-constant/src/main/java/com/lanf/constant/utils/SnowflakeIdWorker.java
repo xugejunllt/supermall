@@ -42,9 +42,9 @@ public class SnowflakeIdWorker {
     /** 数据中心ID(0~31) */
     private long datacenterId;
     /** 毫秒内序列(0~4095) */
-    private long sequence = 0L;
+    private volatile long sequence = 0L;
     /** 上次生成ID的时间截 */
-    private long lastTimestamp = -1L;
+    private volatile long lastTimestamp = -1L;
 
     //==============================Constructors=====================================
     /**
@@ -68,7 +68,7 @@ public class SnowflakeIdWorker {
      * 获得下一个ID (该方法是线程安全的)
      * @return SnowflakeId
      */
-    public  long nextId() {
+    public synchronized long nextId() {
         long timestamp = timeGen();
 
         //如果当前时间小于上一次ID生成的时间戳，说明系统时钟回退过这个时候应当抛出异常

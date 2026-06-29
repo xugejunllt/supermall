@@ -1,15 +1,15 @@
 package com.lanf.pay.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import com.lanf.pay.model.bo.ReconciliationTradeInfo;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class ReconciliationStartMessage implements Serializable {
+public class ReconciliationStartMessage extends BaseMessage  {
     /**
      * 该批次 最大的id
      */

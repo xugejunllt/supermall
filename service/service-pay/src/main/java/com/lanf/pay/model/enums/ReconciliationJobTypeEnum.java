@@ -49,8 +49,9 @@ public enum ReconciliationJobTypeEnum {
      * 交易单和退款单任务类型集合
      */
     public static final Set<ReconciliationJobTypeEnum> TRADE_AND_REFUND_SET = Arrays.stream(values())
-            .filter(type -> type == TRADE_LONG_CHECK
-                    || type == TRADE_SHORT_CHECK
+            .filter(type ->
+                            type == TRADE_SHORT_CHECK
+                    || type == TRADE_LONG_CHECK
                     )
             .collect(Collectors.toSet());
 
