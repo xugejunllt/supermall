@@ -9,10 +9,10 @@ import com.lanf.pay.model.bo.ReconciliationScanPage;
 import com.lanf.pay.model.bo.ReconciliationScanPageResult;
 import com.lanf.pay.model.bo.ReconciliationTradeInfo;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
-import com.lanf.pay.model.entity.TradeFundBillDetailDO;
+import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.model.enums.*;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
-import com.lanf.pay.service.reconciliation.ITradeFundBillDetailService;
+import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
 import com.lanf.pay.service.reconciliation.strategy.AbstractReconciliationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,9 +27,9 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<PayOrderF
 
     @Autowired
     private IPayOrderFlowService payOrderFlowService;
-    @Autowired
-    private ITradeFundBillDetailService tradeFundBillDetailService ;
 
+    @Autowired
+    private SignCustomerIFundBillDetailService signCustomerIFundBillDetailService ;
     @Override
     public ReconciliationJobTypeEnum getJobType() {
         return ReconciliationJobTypeEnum.TRADE_LONG_CHECK;
@@ -112,15 +112,14 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<PayOrderF
 
     @Override
     protected Map<String, ReconciliationTradeInfo> toReconciliationTradeInfoMap(List<String> outTradeNoList) {
-        List<TradeFundBillDetailDO> list = tradeFundBillDetailService.lambdaQuery()
-                .in(TradeFundBillDetailDO::getOutTradeNo, outTradeNoList).list();
+
+        List<SignCustomerFundBillDetailDO> list = signCustomerIFundBillDetailService.lambdaQuery()
+                .in(SignCustomerFundBillDetailDO::getMerchantOrderNo, outTradeNoList).list();
+
         Map<String, ReconciliationTradeInfo> tradeInfoMap =  new HashMap<>();
-        for (TradeFundBillDetailDO payOrderFlowDO : list) {
-
-            PayOrderTradeStatusEnum status = payOrderFlowDO.getTradeStatus();
-
-            ReconciliationTradeInfo tradeInfo = getReconciliationTradeInfo(payOrderFlowDO, status);
-            tradeInfoMap.put(payOrderFlowDO.getOutTradeNo(), tradeInfo);
+        for (SignCustomerFundBillDetailDO payOrderFlowDO : list) {
+            ReconciliationTradeInfo tradeInfo = getReconciliationTradeInfo(payOrderFlowDO);
+            tradeInfoMap.put(payOrderFlowDO.getMerchantOrderNo(), tradeInfo);
         }
 
 
@@ -128,19 +127,13 @@ public class TradeShortStrategy extends AbstractReconciliationStrategy<PayOrderF
     }
 
 
-    private static ReconciliationTradeInfo getReconciliationTradeInfo(TradeFundBillDetailDO payOrderFlowDO, PayOrderTradeStatusEnum status) {
-        ReconciliationTradeStatusEnum reconciliationTradeStatus = null;
-        if (status == PayOrderTradeStatusEnum.TRADE_SUCCESS){
-            reconciliationTradeStatus = ReconciliationTradeStatusEnum.SUCCESS;
-        } else {
-            reconciliationTradeStatus = ReconciliationTradeStatusEnum.FAILED;
-        }
+    private static ReconciliationTradeInfo getReconciliationTradeInfo(SignCustomerFundBillDetailDO payOrderFlowDO) {
 
         ReconciliationTradeInfo tradeInfo = new ReconciliationTradeInfo();
-        tradeInfo.setOutTradeNo(payOrderFlowDO.getOutTradeNo());
+        tradeInfo.setOutTradeNo(payOrderFlowDO.getMerchantOrderNo());
         tradeInfo.setPayChannel(payOrderFlowDO.getPayChannel());
-        tradeInfo.setReceiptMoney(payOrderFlowDO.getSettlementAmount());
-        tradeInfo.setReconciliationTradeStatus(reconciliationTradeStatus);
+        tradeInfo.setReceiptMoney(payOrderFlowDO.getIncomeAmount());
+        tradeInfo.setReconciliationTradeStatus(ReconciliationTradeStatusEnum.SUCCESS);
         return tradeInfo;
     }
 }

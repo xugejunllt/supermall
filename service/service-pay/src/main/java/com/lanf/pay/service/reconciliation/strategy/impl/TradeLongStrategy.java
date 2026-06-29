@@ -3,33 +3,33 @@ package com.lanf.pay.service.reconciliation.strategy.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
-import com.lanf.common.utils.DateUtils;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.pay.model.bo.ReconciliationScanPage;
 import com.lanf.pay.model.bo.ReconciliationScanPageResult;
 import com.lanf.pay.model.bo.ReconciliationTradeInfo;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
-import com.lanf.pay.model.entity.TradeFundBillDetailDO;
+import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.model.enums.*;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
-import com.lanf.pay.service.reconciliation.ITradeFundBillDetailService;
+import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
 import com.lanf.pay.service.reconciliation.strategy.AbstractReconciliationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 交易单长款扫描策略
  */
 @Component("tradeLongStrategy")
-public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundBillDetailDO> {
-
-
+public class TradeLongStrategy extends AbstractReconciliationStrategy<SignCustomerFundBillDetailDO> {
 
 
     @Autowired
-    private ITradeFundBillDetailService tradeFundBillDetailService ;
+    private SignCustomerIFundBillDetailService signCustomerIFundBillDetailService ;
     @Autowired
     private IPayOrderFlowService payOrderFlowService ;
 
@@ -41,24 +41,25 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundB
     }
 
     @Override
-    protected ReconciliationScanPageResult<TradeFundBillDetailDO> doPage(ReconciliationScanPage pages) {
+    protected ReconciliationScanPageResult<SignCustomerFundBillDetailDO> doPage(ReconciliationScanPage pages) {
 
 
         long currentPage = pages.getCurrentPage();
         long pageSize = pages.getPageSize();
         String bathId = pages.getBathId();
 
-        Page<TradeFundBillDetailDO> page = new Page<>(currentPage, pageSize);
+        Page<SignCustomerFundBillDetailDO> page = new Page<>(currentPage, pageSize);
         /**
          * 根据id升序
          */
-        IPage<TradeFundBillDetailDO> resultPage = tradeFundBillDetailService.lambdaQuery()
-                .eq(TradeFundBillDetailDO::getBillDate, bathId)
-                .eq(TradeFundBillDetailDO::getTradeType, ReconciliationBusinessTypeEnum.PAYMENT.getCode().toString())
+        IPage<SignCustomerFundBillDetailDO> resultPage =
+                signCustomerIFundBillDetailService.lambdaQuery()
+                .eq(SignCustomerFundBillDetailDO::getPayFinishDate, bathId)
+                .eq(SignCustomerFundBillDetailDO::getBusinessType, ReconciliationBusinessTypeEnum.PAYMENT)
                 .orderByAsc(BaseEntity::getId)
                 .page(page);
 
-        ReconciliationScanPageResult<TradeFundBillDetailDO> result = new ReconciliationScanPageResult<>();
+        ReconciliationScanPageResult<SignCustomerFundBillDetailDO> result = new ReconciliationScanPageResult<>();
         result.setDataList(resultPage.getRecords());
         result.setPages(resultPage.getPages());
 
@@ -67,23 +68,17 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundB
     }
 
     @Override
-    protected List<ReconciliationTradeInfo> buildTradeInfoList(List<TradeFundBillDetailDO> dataList) {
+    protected List<ReconciliationTradeInfo> buildTradeInfoList(List<SignCustomerFundBillDetailDO> dataList) {
 
         List<ReconciliationTradeInfo> tradeInfoList = new ArrayList<>();
-        for (TradeFundBillDetailDO orderFlow : dataList) {
-
-            Date paymentTime = orderFlow.getPaymentTime();
-            String payFinishTime = null;
-            if (paymentTime != null) {
-                payFinishTime = DateUtils.format(paymentTime, DateUtils.DATE_TIME);
-            }
+        for (SignCustomerFundBillDetailDO orderFlow : dataList) {
 
             ReconciliationTradeInfo tradeInfo = new ReconciliationTradeInfo();
-            tradeInfo.setOutTradeNo(orderFlow.getOutTradeNo());
-            tradeInfo.setReceiptMoney(orderFlow.getSettlementAmount());
+            tradeInfo.setOutTradeNo(orderFlow.getMerchantOrderNo());
+            tradeInfo.setReceiptMoney(orderFlow.getIncomeAmount());
             tradeInfo.setPayChannel(orderFlow.getPayChannel());
             tradeInfo.setReconciliationTradeStatus(toReconciliationTradeStatus(orderFlow));
-            tradeInfo.setPayFinishTime(payFinishTime);
+            tradeInfo.setPayFinishTime(orderFlow.getPayFinishDate());
             tradeInfo.setId(orderFlow.getId());
             tradeInfoList.add(tradeInfo);
         }
@@ -105,17 +100,11 @@ public class TradeLongStrategy extends AbstractReconciliationStrategy<TradeFundB
     }
 
     @Override
-    protected ReconciliationTradeStatusEnum toReconciliationTradeStatus(TradeFundBillDetailDO data) {
+    protected ReconciliationTradeStatusEnum toReconciliationTradeStatus(SignCustomerFundBillDetailDO data) {
 
-        PayOrderTradeStatusEnum tradeStatus = data.getTradeStatus();
-        if (tradeStatus == PayOrderTradeStatusEnum.TRADE_SUCCESS) {
-            /**
-             * 该状态为成功 其他的为失败
-             */
-            return ReconciliationTradeStatusEnum.SUCCESS;
-        }
 
-        return ReconciliationTradeStatusEnum.FAILED;
+
+        return ReconciliationTradeStatusEnum.SUCCESS;
     }
 
     @Override
