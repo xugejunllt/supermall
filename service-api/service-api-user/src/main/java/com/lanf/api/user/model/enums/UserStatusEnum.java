@@ -1,4 +1,4 @@
-package com.lanf.user.model.enums;
+package com.lanf.api.user.model.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -34,14 +34,16 @@ public enum UserStatusEnum {
     /**
      * JSON序列化时的值
      */
-    @JsonValue
     private final String description;
 
     UserStatusEnum(Integer code, String description) {
         this.code = code;
         this.description = description;
     }
-
+    @JsonValue
+    public Integer getCode() {
+        return code;
+    }
     /**
      * 根据code获取枚举
      * 

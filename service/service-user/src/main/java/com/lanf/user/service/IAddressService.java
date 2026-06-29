@@ -25,6 +25,8 @@ public interface IAddressService extends IService<AddressDO> {
 
     List<AddressListVO> addressListQuery();
 
+    List<AddressListVO> addressListByUserIdQuery(Long userId);
+
     void  setDefaultAddress(SetDefaultAddressDTO dto );
 
 

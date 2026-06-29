@@ -2,7 +2,7 @@ package com.lanf.user.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.user.model.enums.UserStatusEnum;
+import com.lanf.api.user.model.enums.UserStatusEnum;
 import lombok.Data;
 
 import java.util.Date;

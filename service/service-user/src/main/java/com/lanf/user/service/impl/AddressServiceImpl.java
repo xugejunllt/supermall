@@ -104,6 +104,20 @@ public class AddressServiceImpl extends ServiceImpl<AddressMapper, AddressDO> im
 
 
     @Override
+    public List<AddressListVO> addressListByUserIdQuery(Long userId) {
+        List<AddressDO> list = this.lambdaQuery()
+                .eq(AddressDO::getUserId, userId)
+                .orderByDesc(BaseEntity::getUpdateTime)
+                .list();
+
+        if (list.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return BeanCopyUtils.copyBeanList(list, AddressListVO.class);
+    }
+
+    @Override
     @Transactional //添加事务注解 如果redis操作失败 进行回滚
     @DistributedLock(key = "#dto.userId")
     public void setDefaultAddress(SetDefaultAddressDTO dto) {

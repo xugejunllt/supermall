@@ -1,6 +1,8 @@
 package com.lanf.user.service.impl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.user.model.vo.UserPageVO;
 import com.lanf.api.user.mq.UserClientTopicName;
 import com.lanf.api.user.mq.message.UserRegisterMessage;
 import com.lanf.cache.aop.DistributedLock;
@@ -11,6 +13,8 @@ import com.lanf.constant.code.CommonCodeEnum;
 import com.lanf.constant.constant.RedisKeyConstants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.SmsCodeEnum;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SendSmsMsg;
@@ -24,7 +28,7 @@ import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.entity.UserDO;
 import com.lanf.user.model.entity.UserLoginLog;
-import com.lanf.user.model.enums.UserStatusEnum;
+import com.lanf.api.user.model.enums.UserStatusEnum;
 import com.lanf.user.model.vo.UserDetailVO;
 import com.lanf.user.model.vo.UserTokenInfoVO;
 import com.lanf.user.model.vo.UserVO;
@@ -428,6 +432,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         return userDetailVO;
     }
 
+    @Override
+    public PageResult<UserPageVO> userPageQuery(PageQuery query) {
+        Page<UserDO> page = new Page<>(query.getPage(), query.getPageSize());
+        Page<UserDO> userDOPage = this.page(page);
+        List<UserPageVO> voList = BeanCopyUtils.copyBeanList(userDOPage.getRecords(), UserPageVO.class);
+        return new PageResult<>(voList, userDOPage.getSize(), userDOPage.getTotal());
+    }
 
 }
 

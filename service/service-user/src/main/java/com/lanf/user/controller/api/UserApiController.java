@@ -3,6 +3,7 @@ package com.lanf.user.controller.api;
 import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.constant.result.Result;
 import com.lanf.user.service.IAddressService;
+import com.lanf.user.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,9 @@ public class UserApiController {
     @Autowired
     private IAddressService addressService;
 
+    @Autowired
+    private IUserService userService;
+
     @GetMapping("/addressListQuery")
     public Result<List<AddressListVO>> addressListQuery() {
 
@@ -26,12 +30,6 @@ public class UserApiController {
 
     }
 
-    @GetMapping("/sentinelTest")
-    public Result<String> sentinelTest() {
 
 
-        int i = 1 / 0;
-        return Result.ok();
-
-    }
 }

@@ -62,7 +62,8 @@ private static final long serialVersionUID=1L;
 
     private PayChannelEnum transferChannel;
 
-    /**
+    /**-
+     * 0--
      * 订单总金额，即发起转账时传入的金额
      */
     private BigDecimal totalAmount;

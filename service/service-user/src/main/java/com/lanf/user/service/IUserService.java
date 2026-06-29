@@ -1,6 +1,9 @@
 package com.lanf.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.query.PageQuery;
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.api.user.model.vo.UserPageVO;
 import com.lanf.user.model.dto.LoginSendCodeDTO;
 import com.lanf.user.model.dto.LoginUserDTO;
 import com.lanf.user.model.dto.RefreshTokenDTO;
@@ -34,4 +37,6 @@ public interface IUserService extends IService<UserDO> {
 
 
     UserDetailVO userDetailQuery();
+
+    PageResult<UserPageVO> userPageQuery(PageQuery query);
 }
