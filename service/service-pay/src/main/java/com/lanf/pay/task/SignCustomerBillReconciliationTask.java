@@ -7,6 +7,7 @@ import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 import com.lanf.pay.model.entity.ReconciliationJobLogDO;
 import com.lanf.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.pay.model.enums.BillTypeEnum;
+import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.BillSynchronizerMessage;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
@@ -154,10 +155,10 @@ public class SignCustomerBillReconciliationTask {
          * 提交扫描任务
          *
          */
-//        for (ReconciliationJobTypeEnum jobType : ReconciliationJobTypeEnum.TRADE_AND_REFUND_SET) {
-//            BillScanTask billScanTask = new BillScanTask(bathId, jobType);
-//            taskScheduler.execute(billScanTask);
-//        }
+        for (ReconciliationJobTypeEnum jobType : ReconciliationJobTypeEnum.TRADE_AND_REFUND_SET) {
+            BillScanTask billScanTask = new BillScanTask(bathId, jobType);
+            taskScheduler.execute(billScanTask);
+        }
         log.info("批次号 {} 的对账任务已提交", bathId);
     }
 

@@ -7,7 +7,6 @@ import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.ReconciliationStartMessage;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.reconciliation.IReconciliationDiffMarkerService;
-import com.lanf.pay.service.reconciliation.strategy.ReconciliationStrategy;
 import com.lanf.pay.service.reconciliation.strategy.ReconciliationStrategyFactory;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +42,7 @@ public class ReconciliationStartListener implements RocketMQListener<Reconciliat
     @Override
     public void onMessage(ReconciliationStartMessage message) {
 
+        log.info("开始对账任务 {}", message);
         ReconciliationJobTypeEnum jobType = message.getJobType();
 
         ReconciliationStart start = new ReconciliationStart();

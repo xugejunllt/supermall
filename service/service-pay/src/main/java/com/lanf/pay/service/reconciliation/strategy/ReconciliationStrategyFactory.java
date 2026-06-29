@@ -1,6 +1,7 @@
 package com.lanf.pay.service.reconciliation.strategy;
 
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import java.util.Map;
 /**
  * 对账扫描策略工厂
  */
+@Slf4j
 @Component
 public class ReconciliationStrategyFactory {
     
@@ -22,10 +24,13 @@ public class ReconciliationStrategyFactory {
     
     @PostConstruct
     public void init() {
+
         for (ReconciliationStrategy strategy : strategies) {
 
             strategyMap.put(strategy.getJobType(), strategy);
         }
+        log.info("初始化当前对账策略:{}", strategyMap);
+
     }
     
     /**
@@ -34,6 +39,8 @@ public class ReconciliationStrategyFactory {
      * @return 对应的策略实现
      */
     public ReconciliationStrategy getStrategy(ReconciliationJobTypeEnum jobType) {
+
+        log.info("当前jobtype:{}",jobType);
         ReconciliationStrategy strategy = strategyMap.get(jobType);
         if (strategy == null) {
             throw new IllegalArgumentException("不支持的任务类型: " + jobType);

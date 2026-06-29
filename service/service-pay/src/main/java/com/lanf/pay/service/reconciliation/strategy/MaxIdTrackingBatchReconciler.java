@@ -34,10 +34,10 @@ public class MaxIdTrackingBatchReconciler {
 
         if (memberOfSet) {
             log.info("已存储DB中");
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
 
 
     }

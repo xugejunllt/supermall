@@ -62,11 +62,13 @@ public class PayTest {
 
         customerBillReconciliationTask.billTradeSynchronizerTask();
 
-        Thread.sleep(10000000000L);
+
     }
     @Test
-    public void isTradeAllBillParsedTask(){
+    public void isTradeAllBillParsedTask() throws InterruptedException {
+
         customerBillReconciliationTask.isTradeAllBillParsedTask();
+        Thread.sleep(10000000000L);
     }
 
 

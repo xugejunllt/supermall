@@ -5,6 +5,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.mapper.ReconciliationJobLogMapper;
 import com.lanf.pay.model.bo.SendMessageAndUpdateResult;
 import com.lanf.pay.model.entity.ReconciliationJobLogDO;
+import com.lanf.pay.model.enums.ReconciliationJobStatusEnum;
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.ReconciliationStartMessage;
@@ -52,6 +53,7 @@ public class ReconciliationJobLogServiceImpl extends ServiceImpl<ReconciliationJ
             reconciliationJobLogService.lambdaUpdate()
                     .eq(ReconciliationJobLogDO::getBatchId, bathId)
                     .eq(ReconciliationJobLogDO::getJobType, jobType)
+                    .set(ReconciliationJobLogDO::getStatus, ReconciliationJobStatusEnum.SCAN_COMPLETED)
                     .update();
 
             SendMessageAndUpdateResult result = new SendMessageAndUpdateResult();

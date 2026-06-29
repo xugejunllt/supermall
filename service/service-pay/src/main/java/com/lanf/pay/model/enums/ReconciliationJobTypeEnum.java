@@ -51,8 +51,7 @@ public enum ReconciliationJobTypeEnum {
     public static final Set<ReconciliationJobTypeEnum> TRADE_AND_REFUND_SET = Arrays.stream(values())
             .filter(type -> type == TRADE_LONG_CHECK
                     || type == TRADE_SHORT_CHECK
-                    || type == REFUND_LONG_CHECK
-                    || type == REFUND_SHORT_CHECK)
+                    )
             .collect(Collectors.toSet());
 
     /**

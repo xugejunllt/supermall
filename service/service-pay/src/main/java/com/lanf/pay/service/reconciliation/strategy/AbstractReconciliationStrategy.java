@@ -1,7 +1,6 @@
 package com.lanf.pay.service.reconciliation.strategy;
 
 import com.lanf.common.utils.BigDecimalUtils;
-import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.pay.mapper.ReconciliationDiffMapper;
 import com.lanf.pay.model.bo.*;
@@ -19,11 +18,11 @@ import com.lanf.pay.service.reconciliation.IReconciliationJobLogService;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,6 +47,8 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
     private IReconciliationDiffService reconciliationDiffService;
     @Autowired
     private ReconciliationDiffMapper reconciliationDiffMapper;
+
+
 
 
     protected abstract ReconciliationScanPageResult<T> doPage(ReconciliationScanPage page);
@@ -78,10 +79,11 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
             ReconciliationScanPage pages = new ReconciliationScanPage();
             pages.setCurrentPage(currentPage);
             pages.setPageSize(pageSize);
+            pages.setBathId(bathId);
             ReconciliationScanPageResult<T> resultPage = doPage(pages);
             List<T> dataList = resultPage.getDataList();
             if (IStringUtils.isEmpty(dataList)){
-
+                log.warn("数据为空");
                 return;
             }
 
@@ -97,6 +99,7 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
             boolean saveBath = maxIdTrackingBatchReconciler.isSaveBath(bathId, getDiffType(),
                     getBusinessType(), tradeInfo.getId());
             if ( saveBath) {
+                currentPage++;
                 log.info("该批次已对账");
                 continue;
             }
@@ -185,29 +188,21 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
                 ReconciliationTradeStatusEnum expectedStatus = null;
                 //我方状态
                 ReconciliationTradeStatusEnum actualStatus = null;
-                //使用账单里的时间
-                Date occurTime = null;
-                String payFinishTime = null;
 
                 if (ReconciliationDiffTypeEnum.LONG.equals(getDiffType())){
 
                     expectedStatus = reconciliationTradeInfo.getReconciliationTradeStatus();
                     actualStatus = tradeInfo.getReconciliationTradeStatus();
-                    payFinishTime = reconciliationTradeInfo.getPayFinishTime();
                 } else {
                     expectedStatus = tradeInfo.getReconciliationTradeStatus();
                     actualStatus = reconciliationTradeInfo.getReconciliationTradeStatus();
-                    payFinishTime = tradeInfo.getPayFinishTime();
                 }
-                if ( !IStringUtils.isEmpty(payFinishTime)){
-                    occurTime = DateUtils.parse(payFinishTime, DateUtils.DATE_TIME);
-                }
+
                 if ( !expectedStatus.equals(actualStatus)){
                     ReconciliationDiffDO reconciliationDiffDO = new ReconciliationDiffDO();
                     reconciliationDiffDO.setBatchId(bathId);
                     reconciliationDiffDO.setBusinessOrderNo(outTradeNo);
                     reconciliationDiffDO.setPayChannel(reconciliationTradeInfo.getPayChannel());
-                    reconciliationDiffDO.setOccurTime(occurTime);
                     reconciliationDiffDO.setBusinessType(businessType);
                     reconciliationDiffDO.setExpectedStatus(expectedStatus);
                     reconciliationDiffDO.setActualStatus(actualStatus);
@@ -221,41 +216,44 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
                 /**
                  * 3.对比金额是否一致
                  */
-                //三方金额
-                BigDecimal receiptMoney = null;
-                //我方金额
-                BigDecimal doReceiptMoney = null;
 
                 if (ReconciliationDiffTypeEnum.LONG.equals(getDiffType())){
 
-                    receiptMoney = reconciliationTradeInfo.getReceiptMoney();
-                    doReceiptMoney = tradeInfo.getReceiptMoney();
-
-                } else {
+                    //三方金额
+                    BigDecimal receiptMoney = null;
                     //我方金额
-                    receiptMoney = tradeInfo.getReceiptMoney();
-                    doReceiptMoney = reconciliationTradeInfo.getReceiptMoney();
+                    BigDecimal doReceiptMoney = null;
+
+                    if (ReconciliationDiffTypeEnum.LONG.equals(getDiffType())){
+
+                        receiptMoney = reconciliationTradeInfo.getReceiptMoney();
+                        doReceiptMoney = tradeInfo.getReceiptMoney();
+
+                    } else {
+                        //我方金额
+                        receiptMoney = tradeInfo.getReceiptMoney();
+                        doReceiptMoney = reconciliationTradeInfo.getReceiptMoney();
+                    }
+
+                    //可能出现负数
+                    BigDecimal diffAmount = BigDecimalUtils.subtract(receiptMoney, doReceiptMoney);
+
+                    int compareTo = BigDecimalUtils.compareTo(receiptMoney, doReceiptMoney);
+                    if (compareTo != 0) {
+                        //金额不一致
+                        ReconciliationDiffDO reconciliationDiffDO = new ReconciliationDiffDO();
+                        reconciliationDiffDO.setBatchId(bathId);
+                        reconciliationDiffDO.setBusinessOrderNo(outTradeNo);
+                        reconciliationDiffDO.setPayChannel(reconciliationTradeInfo.getPayChannel());
+                        reconciliationDiffDO.setExpectedAmount(doReceiptMoney);
+                        reconciliationDiffDO.setActualAmount(receiptMoney);
+                        reconciliationDiffDO.setDiffAmount(diffAmount);
+                        reconciliationDiffDO.setDiffType(ReconciliationDiffTypeEnum.AMOUNT_MISMATCH);
+                        reconciliationDiffDO.setBusinessType(businessType);
+                        diffList.add(reconciliationDiffDO);
+                    }
+
                 }
-
-                //可能出现负数
-                BigDecimal diffAmount = BigDecimalUtils.subtract(receiptMoney, doReceiptMoney);
-
-                int compareTo = BigDecimalUtils.compareTo(receiptMoney, doReceiptMoney);
-                if (compareTo != 0) {
-                    //金额不一致
-                    ReconciliationDiffDO reconciliationDiffDO = new ReconciliationDiffDO();
-                    reconciliationDiffDO.setBatchId(bathId);
-                    reconciliationDiffDO.setBusinessOrderNo(outTradeNo);
-                    reconciliationDiffDO.setPayChannel(reconciliationTradeInfo.getPayChannel());
-                    reconciliationDiffDO.setExpectedAmount(doReceiptMoney);
-                    reconciliationDiffDO.setActualAmount(receiptMoney);
-                    reconciliationDiffDO.setDiffAmount(diffAmount);
-                    reconciliationDiffDO.setDiffType(ReconciliationDiffTypeEnum.AMOUNT_MISMATCH);
-                    reconciliationDiffDO.setOccurTime(occurTime);
-                    reconciliationDiffDO.setBusinessType(businessType);
-                    diffList.add(reconciliationDiffDO);
-                }
-
 
 
             }
@@ -275,11 +273,14 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
         /**
          * 这里保存 系统与三方的交易单号
          */
-        reconciliationDiffMarkerService.saveBatch(diffMarkerDOList);
-        /**
-         * 主键冲突 也能插入 因为可能出现同一笔 金额或状态不一致的单
-         */
-        reconciliationDiffMapper.batchInsertIgnore(diffList);
+        try {
+            reconciliationDiffMarkerService.saveBatch(diffMarkerDOList);
+
+            reconciliationDiffService.saveBatch(diffList);
+        } catch (DuplicateKeyException e) {
+            log.warn("重复数据");
+            return;
+        }
         maxIdTrackingBatchReconciler.addMaxId(bathId, getDiffType(),
                 getBusinessType(), start.getBathMaxId());
     }
