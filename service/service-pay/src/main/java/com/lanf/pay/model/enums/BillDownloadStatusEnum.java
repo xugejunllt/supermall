@@ -15,6 +15,11 @@ public enum BillDownloadStatusEnum {
 
 
     /**
+     * 初始化
+     */
+    INIT(0, "初始化"),
+
+    /**
      * 下载中
      */
     DOWNLOADING(1, "下载中"),

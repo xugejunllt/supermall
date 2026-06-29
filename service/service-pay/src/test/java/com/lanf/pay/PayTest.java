@@ -1,13 +1,11 @@
 package com.lanf.pay;
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
-import com.lanf.common.utils.BeanUtil;
 import com.lanf.pay.model.bo.BillDownloadUrlResultBO;
-import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
-import com.lanf.pay.service.reconciliation.impl.SignCustomerFundBillDetailServiceImpl;
+import com.lanf.pay.task.SignCustomerBillReconciliationTask;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +26,10 @@ public class PayTest {
     private SignCustomerIFundBillDetailService signCustomerIFundBillDetailService;
     @Autowired
     private SignCustomerIFundBillDetailService fundBillDetailService;
+    @Autowired
+    private SignCustomerBillReconciliationTask customerBillReconciliationTask;
+
+
     @Test
     public void billDownloadTest(){
 
@@ -54,17 +56,15 @@ public class PayTest {
             log.error("解析账单失败",e);
         }
     }
+
     @Test
-    public void  savaTest(){
+    public void billTradeSynchronizerTaskTest() throws InterruptedException {
 
-        SignCustomerFundBillDetailServiceImpl billDetailService = BeanUtil.getBean(SignCustomerFundBillDetailServiceImpl.class);
+        customerBillReconciliationTask.billTradeSynchronizerTask();
 
-        SignCustomerFundBillDetailDO signCustomerFundBillDetailDO = new SignCustomerFundBillDetailDO();
-        billDetailService.save(signCustomerFundBillDetailDO);
+        Thread.sleep(10000000000L);
     }
 
-    public static void main(String[] args) {
 
-    }
 
 }

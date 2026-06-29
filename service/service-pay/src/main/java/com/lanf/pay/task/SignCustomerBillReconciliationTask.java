@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * T+1对账任务
@@ -69,7 +68,7 @@ public class SignCustomerBillReconciliationTask {
 
         log.info("开始执行T+1下载对账单任务");
         String relativeDateString = getBathId();
-        Set<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
+        List<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
 
         BillSynchronizerMessage billSynchronizerMessage = new BillSynchronizerMessage();
 
@@ -78,28 +77,21 @@ public class SignCustomerBillReconciliationTask {
         billSynchronizerMessage.setBillDate(relativeDateString);
         for (PayChannelEnum channel : availableChannels) {
 
-            /**
-             * 控制定时任务并发执行
-             */
-            boolean exist = channelBillDownloadProgressService.exist(relativeDateString, channel);
-            if (exist) {
-                log.info("{}账单已存在", channel);
-            } else {
-                boolean downloadProgress = channelBillDownloadProgressService.addChannelBillDownloadProgress(relativeDateString,
-                        channel);
-                if (!downloadProgress) {
-                    log.info("{}账单正在下载中", channel);
-                    continue;
-                }
 
-                String flowNo = IdUtils.generateId() + "";
-                billSynchronizerMessage.setPayChannel(channel);
-                billSynchronizerMessage.setFlowNo(flowNo);
-                //
-                rocketMqClient.sendMessage(PayMqTopicName.BILL_SYNCHRONIZER_TOPIC,
-                        JsonUtils.toJsonString(billSynchronizerMessage));
-
+            boolean downloadProgress = channelBillDownloadProgressService.addChannelBillDownloadProgress(relativeDateString,
+                    channel);
+            if (!downloadProgress) {
+                log.info("{}账单正在下载中", channel);
+                continue;
             }
+
+            String flowNo = IdUtils.generateId() + "";
+            billSynchronizerMessage.setPayChannel(channel);
+            billSynchronizerMessage.setFlowNo(flowNo);
+            //
+            rocketMqClient.sendMessage(PayMqTopicName.BILL_SYNCHRONIZER_TOPIC,
+                    JsonUtils.toJsonString(billSynchronizerMessage));
+
 
         }
         log.info("执行T+1定时下载对账单任务已启动");
@@ -144,7 +136,7 @@ public class SignCustomerBillReconciliationTask {
 
     /**
      * 每天10点之后 每30分钟执行一次
-     *  检查当前 Trade账单 是否全部解析完成
+     * 检查当前 Trade账单 是否全部解析完成
      */
     @Scheduled(cron = "0 0/30 10-23 * * ?", zone = "Asia/Shanghai")
     public void isTradeAllBillParsedTask() {
@@ -174,7 +166,7 @@ public class SignCustomerBillReconciliationTask {
     }
 
     private String getBathId() {
-        return DateUtils.getRelativeDateString(new Date(), -1, DateUtils.DATE);
+        return DateUtils.getRelativeDateString(new Date(), -2, DateUtils.DATE);
     }
 
     /**
@@ -199,8 +191,6 @@ public class SignCustomerBillReconciliationTask {
 
 
     }
-
-
 
 
 }

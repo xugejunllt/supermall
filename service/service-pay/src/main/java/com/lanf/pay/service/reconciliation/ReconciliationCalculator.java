@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -22,7 +23,7 @@ public class ReconciliationCalculator {
     /**
      * 参与对账的支付渠道
      */
-    private Set<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
+    private List<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
 
 
     private static final String BILL_DOWNLOAD_PROGRESS_KEY = "bill:download:progress:%s";

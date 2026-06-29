@@ -7,8 +7,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Getter
 public enum PayChannelEnum {
@@ -32,8 +31,7 @@ public enum PayChannelEnum {
      * 可用支付渠道集合
      * 用于快速判断某个支付渠道是否可用
      */
-    public static final Set<PayChannelEnum> AVAILABLE_CHANNELS = Arrays.stream(values())
-            .collect(Collectors.toSet());
+    public static final List<PayChannelEnum> AVAILABLE_CHANNELS = Arrays.asList(PayChannelEnum.ALI_PAY);
 
     @JsonValue
     public Integer getCode() {

@@ -1,7 +1,7 @@
 package com.lanf.pay.mq.listener;
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
-import com.lanf.common.utils.IStringUtils;
+import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.BillDownloadUrlResultBO;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
@@ -28,7 +28,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * 同步账单
@@ -55,12 +59,20 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
     @Override
     public void onMessage(BillSynchronizerMessage message) {
 
+        log.info("开始下载解析账单:{}", JsonUtils.toJsonString(message));
 
+        try {
+            billSynchronizerMessage( message);
+        } catch (Exception e) {
+           log.error("下载异常",e);
+        }
+
+    }
+
+    public void billSynchronizerMessage(BillSynchronizerMessage message){
         String billDate = message.getBillDate();
         PayChannelEnum payChannel = message.getPayChannel();
 
-
-        String flowNo = message.getFlowNo();
         ChannelBillDownloadProgressDO one = channelBillDownloadProgressService.lambdaQuery()
                 .eq(ChannelBillDownloadProgressDO::getBatchId, billDate)
                 .eq(ChannelBillDownloadProgressDO::getPayChannel, payChannel)
@@ -73,8 +85,8 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
             log.info("解析任务已完成");
             return;
         }
-        if (!IStringUtils.isEmpty(one.getFlowNo())) {
-            log.info("解析任务正在执行");
+        if (BillDownloadStatusEnum.DOWNLOADING.equals(one.getStatus())) {
+            log.info("解析任务进行中");
             return;
         }
         /**
@@ -83,7 +95,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
         boolean update = channelBillDownloadProgressService.lambdaUpdate()
                 .eq(ChannelBillDownloadProgressDO::getId, one.getId())
                 .eq(ChannelBillDownloadProgressDO::getVersion, one.getVersion())
-                .set(ChannelBillDownloadProgressDO::getFlowNo, flowNo)
+                .set(ChannelBillDownloadProgressDO::getStatus, BillDownloadStatusEnum.DOWNLOADING)
                 .set(ChannelBillDownloadProgressDO::getVersion, one.getVersion() + 1)
                 .update();
         if (!update) {
@@ -114,9 +126,9 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
             /**
              * 清空流水号 这样就能重试下载任务
              */
-             channelBillDownloadProgressService.lambdaUpdate()
+            channelBillDownloadProgressService.lambdaUpdate()
                     .eq(ChannelBillDownloadProgressDO::getId, one.getId())
-                    .set(ChannelBillDownloadProgressDO::getFlowNo, null)
+                    .set(ChannelBillDownloadProgressDO::getStatus, BillDownloadStatusEnum.INIT)
                     .update();
 
             throw new MessageRetryConsumeException("查询下载地址失败");
@@ -126,10 +138,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
          */
         ParseExcelTask task =    new ParseExcelTask(  batchId,  channel, fundBillDetailService, excelFile, billType);
         taskScheduler.execute( task);
-
     }
-
-
     /**
      * 下载文件到本地临时目录
      */
@@ -145,9 +154,9 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
             }
 
             // 生成临时文件名
-            String fileName = String.format("%s_%s_%d.xlsx",
+            String fileName = String.format("%s_%s_%d.zip",
                     batchId, channel.name(), System.currentTimeMillis());
-            File tempFile = new File(tempDir + fileName);
+            File zipFile = new File(tempDir + fileName);
 
             // 下载文件（使用 HttpURLConnection 或 HttpClient）
             URL url = new URL(downloadUrl);
@@ -157,7 +166,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
             connection.setReadTimeout(60000);
 
             try (InputStream inputStream = connection.getInputStream();
-                 FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+                 FileOutputStream outputStream = new FileOutputStream(zipFile)) {
 
                 byte[] buffer = new byte[4096];
                 int bytesRead;
@@ -167,14 +176,84 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
             }
 
             connection.disconnect();
-            log.info("文件下载成功: {}", tempFile.getAbsolutePath());
+            log.info("文件下载成功: {}", zipFile.getAbsolutePath());
 
-            return tempFile;
+            // 解压 zip 文件
+            String extractDir = tempDir + "extract_" + System.currentTimeMillis() + "/";
+            File extractFolder = new File(extractDir);
+            extractFolder.mkdirs();
+            unzip(zipFile.getAbsolutePath(), extractDir);
+
+            // 查找解压后的 CSV 文件
+            File csvFile = findCsvFile(extractFolder);
+            if (csvFile == null) {
+                throw new BizException("解压后未找到 CSV 文件");
+            }
+            log.info("找到 CSV 文件: {}", csvFile.getAbsolutePath());
+            return csvFile;
 
         } catch (Exception e) {
-            log.error("文件下载失败: url={}", downloadUrl, e);
+            log.error("文件下载失败: ", e);
             throw new BizException("文件下载失败");
         }
+    }
+
+    /**
+     * 解压 zip 文件到指定目录
+     */
+    private static void unzip(String zipFilePath, String destDir) throws IOException {
+        File dir = new File(destDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        // 支付宝账单 zip 文件名含中文，需指定 GBK 编码
+        try (ZipFile zipFile = new ZipFile(zipFilePath, Charset.forName("GBK"))) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                File entryFile = new File(destDir, entry.getName());
+                if (entry.isDirectory()) {
+                    entryFile.mkdirs();
+                } else {
+                    File parent = entryFile.getParentFile();
+                    if (!parent.exists()) {
+                        parent.mkdirs();
+                    }
+                    try (InputStream is = zipFile.getInputStream(entry);
+                         FileOutputStream fos = new FileOutputStream(entryFile)) {
+                        byte[] buffer = new byte[4096];
+                        int len;
+                        while ((len = is.read(buffer)) > 0) {
+                            fos.write(buffer, 0, len);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 递归查找目录下的 CSV 文件
+     */
+    private static File findCsvFile(File dir) {
+        if (!dir.isDirectory()) {
+            return null;
+        }
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return null;
+        }
+        for (File file : files) {
+            if (file.isDirectory()) {
+                File found = findCsvFile(file);
+                if (found != null) {
+                    return found;
+                }
+            } else if (file.getName().toLowerCase().endsWith("账务明细.csv")) {
+                return file;
+            }
+        }
+        return null;
     }
 
     static  class  ParseExcelTask implements Runnable{

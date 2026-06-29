@@ -34,7 +34,7 @@ public class SignCustomerFundBillDetailServiceImpl extends ServiceImpl<SignCusto
     @Override
     public void importFromExcel(InputStream inputStream, String batchId, PayChannelEnum payChannel, File excelFile, String billType) {
 
-        log.info("开始导入对账单 Excel: batchId={}, payChannel={}", batchId, payChannel);
+        log.info("开始导入对账单 Excel: batchId={}, payChannel={},excelFile={}", batchId, payChannel,excelFile);
 
 
         Class<?> head = null;
@@ -55,21 +55,7 @@ public class SignCustomerFundBillDetailServiceImpl extends ServiceImpl<SignCusto
                     throw new BizException("不支持的支付渠道");
             }
         }
-//        if (BillTypeEnum.TRADE.getCode().equals(billType)){
-//            switch (payChannel){
-//                case ALI_PAY:
-//                    head = AalPayTradeFundBillDetailExcel.class;
-//                    listener = new AalPayTradeFundBillDetailExcel(batchId,
-//                            payChannel.getCode().toString());
-//                    break;
-//                case WECHAT_PAY:
-//                    log.error("不支持的支付渠道: {}", payChannel);
-//                    break;
-//                default:
-//                    log.error("不支持的支付渠道: {}", payChannel);
-//                    throw new BizException("不支持的支付渠道");
-//            }
-//        }
+
 
 
         try {
