@@ -690,7 +690,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         /**
          * 更新DB
          */
-        boolean update = this.lambdaUpdate().set(GoodsDO::getUpDownStatus, getUpDownStatus)
+        boolean update = this.lambdaUpdate()
+                .set(GoodsDO::getUpDownStatus, getUpDownStatus)
                 .set(GoodsDO::getVersion, updateVersion)
                 .eq(BaseEntity::getId, goodsDO.getId())
                 .eq(GoodsDO::getVersion, goodsDO.getVersion()).update();
@@ -700,7 +701,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         boolean update2 = goodsSkuService.lambdaUpdate()
                 .eq(GoodsSkuDO::getVersion, goodsDO.getVersion())
                 .set(GoodsSkuDO::getVersion, updateVersion)
-                .eq(GoodsSkuDO::getGoodsId, goodsDOId).update();
+                .eq(GoodsSkuDO::getGoodsId, goodsDOId)
+                .update();
         if (!update2) {
             throw new BizException("更新失败!");
         }
