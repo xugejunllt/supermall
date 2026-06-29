@@ -3,6 +3,7 @@ package com.lanf.pay.model.bo;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @Data
 public class TransferResult implements Serializable {
@@ -11,8 +12,8 @@ public class TransferResult implements Serializable {
 
     private Boolean transferSuccess;
 
+    private Date transDate;
 
-    private String errorMsg;
 
 
 

@@ -3,7 +3,6 @@ package com.lanf.pay.model.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.pay.model.enums.TransferFlowStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -39,19 +38,12 @@ private static final long serialVersionUID=1L;
     @ApiModelProperty(value = "订单总金额，即发起转账时传入的金额")
     private BigDecimal totalAmount;
 
-    @ApiModelProperty(value = "实际转账金额")
-    private BigDecimal transAmount;
-
-    @ApiModelProperty(value = "0:退款成功 1：退款失败")
-    private TransferFlowStatusEnum status;
-
     @ApiModelProperty(value = "转账完成时间")
     private Date payFinishTime;
 
     private String payFinishDate;
 
-    @ApiModelProperty(value = "退款失败原因")
-    private String failReason;
+
 
 
 

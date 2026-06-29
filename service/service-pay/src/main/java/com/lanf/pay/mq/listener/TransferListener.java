@@ -77,13 +77,16 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
         TransferResult result = paymentService.transfer(transferBO);
 
         log.info("转账完成");
-        QueryTransferResultMessage queryTransferResultMessage = getQueryTransferResultMessage(message);
+        QueryTransferResultMessage queryTransferResultMessage = getQueryTransferResultMessage(message,result);
         rocketMqClient.sendMessage(QUERY_TRANSFER_RESULT_TOPIC, JsonUtils.toJsonString(queryTransferResultMessage));
     }
 
-    private static QueryTransferResultMessage getQueryTransferResultMessage(TransferMessage message) {
+    private static QueryTransferResultMessage getQueryTransferResultMessage(TransferMessage message, TransferResult result) {
+
         QueryTransferResultMessage queryTransferResultMessage = new QueryTransferResultMessage();
         queryTransferResultMessage.setOutBizNo(message.getOutBizNo());
+        queryTransferResultMessage.setTransDate(result.getTransDate());
+
         return queryTransferResultMessage;
     }
 

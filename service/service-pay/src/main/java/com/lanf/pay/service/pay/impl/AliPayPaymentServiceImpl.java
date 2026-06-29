@@ -421,7 +421,6 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             transferSceneReportInfos.add(transferSceneReportInfos0);
             model.setTransferSceneReportInfos(transferSceneReportInfos);
 
-
             request.setBizModel(model);
             AlipayFundTransUniTransferResponse response = alipayClient.certificateExecute(request);
             String code = response.getCode();
@@ -430,11 +429,11 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             log.info("支付宝转账响应结果,code={},subCode={}", code, subCode);
 
             if ("10000".equals(code)) {
-
+                Date transferTime = DateUtils.parse(response.getTransDate(),DateUtils.DATE_TIME);
                 resultBO.setTransferSuccess(true);
+                resultBO.setTransDate(transferTime);
                 log.info("支付宝转账成功:outBizNo={},orderId={}", transferBO.getOutBizNo(), response.getOrderId());
                 return resultBO;
-
             }
             log.error("支付宝转账异常");
             throw new MessageRetryConsumeException("转账异常");

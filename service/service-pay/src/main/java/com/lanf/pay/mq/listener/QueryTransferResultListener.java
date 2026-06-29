@@ -8,7 +8,6 @@ import com.lanf.pay.model.bo.TransferQueryResultBO;
 import com.lanf.pay.model.entity.TransferOrderDO;
 import com.lanf.pay.model.entity.TransferOrderFlowDO;
 import com.lanf.pay.model.enums.RefundStatusEnum;
-import com.lanf.pay.model.enums.TransferFlowStatusEnum;
 import com.lanf.pay.model.enums.TransferStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
@@ -74,10 +73,7 @@ public class QueryTransferResultListener implements RocketMQListener<QueryTransf
 
         PaymentService paymentService = paymentServiceFactory.getPaymentService(oned.getTransferChannel().getCode());
         TransferQueryResultBO queryResultBO = paymentService.queryTransferResult(message.getOutBizNo(), null);
-
-
-        TransferOrderFlowDO transferOrderFlowDO = buildTransferOrderFlowDO(oned, queryResultBO);
-
+        TransferOrderFlowDO transferOrderFlowDO = buildTransferOrderFlowDO(oned,message);
         TransferSuccessMessage transferSuccessMessage = buildTransferSuccessMessage(oned, queryResultBO);
 
         TransferStatusEnum transferStatusEnum = null;
@@ -126,27 +122,18 @@ public class QueryTransferResultListener implements RocketMQListener<QueryTransf
         return transferSuccessMessage;
     }
 
-    private TransferOrderFlowDO buildTransferOrderFlowDO(TransferOrderDO oned, TransferQueryResultBO queryResultBO) {
-        TransferFlowStatusEnum transferFlowStatus = null;
-        if (queryResultBO.getResult()) {
-            transferFlowStatus = TransferFlowStatusEnum.SUCCESS;
-        } else {
-            transferFlowStatus = TransferFlowStatusEnum.FAILED;
-        }
+    private TransferOrderFlowDO buildTransferOrderFlowDO(TransferOrderDO oned,QueryTransferResultMessage message) {
+
         TransferOrderFlowDO transferOrderFlowDO = new TransferOrderFlowDO();
         transferOrderFlowDO.setOutTradeNo(oned.getOutTradeNo());
         transferOrderFlowDO.setTransferChannel(oned.getTransferChannel());
         transferOrderFlowDO.setFromAccount(oned.getFromAccount());
         transferOrderFlowDO.setIncomeAccount(oned.getIncomeAccount());
         transferOrderFlowDO.setTotalAmount(oned.getTotalAmount());
-        transferOrderFlowDO.setTransAmount(queryResultBO.getTransAmount());
-        transferOrderFlowDO.setStatus(transferFlowStatus);
-        transferOrderFlowDO.setPayFinishTime(queryResultBO.getFinishTime());
-        if (queryResultBO.getFinishTime() != null) {
-            transferOrderFlowDO.setPayFinishDate(DateUtils.format(queryResultBO.getFinishTime(),
+        transferOrderFlowDO.setPayFinishTime(message.getTransDate());
+        transferOrderFlowDO.setPayFinishDate(DateUtils.format(message.getTransDate(),
                     DateUtils.DATE));
-        }
-        transferOrderFlowDO.setFailReason(queryResultBO.getErrorMsg());
+
         return transferOrderFlowDO;
     }
 

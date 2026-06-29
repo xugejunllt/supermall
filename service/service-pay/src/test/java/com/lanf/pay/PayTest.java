@@ -64,7 +64,10 @@ public class PayTest {
 
         Thread.sleep(10000000000L);
     }
-
+    @Test
+    public void isTradeAllBillParsedTask(){
+        customerBillReconciliationTask.isTradeAllBillParsedTask();
+    }
 
 
 }
