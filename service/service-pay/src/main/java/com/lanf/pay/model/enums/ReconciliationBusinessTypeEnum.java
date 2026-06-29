@@ -26,7 +26,7 @@ public enum ReconciliationBusinessTypeEnum {
     /**
      * 转账
      */
-    TRANSFER(3, "转账");
+    TRANSFER(2, "转账");
 
     @EnumValue
     @JsonValue

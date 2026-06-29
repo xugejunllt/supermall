@@ -10,7 +10,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @MapperScan(basePackages = {"com.lanf.pay.mapper","com.lanf.tcc.mapper","com.lanf.rocketmq.mapper"})
 @SpringBootApplication(scanBasePackages="com.lanf",exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
-//@ImportResource({"classpath:applicationContext.xml"})
 
 @EnableDiscoveryClient  //nacos注册
 @EnableFeignClients(basePackages = {"com.lanf.finance.api"})

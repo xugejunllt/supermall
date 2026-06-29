@@ -60,12 +60,15 @@ public abstract class AbstractFundBillDetailReadListener<T,S> implements ReadLis
     @Override
     public void invoke(T data, AnalysisContext context) {
 
-        //数量+1
-        currentParseCount.getAndIncrement();
+
 
         // 转换 Excel 数据为 DO 对象
         S detailDO = convertToDO(data);
-
+        if (detailDO == null){
+            return;
+        }
+        //数量+1
+        currentParseCount.getAndIncrement();
         /////
         cachedDataList.add(detailDO);
 
@@ -79,11 +82,12 @@ public abstract class AbstractFundBillDetailReadListener<T,S> implements ReadLis
     @Override
     public void doAfterAllAnalysed(AnalysisContext context) {
         // 处理剩余数据
+        log.info("Excel 解析完成");
+
         if (!cachedDataList.isEmpty()) {
             saveBatch();
             cachedDataList.clear();
         }
-        log.info("Excel 解析完成");
         /**
          * 更新任务状态为已完成
          */

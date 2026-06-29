@@ -33,11 +33,11 @@ server:
   port: 9009
   servlet:
     context-path: /pay
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
-
-    type-enums-package: com.lanf.pay.client.model.enums
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
+#
+#    type-enums-package: com.lanf.pay.client.model.enums
 pay:
   #支付操作时间 分钟
   expireInterval: 60

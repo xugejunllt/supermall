@@ -4,14 +4,18 @@ package com.lanf.pay.service.reconciliation.excel.impl;
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.BeanUtil;
-import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
+import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.service.reconciliation.excel.AbstractFundBillDetailReadListener;
+import com.lanf.pay.service.reconciliation.impl.SignCustomerFundBillDetailServiceImpl;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -21,50 +25,50 @@ import java.util.List;
 @Slf4j
 @Getter
 @Setter
+@ToString
 public class AalPaySignCustomerFundBillDetailExcel extends AbstractFundBillDetailReadListener<AalPaySignCustomerFundBillDetailExcel,
         SignCustomerFundBillDetailDO> {
 
-    @ExcelProperty(index = 0, value = "支付渠道")
-    private String payChannel;
+    private static List<String> breakKey = Arrays.asList("#", "账务流水号");
 
-    @ExcelProperty(index = 1, value = "支付完成日期")
-    private String payFinishDate;
+    @ExcelProperty(index = 0, value = "财务流水号")
+    private String financialSerialNo;
+
+    @ExcelProperty(index = 1, value = "业务流水号")
+    private String businessSerialNo;
 
     @ExcelProperty(index = 2, value = "商户订单号")
     private String merchantOrderNo;
 
-    @ExcelProperty(index = 3, value = "财务流水号")
-    private String financialSerialNo;
+    @ExcelProperty(index = 3, value = "商品名称")
+    private String goodsName;
 
-    @ExcelProperty(index = 4, value = "业务流水号")
-    private String businessSerialNo;
-
-    @ExcelProperty(index = 5, value = "发生时间")
+    @ExcelProperty(index = 4, value = "发生时间")
     private String occurTimeStr;
 
-    @ExcelProperty(index = 6, value = "对方账号")
+    @ExcelProperty(index = 5, value = "对方账号")
     private String counterpartyAccount;
 
-    @ExcelProperty(index = 7, value = "收入金额")
+    @ExcelProperty(index = 6, value = "收入金额")
     private String incomeAmountStr;
 
-    @ExcelProperty(index = 8, value = "支出金额")
+    @ExcelProperty(index = 7, value = "支出金额")
     private String expenseAmountStr;
 
-    @ExcelProperty(index = 9, value = "账户余额")
+    @ExcelProperty(index = 8, value = "账户余额")
     private String accountBalanceStr;
 
-    @ExcelProperty(index = 10, value = "交易渠道")
+    @ExcelProperty(index = 9, value = "交易渠道")
     private String transactionChannel;
 
-    @ExcelProperty(index = 11, value = "业务类型")
+    @ExcelProperty(index = 10, value = "业务类型")
     private String businessType;
 
-    @ExcelProperty(index = 12, value = "备注")
+    @ExcelProperty(index = 11, value = "备注")
     private String remark;
 
     public AalPaySignCustomerFundBillDetailExcel() {
-        super(null,null);
+        super(null, null);
     }
 
     public AalPaySignCustomerFundBillDetailExcel(String batchId, String payChannel) {
@@ -73,6 +77,15 @@ public class AalPaySignCustomerFundBillDetailExcel extends AbstractFundBillDetai
 
     @Override
     protected SignCustomerFundBillDetailDO convertToDO(AalPaySignCustomerFundBillDetailExcel excel) {
+
+        String financialSerialNo1 = excel.getFinancialSerialNo();
+
+        for (String s : breakKey){
+            if (financialSerialNo1.contains(s)){
+                return null;
+            }
+
+        }
         SignCustomerFundBillDetailDO detailDO = new SignCustomerFundBillDetailDO();
 
         detailDO.setMerchantOrderNo(excel.getMerchantOrderNo());
@@ -80,16 +93,16 @@ public class AalPaySignCustomerFundBillDetailExcel extends AbstractFundBillDetai
         detailDO.setBusinessSerialNo(excel.getBusinessSerialNo());
         detailDO.setCounterpartyAccount(excel.getCounterpartyAccount());
         detailDO.setTransactionChannel(excel.getTransactionChannel());
-        ReconciliationBusinessTypeEnum byCode = ReconciliationBusinessTypeEnum.getByCode(Integer.parseInt(excel.getBusinessType()));
+        ReconciliationBusinessTypeEnum byCode = getReconciliationBusinessTypeEnum(excel.businessType);
         detailDO.setBusinessType(byCode);
         detailDO.setRemark(excel.getRemark());
 
         // 转换金额
         detailDO.setIncomeAmount(parseBigDecimal(excel.getIncomeAmountStr()));
-        detailDO.setExpenseAmount(parseBigDecimal(excel.getExpenseAmountStr()));
+        detailDO.setExpenseAmount(parseBigDecimal(excel.getExpenseAmountStr()).abs());
         detailDO.setAccountBalance(parseBigDecimal(excel.getAccountBalanceStr()));
         // 设置批次信息
-        detailDO.setPayChannel( PayChannelEnum.getByCode(Integer.parseInt(super.payChannel)));
+        detailDO.setPayChannel(PayChannelEnum.getByCode(Integer.parseInt(super.payChannel)));
         detailDO.setPayFinishDate(super.batchId);
         // 转换时间
         detailDO.setOccurTime(parseLocalDateTime(excel.getOccurTimeStr()));
@@ -97,12 +110,33 @@ public class AalPaySignCustomerFundBillDetailExcel extends AbstractFundBillDetai
         return detailDO;
     }
 
+    private ReconciliationBusinessTypeEnum getReconciliationBusinessTypeEnum(String businessType) {
+        if ("在线支付".equals(businessType)) {
+            return ReconciliationBusinessTypeEnum.PAYMENT;
+        }
+        if ("转账".equals(businessType)) {
+            return ReconciliationBusinessTypeEnum.TRANSFER;
+        }
+        if ("退款".equals(businessType)) {
+            return ReconciliationBusinessTypeEnum.REFUND;
+        }
+        log.error("不支持的业务类型");
+        throw new BizException("不支持的业务类型");
+
+    }
+
+
     @Override
     protected void batchInsertIgnore(List<SignCustomerFundBillDetailDO> list) {
 
-        SignCustomerFundBillDetailMapper detailMapper = BeanUtil.getBean(SignCustomerFundBillDetailMapper.class);
-        detailMapper.batchInsertIgnore(list);
+        SignCustomerFundBillDetailServiceImpl billDetailService = BeanUtil.getBean(SignCustomerFundBillDetailServiceImpl.class);
 
+        log.info("批量插入数据:{}", list);
+        try {
+            billDetailService.saveBatch(list,list.size());
+        } catch (DuplicateKeyException e) {
+            log.warn("存在重复的数据");
+        }
     }
 
 

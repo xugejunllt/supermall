@@ -10,12 +10,12 @@ import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.model.enums.BillTypeEnum;
 import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
 import com.lanf.pay.service.reconciliation.excel.impl.AalPaySignCustomerFundBillDetailExcel;
-import com.lanf.pay.service.reconciliation.excel.impl.AalPayTradeFundBillDetailExcel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 /**
  * <p>
@@ -55,26 +55,27 @@ public class SignCustomerFundBillDetailServiceImpl extends ServiceImpl<SignCusto
                     throw new BizException("不支持的支付渠道");
             }
         }
-        if (BillTypeEnum.TRADE.getCode().equals(billType)){
-            switch (payChannel){
-                case ALI_PAY:
-                    head = AalPayTradeFundBillDetailExcel.class;
-                    listener = new AalPayTradeFundBillDetailExcel(batchId,
-                            payChannel.getCode().toString());
-                    break;
-                case WECHAT_PAY:
-                    log.error("不支持的支付渠道: {}", payChannel);
-                    break;
-                default:
-                    log.error("不支持的支付渠道: {}", payChannel);
-                    throw new BizException("不支持的支付渠道");
-            }
-        }
+//        if (BillTypeEnum.TRADE.getCode().equals(billType)){
+//            switch (payChannel){
+//                case ALI_PAY:
+//                    head = AalPayTradeFundBillDetailExcel.class;
+//                    listener = new AalPayTradeFundBillDetailExcel(batchId,
+//                            payChannel.getCode().toString());
+//                    break;
+//                case WECHAT_PAY:
+//                    log.error("不支持的支付渠道: {}", payChannel);
+//                    break;
+//                default:
+//                    log.error("不支持的支付渠道: {}", payChannel);
+//                    throw new BizException("不支持的支付渠道");
+//            }
+//        }
 
 
         try {
 
             EasyExcel.read(inputStream, head, listener)
+                    .charset(Charset.forName("GBK"))
                     .sheet()
                     .doRead();
 
@@ -83,15 +84,15 @@ public class SignCustomerFundBillDetailServiceImpl extends ServiceImpl<SignCusto
         } catch (Exception e) {
             log.error("对账单 Excel 导入失败: batchId={}, payChannel={}", batchId, payChannel, e);
         } finally {
-            // 无论成功或失败，都删除临时文件
-            if (excelFile != null && excelFile.exists()) {
-                boolean deleted = excelFile.delete();
-                if (deleted) {
-                    log.info("临时文件已清理: {}", excelFile.getAbsolutePath());
-                } else {
-                    log.warn("临时文件清理失败: {}", excelFile.getAbsolutePath());
-                }
-            }
+//            // 无论成功或失败，都删除临时文件
+//            if (excelFile != null && excelFile.exists()) {
+//                boolean deleted = excelFile.delete();
+//                if (deleted) {
+//                    log.info("临时文件已清理: {}", excelFile.getAbsolutePath());
+//                } else {
+//                    log.warn("临时文件清理失败: {}", excelFile.getAbsolutePath());
+//                }
+//            }
         }
     }
 }

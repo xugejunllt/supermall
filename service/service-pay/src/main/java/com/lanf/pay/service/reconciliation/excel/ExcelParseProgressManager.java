@@ -29,7 +29,7 @@ public class ExcelParseProgressManager {
 
         boolean memberOfSet = redissonCacheService.isMemberOfSet(key, String.valueOf(currentParseCount));
 
-        if (memberOfSet) {
+        if (!memberOfSet) {
             log.info("已存储DB中");
             return false;
         }
