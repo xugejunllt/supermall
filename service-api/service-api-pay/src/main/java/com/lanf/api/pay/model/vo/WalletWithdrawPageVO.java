@@ -1,6 +1,6 @@
 package com.lanf.api.pay.model.vo;
 
-import com.lanf.pay.model.enums.WithdrawStatusEnum;
+import com.lanf.api.pay.model.enums.WithdrawStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;

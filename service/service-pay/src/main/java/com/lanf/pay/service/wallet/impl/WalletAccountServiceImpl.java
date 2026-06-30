@@ -29,7 +29,7 @@ import com.lanf.pay.model.entity.WalletAccountFlowDO;
 import com.lanf.pay.model.entity.WalletWithdrawDO;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.model.enums.WalletEventTypeEnum;
-import com.lanf.pay.model.enums.WithdrawStatusEnum;
+import com.lanf.api.pay.model.enums.WithdrawStatusEnum;
 import com.lanf.pay.model.query.WalletAccountFlowPageQuery;
 import com.lanf.pay.model.vo.WalletAccountFlowPageVO;
 import com.lanf.pay.model.vo.WalletAccountVO;

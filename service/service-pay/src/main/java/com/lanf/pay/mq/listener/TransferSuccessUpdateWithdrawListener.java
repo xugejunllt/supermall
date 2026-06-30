@@ -11,7 +11,7 @@ import com.lanf.pay.model.entity.WalletAccountDO;
 import com.lanf.pay.model.entity.WalletAccountFlowDO;
 import com.lanf.pay.model.entity.WalletWithdrawDO;
 import com.lanf.pay.model.enums.WalletEventTypeEnum;
-import com.lanf.pay.model.enums.WithdrawStatusEnum;
+import com.lanf.api.pay.model.enums.WithdrawStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.service.wallet.IWalletAccountFlowService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
