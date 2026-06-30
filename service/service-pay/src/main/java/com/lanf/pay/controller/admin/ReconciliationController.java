@@ -2,8 +2,7 @@ package com.lanf.pay.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.pay.mapper.ChannelBillDownloadProgressMapper;
-import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
+import com.lanf.pay.mapper.*;
 import com.lanf.pay.model.query.ReconciliationDiffPageQuery;
 import com.lanf.pay.model.query.ReconciliationJobLogSumQuery;
 import com.lanf.pay.model.vo.ReconciliationDiffPageVO;
@@ -11,6 +10,7 @@ import com.lanf.pay.model.vo.ReconciliationJobLogSumVO;
 import com.lanf.pay.service.reconciliation.IReconciliationDiffService;
 import com.lanf.pay.service.reconciliation.IReconciliationJobLogService;
 import com.lanf.pay.service.reconciliation.excel.ExcelParseProgressManager;
+import com.lanf.pay.service.reconciliation.strategy.MaxIdTrackingBatchReconciler;
 import com.lanf.pay.task.BatchIdContext;
 import com.lanf.pay.task.SignCustomerBillReconciliationTask;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +39,14 @@ public class ReconciliationController {
     private ChannelBillDownloadProgressMapper channelBillDownloadProgressMapper;
     @Autowired
     private SignCustomerFundBillDetailMapper signCustomerFundBillDetailMapper;
-
-
+    @Autowired
+    private MaxIdTrackingBatchReconciler maxIdTrackingBatchReconciler;
+    @Autowired
+    private ReconciliationDiffMapper reconciliationDiffMapper;
+    @Autowired
+    private ReconciliationDiffMarkerMapper reconciliationDiffMarkerMapper;
+    @Autowired
+    private ReconciliationJobLogMapper reconciliationJobLogMapper;
 
     @GetMapping("/reconciliationJobLogSumQuery")
     public Result<List<ReconciliationJobLogSumVO>> reconciliationJobLogSumQuery(@Validated ReconciliationJobLogSumQuery query) {
@@ -74,4 +80,21 @@ public class ReconciliationController {
         return Result.ok();
     }
 
+    /**
+     * 手动开启对账任务
+     *
+     *
+     */
+    @GetMapping("/isTradeAllBillParsedTask")
+    public Result<Void> isTradeAllBillParsedTask(@Validated String bathId) {
+
+        log.info("手动开启账单下载任务:{}", bathId);
+        maxIdTrackingBatchReconciler.deleteAllReconciliationKeys();
+        reconciliationDiffMapper.deleteAll();
+        reconciliationDiffMarkerMapper.deleteAll();
+        reconciliationJobLogMapper.deleteAll();
+        BatchIdContext.setBatchId(bathId);
+        signCustomerBillReconciliationTask.isTradeAllBillParsedTask();
+        return Result.ok();
+    }
 }

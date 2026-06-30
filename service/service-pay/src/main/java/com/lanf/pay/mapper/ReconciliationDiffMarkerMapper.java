@@ -21,4 +21,9 @@ public interface ReconciliationDiffMarkerMapper extends BaseMapper<Reconciliatio
      */
     int batchInsertIgnore(@Param("list") List<ReconciliationDiffMarkerDO> list);
 
+    /**
+     * 物理删除全表数据
+     */
+    int deleteAll();
+
 }

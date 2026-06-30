@@ -21,4 +21,9 @@ public interface ReconciliationJobLogMapper extends BaseMapper<ReconciliationJob
      */
     int batchInsertIgnore(@Param("list") List<ReconciliationJobLogDO> list);
 
+    /**
+     * 物理删除全表数据
+     */
+    int deleteAll();
+
 }

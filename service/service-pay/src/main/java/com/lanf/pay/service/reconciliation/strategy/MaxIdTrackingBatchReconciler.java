@@ -4,8 +4,13 @@ import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RKeys;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 批量对账，并且在每完成一笔对账后，将当前处理到的最大账单ID写入Redis（用于记录进度、断点续传等）
@@ -19,6 +24,9 @@ public class MaxIdTrackingBatchReconciler {
 
     @Autowired
     private RedissonCacheService redissonCacheService;
+
+    @Autowired
+    private RedissonClient redissonClient;
 
     /**
      * 是否能够批量保存
@@ -54,5 +62,22 @@ public class MaxIdTrackingBatchReconciler {
 
         redissonCacheService.addToSet(key, String.valueOf(bathMaxId), 1,
                 java.util.concurrent.TimeUnit.DAYS);
+    }
+
+    /**
+     * 批量删除 reconciliantion: 前缀的 key
+     */
+    public void deleteAllReconciliationKeys() {
+        String pattern = "reconciliantion:*";
+        RKeys keys = redissonClient.getKeys();
+        Iterable<String> keyIterator = keys.getKeysByPattern(pattern);
+        List<String> keyList = new ArrayList<>();
+        for (String key : keyIterator) {
+            keyList.add(key);
+        }
+        if (!keyList.isEmpty()) {
+            keys.delete(keyList.toArray(new String[0]));
+            log.info("批量删除对账进度key完成，数量: {}", keyList.size());
+        }
     }
 }

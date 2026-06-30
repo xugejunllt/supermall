@@ -23,4 +23,8 @@
         </foreach>
     </insert>
 
+    <delete id="deleteAll">
+        DELETE FROM reconciliation_job_log
+    </delete>
+
 </mapper>

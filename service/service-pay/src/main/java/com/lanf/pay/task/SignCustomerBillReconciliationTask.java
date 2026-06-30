@@ -7,6 +7,7 @@ import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 import com.lanf.pay.model.entity.ReconciliationJobLogDO;
 import com.lanf.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.pay.model.enums.BillTypeEnum;
+import com.lanf.pay.model.enums.ReconciliationJobStatusEnum;
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.BillSynchronizerMessage;
@@ -72,30 +73,30 @@ public class SignCustomerBillReconciliationTask {
         }
         try {
             BatchIdContext.setBatchId(bathId);
-        List<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
+            List<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
 
-        BillSynchronizerMessage billSynchronizerMessage = new BillSynchronizerMessage();
+            BillSynchronizerMessage billSynchronizerMessage = new BillSynchronizerMessage();
 
-        billSynchronizerMessage.setBillType(billType);
+            billSynchronizerMessage.setBillType(billType);
 
-        billSynchronizerMessage.setBillDate(bathId);
-        for (PayChannelEnum channel : availableChannels) {
+            billSynchronizerMessage.setBillDate(bathId);
+            for (PayChannelEnum channel : availableChannels) {
 
 
-            boolean downloadProgress = channelBillDownloadProgressService.addChannelBillDownloadProgress(bathId,
-                    channel);
-            if (!downloadProgress) {
-                log.info("{}账单正在下载中", channel);
-                continue;
+                boolean downloadProgress = channelBillDownloadProgressService.addChannelBillDownloadProgress(bathId,
+                        channel);
+                if (!downloadProgress) {
+                    log.info("{}账单正在下载中", channel);
+                    continue;
+                }
+
+                billSynchronizerMessage.setPayChannel(channel);
+                rocketMqClient.sendMessage(PayMqTopicName.BILL_SYNCHRONIZER_TOPIC,
+                        JsonUtils.toJsonString(billSynchronizerMessage));
+
+
             }
-
-            billSynchronizerMessage.setPayChannel(channel);
-            rocketMqClient.sendMessage(PayMqTopicName.BILL_SYNCHRONIZER_TOPIC,
-                    JsonUtils.toJsonString(billSynchronizerMessage));
-
-
-        }
-        log.info("执行T+1定时下载对账单任务已启动");
+            log.info("执行T+1定时下载对账单任务已启动");
         } finally {
             BatchIdContext.clear();
         }
@@ -113,29 +114,29 @@ public class SignCustomerBillReconciliationTask {
         try {
             BatchIdContext.setBatchId(bathId);
 
-        List<ChannelBillDownloadProgressDO> downloadProgressDOS =
-                channelBillDownloadProgressService.lambdaQuery()
-                        .eq(ChannelBillDownloadProgressDO::getBillType, billType)
-                        .eq(ChannelBillDownloadProgressDO::getBatchId, bathId).list();
+            List<ChannelBillDownloadProgressDO> downloadProgressDOS =
+                    channelBillDownloadProgressService.lambdaQuery()
+                            .eq(ChannelBillDownloadProgressDO::getBillType, billType)
+                            .eq(ChannelBillDownloadProgressDO::getBatchId, bathId).list();
 
-        for (ChannelBillDownloadProgressDO downloadProgressDO : downloadProgressDOS) {
+            for (ChannelBillDownloadProgressDO downloadProgressDO : downloadProgressDOS) {
 
-            BillDownloadStatusEnum status = downloadProgressDO.getStatus();
+                BillDownloadStatusEnum status = downloadProgressDO.getStatus();
 
-            if (BillDownloadStatusEnum.DOWNLOADING.equals(status)) {
-                log.info("{}账单正在下载中,发送补投任务", downloadProgressDO.getPayChannel());
+                if (BillDownloadStatusEnum.DOWNLOADING.equals(status)) {
+                    log.info("{}账单正在下载中,发送补投任务", downloadProgressDO.getPayChannel());
 
-                try {
+                    try {
 
-                    channelBillDownloadProgressService.redeliverTask(downloadProgressDO, billType);
+                        channelBillDownloadProgressService.redeliverTask(downloadProgressDO, billType);
 
-                } catch (Exception e) {
-                    log.error("发送补投任务异常", e);
+                    } catch (Exception e) {
+                        log.error("发送补投任务异常", e);
+                    }
+
                 }
 
             }
-
-        }
 
 
         } finally {
@@ -150,31 +151,44 @@ public class SignCustomerBillReconciliationTask {
     @Scheduled(cron = "0 0/30 10-23 * * ?", zone = "Asia/Shanghai")
     public void isTradeAllBillParsedTask() {
 
-        String bathId = getBathId();
+        String bathId = BatchIdContext.getBatchId();
+        if (bathId == null) {
+            bathId = getBathId();
+        }
         try {
             BatchIdContext.setBatchId(bathId);
-        List<ChannelBillDownloadProgressDO> downloadProgressDOS =
-                channelBillDownloadProgressService.lambdaQuery()
-                        .eq(ChannelBillDownloadProgressDO::getBillType, billType)
-                        .eq(ChannelBillDownloadProgressDO::getBatchId, bathId).list();
+            List<ChannelBillDownloadProgressDO> downloadProgressDOS =
+                    channelBillDownloadProgressService.lambdaQuery()
+                            .eq(ChannelBillDownloadProgressDO::getBillType, billType)
+                            .eq(ChannelBillDownloadProgressDO::getBatchId, bathId).list();
 
-        boolean allCompleted = downloadProgressDOS.stream()
-                .allMatch(progress -> BillDownloadStatusEnum.COMPLETED.equals(progress.getStatus()));
-        if (!allCompleted) {
-            log.warn("批次号 {} 的所有对账单未全部下载完成", bathId);
-            return;
-        }
-        log.info("批次号 {} 的所有对账单已全部下载完成", bathId);
-        reconciliationResultService.addReconciliationResultAndJobLog(bathId);
-        /**
-         * 提交扫描任务
-         *
-         */
-        for (ReconciliationJobTypeEnum jobType : ReconciliationJobTypeEnum.TRADE_AND_REFUND_SET) {
-            BillScanTask billScanTask = new BillScanTask(bathId, jobType);
-            taskScheduler.execute(billScanTask);
-        }
-        log.info("批次号 {} 的对账任务已提交", bathId);
+            boolean allCompleted = downloadProgressDOS.stream()
+                    .allMatch(progress -> BillDownloadStatusEnum.COMPLETED.equals(progress.getStatus()));
+            if (!allCompleted) {
+                log.warn("批次号 {} 的所有对账单未全部下载完成", bathId);
+                return;
+            }
+            log.info("批次号 {} 的所有对账单已全部下载完成", bathId);
+            reconciliationResultService.addReconciliationResultAndJobLog(bathId);
+            /**
+             * 提交扫描任务
+             *
+             */
+            for (ReconciliationJobTypeEnum jobType : ReconciliationJobTypeEnum.TRADE_AND_REFUND_SET) {
+                BillScanTask billScanTask = new BillScanTask(bathId, jobType);
+
+                ReconciliationJobLogDO one = reconciliationJobLogService.lambdaQuery()
+                        .eq(ReconciliationJobLogDO::getBatchId, bathId)
+                        .eq(ReconciliationJobLogDO::getJobType, jobType).one();
+
+                if (one != null && one.getStatus().equals(ReconciliationJobStatusEnum.SCAN_COMPLETED)) {
+                    log.warn("该对账任务已完成");
+                    continue;
+                }
+
+                taskScheduler.execute(billScanTask);
+            }
+            log.info("批次号 {} 的对账任务已提交", bathId);
         } finally {
             BatchIdContext.clear();
         }
@@ -193,18 +207,18 @@ public class SignCustomerBillReconciliationTask {
         String bathId = getBathId();
         try {
             BatchIdContext.setBatchId(bathId);
-        List<ReconciliationJobLogDO> jobLogDOList = reconciliationJobLogService.lambdaQuery()
-                .eq(ReconciliationJobLogDO::getBatchId, bathId)
-                .list();
-        for (ReconciliationJobLogDO jobLogDO : jobLogDOList) {
+            List<ReconciliationJobLogDO> jobLogDOList = reconciliationJobLogService.lambdaQuery()
+                    .eq(ReconciliationJobLogDO::getBatchId, bathId)
+                    .list();
+            for (ReconciliationJobLogDO jobLogDO : jobLogDOList) {
 
-            if (jobLogDO.getStatus().isExecuting()) {
-                log.info("批次号 {} 的任务 {} 正在执行,重新投递", bathId, jobLogDO.getJobType());
-                BillScanTask billScanTask = new BillScanTask(bathId, jobLogDO.getJobType());
-                taskScheduler.execute(billScanTask);
+                if (jobLogDO.getStatus().isExecuting()) {
+                    log.info("批次号 {} 的任务 {} 正在执行,重新投递", bathId, jobLogDO.getJobType());
+                    BillScanTask billScanTask = new BillScanTask(bathId, jobLogDO.getJobType());
+                    taskScheduler.execute(billScanTask);
+                }
+
             }
-
-        }
 
 
         } finally {

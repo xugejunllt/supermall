@@ -37,4 +37,8 @@
         </foreach>
     </insert>
 
+    <delete id="deleteAll">
+        DELETE FROM reconciliation_diff
+    </delete>
+
 </mapper>
