@@ -2,6 +2,9 @@ package com.lanf.pay.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lanf.pay.model.entity.ReconciliationJobLogDO;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -12,5 +15,10 @@ import com.lanf.pay.model.entity.ReconciliationJobLogDO;
  * @since 2026-04-30
  */
 public interface ReconciliationJobLogMapper extends BaseMapper<ReconciliationJobLogDO> {
+
+    /**
+     * 批量插入，忽略重复
+     */
+    int batchInsertIgnore(@Param("list") List<ReconciliationJobLogDO> list);
 
 }

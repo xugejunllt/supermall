@@ -15,8 +15,6 @@ import java.util.List;
  * @since 2026-04-29
  */
 public interface SignCustomerFundBillDetailMapper extends BaseMapper<SignCustomerFundBillDetailDO> {
-    /**
-     * 批量插入，忽略重复
-     */
-    int batchInsertIgnore( @Param("list") List<SignCustomerFundBillDetailDO> list);
+
+
 }

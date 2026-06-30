@@ -2,7 +2,9 @@ package com.lanf.pay.service.reconciliation.strategy;
 
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.IStringUtils;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.pay.mapper.ReconciliationDiffMapper;
+import com.lanf.pay.mapper.ReconciliationDiffMarkerMapper;
 import com.lanf.pay.model.bo.*;
 import com.lanf.pay.model.entity.ReconciliationDiffDO;
 import com.lanf.pay.model.entity.ReconciliationDiffMarkerDO;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -46,6 +49,9 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
     private IReconciliationDiffService reconciliationDiffService;
     @Autowired
     private ReconciliationDiffMapper reconciliationDiffMapper;
+
+    @Autowired
+    private ReconciliationDiffMarkerMapper reconciliationDiffMarkerMapper;
 
 
     protected abstract ReconciliationScanPageResult<T> doPage(ReconciliationScanPage page);
@@ -268,12 +274,21 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
         /**
          * 这里保存 系统与三方的交易单号
          */
-
-        reconciliationDiffMarkerService.saveBatch(diffMarkerDOList);
-
-        reconciliationDiffService.saveBatch(diffList);
-
-        maxIdTrackingBatchReconciler.addMaxId(bathId, getDiffType(),
+        diffMarkerDOList.forEach(a -> {
+            a.setId(IdUtils.generateId());
+            Date date = new Date();
+            a.setCreateTime(new Date());
+            a.setUpdateTime(date);
+        });
+        diffList.forEach(a -> {
+            a.setId(IdUtils.generateId());
+            Date date = new Date();
+            a.setCreateTime(new Date());
+            a.setUpdateTime(date);
+        });
+         reconciliationDiffMapper.batchInsertIgnore(diffList);
+         reconciliationDiffMarkerMapper.batchInsertIgnore(diffMarkerDOList);
+         maxIdTrackingBatchReconciler.addMaxId(bathId, getDiffType(),
                 getBusinessType(), start.getBathMaxId());
     }
 }

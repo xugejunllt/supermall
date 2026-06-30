@@ -1,45 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lanf.pay.mapper.SignCustomerFundBillDetailMapper">
-    <insert id="batchInsertIgnore">
-        INSERT IGNORE INTO fund_bill_detail (
-        id,
-        pay_channel,
-        pay_finish_date,
-        merchant_order_no,
-        financial_serial_no,
-        business_serial_no,
-        occur_time,
-        counterparty_account,
-        income_amount,
-        expense_amount,
-        account_balance,
-        transaction_channel,
-        business_type,
-        remark,
-        create_time,
-        update_time
-        ) VALUES
-        <foreach collection="list" item="item" separator=",">
-            (
-            #{item.id},
-            #{item.payChannel},
-            #{item.payFinishDate},
-            #{item.merchantOrderNo},
-            #{item.financialSerialNo},
-            #{item.businessSerialNo},
-            #{item.occurTime},
-            #{item.counterpartyAccount},
-            #{item.incomeAmount},
-            #{item.expenseAmount},
-            #{item.accountBalance},
-            #{item.transactionChannel},
-            #{item.businessType},
-            #{item.remark},
-            NOW(),
-            NOW()
-            )
-        </foreach>
-    </insert>
+
+
 
 </mapper>

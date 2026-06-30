@@ -14,12 +14,11 @@
         actual_status,
         diff_amount,
         diff_type,
-        occur_time,
         business_type,
         create_time,
         update_time
         ) VALUES
-        <foreach collection="list" item="item" separator=",">
+        <foreach collection="list" item="item" separator="," >
             (
             #{item.id},
             #{item.batchId},
@@ -31,7 +30,6 @@
             #{item.actualStatus},
             #{item.diffAmount},
             #{item.diffType},
-            #{item.occurTime},
             #{item.businessType},
             NOW(),
             NOW()

@@ -9,7 +9,6 @@ import com.lanf.pay.model.enums.ReconciliationTradeStatusEnum;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 /**
  * <p>
@@ -70,10 +69,6 @@ private static final long serialVersionUID=1L;
      */
     private ReconciliationDiffTypeEnum diffType;
 
-    /**
-     * 交易发生时间
-     */
-    private Date occurTime;
 
     /**
      * 0：支付，2: 退款  3: 转账 
