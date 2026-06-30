@@ -1,6 +1,7 @@
 package com.lanf.api.pay.api;
 
 import com.lanf.api.pay.model.dto.AddPayAccountDTO;
+import com.lanf.api.pay.model.dto.ApproveWithdrawDTO;
 import com.lanf.api.pay.model.dto.CreateMergeTradeOrderDTO;
 import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.api.pay.model.query.*;
@@ -75,7 +76,8 @@ public interface PayApiService {
     @GetMapping("/pay/admin/walletWithdraw/walletWithdrawPageQuery")
     public Result<PageResult<WalletWithdrawPageVO>> walletWithdrawPageQuery(@SpringQueryMap WalletWithdrawPageQuery query);
 
-
+    @PostMapping("/pay/admin/walletWithdraw/applyWithdraw")
+    public Result<Void> applyWithdraw(@RequestBody ApproveWithdrawDTO dto);
 
 
 

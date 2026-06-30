@@ -2,7 +2,7 @@ package com.lanf.pay.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.pay.model.dto.ApproveWithdrawDTO;
+import com.lanf.api.pay.model.dto.ApproveWithdrawDTO;
 import com.lanf.api.pay.model.query.WalletWithdrawPageQuery;
 import com.lanf.api.pay.model.vo.WalletWithdrawPageVO;
 import com.lanf.pay.service.wallet.IWalletAccountService;

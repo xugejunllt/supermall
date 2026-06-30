@@ -2,6 +2,7 @@ package com.lanf.system.controller.pay;
 
 import com.lanf.api.pay.api.PayApiService;
 import com.lanf.api.pay.model.dto.AddPayAccountDTO;
+import com.lanf.api.pay.model.dto.ApproveWithdrawDTO;
 import com.lanf.api.pay.model.query.*;
 import com.lanf.api.pay.model.vo.*;
 import com.lanf.constant.model.vo.PageResult;
@@ -102,5 +103,10 @@ public class PayAdminController {
         return payApiService.walletWithdrawPageQuery(query);
     }
 
+    @PostMapping("/walletWithdraw/applyWithdraw")
+    public Result<Void> applyWithdraw(@RequestBody @Validated ApproveWithdrawDTO dto) {
+        log.info("同意提现申请:dto{}", dto);
+        return payApiService.applyWithdraw(dto);
+    }
 
 }
