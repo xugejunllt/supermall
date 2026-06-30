@@ -3,8 +3,8 @@ package com.lanf.pay.service.clearing;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.model.entity.ClearingDetailDO;
-import com.lanf.pay.model.query.ClearingDetailPageQuery;
-import com.lanf.pay.model.vo.ClearingDetailPageVO;
+import com.lanf.api.pay.model.query.ClearingDetailPageQuery;
+import com.lanf.api.pay.model.vo.ClearingDetailPageVO;
 
 import java.math.BigDecimal;
 import java.util.Date;

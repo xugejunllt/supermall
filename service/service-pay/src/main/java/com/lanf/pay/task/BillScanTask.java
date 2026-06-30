@@ -1,7 +1,7 @@
 package com.lanf.pay.task;
 
 import com.lanf.common.utils.BeanUtil;
-import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.service.reconciliation.strategy.ReconciliationStrategy;
 import com.lanf.pay.service.reconciliation.strategy.ReconciliationStrategyFactory;
 

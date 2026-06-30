@@ -6,7 +6,7 @@ import com.lanf.api.pay.mq.constant.PayClientTopicName;
 import com.lanf.api.pay.mq.constant.TransferEventTagConstant;
 import com.lanf.api.pay.mq.message.TransferSuccessMessage;
 import com.lanf.pay.model.entity.ClearingDetailDO;
-import com.lanf.pay.model.enums.ClearingStatusEnum;
+import com.lanf.api.pay.model.enums.ClearingStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.service.clearing.ClearingDetailService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;

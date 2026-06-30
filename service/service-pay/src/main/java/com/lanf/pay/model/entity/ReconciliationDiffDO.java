@@ -3,9 +3,9 @@ package com.lanf.pay.model.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
-import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
-import com.lanf.pay.model.enums.ReconciliationTradeStatusEnum;
+import com.lanf.api.pay.model.enums.ReconciliationBusinessTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationDiffTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationTradeStatusEnum;
 import lombok.Data;
 
 import java.math.BigDecimal;

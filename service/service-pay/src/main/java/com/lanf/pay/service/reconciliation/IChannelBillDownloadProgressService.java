@@ -3,8 +3,8 @@ package com.lanf.pay.service.reconciliation;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
-import com.lanf.pay.model.query.ChannelBillDownloadProgressListQuery;
-import com.lanf.pay.model.vo.ChannelBillDownloadProgressListVO;
+import com.lanf.api.pay.model.query.ChannelBillDownloadProgressListQuery;
+import com.lanf.api.pay.model.vo.ChannelBillDownloadProgressListVO;
 
 import java.util.List;
 

@@ -3,8 +3,8 @@ package com.lanf.pay.service.wallet;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.model.entity.WalletWithdrawDO;
-import com.lanf.pay.model.query.WalletWithdrawPageQuery;
-import com.lanf.pay.model.vo.WalletWithdrawPageVO;
+import com.lanf.api.pay.model.query.WalletWithdrawPageQuery;
+import com.lanf.api.pay.model.vo.WalletWithdrawPageVO;
 
 /**
  * <p>

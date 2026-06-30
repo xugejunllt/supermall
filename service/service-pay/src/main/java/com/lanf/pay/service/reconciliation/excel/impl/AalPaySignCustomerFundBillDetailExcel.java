@@ -8,7 +8,7 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
-import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.service.reconciliation.excel.AbstractFundBillDetailReadListener;
 import lombok.Getter;
 import lombok.Setter;

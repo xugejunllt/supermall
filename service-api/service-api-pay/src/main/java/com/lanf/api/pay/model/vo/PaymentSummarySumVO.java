@@ -1,4 +1,4 @@
-package com.lanf.pay.model.vo;
+package com.lanf.api.pay.model.vo;
 
 import lombok.Data;
 

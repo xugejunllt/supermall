@@ -9,7 +9,7 @@ import com.lanf.constant.constant.Constants;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.pay.model.entity.ClearingDetailDO;
 import com.lanf.pay.model.entity.PayAccountDO;
-import com.lanf.pay.model.enums.ClearingStatusEnum;
+import com.lanf.api.pay.model.enums.ClearingStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.ClearingOrderMessage;

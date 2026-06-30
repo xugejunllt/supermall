@@ -1,8 +1,8 @@
 package com.lanf.pay.service.reconciliation.strategy;
 
 import com.lanf.cache.service.RedissonCacheService;
-import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
-import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationBusinessTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationDiffTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RKeys;
 import org.redisson.api.RedissonClient;

@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
-import com.lanf.pay.model.query.SignCustomerFundBillDetailPageQuery;
-import com.lanf.pay.model.vo.SignCustomerFundBillDetailPageVO;
+import com.lanf.api.pay.model.query.SignCustomerFundBillDetailPageQuery;
+import com.lanf.api.pay.model.vo.SignCustomerFundBillDetailPageVO;
 
 import java.io.File;
 import java.io.InputStream;

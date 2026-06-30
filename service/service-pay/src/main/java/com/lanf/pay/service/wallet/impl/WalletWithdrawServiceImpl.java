@@ -1,14 +1,13 @@
 package com.lanf.pay.service.wallet.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.mapper.WalletWithdrawMapper;
 import com.lanf.pay.model.entity.WalletWithdrawDO;
-import com.lanf.pay.model.query.WalletWithdrawPageQuery;
-import com.lanf.pay.model.vo.WalletWithdrawPageVO;
+import com.lanf.api.pay.model.query.WalletWithdrawPageQuery;
+import com.lanf.api.pay.model.vo.WalletWithdrawPageVO;
 import com.lanf.pay.service.wallet.IWalletWithdrawService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;

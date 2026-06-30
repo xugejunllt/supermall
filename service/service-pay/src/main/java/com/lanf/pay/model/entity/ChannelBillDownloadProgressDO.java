@@ -3,8 +3,8 @@ package com.lanf.pay.model.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.pay.model.enums.BillDownloadStatusEnum;
-import com.lanf.pay.model.enums.BillTypeEnum;
+import com.lanf.api.pay.model.enums.BillDownloadStatusEnum;
+import com.lanf.api.pay.model.enums.BillTypeEnum;
 import lombok.Data;
 
 /**

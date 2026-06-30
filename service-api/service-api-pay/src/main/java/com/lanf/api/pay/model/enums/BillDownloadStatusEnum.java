@@ -1,5 +1,4 @@
-package com.lanf.pay.model.enums;
-
+package com.lanf.api.pay.model.enums;
 
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
@@ -8,25 +7,27 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
- * 对账业务类型枚举
+ * 对账单下载状态枚举
  */
 @Getter
-public enum ReconciliationBusinessTypeEnum {
+public enum BillDownloadStatusEnum {
+
+
 
     /**
-     * 支付
+     * 初始化
      */
-    PAYMENT(0, "支付"),
+    INIT(0, "初始化"),
 
     /**
-     * 退款
+     * 下载中
      */
-    REFUND(1, "退款"),
+    DOWNLOADING(1, "下载中"),
 
     /**
-     * 转账
+     * 下载完成
      */
-    TRANSFER(2, "转账");
+    COMPLETED(2, "下载完成");
 
     @EnumValue
     @JsonValue
@@ -34,7 +35,7 @@ public enum ReconciliationBusinessTypeEnum {
 
     private final String desc;
 
-    ReconciliationBusinessTypeEnum(Integer code, String desc) {
+    BillDownloadStatusEnum(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
     }
@@ -42,17 +43,17 @@ public enum ReconciliationBusinessTypeEnum {
     /**
      * 根据code获取枚举
      *
-     * @param code 业务类型编码
+     * @param code 状态码
      * @return 枚举值
      */
     @JsonCreator
-    public static ReconciliationBusinessTypeEnum getByCode(Integer code) {
+    public static BillDownloadStatusEnum getByCode(Integer code) {
         if (code == null) {
             return null;
         }
-        for (ReconciliationBusinessTypeEnum typeEnum : ReconciliationBusinessTypeEnum.values()) {
-            if (code.equals(typeEnum.getCode())) {
-                return typeEnum;
+        for (BillDownloadStatusEnum statusEnum : BillDownloadStatusEnum.values()) {
+            if (code.equals(statusEnum.getCode())) {
+                return statusEnum;
             }
         }
         return null;

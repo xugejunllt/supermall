@@ -1,7 +1,6 @@
-package com.lanf.pay.model.vo;
+package com.lanf.api.pay.model.vo;
 
-import com.lanf.pay.model.enums.ClearingStatusEnum;
-import com.lanf.pay.model.enums.RecipientTypeEnum;
+import com.lanf.api.pay.model.enums.ClearingStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;

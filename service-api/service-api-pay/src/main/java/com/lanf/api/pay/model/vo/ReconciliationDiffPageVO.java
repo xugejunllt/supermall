@@ -1,11 +1,12 @@
-package com.lanf.pay.model.vo;
+package com.lanf.api.pay.model.vo;
 
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
-import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
-import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
-import com.lanf.pay.model.enums.ReconciliationTradeStatusEnum;
+import com.lanf.api.pay.model.enums.ReconciliationBusinessTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationDiffTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationTradeStatusEnum;
 import lombok.Data;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;

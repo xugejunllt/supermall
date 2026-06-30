@@ -2,8 +2,8 @@ package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.pay.model.enums.ClearingStatusEnum;
-import com.lanf.pay.model.enums.RecipientTypeEnum;
+import com.lanf.api.pay.model.enums.ClearingStatusEnum;
+import com.lanf.api.pay.model.vo.RecipientTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

@@ -3,11 +3,11 @@ package com.lanf.pay.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.pay.model.query.ClearingDetailPageQuery;
-import com.lanf.pay.model.query.IncomeMoneySumQuery;
-import com.lanf.pay.model.query.PaymentSummaryQuery;
-import com.lanf.pay.model.vo.ClearingDetailPageVO;
-import com.lanf.pay.model.vo.PaymentSummarySumVO;
+import com.lanf.api.pay.model.query.ClearingDetailPageQuery;
+import com.lanf.api.pay.model.query.IncomeMoneySumQuery;
+import com.lanf.api.pay.model.query.PaymentSummaryQuery;
+import com.lanf.api.pay.model.vo.ClearingDetailPageVO;
+import com.lanf.api.pay.model.vo.PaymentSummarySumVO;
 import com.lanf.pay.service.clearing.ClearingDetailService;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.pay.IRefundOrderFlowService;

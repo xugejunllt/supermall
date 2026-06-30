@@ -1,4 +1,4 @@
-package com.lanf.pay.model.enums;
+package com.lanf.api.pay.model.enums;
 
 
 import com.baomidou.mybatisplus.annotation.EnumValue;

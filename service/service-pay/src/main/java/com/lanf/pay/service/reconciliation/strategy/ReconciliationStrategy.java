@@ -1,7 +1,7 @@
 package com.lanf.pay.service.reconciliation.strategy;
 
 import com.lanf.pay.model.bo.ReconciliationStart;
-import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationJobTypeEnum;
 
 /**
  *

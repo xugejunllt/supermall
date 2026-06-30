@@ -2,8 +2,8 @@ package com.lanf.pay.mq.message;
 
 import com.lanf.constant.mq.base.BaseMessage;
 import com.lanf.pay.model.bo.ReconciliationTradeInfo;
-import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
-import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationBusinessTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationJobTypeEnum;
 import lombok.Data;
 
 import java.util.List;

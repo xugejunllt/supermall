@@ -3,8 +3,8 @@ package com.lanf.pay.service.reconciliation;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.model.entity.ReconciliationDiffDO;
-import com.lanf.pay.model.query.ReconciliationDiffPageQuery;
-import com.lanf.pay.model.vo.ReconciliationDiffPageVO;
+import com.lanf.api.pay.model.query.ReconciliationDiffPageQuery;
+import com.lanf.api.pay.model.vo.ReconciliationDiffPageVO;
 
 /**
  * <p>

@@ -5,7 +5,7 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.read.listener.ReadListener;
 import com.lanf.common.utils.BeanUtil;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
-import com.lanf.pay.model.enums.BillDownloadStatusEnum;
+import com.lanf.api.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
 import lombok.extern.slf4j.Slf4j;
 

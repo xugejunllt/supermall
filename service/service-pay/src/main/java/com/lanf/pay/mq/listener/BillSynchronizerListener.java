@@ -5,7 +5,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.BillDownloadUrlResultBO;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
-import com.lanf.pay.model.enums.BillDownloadStatusEnum;
+import com.lanf.api.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.BillSynchronizerMessage;

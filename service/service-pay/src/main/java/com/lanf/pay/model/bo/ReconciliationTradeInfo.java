@@ -1,7 +1,7 @@
 package com.lanf.pay.model.bo;
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
-import com.lanf.pay.model.enums.ReconciliationTradeStatusEnum;
+import com.lanf.api.pay.model.enums.ReconciliationTradeStatusEnum;
 import lombok.Data;
 
 import java.io.Serializable;

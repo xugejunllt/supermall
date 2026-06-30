@@ -2,8 +2,8 @@ package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
-import com.lanf.pay.model.enums.ReconciliationDiffTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationBusinessTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationDiffTypeEnum;
 import lombok.Data;
 
 /**

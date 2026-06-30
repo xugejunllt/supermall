@@ -3,9 +3,9 @@ package com.lanf.pay.service.reconciliation;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.pay.model.bo.SendMessageAndUpdateResult;
 import com.lanf.pay.model.entity.ReconciliationJobLogDO;
-import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
-import com.lanf.pay.model.query.ReconciliationJobLogSumQuery;
-import com.lanf.pay.model.vo.ReconciliationJobLogSumVO;
+import com.lanf.api.pay.model.enums.ReconciliationJobTypeEnum;
+import com.lanf.api.pay.model.query.ReconciliationJobLogSumQuery;
+import com.lanf.api.pay.model.vo.ReconciliationJobLogSumVO;
 import com.lanf.pay.mq.message.ReconciliationStartMessage;
 
 import java.util.List;

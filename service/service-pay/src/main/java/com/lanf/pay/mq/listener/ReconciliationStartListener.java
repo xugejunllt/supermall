@@ -1,7 +1,7 @@
 package com.lanf.pay.mq.listener;
 
 import com.lanf.pay.model.bo.ReconciliationStart;
-import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.ReconciliationStartMessage;
