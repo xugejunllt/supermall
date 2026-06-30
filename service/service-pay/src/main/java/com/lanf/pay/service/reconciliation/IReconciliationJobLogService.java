@@ -4,7 +4,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.pay.model.bo.SendMessageAndUpdateResult;
 import com.lanf.pay.model.entity.ReconciliationJobLogDO;
 import com.lanf.pay.model.enums.ReconciliationJobTypeEnum;
+import com.lanf.pay.model.query.ReconciliationJobLogSumQuery;
+import com.lanf.pay.model.vo.ReconciliationJobLogSumVO;
 import com.lanf.pay.mq.message.ReconciliationStartMessage;
+
+import java.util.List;
 
 /**
  * <p>
@@ -19,5 +23,11 @@ public interface IReconciliationJobLogService extends IService<ReconciliationJob
 
     SendMessageAndUpdateResult sendMessageAndUpdate(ReconciliationStartMessage  message, ReconciliationJobTypeEnum jobType,
                                                     String bathId, long currentPage, long  pages) throws Exception;
+
+    /**
+     * 统计对账任务进度
+     *
+     */
+    List<ReconciliationJobLogSumVO> reconciliationJobLogSumQuery(ReconciliationJobLogSumQuery query);
 
 }

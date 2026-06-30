@@ -16,5 +16,14 @@ import java.util.List;
  */
 public interface SignCustomerFundBillDetailMapper extends BaseMapper<SignCustomerFundBillDetailDO> {
 
+    /**
+     * 批量插入，忽略重复
+     */
+    int batchInsertIgnore(@Param("list") List<SignCustomerFundBillDetailDO> list);
+
+    /**
+     * 物理删除全表数据
+     */
+    int deleteAll();
 
 }

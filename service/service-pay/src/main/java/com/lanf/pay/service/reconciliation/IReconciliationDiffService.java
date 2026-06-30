@@ -1,7 +1,10 @@
 package com.lanf.pay.service.reconciliation;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.model.entity.ReconciliationDiffDO;
+import com.lanf.pay.model.query.ReconciliationDiffPageQuery;
+import com.lanf.pay.model.vo.ReconciliationDiffPageVO;
 
 /**
  * <p>
@@ -13,4 +16,6 @@ import com.lanf.pay.model.entity.ReconciliationDiffDO;
  */
 public interface IReconciliationDiffService extends IService<ReconciliationDiffDO> {
 
+
+    PageResult<ReconciliationDiffPageVO> reconciliationDiffPageQuery(ReconciliationDiffPageQuery query);
 }

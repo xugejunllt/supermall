@@ -13,4 +13,9 @@ import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
  */
 public interface ChannelBillDownloadProgressMapper extends BaseMapper<ChannelBillDownloadProgressDO> {
 
+    /**
+     * 物理删除全表数据
+     */
+    int deleteAll();
+
 }

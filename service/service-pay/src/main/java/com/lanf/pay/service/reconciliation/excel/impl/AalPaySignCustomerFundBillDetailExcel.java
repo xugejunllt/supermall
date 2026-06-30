@@ -5,17 +5,18 @@ import com.alibaba.excel.annotation.ExcelProperty;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.BeanUtil;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.utils.IdUtils;
+import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.model.enums.ReconciliationBusinessTypeEnum;
 import com.lanf.pay.service.reconciliation.excel.AbstractFundBillDetailReadListener;
-import com.lanf.pay.service.reconciliation.impl.SignCustomerFundBillDetailServiceImpl;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -129,14 +130,16 @@ public class AalPaySignCustomerFundBillDetailExcel extends AbstractFundBillDetai
     @Override
     protected void batchInsertIgnore(List<SignCustomerFundBillDetailDO> list) {
 
-        SignCustomerFundBillDetailServiceImpl billDetailService = BeanUtil.getBean(SignCustomerFundBillDetailServiceImpl.class);
+        SignCustomerFundBillDetailMapper billDetailMapper = BeanUtil.getBean(SignCustomerFundBillDetailMapper.class);
+        list.forEach(al -> {
+            Date date = new Date();
+            al.setId(IdUtils.generateId());
+            al.setCreateTime(date);
+            al.setUpdateTime(date);
+        });
 
-        log.info("批量插入数据:{}", list);
-        try {
-            billDetailService.saveBatch(list,list.size());
-        } catch (DuplicateKeyException e) {
-            log.warn("存在重复的数据");
-        }
+        billDetailMapper.batchInsertIgnore(list);
+
     }
 
 

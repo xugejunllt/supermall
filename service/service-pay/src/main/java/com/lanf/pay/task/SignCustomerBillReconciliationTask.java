@@ -66,18 +66,23 @@ public class SignCustomerBillReconciliationTask {
     public void billTradeSynchronizerTask() {
 
         log.info("开始执行T+1下载对账单任务");
-        String relativeDateString = getBathId();
+        String bathId = BatchIdContext.getBatchId();
+        if (bathId == null) {
+            bathId = getBathId();
+        }
+        try {
+            BatchIdContext.setBatchId(bathId);
         List<PayChannelEnum> availableChannels = PayChannelEnum.AVAILABLE_CHANNELS;
 
         BillSynchronizerMessage billSynchronizerMessage = new BillSynchronizerMessage();
 
         billSynchronizerMessage.setBillType(billType);
 
-        billSynchronizerMessage.setBillDate(relativeDateString);
+        billSynchronizerMessage.setBillDate(bathId);
         for (PayChannelEnum channel : availableChannels) {
 
 
-            boolean downloadProgress = channelBillDownloadProgressService.addChannelBillDownloadProgress(relativeDateString,
+            boolean downloadProgress = channelBillDownloadProgressService.addChannelBillDownloadProgress(bathId,
                     channel);
             if (!downloadProgress) {
                 log.info("{}账单正在下载中", channel);
@@ -91,6 +96,9 @@ public class SignCustomerBillReconciliationTask {
 
         }
         log.info("执行T+1定时下载对账单任务已启动");
+        } finally {
+            BatchIdContext.clear();
+        }
     }
 
     /**
@@ -102,6 +110,8 @@ public class SignCustomerBillReconciliationTask {
     public void isTradeBillParsedTask() {
 
         String bathId = getBathId();
+        try {
+            BatchIdContext.setBatchId(bathId);
 
         List<ChannelBillDownloadProgressDO> downloadProgressDOS =
                 channelBillDownloadProgressService.lambdaQuery()
@@ -128,6 +138,9 @@ public class SignCustomerBillReconciliationTask {
         }
 
 
+        } finally {
+            BatchIdContext.clear();
+        }
     }
 
     /**
@@ -138,6 +151,8 @@ public class SignCustomerBillReconciliationTask {
     public void isTradeAllBillParsedTask() {
 
         String bathId = getBathId();
+        try {
+            BatchIdContext.setBatchId(bathId);
         List<ChannelBillDownloadProgressDO> downloadProgressDOS =
                 channelBillDownloadProgressService.lambdaQuery()
                         .eq(ChannelBillDownloadProgressDO::getBillType, billType)
@@ -160,10 +175,13 @@ public class SignCustomerBillReconciliationTask {
             taskScheduler.execute(billScanTask);
         }
         log.info("批次号 {} 的对账任务已提交", bathId);
+        } finally {
+            BatchIdContext.clear();
+        }
     }
 
     private String getBathId() {
-        return DateUtils.getRelativeDateString(new Date(), -2, DateUtils.DATE);
+        return DateUtils.getRelativeDateString(new Date(), -1, DateUtils.DATE);
     }
 
     /**
@@ -173,6 +191,8 @@ public class SignCustomerBillReconciliationTask {
     public void billScanCompletionCheckerTask() {
 
         String bathId = getBathId();
+        try {
+            BatchIdContext.setBatchId(bathId);
         List<ReconciliationJobLogDO> jobLogDOList = reconciliationJobLogService.lambdaQuery()
                 .eq(ReconciliationJobLogDO::getBatchId, bathId)
                 .list();
@@ -187,6 +207,9 @@ public class SignCustomerBillReconciliationTask {
         }
 
 
+        } finally {
+            BatchIdContext.clear();
+        }
     }
 
 

@@ -130,7 +130,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
                     .eq(ChannelBillDownloadProgressDO::getId, one.getId())
                     .set(ChannelBillDownloadProgressDO::getStatus, BillDownloadStatusEnum.INIT)
                     .update();
-
+            log.error("下载异常",e);
             throw new MessageRetryConsumeException("查询下载地址失败");
         }
         /**
