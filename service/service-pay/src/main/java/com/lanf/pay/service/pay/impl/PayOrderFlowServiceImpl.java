@@ -6,6 +6,8 @@ import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 /**
  * <p>
  * 支付流水 服务实现类
@@ -17,4 +19,8 @@ import org.springframework.stereotype.Service;
 @Service
  class PayOrderFlowServiceImpl extends ServiceImpl<PayOrderFlowMapper, PayOrderFlowDO> implements IPayOrderFlowService {
 
+    @Override
+    public BigDecimal sumReceiptMoney(String payFinishDate) {
+        return baseMapper.sumReceiptMoney(payFinishDate);
+    }
 }

@@ -6,6 +6,8 @@ import com.lanf.pay.model.entity.RefundOrderFlowDO;
 import com.lanf.pay.service.pay.IRefundOrderFlowService;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 /**
  * <p>
  * 退款单表 服务实现类
@@ -17,4 +19,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class RefundOrderFlowServiceImpl extends ServiceImpl<RefundOrderFlowMapper, RefundOrderFlowDO> implements IRefundOrderFlowService {
 
+    @Override
+    public BigDecimal sumReturnMoney(String payFinishDate) {
+        return baseMapper.sumReturnMoney(payFinishDate);
+    }
 }

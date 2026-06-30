@@ -6,6 +6,8 @@ import com.lanf.pay.model.entity.TransferOrderFlowDO;
 import com.lanf.pay.service.pay.ITransferOrderFlowService;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 /**
  * <p>
  * 转账单 服务实现类
@@ -17,4 +19,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class TransferOrderFlowServiceImpl extends ServiceImpl<TransferOrderFlowMapper, TransferOrderFlowDO> implements ITransferOrderFlowService {
 
+    @Override
+    public BigDecimal sumTotalAmount(String payFinishDate) {
+        return baseMapper.sumTotalAmount(payFinishDate);
+    }
 }
