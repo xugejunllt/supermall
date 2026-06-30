@@ -1,7 +1,10 @@
 package com.lanf.pay.service.wallet;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.model.entity.WalletWithdrawDO;
+import com.lanf.pay.model.query.WalletWithdrawPageQuery;
+import com.lanf.pay.model.vo.WalletWithdrawPageVO;
 
 /**
  * <p>
@@ -13,4 +16,8 @@ import com.lanf.pay.model.entity.WalletWithdrawDO;
  */
 public interface IWalletWithdrawService extends IService<WalletWithdrawDO> {
 
+    /**
+     * 分页查询钱包提现记录
+     */
+    PageResult<WalletWithdrawPageVO> walletWithdrawPageQuery(WalletWithdrawPageQuery query);
 }

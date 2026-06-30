@@ -289,7 +289,6 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
 
         boolean updated = walletWithdrawService.lambdaUpdate()
                 .eq(WalletWithdrawDO::getId, withdrawId)
-                .eq(WalletWithdrawDO::getStatus, WithdrawStatusEnum.PENDING.getCode())
                 .set(WalletWithdrawDO::getStatus, WithdrawStatusEnum.PROCESSING.getCode())
                 .update();
 

@@ -2,6 +2,11 @@ package com.lanf.pay.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lanf.pay.model.entity.ClearingDetailDO;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * <p>
@@ -13,4 +18,9 @@ import com.lanf.pay.model.entity.ClearingDetailDO;
  */
 public interface ClearingDetailMapper extends BaseMapper<ClearingDetailDO> {
 
+    /**
+     * 根据创建时间区间统计收入金额
+     */
+    @Select("SELECT COALESCE(SUM(income_money), 0) FROM clearing_detail WHERE create_time \u003e= #{startTime} AND create_time \u003c= #{endTime}")
+    BigDecimal sumIncomeMoney(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 }

@@ -1,17 +1,20 @@
 package com.lanf.pay.controller.admin;
 
 
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
+import com.lanf.pay.model.query.ClearingDetailPageQuery;
+import com.lanf.pay.model.query.IncomeMoneySumQuery;
 import com.lanf.pay.model.query.PaymentSummaryQuery;
+import com.lanf.pay.model.vo.ClearingDetailPageVO;
 import com.lanf.pay.model.vo.PaymentSummarySumVO;
+import com.lanf.pay.service.clearing.ClearingDetailService;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.pay.IRefundOrderFlowService;
 import com.lanf.pay.service.pay.ITransferOrderFlowService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
@@ -26,6 +29,8 @@ public class PaymentSummaryController {
     private IRefundOrderFlowService refundOrderFlowService;
     @Autowired
     private ITransferOrderFlowService transferOrderFlowService;
+    @Autowired
+    private ClearingDetailService clearingDetailService;
 
 
     /**
@@ -61,6 +66,25 @@ public class PaymentSummaryController {
         vo.setNetIncome(netIncome);
 
         return Result.ok(vo);
+    }
+
+    /**
+     * 商户查询 分页查询清算明细
+     */
+    @GetMapping("/clearingDetailPageQuery")
+    public Result<PageResult<ClearingDetailPageVO>> clearingDetailPageQuery(ClearingDetailPageQuery query) {
+        log.info("分页查询清算明细:{}", query);
+        return Result.ok(clearingDetailService.clearingDetailPageQuery(query));
+    }
+
+    /**
+     * 根据创建时间区间统计收入金额
+     */
+    @PostMapping("/sumIncomeMoney")
+    public Result<BigDecimal> sumIncomeMoney(@RequestBody IncomeMoneySumQuery query) {
+        log.info("根据创建时间区间统计收入金额:{}", query);
+        BigDecimal sum = clearingDetailService.sumIncomeMoney(query.getStartTime(), query.getEndTime());
+        return Result.ok(sum);
     }
 
 

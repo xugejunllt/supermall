@@ -15,7 +15,6 @@ public enum WithdrawStatusEnum {
     CANCELLED(4, "已取消");
 
     @EnumValue
-    @JsonValue
     private final Integer code;
     private final String name;
 
