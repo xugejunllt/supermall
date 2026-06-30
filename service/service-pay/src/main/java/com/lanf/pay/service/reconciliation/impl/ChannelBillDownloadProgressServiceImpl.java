@@ -2,11 +2,14 @@ package com.lanf.pay.service.reconciliation.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.mapper.ChannelBillDownloadProgressMapper;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 import com.lanf.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.pay.model.enums.BillTypeEnum;
+import com.lanf.pay.model.query.ChannelBillDownloadProgressListQuery;
+import com.lanf.pay.model.vo.ChannelBillDownloadProgressListVO;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.BillSynchronizerMessage;
 import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
@@ -16,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * <p>
@@ -97,6 +102,20 @@ public class ChannelBillDownloadProgressServiceImpl extends ServiceImpl<ChannelB
         rocketMqClient.sendMessage(PayMqTopicName.BILL_SYNCHRONIZER_TOPIC,
                 JsonUtils.toJsonString(message));
 
+    }
+
+    @Override
+    public List<ChannelBillDownloadProgressListVO> channelBillDownloadProgressListQuery(ChannelBillDownloadProgressListQuery query) {
+
+        List<ChannelBillDownloadProgressDO> downloadProgressDOS = this.lambdaQuery()
+                .eq(ChannelBillDownloadProgressDO::getBatchId, query.getBatchId())
+                .list();
+        if (downloadProgressDOS.isEmpty()){
+            return null;
+        }
+
+
+        return BeanCopyUtils.copyBeanList(downloadProgressDOS, ChannelBillDownloadProgressListVO.class);
     }
 
 

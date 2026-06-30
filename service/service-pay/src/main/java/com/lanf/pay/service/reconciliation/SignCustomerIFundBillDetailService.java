@@ -2,7 +2,10 @@ package com.lanf.pay.service.reconciliation;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
+import com.lanf.pay.model.query.SignCustomerFundBillDetailPageQuery;
+import com.lanf.pay.model.vo.SignCustomerFundBillDetailPageVO;
 
 import java.io.File;
 import java.io.InputStream;
@@ -26,4 +29,9 @@ public interface SignCustomerIFundBillDetailService extends IService<SignCustome
      */
     void importFromExcel(InputStream inputStream, String batchId,
                          PayChannelEnum payChannel, File excelFile, String billType);
+
+    /**
+     * 分页查询资金账单明细
+     */
+    PageResult<SignCustomerFundBillDetailPageVO> signCustomerFundBillDetailPageQuery(SignCustomerFundBillDetailPageQuery query);
 }

@@ -3,12 +3,18 @@ package com.lanf.pay.controller.admin;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import com.lanf.pay.mapper.*;
+import com.lanf.pay.model.query.ChannelBillDownloadProgressListQuery;
 import com.lanf.pay.model.query.ReconciliationDiffPageQuery;
 import com.lanf.pay.model.query.ReconciliationJobLogSumQuery;
+import com.lanf.pay.model.query.SignCustomerFundBillDetailPageQuery;
+import com.lanf.pay.model.vo.ChannelBillDownloadProgressListVO;
 import com.lanf.pay.model.vo.ReconciliationDiffPageVO;
 import com.lanf.pay.model.vo.ReconciliationJobLogSumVO;
+import com.lanf.pay.model.vo.SignCustomerFundBillDetailPageVO;
+import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
 import com.lanf.pay.service.reconciliation.IReconciliationDiffService;
 import com.lanf.pay.service.reconciliation.IReconciliationJobLogService;
+import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
 import com.lanf.pay.service.reconciliation.excel.ExcelParseProgressManager;
 import com.lanf.pay.service.reconciliation.strategy.MaxIdTrackingBatchReconciler;
 import com.lanf.pay.task.BatchIdContext;
@@ -47,6 +53,11 @@ public class ReconciliationController {
     private ReconciliationDiffMarkerMapper reconciliationDiffMarkerMapper;
     @Autowired
     private ReconciliationJobLogMapper reconciliationJobLogMapper;
+    @Autowired
+    private IChannelBillDownloadProgressService channelBillDownloadProgressService;
+    @Autowired
+    private SignCustomerIFundBillDetailService signCustomerIFundBillDetailService;
+
 
     @GetMapping("/reconciliationJobLogSumQuery")
     public Result<List<ReconciliationJobLogSumVO>> reconciliationJobLogSumQuery(@Validated ReconciliationJobLogSumQuery query) {
@@ -64,10 +75,27 @@ public class ReconciliationController {
         return Result.ok(reconciliationDiffService.reconciliationDiffPageQuery(query));
     }
 
+    @GetMapping("/channelBillDownloadProgressListQuery")
+    public Result<List<ChannelBillDownloadProgressListVO>> channelBillDownloadProgressListQuery(@Validated ChannelBillDownloadProgressListQuery query) {
+
+        log.info("分页查询账单下载进度:{}", query);
+
+        return Result.ok(channelBillDownloadProgressService.channelBillDownloadProgressListQuery(query));
+    }
+
+    /**
+     * 分页查询资金账单明细
+     */
+    @GetMapping("/signCustomerFundBillDetailPageQuery")
+    public Result<PageResult<SignCustomerFundBillDetailPageVO>> signCustomerFundBillDetailPageQuery(@Validated SignCustomerFundBillDetailPageQuery query) {
+
+        log.info("分页查询资金账单明细:{}", query);
+
+        return Result.ok(signCustomerIFundBillDetailService.signCustomerFundBillDetailPageQuery(query));
+    }
+
     /**
      * 手动开启账单下载任务
-     *
-     *
      */
     @GetMapping("/billTradeSynchronizerTask")
     public Result<Void> billTradeSynchronizerTask(@Validated String bathId) {
@@ -82,8 +110,6 @@ public class ReconciliationController {
 
     /**
      * 手动开启对账任务
-     *
-     *
      */
     @GetMapping("/isTradeAllBillParsedTask")
     public Result<Void> isTradeAllBillParsedTask(@Validated String bathId) {

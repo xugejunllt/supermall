@@ -2,12 +2,18 @@ package com.lanf.pay.service.reconciliation.impl;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.read.listener.ReadListener;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.mapper.SignCustomerFundBillDetailMapper;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
 import com.lanf.pay.model.enums.BillTypeEnum;
+import com.lanf.pay.model.query.SignCustomerFundBillDetailPageQuery;
+import com.lanf.pay.model.vo.SignCustomerFundBillDetailPageVO;
 import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
 import com.lanf.pay.service.reconciliation.excel.impl.AalPaySignCustomerFundBillDetailExcel;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +22,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -80,5 +88,41 @@ public class SignCustomerFundBillDetailServiceImpl extends ServiceImpl<SignCusto
 //                }
 //            }
         }
+    }
+
+    @Override
+    public PageResult<SignCustomerFundBillDetailPageVO> signCustomerFundBillDetailPageQuery(SignCustomerFundBillDetailPageQuery query) {
+        Page<SignCustomerFundBillDetailDO> page = new Page<>(query.getPage(), query.getPageSize());
+        LambdaQueryWrapper<SignCustomerFundBillDetailDO> wrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.isNotBlank(query.getBatchId())) {
+            wrapper.eq(SignCustomerFundBillDetailDO::getPayFinishDate, query.getBatchId());
+        }
+
+
+        Page<SignCustomerFundBillDetailDO> resultPage = baseMapper.selectPage(page, wrapper);
+        List<SignCustomerFundBillDetailPageVO> records = resultPage.getRecords().stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
+        return new PageResult<>(records, resultPage.getSize(), resultPage.getTotal());
+    }
+
+    private SignCustomerFundBillDetailPageVO convertToVO(SignCustomerFundBillDetailDO detailDO) {
+        SignCustomerFundBillDetailPageVO vo = new SignCustomerFundBillDetailPageVO();
+        vo.setId(detailDO.getId());
+        vo.setPayChannel(detailDO.getPayChannel());
+        vo.setPayFinishDate(detailDO.getPayFinishDate());
+        vo.setMerchantOrderNo(detailDO.getMerchantOrderNo());
+        vo.setFinancialSerialNo(detailDO.getFinancialSerialNo());
+        vo.setBusinessSerialNo(detailDO.getBusinessSerialNo());
+        vo.setOccurTime(detailDO.getOccurTime());
+        vo.setCounterpartyAccount(detailDO.getCounterpartyAccount());
+        vo.setIncomeAmount(detailDO.getIncomeAmount());
+        vo.setExpenseAmount(detailDO.getExpenseAmount());
+        vo.setAccountBalance(detailDO.getAccountBalance());
+        vo.setTransactionChannel(detailDO.getTransactionChannel());
+        vo.setBusinessType(detailDO.getBusinessType());
+        vo.setRemark(detailDO.getRemark());
+        vo.setCreateTime(detailDO.getCreateTime());
+        return vo;
     }
 }
