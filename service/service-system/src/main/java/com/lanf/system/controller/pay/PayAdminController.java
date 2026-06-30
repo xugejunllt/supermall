@@ -114,6 +114,12 @@ public class PayAdminController {
         return payApiService.walletAccountPageQuery(query);
     }
 
+    @GetMapping("/walletWithdraw/walletAccountFlowPageQuery")
+    public Result<PageResult<WalletAccountFlowPageVO>> walletAccountFlowPageQuery(WalletAccountFlowPageQuery query){
+        log.info("分页查询钱包账户流水:{}", query);
+        return payApiService.walletAccountFlowPageQuery(query);
+    }
+
     // ==================== PayOrderController ====================
 
     @GetMapping("/payOrder/tradeOrderPageQuery")

@@ -80,6 +80,9 @@ public interface PayApiService {
     public Result<Void> applyWithdraw(@RequestBody ApproveWithdrawDTO dto);
     @GetMapping("/pay/admin/walletWithdraw/walletAccountPageQuery")
     public Result<PageResult<WalletAccountPageVO>> walletAccountPageQuery(@SpringQueryMap WalletAccountPageQuery query);
+
+    @GetMapping("/pay/admin/walletWithdraw/walletAccountFlowPageQuery")
+    public Result<PageResult<WalletAccountFlowPageVO>> walletAccountFlowPageQuery(@SpringQueryMap WalletAccountFlowPageQuery query);
     // ==================== PayOrderController ====================
 
     @GetMapping("/pay/admin/payOrder/tradeOrderPageQuery")
