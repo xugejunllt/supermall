@@ -6,7 +6,7 @@ import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.pay.constant.PayMqGroupName;
 import com.lanf.pay.model.entity.WalletAccountDO;
 import com.lanf.pay.model.entity.WalletAccountFlowDO;
-import com.lanf.pay.model.enums.WalletEventTypeEnum;
+import com.lanf.api.pay.model.enums.WalletEventTypeEnum;
 import com.lanf.pay.service.wallet.IWalletAccountFlowService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;

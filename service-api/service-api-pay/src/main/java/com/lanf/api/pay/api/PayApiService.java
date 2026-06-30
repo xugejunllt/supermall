@@ -78,8 +78,27 @@ public interface PayApiService {
 
     @PostMapping("/pay/admin/walletWithdraw/applyWithdraw")
     public Result<Void> applyWithdraw(@RequestBody ApproveWithdrawDTO dto);
+    @GetMapping("/pay/admin/walletWithdraw/walletAccountPageQuery")
+    public Result<PageResult<WalletAccountPageVO>> walletAccountPageQuery(@SpringQueryMap WalletAccountPageQuery query);
+    // ==================== PayOrderController ====================
 
+    @GetMapping("/pay/admin/payOrder/tradeOrderPageQuery")
+    public Result<PageResult<TradeOrderPageVO>> tradeOrderPageQuery(@SpringQueryMap TradeOrderPageQuery query);
 
+    @GetMapping("/pay/admin/payOrder/payOrderFlowPageQuery")
+    public Result<PageResult<PayOrderFlowPageVO>> payOrderFlowPageQuery(@SpringQueryMap PayOrderFlowPageQuery query);
+
+    @GetMapping("/pay/admin/payOrder/refundOrderPageQuery")
+    public Result<PageResult<RefundOrderPageVO>> refundOrderPageQuery(@SpringQueryMap RefundOrderPageQuery query);
+
+    @GetMapping("/pay/admin/payOrder/refundOrderFlowPageQuery")
+    public Result<PageResult<RefundOrderFlowPageVO>> refundOrderFlowPageQuery(@SpringQueryMap RefundOrderFlowPageQuery query);
+
+    @GetMapping("/pay/admin/payOrder/transferOrderPageQuery")
+    public Result<PageResult<TransferOrderPageVO>> transferOrderPageQuery(@SpringQueryMap TransferOrderPageQuery query);
+
+    @GetMapping("/pay/admin/payOrder/transferOrderFlowPageQuery")
+    public Result<PageResult<TransferOrderFlowPageVO>> transferOrderFlowPageQuery(@SpringQueryMap TransferOrderFlowPageQuery query);
 
 }
 

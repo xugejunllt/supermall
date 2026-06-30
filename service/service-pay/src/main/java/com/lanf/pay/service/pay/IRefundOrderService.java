@@ -1,7 +1,9 @@
 package com.lanf.pay.service.pay;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lanf.pay.model.bo.ProcessRefund;
+import com.lanf.api.pay.model.query.RefundOrderPageQuery;
+import com.lanf.api.pay.model.vo.RefundOrderPageVO;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.model.entity.RefundOrderDO;
 
 /**
@@ -14,6 +16,11 @@ import com.lanf.pay.model.entity.RefundOrderDO;
  */
 public interface IRefundOrderService extends IService<RefundOrderDO> {
 
-
+    /**
+     * 分页查询退款单
+     *
+     *
+     */
+    PageResult<RefundOrderPageVO> refundOrderPageQuery(RefundOrderPageQuery query);
 
 }

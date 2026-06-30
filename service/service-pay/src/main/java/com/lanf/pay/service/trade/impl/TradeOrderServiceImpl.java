@@ -1,21 +1,26 @@
 package com.lanf.pay.service.trade.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.pay.model.dto.CreatePayOrderDTO;
 import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.api.pay.model.dto.TradeOrderQuantitySumDTO;
 import com.lanf.api.pay.model.enums.TradePurposeEnum;
 import com.lanf.api.pay.model.query.TradeOrderBathQuery;
+import com.lanf.api.pay.model.query.TradeOrderPageQuery;
 import com.lanf.api.pay.model.query.TradeOrderQuery;
 import com.lanf.api.pay.model.vo.CreatePayOrderVO;
-import com.lanf.api.pay.model.vo.OrderTradeVO;
 import com.lanf.api.pay.model.vo.TradeOrderApiVO;
 import com.lanf.api.pay.model.vo.TradeOrderBathVO;
+import com.lanf.api.pay.model.vo.TradeOrderPageVO;
+import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.mybatis.base.BaseEntity;
@@ -27,7 +32,10 @@ import com.lanf.pay.model.dto.BathCreatePrepayOrderDTO;
 import com.lanf.pay.model.dto.CreatePrepayOrderDTO;
 import com.lanf.pay.model.dto.PrepayOrderDTO;
 import com.lanf.pay.model.dto.RechargeDTO;
-import com.lanf.pay.model.entity.*;
+import com.lanf.pay.model.entity.BathTradeOrderDO;
+import com.lanf.pay.model.entity.PayOrderDO;
+import com.lanf.pay.model.entity.PrepayPayTypeDO;
+import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.enums.BathTradeOrderStatusEnum;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.model.vo.CreatePrepayOrderVO;
@@ -39,7 +47,6 @@ import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.IPayOrderService;
-import com.lanf.pay.service.trade.ITradeOrderItemService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.utils.PayServiceUtils;
 import com.lanf.rocketmq.model.TopicName;
@@ -75,8 +82,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Autowired
     private IPayOrderService payOrderService;
 
-    @Autowired
-    private ITradeOrderItemService tradeOrderItemService;
+
 
     @Autowired
     private ITccOperationService tccOperationService;
@@ -178,68 +184,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
 
-    /**
-     * 查询订单交易信息
-     */
-    @Override
-    public OrderTradeVO queryOrderTradeByOrderId(Long orderId) {
-
-        TradeOrderDO tradeOrderDO = null;
-        if (tradeOrderDO == null) {
-            return null;
-        }
-
-        PayOrderDO payOrderDO = payOrderService.lambdaQuery().eq(PayOrderDO::getBizOrderId, orderId).one();
-        if (payOrderDO == null) {
-            return null;
-        }
-
-        TradeOrderItemDO discountInfo = null;
-
-        List<TradeOrderItemDO> list = tradeOrderItemService.lambdaQuery().eq(TradeOrderItemDO::getTradeOrderId, tradeOrderDO.getId()).list();
-        for (TradeOrderItemDO a : list) {
-            if (a.getPayType().equals(3)) {
-                discountInfo = a;
-                break;
-            }
-        }
-        Integer discountType = null;
-        String discountTypeName = null;
-
-        if (discountInfo != null) {
-            discountType = discountInfo.getPayType();
-            discountTypeName = "优惠券";
-        }
-        OrderTradeVO tradeVO = new OrderTradeVO();
-        tradeVO.setOrderId(orderId);
-        tradeVO.setPayType(payOrderDO.getPayType());
-        tradeVO.setPayMoney(payOrderDO.getPayMoney());
-        tradeVO.setDiscountType(discountType);
-        tradeVO.setDiscountTypeName(discountTypeName);
-        tradeVO.setPayTypeName(getPayTypeName(payOrderDO.getPayType()));
-        tradeVO.setReceiptMoney(payOrderDO.getReceiptMoney());
-        tradeVO.setIncomeAccount(payOrderDO.getIncomeAccount());
-        tradeVO.setShopId(payOrderDO.getShopId());
-        tradeVO.setPayStatus(payOrderDO.getPayStatus());
-        return tradeVO;
-    }
-
-    private String getPayTypeName(Integer payType) {
-
-        if (payType.equals(0)) {
-            return "支付宝";
-        }
-
-        if (payType.equals(1)) {
-            return "微信";
-        }
-
-        if (payType.equals(2)) {
-            return "银联";
-        }
-        return "支付宝";
-
-    }
 
     @Transactional
     @Override
@@ -463,6 +407,23 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                 JsonUtils.toJsonString(message), TimeUnit.SECONDS, firstLevelRetryPolicy.getDelaySeconds());
 
         return vo;
+    }
+
+    @Override
+    public PageResult<TradeOrderPageVO> tradeOrderPageQuery(TradeOrderPageQuery query) {
+        Page<TradeOrderDO> page = this.page(new Page<>(query.getPage(), query.getPageSize()),
+                new LambdaQueryWrapper<TradeOrderDO>()
+                        .orderByDesc(TradeOrderDO::getCreateTime));
+        List<TradeOrderDO> records = page.getRecords();
+        if (records.isEmpty()) {
+            return null;
+        }
+        List<TradeOrderPageVO> pageVOS = BeanCopyUtils.copyBeanList(records, TradeOrderPageVO.class);
+        PageResult<TradeOrderPageVO> result = new PageResult<>();
+        result.setTotal(page.getTotal());
+        result.setRecords(pageVOS);
+        result.setSize(page.getSize());
+        return result;
     }
 
     @Override

@@ -6,7 +6,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.TransferBO;
 import com.lanf.pay.model.bo.TransferResult;
 import com.lanf.pay.model.entity.TransferOrderDO;
-import com.lanf.pay.model.enums.TransferStatusEnum;
+import com.lanf.api.pay.model.enums.TransferStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.message.QueryTransferResultMessage;
 import com.lanf.pay.service.pay.ITransferOrderService;

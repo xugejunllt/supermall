@@ -11,7 +11,7 @@ import com.lanf.pay.model.bo.RefundQueryResultBO;
 import com.lanf.pay.model.entity.RefundOrderDO;
 import com.lanf.pay.model.entity.RefundOrderFlowDO;
 import com.lanf.pay.model.enums.RefundFlowStatusEnum;
-import com.lanf.pay.model.enums.RefundStatusEnum;
+import com.lanf.api.pay.model.enums.RefundStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.QueryRefundResultMessage;

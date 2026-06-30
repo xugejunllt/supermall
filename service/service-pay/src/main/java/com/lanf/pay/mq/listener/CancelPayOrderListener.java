@@ -5,7 +5,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.TradeStatusBO;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.entity.RefundOrderDO;
-import com.lanf.pay.model.enums.RefundStatusEnum;
+import com.lanf.api.pay.model.enums.RefundStatusEnum;
 import com.lanf.pay.model.enums.TradeStatusEnum;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.QueryRefundResultMessage;

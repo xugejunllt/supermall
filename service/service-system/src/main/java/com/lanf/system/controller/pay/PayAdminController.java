@@ -108,5 +108,48 @@ public class PayAdminController {
         log.info("同意提现申请:dto{}", dto);
         return payApiService.applyWithdraw(dto);
     }
+    @GetMapping("/walletWithdraw/walletAccountPageQuery")
+    public Result<PageResult<WalletAccountPageVO>> walletAccountPageQuery(WalletAccountPageQuery query){
+        log.info("分页查询钱包账户:{}", query);
+        return payApiService.walletAccountPageQuery(query);
+    }
+
+    // ==================== PayOrderController ====================
+
+    @GetMapping("/payOrder/tradeOrderPageQuery")
+    public Result<PageResult<TradeOrderPageVO>> tradeOrderPageQuery(@Validated TradeOrderPageQuery query) {
+        log.info("分页查询交易订单");
+        return payApiService.tradeOrderPageQuery(query);
+    }
+
+    @GetMapping("/payOrder/payOrderFlowPageQuery")
+    public Result<PageResult<PayOrderFlowPageVO>> payOrderFlowPageQuery(@Validated PayOrderFlowPageQuery query) {
+        log.info("分页查询支付流水");
+        return payApiService.payOrderFlowPageQuery(query);
+    }
+
+    @GetMapping("/payOrder/refundOrderPageQuery")
+    public Result<PageResult<RefundOrderPageVO>> refundOrderPageQuery(@Validated RefundOrderPageQuery query) {
+        log.info("分页查询退款单");
+        return payApiService.refundOrderPageQuery(query);
+    }
+
+    @GetMapping("/payOrder/refundOrderFlowPageQuery")
+    public Result<PageResult<RefundOrderFlowPageVO>> refundOrderFlowPageQuery(@Validated RefundOrderFlowPageQuery query) {
+        log.info("分页查询退款单流水");
+        return payApiService.refundOrderFlowPageQuery(query);
+    }
+
+    @GetMapping("/payOrder/transferOrderPageQuery")
+    public Result<PageResult<TransferOrderPageVO>> transferOrderPageQuery(@Validated TransferOrderPageQuery query) {
+        log.info("分页查询转账单");
+        return payApiService.transferOrderPageQuery(query);
+    }
+
+    @GetMapping("/payOrder/transferOrderFlowPageQuery")
+    public Result<PageResult<TransferOrderFlowPageVO>> transferOrderFlowPageQuery(@Validated TransferOrderFlowPageQuery query) {
+        log.info("分页查询转账单流水");
+        return payApiService.transferOrderFlowPageQuery(query);
+    }
 
 }

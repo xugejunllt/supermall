@@ -28,10 +28,12 @@ import com.lanf.pay.model.entity.WalletAccountDO;
 import com.lanf.pay.model.entity.WalletAccountFlowDO;
 import com.lanf.pay.model.entity.WalletWithdrawDO;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
-import com.lanf.pay.model.enums.WalletEventTypeEnum;
+import com.lanf.api.pay.model.enums.WalletEventTypeEnum;
 import com.lanf.api.pay.model.enums.WithdrawStatusEnum;
-import com.lanf.pay.model.query.WalletAccountFlowPageQuery;
-import com.lanf.pay.model.vo.WalletAccountFlowPageVO;
+import com.lanf.api.pay.model.query.WalletAccountFlowPageQuery;
+import com.lanf.api.pay.model.query.WalletAccountPageQuery;
+import com.lanf.api.pay.model.vo.WalletAccountFlowPageVO;
+import com.lanf.api.pay.model.vo.WalletAccountPageVO;
 import com.lanf.pay.model.vo.WalletAccountVO;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.wallet.IWalletAccountFlowService;
@@ -363,6 +365,24 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         PageResult<WalletAccountFlowPageVO> result = new PageResult<>();
         result.setTotal(page.getTotal());
         result.setRecords(flowPageVOS);
+        result.setSize(page.getSize());
+        return result;
+    }
+
+    @Override
+    public PageResult<WalletAccountPageVO> walletAccountPageQuery(WalletAccountPageQuery query) {
+
+        Page<WalletAccountDO> page = this.page(new Page<>(query.getPage(), query.getPageSize()),
+                new LambdaQueryWrapper<WalletAccountDO>()
+                        .orderByDesc(WalletAccountDO::getCreateTime));
+        List<WalletAccountDO> records = page.getRecords();
+        if (records.isEmpty()) {
+            return null;
+        }
+        List<WalletAccountPageVO> pageVOS = BeanCopyUtils.copyBeanList(records, WalletAccountPageVO.class);
+        PageResult<WalletAccountPageVO> result = new PageResult<>();
+        result.setTotal(page.getTotal());
+        result.setRecords(pageVOS);
         result.setSize(page.getSize());
         return result;
     }

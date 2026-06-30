@@ -1,10 +1,12 @@
 package com.lanf.pay.controller.admin;
 
+import com.lanf.api.pay.model.dto.ApproveWithdrawDTO;
+import com.lanf.api.pay.model.query.WalletAccountPageQuery;
+import com.lanf.api.pay.model.query.WalletWithdrawPageQuery;
+import com.lanf.api.pay.model.vo.WalletAccountPageVO;
+import com.lanf.api.pay.model.vo.WalletWithdrawPageVO;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
-import com.lanf.api.pay.model.dto.ApproveWithdrawDTO;
-import com.lanf.api.pay.model.query.WalletWithdrawPageQuery;
-import com.lanf.api.pay.model.vo.WalletWithdrawPageVO;
 import com.lanf.pay.service.wallet.IWalletAccountService;
 import com.lanf.pay.service.wallet.IWalletWithdrawService;
 import lombok.extern.slf4j.Slf4j;
@@ -40,5 +42,15 @@ public class WalletWithdrawController {
 
         return Result.ok();
     }
+
+    /**
+     * 分页查询钱包账户
+     */
+    @GetMapping("/walletAccountPageQuery")
+    public Result<PageResult<WalletAccountPageVO>> walletAccountPageQuery(WalletAccountPageQuery query) {
+        log.info("分页查询钱包账户: {}", query);
+        return Result.ok(walletAccountService.walletAccountPageQuery(query));
+    }
+
 
 }

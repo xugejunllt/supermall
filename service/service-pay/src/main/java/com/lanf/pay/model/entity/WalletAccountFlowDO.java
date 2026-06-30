@@ -2,7 +2,7 @@ package com.lanf.pay.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.pay.model.enums.WalletEventTypeEnum;
+import com.lanf.api.pay.model.enums.WalletEventTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

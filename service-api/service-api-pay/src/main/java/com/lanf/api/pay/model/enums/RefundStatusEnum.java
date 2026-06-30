@@ -1,4 +1,4 @@
-package com.lanf.pay.model.enums;
+package com.lanf.api.pay.model.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -6,28 +6,27 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum TransferStatusEnum {
+public enum RefundStatusEnum {
 
     REFUNDING(0, "退款中"),
-    SUCCESS(1, "退款成功"),
-    FAILED(2, "退款失败");
+    SUCCESS(1, "退款成功");
 
     @EnumValue
     @JsonValue
     private final Integer code;
     private final String name;
 
-    TransferStatusEnum(Integer code, String name) {
+    RefundStatusEnum(Integer code, String name) {
         this.code = code;
         this.name = name;
     }
 
     @JsonCreator
-    public static TransferStatusEnum getByCode(Integer code) {
+    public static RefundStatusEnum getByCode(Integer code) {
         if (code == null) {
             return null;
         }
-        for (TransferStatusEnum statusEnum : TransferStatusEnum.values()) {
+        for (RefundStatusEnum statusEnum : RefundStatusEnum.values()) {
             if (code.equals(statusEnum.getCode())) {
                 return statusEnum;
             }

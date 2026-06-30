@@ -2,7 +2,7 @@ package com.lanf.pay.mq.message;
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.pay.model.enums.TransferFlowStatusEnum;
-import com.lanf.pay.model.enums.TransferStatusEnum;
+import com.lanf.api.pay.model.enums.TransferStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 

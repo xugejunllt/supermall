@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.pay.model.enums.TransferStatusEnum;
+import com.lanf.api.pay.model.enums.TransferStatusEnum;
 import lombok.Data;
 
 import java.math.BigDecimal;

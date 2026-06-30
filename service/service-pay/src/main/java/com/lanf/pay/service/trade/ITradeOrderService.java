@@ -5,11 +5,14 @@ import com.lanf.api.pay.model.dto.CreatePayOrderDTO;
 import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.api.pay.model.dto.TradeOrderQuantitySumDTO;
 import com.lanf.api.pay.model.query.TradeOrderBathQuery;
+import com.lanf.api.pay.model.query.TradeOrderPageQuery;
 import com.lanf.api.pay.model.query.TradeOrderQuery;
 import com.lanf.api.pay.model.vo.CreatePayOrderVO;
 import com.lanf.api.pay.model.vo.OrderTradeVO;
 import com.lanf.api.pay.model.vo.TradeOrderApiVO;
 import com.lanf.api.pay.model.vo.TradeOrderBathVO;
+import com.lanf.api.pay.model.vo.TradeOrderPageVO;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.pay.model.dto.BathCreatePrepayOrderDTO;
 import com.lanf.pay.model.dto.CreatePrepayOrderDTO;
 import com.lanf.pay.model.dto.RechargeDTO;
@@ -65,8 +68,7 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
 
     @Deprecated
     CreatePayOrderVO createPayOrder(List<CreatePayOrderDTO> dto);
-    @Deprecated
-    OrderTradeVO queryOrderTradeByOrderId(Long orderId);
+
 
     /**
      * 进行退款
@@ -94,5 +96,12 @@ public interface ITradeOrderService extends IService<TradeOrderDO> {
      */
     @Deprecated
     List<TradeOrderBathVO> tradeOrderBathQuery(TradeOrderBathQuery query);
+
+    /**
+     * 分页查询交易订单
+     *
+     *
+     */
+    PageResult<TradeOrderPageVO> tradeOrderPageQuery(TradeOrderPageQuery query);
 
 }
