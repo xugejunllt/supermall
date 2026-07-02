@@ -6,7 +6,6 @@ import com.lanf.file.model.dto.FileUploadFileDTO;
 import com.lanf.file.service.manager.FileService;
 import com.lanf.file.service.manager.impl.config.FileConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -14,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 public class LocalFileServiceImpl implements FileService {
 
@@ -31,9 +31,9 @@ public class LocalFileServiceImpl implements FileService {
             if (!Files.exists(uploadDir)) {
                 Files.createDirectories(uploadDir);
             }
-
+            String uniqueName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
             // 保存文件到本地
-            Path filePath = uploadDir.resolve(file.getOriginalFilename());
+            Path filePath = uploadDir.resolve(uniqueName);
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
             String url = fileConfig.getDomain() + fileConfig.getLocalFileUrlPre()+"/" + file.getOriginalFilename();
 
