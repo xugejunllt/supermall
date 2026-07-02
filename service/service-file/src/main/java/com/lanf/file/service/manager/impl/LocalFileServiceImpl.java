@@ -25,7 +25,7 @@ public class LocalFileServiceImpl implements FileService {
 
         String path = fileConfig.getLocalPath();
         MultipartFile file = dto.getMultipartFile();
-        try {
+        try (java.io.InputStream inputStream = file.getInputStream()) {
             // 确保上传目录存在
             Path uploadDir = Paths.get(path);
             if (!Files.exists(uploadDir)) {
@@ -34,7 +34,7 @@ public class LocalFileServiceImpl implements FileService {
 
             // 保存文件到本地
             Path filePath = uploadDir.resolve(file.getOriginalFilename());
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
             String url = fileConfig.getDomain() + fileConfig.getLocalFileUrlPre()+"/" + file.getOriginalFilename();
 
            return  new FileUploadResultBO(url);

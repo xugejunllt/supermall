@@ -26,7 +26,7 @@ spring:
      max-request-size: 20MB
 
 server:
-  port: 9013
+  port: 9014
 #  servlet:
 #    context-path: /file
 mybatis-plus:
@@ -46,4 +46,4 @@ file:
   active: 2
   localPath: D:\file\localimages\
   localFileUrlPre: /download
-  domain: http://localhost:9013
+  domain: http://192.168.124.22:9014
