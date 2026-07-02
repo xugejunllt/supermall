@@ -10,7 +10,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @MapperScan(basePackages = {"com.lanf.seckill.mapper","com.lanf.tcc.mapper","com.lanf.rocketmq.mapper"})
 @SpringBootApplication(scanBasePackages="com.lanf",exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 @EnableDiscoveryClient
-@EnableFeignClients(basePackages = {"com.lanf.api.goods"})
+@EnableFeignClients(basePackages = {"com.lanf.api.goods","com.lanf.seckill.api"})
 //nacos注册
 public class SeckillApplication {
 

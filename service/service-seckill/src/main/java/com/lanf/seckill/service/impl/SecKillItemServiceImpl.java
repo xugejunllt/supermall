@@ -8,7 +8,7 @@ import com.lanf.constant.model.vo.PageResult;
 import com.lanf.seckill.mapper.SecKillItemMapper;
 import com.lanf.seckill.model.entity.SecKillItemDO;
 import com.lanf.seckill.service.ISecKillItemService;
-import com.lanf.seckill.model.query.SecKillItemPageQuery;
+import com.lanf.seckill.model.query.SecKillItemForAdminPageQuery;
 import com.lanf.seckill.model.vo.SecKillItemPageVO;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,7 @@ import java.util.List;
 public class SecKillItemServiceImpl extends ServiceImpl<SecKillItemMapper, SecKillItemDO> implements ISecKillItemService {
 
     @Override
-    public PageResult<SecKillItemPageVO> seckillItemPageQuery(SecKillItemPageQuery query) {
+    public PageResult<SecKillItemPageVO> seckillItemPageQuery(SecKillItemForAdminPageQuery query) {
 
         long page = query.getPage();
         long pageSize = query.getPageSize();

@@ -3,8 +3,6 @@ package com.lanf.seckill.model.query;
 import com.lanf.constant.model.query.PageQuery;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * <p>
  * 秒杀活动分页查询参数
@@ -14,7 +12,7 @@ import java.io.Serializable;
  * @since 2026-05-07
  */
 @Data
-public class SecKillActivityPageQuery extends PageQuery implements Serializable {
+public class SecKillActivityPageQuery extends PageQuery  {
 
     private static final long serialVersionUID = 1L;
 

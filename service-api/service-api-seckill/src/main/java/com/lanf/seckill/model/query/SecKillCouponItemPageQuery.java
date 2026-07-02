@@ -14,7 +14,7 @@ import java.io.Serializable;
  * @since 2026-06-20
  */
 @Data
-public class SecKillCouponItemPageQuery extends PageQuery implements Serializable {
+public class SecKillCouponItemPageQuery extends PageQuery {
 
     private static final long serialVersionUID = 1L;
 

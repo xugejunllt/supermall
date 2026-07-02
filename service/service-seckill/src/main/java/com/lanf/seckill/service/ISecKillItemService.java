@@ -3,7 +3,7 @@ package com.lanf.seckill.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.seckill.model.entity.SecKillItemDO;
-import com.lanf.seckill.model.query.SecKillItemPageQuery;
+import com.lanf.seckill.model.query.SecKillItemForAdminPageQuery;
 import com.lanf.seckill.model.vo.SecKillItemPageVO;
 
 /**
@@ -22,6 +22,6 @@ public interface ISecKillItemService extends IService<SecKillItemDO> {
      * @param query 分页查询参数
      * @return 分页查询结果
      */
-    PageResult<SecKillItemPageVO> seckillItemPageQuery(SecKillItemPageQuery query);
+    PageResult<SecKillItemPageVO> seckillItemPageQuery(SecKillItemForAdminPageQuery query);
 
 }

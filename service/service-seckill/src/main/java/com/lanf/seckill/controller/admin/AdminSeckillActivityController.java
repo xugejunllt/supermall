@@ -10,7 +10,7 @@ import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.seckill.service.ISecKillItemService;
 import com.lanf.seckill.service.ISecKillRecordService;
 import com.lanf.seckill.model.query.SecKillActivityPageQuery;
-import com.lanf.seckill.model.query.SecKillItemPageQuery;
+import com.lanf.seckill.model.query.SecKillItemForAdminPageQuery;
 import com.lanf.seckill.model.query.SecKillRecordPageQuery;
 import com.lanf.seckill.model.vo.SecKillActivityPageVO;
 import com.lanf.seckill.model.vo.SecKillItemPageVO;
@@ -93,7 +93,7 @@ public class AdminSeckillActivityController {
      * 分页查询秒杀商品列表
      */
     @GetMapping("/seckillItemPageQuery")
-    public Result<PageResult<SecKillItemPageVO>> seckillItemPageQuery(@Validated SecKillItemPageQuery query) {
+    public Result<PageResult<SecKillItemPageVO>> seckillItemPageQuery(@Validated SecKillItemForAdminPageQuery query) {
         log.info("分页查询秒杀商品列表: query={}", query);
         return Result.ok(seckillItemService.seckillItemPageQuery(query));
     }
