@@ -1,5 +1,6 @@
 package com.lanf.seckill.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lanf.seckill.model.enums.SeckillModeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -48,10 +49,12 @@ public class AddSecKillCouponItemDTO implements Serializable {
 
     @NotNull(message = "活动开始时间不能为空")
     @ApiModelProperty(value = "活动开始时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date startTime;
 
     @NotNull(message = "活动结束时间不能为空")
     @ApiModelProperty(value = "活动结束时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date endTime;
 
 }

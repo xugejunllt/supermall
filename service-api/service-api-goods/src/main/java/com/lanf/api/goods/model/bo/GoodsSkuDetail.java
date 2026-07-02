@@ -12,6 +12,7 @@ import java.util.List;
 @Data
 public class GoodsSkuDetail implements Serializable {
 
+    private Long id;
     /** skuCode */
     private String skuCode;
 

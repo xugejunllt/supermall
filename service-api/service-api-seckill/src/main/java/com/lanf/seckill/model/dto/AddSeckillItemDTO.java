@@ -1,5 +1,6 @@
 package com.lanf.seckill.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lanf.seckill.model.enums.SeckillModeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -60,9 +61,11 @@ public class AddSeckillItemDTO implements Serializable {
     private Long skuId;
 
     @ApiModelProperty(value = "活动开始时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date startTime;
 
     @ApiModelProperty(value = "活动结束时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date endTime;
-
+    private Long tenantId;
 }

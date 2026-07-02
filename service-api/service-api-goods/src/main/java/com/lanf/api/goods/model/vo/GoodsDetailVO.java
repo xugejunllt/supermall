@@ -37,6 +37,10 @@ public class GoodsDetailVO implements Serializable {
     private Integer upDownStatus;
 
 
+    private Long shopId;
+    /** 店铺名称 */
+    private String shopName;
+
     /** 搜索提示词标签 */
     private List<String> promptWordLabel;
 

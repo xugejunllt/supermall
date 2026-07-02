@@ -56,6 +56,6 @@ public class SecKillCouponItemPageVO implements Serializable {
     private Date endTime;
 
     @ApiModelProperty(value = "创建时间")
-    private String createTime;
+    private Date createTime;
 
 }

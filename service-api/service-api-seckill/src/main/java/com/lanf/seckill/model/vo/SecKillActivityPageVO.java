@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * <p>
@@ -25,9 +26,9 @@ public class SecKillActivityPageVO implements Serializable {
     private String name;
 
     @ApiModelProperty(value = "创建时间")
-    private String createTime;
+    private Date createTime;
 
     @ApiModelProperty(value = "更新时间")
-    private String updateTime;
+    private Date updateTime;
 
 }

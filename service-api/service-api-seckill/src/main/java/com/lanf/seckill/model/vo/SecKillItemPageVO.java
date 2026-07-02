@@ -1,10 +1,12 @@
 package com.lanf.seckill.model.vo;
 
+import com.lanf.seckill.model.enums.SeckillModeEnum;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * <p>
@@ -21,7 +23,10 @@ public class SecKillItemPageVO implements Serializable {
 
     @ApiModelProperty(value = "秒杀商品ID")
     private Long id;
-
+    /**
+     * 秒杀模式 0：实时秒杀，1：MQ排队秒杀
+     */
+    private SeckillModeEnum secKillMode;
     @ApiModelProperty(value = "所属活动ID")
     private Long activityId;
 
@@ -50,6 +55,6 @@ public class SecKillItemPageVO implements Serializable {
     private Integer shelfStatus;
 
     @ApiModelProperty(value = "创建时间")
-    private String createTime;
+    private Date createTime;
 
 }

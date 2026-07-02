@@ -3,6 +3,7 @@ package com.lanf.seckill.controller.admin;
 
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
+import com.lanf.constant.utils.UserContext;
 import com.lanf.seckill.model.dto.AddSeckillActivityDTO;
 import com.lanf.seckill.model.dto.AddSeckillItemDTO;
 import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
@@ -62,7 +63,7 @@ public class AdminSeckillActivityController {
     public Result<Void> addSeckillItem(@Validated @RequestBody AddSeckillItemDTO dto) {
         log.info("添加秒杀商品: dto={}", dto);
 
-
+        dto.setTenantId(UserContext.getTenantId());
         seckillActivityService.addSeckillItem(dto);
         return Result.ok();
 

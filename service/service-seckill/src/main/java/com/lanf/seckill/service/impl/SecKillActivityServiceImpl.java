@@ -181,7 +181,6 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         seckillItemDO.setSoldStock(0);
         //默认下架状态
         seckillItemDO.setShelfStatus(0);
-        seckillItemDO.setTenantId(UserContext.getTenantId());
         seckillItemDO.setGoodsName(dto.getGoodsName());
         seckillItemDO.setSkuId(dto.getSkuId());
         seckillItemDO.setStartTime(dto.getStartTime());
@@ -189,7 +188,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         seckillItemDO.setSecKillMode(dto.getSecKillMode());
         seckillItemDO.setRemainingStock(dto.getTotalStock());
         seckillItemDO.setShopName(dto.getShopName());
-
+        seckillItemDO.setTenantId(dto.getTenantId());
         try {
             seckillItemService.save(seckillItemDO);
         } catch (DuplicateKeyException e) {

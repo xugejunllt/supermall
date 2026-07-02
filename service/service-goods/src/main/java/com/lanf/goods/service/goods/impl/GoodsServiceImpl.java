@@ -293,6 +293,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
             throw new BizException("商品信息不存在");
         }
 
+        ShopDO shopDO = shopService.getById(goodsDO.getShopId());
         List<GoodsSkuDO> goodsSkuDOList = goodsSkuService.lambdaQuery().eq(GoodsSkuDO::getGoodsId, id).list();
         GoodsCategoryDO categoryDO = goodsCategoryService.lambdaQuery().eq(BaseEntity::getId, goodsDO.getCategoryId()).eq(GoodsCategoryDO::getLevel, 3).one();
         GoodsBrandDO brandDO = goodsBrandService.getById(goodsDO.getBrandId());
@@ -311,7 +312,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         goodsDetailVO.setCategoryName(categoryDO.getName());
         goodsDetailVO.setBrandName(brandDO.getName());
         goodsDetailVO.setGoodsSkuDetailVOList(goodsSkuDetailVOList);
-
+        goodsDetailVO.setShopId(shopDO.getId());
+        goodsDetailVO.setShopName(shopDO.getName());
         goodsDetailVO.setExtendedTags(JsonUtils.toList(goodsDO.getExtendedTags(), String.class));
         goodsDetailVO.setPromptWordLabel(JsonUtils.toList(goodsDO.getPromptWordLabel(), String.class));
         return goodsDetailVO;
