@@ -1,16 +1,19 @@
 package com.lanf.seckill.controller.admin;
 
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import com.lanf.seckill.model.dto.AddSecKillCouponItemDTO;
 import com.lanf.seckill.model.dto.LauncherSecKillCouponItemDTO;
 import com.lanf.seckill.service.ISecKillCouponItemService;
+import com.lanf.seckill.service.ISecKillCouponRecordService;
+import com.lanf.seckill.model.query.SecKillCouponItemPageQuery;
+import com.lanf.seckill.model.query.SecKillCouponRecordPageQuery;
+import com.lanf.seckill.model.vo.SecKillCouponItemPageVO;
+import com.lanf.seckill.model.vo.SecKillCouponRecordPageVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -27,6 +30,9 @@ public class AdminSecKillCouponItemController {
 
     @Autowired
     private ISecKillCouponItemService seckillCouponItemService;
+
+    @Autowired
+    private ISecKillCouponRecordService seckillCouponRecordService;
 
     /**
      * 添加秒杀优惠券
@@ -48,6 +54,24 @@ public class AdminSecKillCouponItemController {
 
         seckillCouponItemService.launcherSecKillCouponItem(dto);
         return Result.ok();
+    }
+
+    /**
+     * 分页查询秒杀优惠券项目列表
+     */
+    @GetMapping("/seckillCouponItemPageQuery")
+    public Result<PageResult<SecKillCouponItemPageVO>> seckillCouponItemPageQuery(@Validated SecKillCouponItemPageQuery query) {
+        log.info("分页查询秒杀优惠券项目列表: query={}", query);
+        return Result.ok(seckillCouponItemService.seckillCouponItemPageQuery(query));
+    }
+
+    /**
+     * 分页查询秒杀优惠券记录列表
+     */
+    @GetMapping("/seckillCouponRecordPageQuery")
+    public Result<PageResult<SecKillCouponRecordPageVO>> seckillCouponRecordPageQuery(@Validated SecKillCouponRecordPageQuery query) {
+        log.info("分页查询秒杀优惠券记录列表: query={}", query);
+        return Result.ok(seckillCouponRecordService.seckillCouponRecordPageQuery(query));
     }
 
 }

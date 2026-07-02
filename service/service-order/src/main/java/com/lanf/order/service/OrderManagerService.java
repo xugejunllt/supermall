@@ -7,7 +7,7 @@ import com.lanf.order.model.vo.CalculateOrderAmountVO;
 import com.lanf.order.model.vo.PlaceOrderVO;
 import com.lanf.order.model.vo.SubmitCartVO;
 import com.lanf.order.model.vo.ValidateCartVO;
-import com.lanf.welfare.mq.message.SecKillPlaneMessage;
+import com.lanf.seckill.mq.message.SecKillPlaneMessage;
 
 public interface OrderManagerService {
 

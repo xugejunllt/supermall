@@ -1,12 +1,12 @@
 package com.lanf.welfare.mq.listener;
 
-import com.lanf.welfare.api.SecKillResultCache;
+import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.welfare.model.entity.CouponDO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
-import com.lanf.welfare.model.enums.SecKillResultEnum;
-import com.lanf.welfare.mq.constant.SecKillClientTopicName;
+import com.lanf.seckill.model.enums.SecKillResultEnum;
+import com.lanf.seckill.mq.constant.SecKillClientTopicName;
 import com.lanf.welfare.mq.constant.WelfareMqGroupName;
-import com.lanf.welfare.mq.message.SecKillCouponSuccessMessage;
+import com.lanf.seckill.mq.message.SecKillCouponSuccessMessage;
 import com.lanf.welfare.service.ICouponService;
 import com.lanf.welfare.service.ICouponTemplateService;
 import lombok.extern.slf4j.Slf4j;

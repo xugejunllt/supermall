@@ -1,4 +1,4 @@
-package com.lanf.welfare.mq.message;
+package com.lanf.seckill.mq.message;
 
 import com.lanf.constant.mq.base.BaseMessage;
 import io.swagger.annotations.ApiModelProperty;

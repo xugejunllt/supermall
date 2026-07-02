@@ -1,7 +1,7 @@
-package com.lanf.welfare.api;
+package com.lanf.seckill.api;
 
 import com.lanf.cache.service.RedissonCacheService;
-import com.lanf.welfare.model.enums.SecKillResultEnum;
+import com.lanf.seckill.model.enums.SecKillResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

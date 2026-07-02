@@ -1,6 +1,7 @@
 package com.lanf.seckill.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.seckill.model.dto.AddSecKillCouponItemDTO;
 import com.lanf.seckill.model.dto.GetSecKillCouponTokenDTO;
 import com.lanf.seckill.model.dto.LauncherSecKillCouponItemDTO;
@@ -8,6 +9,8 @@ import com.lanf.seckill.model.entity.SecKillCouponItemDO;
 import com.lanf.seckill.model.vo.SecKillCouponItemDetailVO;
 import com.lanf.seckill.model.vo.SecKillCouponItemVO;
 import com.lanf.seckill.model.vo.SecKillCouponTokenVO;
+import com.lanf.seckill.model.query.SecKillCouponItemPageQuery;
+import com.lanf.seckill.model.vo.SecKillCouponItemPageVO;
 
 import java.util.List;
 
@@ -58,5 +61,13 @@ public interface ISecKillCouponItemService extends IService<SecKillCouponItemDO>
      * @return
      */
     SecKillCouponTokenVO getSecKillCouponToken(GetSecKillCouponTokenDTO dto);
+
+    /**
+     * 分页查询秒杀优惠券项目列表
+     *
+     * @param query 分页查询参数
+     * @return 分页查询结果
+     */
+    PageResult<SecKillCouponItemPageVO> seckillCouponItemPageQuery(SecKillCouponItemPageQuery query);
 
 }

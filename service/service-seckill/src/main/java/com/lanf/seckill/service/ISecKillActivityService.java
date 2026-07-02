@@ -1,6 +1,7 @@
 package com.lanf.seckill.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.seckill.model.dto.AddSeckillActivityDTO;
 import com.lanf.seckill.model.dto.AddSeckillItemDTO;
 import com.lanf.seckill.model.dto.GetSeckillTokenDTO;
@@ -11,6 +12,8 @@ import com.lanf.seckill.model.vo.SecKillActivityListVO;
 import com.lanf.seckill.model.vo.SeckillItemDetailVO;
 import com.lanf.seckill.model.vo.SeckillItemVO;
 import com.lanf.seckill.model.vo.SeckillTokenVO;
+import com.lanf.seckill.model.query.SecKillActivityPageQuery;
+import com.lanf.seckill.model.vo.SecKillActivityPageVO;
 
 import java.util.List;
 
@@ -68,5 +71,12 @@ public interface ISecKillActivityService extends IService<SecKillActivityDO> {
 
     List<SecKillActivityListVO> seckillActivityListQuery();
 
+    /**
+     * 分页查询秒杀活动列表
+     *
+     * @param query 分页查询参数
+     * @return 分页查询结果
+     */
+    PageResult<SecKillActivityPageVO> seckillActivityPageQuery(SecKillActivityPageQuery query);
 
 }

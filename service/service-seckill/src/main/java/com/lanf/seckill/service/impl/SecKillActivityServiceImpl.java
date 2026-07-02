@@ -1,5 +1,7 @@
 package com.lanf.seckill.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
@@ -8,6 +10,7 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -29,6 +32,8 @@ import com.lanf.seckill.model.vo.SeckillTokenVO;
 import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.seckill.service.ISecKillItemService;
 import com.lanf.web.utils.JwtUtils;
+import com.lanf.seckill.model.query.SecKillActivityPageQuery;
+import com.lanf.seckill.model.vo.SecKillActivityPageVO;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
 import org.redisson.api.RedissonClient;
@@ -551,7 +556,7 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         String cacheKey = SECKILL_ACTIVITY_LIST_KEY;
         String cacheData = redissonCacheService.get(cacheKey);
 
-        if ( !IStringUtils.isEmpty(cacheData) && !RedissonCacheService.isErrorValue(cacheData)) {
+        if (!IStringUtils.isEmpty(cacheData) && !RedissonCacheService.isErrorValue(cacheData)) {
             log.info("秒杀活动列表缓存命中:key={}", cacheKey);
             return JsonUtils.toList(cacheData, SecKillActivityListVO.class);
         }
@@ -567,5 +572,29 @@ public class SecKillActivityServiceImpl extends ServiceImpl<SecKillActivityMappe
         return voList;
     }
 
+    @Override
+    public PageResult<SecKillActivityPageVO> seckillActivityPageQuery(SecKillActivityPageQuery query) {
+        long page = query.getPage();
+        long pageSize = query.getPageSize();
+
+
+        Page<SecKillActivityDO> pageParam =
+                new Page<>(page, pageSize);
+
+        LambdaQueryWrapper<SecKillActivityDO> wrapper =
+                new LambdaQueryWrapper<>();
+
+        wrapper.orderByDesc(SecKillActivityDO::getCreateTime);
+
+        Page<SecKillActivityDO> resultPage =
+                this.page(pageParam, wrapper);
+
+        List<SecKillActivityDO> records = resultPage.getRecords();
+        if (records.isEmpty()) {
+            return PageResult.emptyResult();
+        }
+
+        return new PageResult<>(BeanCopyUtils.copyBeanList(records, SecKillActivityPageVO.class), pageSize, resultPage.getTotal());
+    }
 
 }

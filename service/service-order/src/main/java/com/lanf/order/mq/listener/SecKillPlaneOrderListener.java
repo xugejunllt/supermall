@@ -2,8 +2,8 @@ package com.lanf.order.mq.listener;
 
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.service.OrderManagerService;
-import com.lanf.welfare.mq.constant.SecKillClientTopicName;
-import com.lanf.welfare.mq.message.SecKillPlaneMessage;
+import com.lanf.seckill.mq.constant.SecKillClientTopicName;
+import com.lanf.seckill.mq.message.SecKillPlaneMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;

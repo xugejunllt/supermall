@@ -1,10 +1,14 @@
 package com.lanf.seckill.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.config.SeckillCouponUrlConfig;
@@ -18,6 +22,8 @@ import com.lanf.seckill.model.vo.SecKillCouponItemVO;
 import com.lanf.seckill.model.vo.SecKillCouponTokenVO;
 import com.lanf.seckill.service.ISecKillActivityService;
 import com.lanf.seckill.service.ISecKillCouponItemService;
+import com.lanf.seckill.model.query.SecKillCouponItemPageQuery;
+import com.lanf.seckill.model.vo.SecKillCouponItemPageVO;
 import com.lanf.web.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -369,6 +375,31 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
         vo.setRemainingStock(item.getRemainingStock());
         vo.setLimitPerUser(item.getLimitPerUser());
         return vo;
+    }
+
+    @Override
+    public PageResult<SecKillCouponItemPageVO> seckillCouponItemPageQuery(SecKillCouponItemPageQuery query) {
+        Integer shelfStatus = query.getShelfStatus();
+        long page = query.getPage();
+        long pageSize = query.getPageSize();
+
+        Page<SecKillCouponItemDO> pageParam = new Page<>(page, pageSize);
+
+        LambdaQueryWrapper<SecKillCouponItemDO> wrapper = new LambdaQueryWrapper<>();
+
+        if (shelfStatus != null) {
+            wrapper.eq(SecKillCouponItemDO::getShelfStatus, shelfStatus);
+        }
+        wrapper.orderByDesc(SecKillCouponItemDO::getCreateTime);
+
+        Page<SecKillCouponItemDO> resultPage = this.page(pageParam, wrapper);
+
+        List<SecKillCouponItemDO> records = resultPage.getRecords();
+        if (records.isEmpty()) {
+            return PageResult.emptyResult();
+        }
+
+        return new PageResult<>(BeanCopyUtils.copyBeanList(records, SecKillCouponItemPageVO.class), pageSize, resultPage.getTotal());
     }
 
 }

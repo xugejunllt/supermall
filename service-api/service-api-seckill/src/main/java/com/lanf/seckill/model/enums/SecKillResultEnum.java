@@ -1,4 +1,4 @@
-package com.lanf.welfare.model.enums;
+package com.lanf.seckill.model.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.fasterxml.jackson.annotation.JsonCreator;

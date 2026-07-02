@@ -1,18 +1,24 @@
 package com.lanf.seckill.controller.admin;
 
 
+import com.lanf.constant.model.vo.PageResult;
+import com.lanf.constant.result.Result;
 import com.lanf.seckill.model.dto.AddSeckillActivityDTO;
 import com.lanf.seckill.model.dto.AddSeckillItemDTO;
 import com.lanf.seckill.model.dto.LauncherSeckillItemDTO;
 import com.lanf.seckill.service.ISecKillActivityService;
+import com.lanf.seckill.service.ISecKillItemService;
+import com.lanf.seckill.service.ISecKillRecordService;
+import com.lanf.seckill.model.query.SecKillActivityPageQuery;
+import com.lanf.seckill.model.query.SecKillItemPageQuery;
+import com.lanf.seckill.model.query.SecKillRecordPageQuery;
+import com.lanf.seckill.model.vo.SecKillActivityPageVO;
+import com.lanf.seckill.model.vo.SecKillItemPageVO;
+import com.lanf.seckill.model.vo.SecKillRecordPageVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.lanf.constant.result.Result;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -28,6 +34,12 @@ import com.lanf.constant.result.Result;
 public class AdminSeckillActivityController {
     @Autowired
     private ISecKillActivityService seckillActivityService;
+
+    @Autowired
+    private ISecKillItemService seckillItemService;
+
+    @Autowired
+    private ISecKillRecordService seckillRecordService;
 
 
     /**
@@ -66,6 +78,33 @@ public class AdminSeckillActivityController {
         seckillActivityService.launcherSeckillItem(dto);
         return Result.ok();
 
+    }
+
+    /**
+     * 分页查询秒杀活动列表
+     */
+    @GetMapping("/seckillActivityPageQuery")
+    public Result<PageResult<SecKillActivityPageVO>> seckillActivityPageQuery(@Validated  SecKillActivityPageQuery query) {
+        log.info("分页查询秒杀活动列表: query={}", query);
+        return Result.ok(seckillActivityService.seckillActivityPageQuery(query));
+    }
+
+    /**
+     * 分页查询秒杀商品列表
+     */
+    @GetMapping("/seckillItemPageQuery")
+    public Result<PageResult<SecKillItemPageVO>> seckillItemPageQuery(@Validated SecKillItemPageQuery query) {
+        log.info("分页查询秒杀商品列表: query={}", query);
+        return Result.ok(seckillItemService.seckillItemPageQuery(query));
+    }
+
+    /**
+     * 分页查询秒杀记录列表
+     */
+    @GetMapping("/seckillRecordPageQuery")
+    public Result<PageResult<SecKillRecordPageVO>> seckillRecordPageQuery(@Validated SecKillRecordPageQuery query) {
+        log.info("分页查询秒杀记录列表: query={}", query);
+        return Result.ok(seckillRecordService.seckillRecordPageQuery(query));
     }
 }
 

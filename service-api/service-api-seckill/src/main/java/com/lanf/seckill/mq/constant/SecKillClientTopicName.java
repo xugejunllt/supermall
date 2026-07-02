@@ -1,4 +1,4 @@
-package com.lanf.welfare.mq.constant;
+package com.lanf.seckill.mq.constant;
 
 public class SecKillClientTopicName {
 
