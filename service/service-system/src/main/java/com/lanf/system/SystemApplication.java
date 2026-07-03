@@ -11,7 +11,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableDiscoveryClient  //nacos注册
 @EnableFeignClients(basePackages = {"com.lanf.api.goods.api","com.lanf.api.storage.api",
         "com.lanf.api.search","com.lanf.welfare.api","com.lanf.api.order.api"
-,"com.lanf.api.pay.api","com.lanf.api.user.api","com.lanf.seckill.api"})
+,"com.lanf.api.pay.api","com.lanf.api.user.api","com.lanf.seckill.api","com.lanf.comment.api"})
 public class SystemApplication {
     public static void main(String[] args) {
         SpringApplication.run(SystemApplication.class, args);

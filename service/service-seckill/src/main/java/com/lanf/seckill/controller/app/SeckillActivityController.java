@@ -11,7 +11,6 @@ import com.lanf.seckill.model.query.SecKillResultQuery;
 import com.lanf.seckill.model.query.SeckillItemPageQuery;
 import com.lanf.seckill.model.vo.*;
 import com.lanf.seckill.service.ISecKillActivityService;
-import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.seckill.model.enums.SecKillResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

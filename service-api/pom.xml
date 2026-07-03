@@ -27,6 +27,7 @@
         <module>service-api-aftersales</module>
         <module>service-api-user</module>
         <module>service-api-seckill</module>
+        <module>service-api-comment</module>
     </modules>
 
     <dependencies>

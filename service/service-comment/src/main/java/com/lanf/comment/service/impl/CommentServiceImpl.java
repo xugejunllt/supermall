@@ -7,8 +7,10 @@ import com.lanf.comment.model.dto.LikeCommentDTO;
 import com.lanf.comment.model.dto.ReplyCommentDTO;
 import com.lanf.comment.model.enums.CommentStatusEnum;
 import com.lanf.comment.model.enums.CommentTypeEnum;
+import com.lanf.comment.model.query.CommentDocumentPageQuery;
 import com.lanf.comment.model.query.CommentPageQuery;
 import com.lanf.comment.model.query.CommentReplyQuery;
+import com.lanf.comment.model.vo.CommentDocumentPageVO;
 import com.lanf.comment.model.vo.CommentReplyVO;
 import com.lanf.comment.model.vo.CommentStatsVO;
 import com.lanf.comment.model.vo.CommentVO;
@@ -233,7 +235,7 @@ public class CommentServiceImpl implements CommentService {
         log.info("分页查询商品评论, goodsId={}", goodsId);
 
         // 2. 构建分页条件：按创建时间降序
-        Pageable pageable = PageRequest.of(query.getPage() - 1, query.getPageSize(),
+        Pageable pageable = PageRequest.of((int) (query.getPage() - 1), (int) query.getPageSize(),
                 Sort.by(Sort.Direction.DESC, "createTime"));
 
         // 3. 从 MongoDB 分页查询一级评论列表
@@ -304,7 +306,7 @@ public class CommentServiceImpl implements CommentService {
         Long parentId = query.getParentId();
         log.info("分页查询评论回复, parentId={}", parentId);
 
-        Pageable pageable = PageRequest.of(query.getPage() - 1, query.getPageSize(),
+        Pageable pageable = PageRequest.of((int) (query.getPage() - 1), (int) query.getPageSize(),
                 Sort.by(Sort.Direction.DESC, "createTime"));
 
         Page<CommentDocument> page = commentRepository.findByParentIdAndCommentTypeAndStatusAndIsDeleted(
@@ -396,6 +398,99 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.countByGoodsIdAndCommentTypeAndStatusAndIsDeleted(
                 goodsId, CommentTypeEnum.FIRST_LEVEL.getCode(),
                 CommentStatusEnum.NORMAL.getCode(), 0);
+    }
+
+    @Override
+    public PageResult<CommentDocumentPageVO> commentDocumentPageQuery(CommentDocumentPageQuery query) {
+        log.info("分页查询评论文档列表, query={}", query);
+
+        // 1. 构建查询条件
+        Criteria criteria = new Criteria();
+        if (query.getGoodsId() != null) {
+            criteria.and("goodsId").is(query.getGoodsId());
+        }
+        if (query.getUserId() != null) {
+            criteria.and("userId").is(query.getUserId());
+        }
+        if (query.getStatus() != null) {
+            criteria.and("status").is(query.getStatus());
+        }
+        if (query.getCommentType() != null) {
+            criteria.and("commentType").is(query.getCommentType());
+        }
+        if (query.getParentId() != null) {
+            criteria.and("parentId").is(query.getParentId());
+        }
+        if (query.getContent() != null && !query.getContent().trim().isEmpty()) {
+            criteria.and("content").regex(".*" + query.getContent().trim() + ".*", "i");
+        }
+
+        // 2. 构建分页条件
+        Pageable pageable = PageRequest.of((int) (query.getPage() - 1), (int) query.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createTime"));
+
+        // 3. 执行分页查询
+        Query mongoQuery = new Query(criteria).with(pageable);
+        List<CommentDocument> documents = mongoTemplate.find(mongoQuery, CommentDocument.class);
+        long total = mongoTemplate.count(new Query(criteria), CommentDocument.class);
+
+        // 4. 提取所有评论ID，批量查询统计数据（点赞数、回复数）
+        List<Long> commentIds = documents.stream()
+                .map(CommentDocument::getCommentId)
+                .collect(Collectors.toList());
+
+        Map<Long, CommentStatsDocument> statsMap = new HashMap<>();
+        if (!commentIds.isEmpty()) {
+            List<CommentStatsDocument> statsList = commentStatsRepository.findByCommentIdIn(commentIds);
+            for (CommentStatsDocument stats : statsList) {
+                statsMap.put(stats.getCommentId(), stats);
+            }
+        }
+
+        // 5. 组装VO
+        List<CommentDocumentPageVO> records = documents.stream()
+                .map(doc -> {
+                    CommentDocumentPageVO vo = new CommentDocumentPageVO();
+                    vo.setCommentId(doc.getCommentId());
+                    vo.setGoodsId(doc.getGoodsId());
+                    vo.setOrderId(doc.getOrderId());
+                    vo.setSkuCode(doc.getSkuCode());
+                    vo.setUserId(doc.getUserId());
+                    vo.setUserName(doc.getUserName());
+                    vo.setUserAvatar(doc.getUserAvatar());
+                    vo.setContent(doc.getContent());
+                    vo.setImages(doc.getImages());
+                    vo.setRating(doc.getRating());
+                    vo.setCommentType(doc.getCommentType());
+                    vo.setParentId(doc.getParentId());
+                    vo.setReplyToUserId(doc.getReplyToUserId());
+                    vo.setReplyToUserName(doc.getReplyToUserName());
+                    vo.setStatus(doc.getStatus());
+                    vo.setTopFlag(doc.getTopFlag());
+                    vo.setCreateTime(doc.getCreateTime());
+                    vo.setUpdateTime(doc.getUpdateTime());
+                    vo.setIsDeleted(doc.getIsDeleted());
+
+                    // 关联点赞数和回复数
+                    CommentStatsDocument stats = statsMap.get(doc.getCommentId());
+                    if (stats != null) {
+                        vo.setLikeCount(stats.getLikeCount());
+                        vo.setReplyCount(stats.getReplyCount());
+                    } else {
+                        vo.setLikeCount(0L);
+                        vo.setReplyCount(0L);
+                    }
+
+                    return vo;
+                })
+                .collect(Collectors.toList());
+
+        // 6. 组装分页结果
+        PageResult<CommentDocumentPageVO> result = new PageResult<>();
+        result.setRecords(records);
+        result.setTotal(total);
+        result.setSize(pageable.getPageSize());
+        return result;
     }
 
     // ==================== 私有转换方法 ====================

@@ -15,7 +15,6 @@ import com.lanf.seckill.mq.constant.SecKillMqTopicName;
 import com.lanf.seckill.mq.message.SecKillMqExecuteMessage;
 import com.lanf.seckill.service.ISecKillItemService;
 import com.lanf.seckill.service.ISecKillRecordService;
-import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.seckill.service.strategy.SecKillStrategyFactory;
 import com.lanf.seckill.mq.constant.SecKillClientTopicName;
 import com.lanf.seckill.mq.message.SecKillPlaneMessage;

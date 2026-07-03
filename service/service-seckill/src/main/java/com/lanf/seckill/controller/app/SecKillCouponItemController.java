@@ -9,7 +9,6 @@ import com.lanf.seckill.model.dto.GetSecKillCouponTokenDTO;
 import com.lanf.seckill.model.vo.SecKillCouponItemVO;
 import com.lanf.seckill.model.vo.SecKillCouponTokenVO;
 import com.lanf.seckill.service.ISecKillCouponItemService;
-import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.seckill.model.enums.SecKillResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

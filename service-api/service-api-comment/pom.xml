@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.lanf</groupId>
+        <artifactId>service-api</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+
+    <artifactId>service-api-comment</artifactId>
+    <version>${service.version}</version>
+
+ <dependencies>
+     <dependency>
+         <groupId>org.dromara</groupId>
+         <artifactId>hmily-annotation</artifactId>
+         <version>${hmily.version}</version>
+     </dependency>
+     <dependency>
+         <groupId>com.lanf</groupId>
+         <artifactId>common-constant</artifactId>
+         <version>${common.version}</version>
+     </dependency>
+     <dependency>
+         <groupId>com.lanf</groupId>
+         <artifactId>common-cache</artifactId>
+         <version>${common.version}</version>
+     </dependency>
+     <dependency>
+         <groupId>jakarta.validation</groupId>
+         <artifactId>jakarta.validation-api</artifactId>
+     </dependency>
+ </dependencies>
+</project>

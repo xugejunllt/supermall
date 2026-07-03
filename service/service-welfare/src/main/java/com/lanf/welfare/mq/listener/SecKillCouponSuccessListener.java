@@ -1,6 +1,5 @@
 package com.lanf.welfare.mq.listener;
 
-import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.welfare.model.entity.CouponDO;
 import com.lanf.welfare.model.entity.CouponTemplateDO;
 import com.lanf.seckill.model.enums.SecKillResultEnum;

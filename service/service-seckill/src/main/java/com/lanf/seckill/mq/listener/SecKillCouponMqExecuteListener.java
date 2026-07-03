@@ -11,7 +11,6 @@ import com.lanf.seckill.mq.constant.SecKillMqTopicName;
 import com.lanf.seckill.mq.message.SecKillCouponMqExecuteMessage;
 import com.lanf.seckill.service.ISecKillCouponItemService;
 import com.lanf.seckill.service.ISecKillCouponRecordService;
-import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.seckill.model.enums.SecKillResultEnum;
 import com.lanf.seckill.mq.constant.SecKillClientTopicName;
 import com.lanf.seckill.mq.message.SecKillCouponSuccessMessage;

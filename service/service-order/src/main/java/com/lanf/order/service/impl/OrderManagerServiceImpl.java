@@ -52,7 +52,6 @@ import com.lanf.rocketmq.model.message.CancelExpiredOrderMessage;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.model.message.OrderGoodsInfo;
 import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.welfare.api.WelfareApiService;
 import com.lanf.welfare.model.bo.DiscountInfoBO;
 import com.lanf.welfare.model.dto.CalculateDiscountAmountDTO;

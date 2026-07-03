@@ -116,7 +116,7 @@ public class CommentLikeEventListener implements RocketMQListener<CommentLikeEve
         } catch (Exception e) {
             log.error("点赞事件处理异常,", e);
             // 顺序消息消费异常会重试，不吞异常
-            throw new MessageRetryConsumeException("点赞事件处理失败");
+            //throw new MessageRetryConsumeException("点赞事件处理失败");
         }
 
     }
