@@ -1,5 +1,7 @@
 package com.lanf.search.service;
 
+import com.lanf.api.search.model.query.GoodsDocumentPageQuery;
+import com.lanf.api.search.model.vo.GoodsDocumentPageVO;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.search.model.query.GoodsSearchQuery;
 import com.lanf.search.model.query.HomePageQuery;
@@ -30,4 +32,11 @@ public interface IGoodsDocumentService {
      * @return 建议词列表
      */
     List<SuggestVO> getSuggestions(SuggestQuery query);
+
+    /**
+     * 分页查询商品文档列表
+     * @param query 查询条件
+     * @return 分页结果
+     */
+    PageResult<GoodsDocumentPageVO> goodsDocumentPageQuery(GoodsDocumentPageQuery query);
 }

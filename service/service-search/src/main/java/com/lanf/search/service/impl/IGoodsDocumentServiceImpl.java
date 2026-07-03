@@ -1,5 +1,7 @@
 package com.lanf.search.service.impl;
 
+import com.lanf.api.search.model.query.GoodsDocumentPageQuery;
+import com.lanf.api.search.model.vo.GoodsDocumentPageVO;
 import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.search.model.document.GoodsDocument;
@@ -429,6 +431,90 @@ public class IGoodsDocumentServiceImpl implements IGoodsDocumentService {
                         .build());
             }
         }
+    }
+
+    @Override
+    public PageResult<GoodsDocumentPageVO> goodsDocumentPageQuery(GoodsDocumentPageQuery query) {
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+
+        // 1. 必须有过滤条件：tenantId
+        if (query.getTenantId() != null) {
+            boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.TENANT_ID, query.getTenantId()));
+        }
+
+        // 2. 全文检索（匹配商品名称）
+        if (StringUtils.hasText(query.getGoodsName())) {
+            boolQuery.must(QueryBuilders.matchQuery(GoodsDocument.GOODS_NAME, query.getGoodsName())
+                    .minimumShouldMatch("80%"));
+        }
+
+        // 3. 精确过滤
+        if (query.getShopId() != null) {
+            boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.SHOP_ID, query.getShopId()));
+        }
+        if (query.getBrandId() != null) {
+            boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.BRAND_ID, query.getBrandId()));
+        }
+        if (query.getFirstLevelCategoryId() != null) {
+            boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.FIRST_LEVEL_CATEGORY_ID, query.getFirstLevelCategoryId()));
+        }
+        if (query.getSecondaryLevelCategoryId() != null) {
+            boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.SECONDARY_LEVEL_CATEGORY_ID, query.getSecondaryLevelCategoryId()));
+        }
+        if (query.getThreeLevelCategoryId() != null) {
+            boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.THREE_LEVEL_CATEGORY_ID, query.getThreeLevelCategoryId()));
+        }
+        if (query.getUpDownStatus() != null) {
+            boolQuery.filter(QueryBuilders.termQuery(GoodsDocument.UP_DOWN_STATUS, query.getUpDownStatus()));
+        }
+
+        // 4. 构建查询
+        queryBuilder.withQuery(boolQuery);
+
+        // 5. 排序（默认按更新时间倒序）
+        queryBuilder.withSort(SortBuilders.fieldSort(GoodsDocument.UPDATE_TIME).order(SortOrder.DESC));
+
+        // 6. 分页
+        queryBuilder.withPageable(PageRequest.of((int) query.getPage() - 1, (int) query.getPageSize()));
+
+        // 7. 执行查询
+        SearchHits<GoodsDocument> searchHits = elasticsearchRestTemplate.search(
+                queryBuilder.build(), GoodsDocument.class);
+
+        // 8. 结果转换
+        List<GoodsDocumentPageVO> content = searchHits.getSearchHits().stream()
+                .map(hit -> convertToGoodsDocumentPageVO(hit.getContent()))
+                .collect(Collectors.toList());
+
+        return new PageResult<>(content, content.size(), searchHits.getTotalHits());
+    }
+
+    private GoodsDocumentPageVO convertToGoodsDocumentPageVO(GoodsDocument document) {
+        GoodsDocumentPageVO vo = new GoodsDocumentPageVO();
+        vo.setGoodsId(document.getGoodsId());
+        vo.setGoodsName(document.getGoodsName());
+        vo.setSubTitle(document.getSubTitle());
+        vo.setShopId(document.getShopId());
+        vo.setShopName(document.getShopName());
+        vo.setMainImage(document.getMainImage());
+        vo.setFirstLevelCategoryId(document.getFirstLevelCategoryId());
+        vo.setFirstLevelCategoryName(document.getFirstLevelCategoryName());
+        vo.setSecondaryLevelCategoryId(document.getSecondaryLevelCategoryId());
+        vo.setSecondaryLevelCategoryName(document.getSecondaryLevelCategoryName());
+        vo.setThreeLevelCategoryId(document.getThreeLevelCategoryId());
+        vo.setThreeLevelCategoryName(document.getThreeLevelCategoryName());
+        vo.setBrandId(document.getBrandId());
+        vo.setBrandName(document.getBrandName());
+        vo.setUpDownStatus(document.getUpDownStatus());
+        vo.setSales(document.getSales());
+        vo.setSkuId(document.getSkuId());
+        vo.setSkuName(document.getSkuName());
+        vo.setPrice(document.getPrice());
+        vo.setExtendedTags(document.getExtendedTags());
+        vo.setCreateTime(document.getCreateTime());
+        vo.setUpdateTime(document.getUpdateTime());
+        return vo;
     }
 
     private HomePageVO convertToVO(GoodsDocument document) {
