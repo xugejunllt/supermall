@@ -3,6 +3,7 @@ package com.lanf.api.goods.api;
 import com.lanf.api.goods.model.dto.*;
 import com.lanf.api.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.api.goods.model.query.GoodsPageQuery;
+import com.lanf.api.goods.model.query.GoodsSkuPageQuery;
 import com.lanf.api.goods.model.query.ReconciliationStockFlowQuery;
 import com.lanf.api.goods.model.query.UserStockPageQuery;
 import com.lanf.api.goods.model.query.UserStockFlowPageQuery;
@@ -234,4 +235,12 @@ public interface GoodsApiService {
      */
     @GetMapping("/goods/admin/userStockPreorderPublishLog/userStockPreorderPublishLogPageQuery")
     Result<PageResult<UserStockPreorderPublishLogPageVO>> userStockPreorderPublishLogPageQuery(@SpringQueryMap UserStockPreorderPublishLogPageQuery query);
+
+    // ==================== 商品SKU管理 ====================
+
+    /**
+     * 分页查询商品SKU列表
+     */
+    @GetMapping("/goods/admin/goods/goodsSkuPageQuery")
+    Result<PageResult<GoodsSkuPageVO>> goodsSkuPageQuery(@SpringQueryMap GoodsSkuPageQuery query);
 }

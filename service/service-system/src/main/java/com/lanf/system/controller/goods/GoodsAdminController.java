@@ -5,6 +5,7 @@ import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.api.goods.model.dto.*;
 import com.lanf.api.goods.model.query.BaseGoodsPageQuery;
 import com.lanf.api.goods.model.query.GoodsPageQuery;
+import com.lanf.api.goods.model.query.GoodsSkuPageQuery;
 import com.lanf.api.goods.model.query.UserStockPageQuery;
 import com.lanf.api.goods.model.query.UserStockFlowPageQuery;
 import com.lanf.api.goods.model.query.UserStockPreorderPublishLogPageQuery;
@@ -269,6 +270,17 @@ public class GoodsAdminController {
     public Result<PageResult<UserStockPreorderPublishLogPageVO>> userStockPreorderPublishLogPageQuery(UserStockPreorderPublishLogPageQuery query) {
         log.info("[{}]开始,入参:[{}]", "分页查询库存预售发布日志", query);
         return goodsAdminApiService.userStockPreorderPublishLogPageQuery(query);
+    }
+
+    // ==================== 商品SKU管理 ====================
+
+    /**
+     * 分页查询商品SKU列表
+     */
+    @GetMapping("/goodsSkuPageQuery")
+    public Result<PageResult<GoodsSkuPageVO>> goodsSkuPageQuery(GoodsSkuPageQuery query) {
+        log.info("[{}]开始,入参:[{}]", "分页查询商品SKU列表", query);
+        return goodsAdminApiService.goodsSkuPageQuery(query);
     }
 
 }

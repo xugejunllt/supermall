@@ -6,9 +6,12 @@ import com.lanf.constant.result.Result;
 import com.lanf.api.goods.model.dto.AddGoodsDTO;
 import com.lanf.api.goods.model.dto.UpGoodsDTO;
 import com.lanf.api.goods.model.query.GoodsPageQuery;
+import com.lanf.api.goods.model.query.GoodsSkuPageQuery;
 import com.lanf.api.goods.model.vo.GoodsDetailVO;
 import com.lanf.api.goods.model.vo.GoodsPageVO;
+import com.lanf.api.goods.model.vo.GoodsSkuPageVO;
 import com.lanf.goods.service.goods.IGoodsService;
+import com.lanf.goods.service.goods.IGoodsSkuService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -30,6 +33,8 @@ public class GoodsController {
     @Autowired
     private IGoodsService goodsService;
 
+    @Autowired
+    private IGoodsSkuService goodsSkuService;
 
     @PostMapping("/addGoods")
     public Result<Void> addGoods(@Validated @RequestBody AddGoodsDTO dto) {
@@ -61,6 +66,15 @@ public class GoodsController {
         log.info("商品详细信息:id{}", id);
 
         return Result.ok(goodsService.goodsDetailQuery(id));
+    }
+
+    /**
+     * 分页查询商品SKU列表
+     */
+    @GetMapping("/goodsSkuPageQuery")
+    public Result<PageResult<GoodsSkuPageVO>> goodsSkuPageQuery(GoodsSkuPageQuery query) {
+        log.info("分页查询商品SKU列表:query{}", query);
+        return Result.ok(goodsSkuService.goodsSkuPageQuery(query));
     }
 
 }
