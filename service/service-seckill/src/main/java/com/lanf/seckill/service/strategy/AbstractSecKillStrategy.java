@@ -1,6 +1,7 @@
 package com.lanf.seckill.service.strategy;
 
 import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.seckill.api.SecKillResultCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
