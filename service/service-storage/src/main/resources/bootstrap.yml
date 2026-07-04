@@ -29,3 +29,7 @@ server:
   port: 9004
   servlet:
     context-path: /storage
+
+
+mybatis-plus:
+  mapper-locations: classpath:com/lanf/storage/mapper/xml/*.xml

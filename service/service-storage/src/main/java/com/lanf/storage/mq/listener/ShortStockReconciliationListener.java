@@ -1,14 +1,17 @@
 package com.lanf.storage.mq.listener;
 
+import com.lanf.api.storage.model.enums.ReconciliationOrderStatusEnum;
 import com.lanf.common.utils.IStringUtils;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
+import com.lanf.constant.utils.IdUtils;
 import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.storage.mapper.ReconciliationDiffMapper;
 import com.lanf.storage.model.bo.ReconciliationOrderDetailBO;
 import com.lanf.storage.model.entity.ReconciliationDiffDO;
 import com.lanf.storage.model.entity.StockFlowDO;
 import com.lanf.storage.model.enums.ReconciliationDiffTypeEnum;
 import com.lanf.storage.model.enums.ReconciliationJobTypeEnum;
-import com.lanf.api.storage.model.enums.ReconciliationOrderStatusEnum;
-import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
 import com.lanf.storage.mq.constant.StorageMqGroupName;
 import com.lanf.storage.mq.constant.StorageMqTopicName;
 import com.lanf.storage.mq.message.ShortStockReconciliation;
@@ -19,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -43,11 +45,13 @@ public class ShortStockReconciliationListener implements RocketMQListener<ShortS
      private IStockFlowService stockFlowService;
      @Autowired
      private IReconciliationDiffService reconciliationDiffService;
-
+     @Autowired
+     private ReconciliationDiffMapper reconciliationDiffMapper;
 
      @Override
      public void onMessage(ShortStockReconciliationMessage message) {
 
+          log.info("短款对账开始:{}", JsonUtils.toJsonString(message));
           String bathId = message.getBathId();
           List<ShortStockReconciliation> reconciliationList = message.getReconciliationList();
 
@@ -112,11 +116,11 @@ public class ShortStockReconciliationListener implements RocketMQListener<ShortS
 
 
           }
-          try {
-               reconciliationDiffService.saveBatch(reconciliationDiffDOList);
-          } catch (DuplicateKeyException e) {
-              log.warn("重复初始化");
-          }
+          reconciliationDiffDOList.forEach(a->{
+
+               a.setId(IdUtils.generateId());
+          });
+          reconciliationDiffMapper.batchInsertIgnore(reconciliationDiffDOList);
 
      }
 

@@ -1,12 +1,10 @@
 package com.lanf.storage.model.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.storage.model.enums.ReconciliationDiffTypeEnum;
 import com.lanf.storage.model.enums.ReconciliationJobTypeEnum;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
-
-import java.io.Serializable;
 
 /**
  * <p>
@@ -17,9 +15,8 @@ import java.io.Serializable;
  * @since 2026-05-06
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
-public class ReconciliationDiffDO implements Serializable {
+@TableName("reconciliation_diff")
+public class ReconciliationDiffDO extends BaseEntity {
 
 private static final long serialVersionUID=1L;
 

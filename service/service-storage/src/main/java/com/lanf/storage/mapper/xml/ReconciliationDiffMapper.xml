@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lanf.storage.mapper.ReconciliationDiffMapper">
+
+    <insert id="batchInsertIgnore">
+        INSERT IGNORE INTO reconciliation_diff (
+        id,
+        bath_id,
+        order_id,
+        sku_code,
+        warehouse_id,
+        stock_flow_id,
+        job_type,
+        diff_type,
+        create_time,
+        update_time,
+        is_deleted,
+        create_by,
+        update_by
+        ) VALUES
+        <foreach collection="list" item="item" separator="," >
+            (
+            #{item.id},
+            #{item.bathId},
+            #{item.orderId},
+            #{item.skuCode},
+            #{item.warehouseId},
+            #{item.stockFlowId},
+            #{item.jobType},
+            #{item.diffType},
+            NOW(),
+            NOW(),
+            0,
+            #{item.createBy},
+            #{item.updateBy}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteAll">
+        DELETE FROM reconciliation_diff
+    </delete>
+
+</mapper>

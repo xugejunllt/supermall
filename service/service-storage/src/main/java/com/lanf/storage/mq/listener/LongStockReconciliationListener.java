@@ -5,6 +5,8 @@ package com.lanf.storage.mq.listener;
  */
 
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.utils.IdUtils;
+import com.lanf.storage.mapper.ReconciliationDiffMapper;
 import com.lanf.storage.model.bo.ReconciliationOrderDetailBO;
 import com.lanf.storage.model.entity.ReconciliationDiffDO;
 import com.lanf.storage.model.entity.ReconciliationOrderDetailDO;
@@ -40,7 +42,8 @@ public class LongStockReconciliationListener implements RocketMQListener<LongSto
     private IReconciliationOrderDetailService reconciliationOrderDetailService;
     @Autowired
     private IReconciliationDiffService reconciliationDiffService;
-
+    @Autowired
+    private ReconciliationDiffMapper reconciliationDiffMapper;
 
     @Override
     public void onMessage(LongStockReconciliationMessage message) {
@@ -85,8 +88,11 @@ public class LongStockReconciliationListener implements RocketMQListener<LongSto
                 reconciliationDiffDOList.add(diffDO);
             }
         }
-        reconciliationDiffService.saveBatch(reconciliationDiffDOList);
+        reconciliationDiffDOList.forEach(a->{
 
+            a.setId(IdUtils.generateId());
+        });
+        reconciliationDiffMapper.batchInsertIgnore(reconciliationDiffDOList);
     }
 
 
