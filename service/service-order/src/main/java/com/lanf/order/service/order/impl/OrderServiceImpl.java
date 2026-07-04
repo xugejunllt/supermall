@@ -732,7 +732,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     @Override
     public OrderDetailForAdminVO orderDetailForAdminQuery(OrderDetailQuery query) {
 
-        query.setUserId(UserContext.getUserId());
         //1.先从缓存读取订单详情
         OrderDetailForAdminVO cached = orderDetailCacheService.getOrderDetailFromCache(query.getOrderId());
         if (cached != null) {

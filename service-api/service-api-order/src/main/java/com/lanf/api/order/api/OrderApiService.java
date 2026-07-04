@@ -86,6 +86,7 @@ public interface OrderApiService {
     @PostMapping("/order/admin/afterSalesOrder/completeRefund")
     public Result<Void> completeRefund(@RequestBody  CompleteRefundDTO dto);
 
-
+    @GetMapping("/order/admin/order/orderAutoCloseScanTask")
+    public Result<Void> orderAutoCloseScanTask();
 
 }

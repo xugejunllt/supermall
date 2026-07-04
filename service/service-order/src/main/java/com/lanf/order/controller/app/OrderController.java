@@ -135,7 +135,7 @@ public class OrderController {
     public Result<OrderDetailForAdminVO> orderDetailQuery(@Validated OrderDetailQuery query) {
 
         log.info("查询订单详细:{}", query);
-
+        query.setUserId(UserContext.getUserId());
         return Result.ok(orderService.orderDetailForAdminQuery(query));
     }
 

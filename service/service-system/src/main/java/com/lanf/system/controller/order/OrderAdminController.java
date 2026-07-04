@@ -88,5 +88,10 @@ public class OrderAdminController {
         log.info("发起退款:dto{}", dto);
         return orderApiService.completeRefund(dto);
     }
+    @GetMapping("/orderAutoCloseScanTask")
+    public Result<Void> orderAutoCloseScanTask(){
+        log.info("手动开启自动关闭订单定时任务");
+        return orderApiService.orderAutoCloseScanTask();
+    }
 
 }
