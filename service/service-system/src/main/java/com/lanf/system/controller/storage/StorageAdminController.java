@@ -188,13 +188,13 @@ public class StorageAdminController {
         return storageApiService.reconciliationOrderDetailPageQuery(query);
     }
     @GetMapping("/shortStockReconciliationScanTask")
-    public Result<Void> shortStockReconciliationScanTask(@RequestParam("batchId") Long batchId){
+    public Result<Void> shortStockReconciliationScanTask(@RequestParam("batchId") String batchId){
         log.info("手动开启短库存对账任务:batchId{}", batchId);
         return storageApiService.shortStockReconciliationScanTask(batchId);
     }
 
     @GetMapping("/longStockReconciliationScanTask")
-    public Result<Void> longStockReconciliationScanTask(@RequestParam("batchId") Long batchId){
+    public Result<Void> longStockReconciliationScanTask(@RequestParam("batchId") String batchId){
         log.info("手动开启长库存对账任务:batchId{}", batchId);
         return storageApiService.longStockReconciliationScanTask(batchId);
     }

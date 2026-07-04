@@ -121,8 +121,8 @@ public interface StorageApiService {
 
 
     @GetMapping("/storage/admin/reconciliation/shortStockReconciliationScanTask")
-    public Result<Void> shortStockReconciliationScanTask(@RequestParam("batchId") Long batchId);
+    public Result<Void> shortStockReconciliationScanTask(@RequestParam("batchId") String batchId);
 
     @GetMapping("/storage/admin/reconciliation/longStockReconciliationScanTask")
-    public Result<Void> longStockReconciliationScanTask(@RequestParam("batchId") Long batchId);
+    public Result<Void> longStockReconciliationScanTask(@RequestParam("batchId") String batchId);
 }

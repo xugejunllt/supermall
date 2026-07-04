@@ -9,6 +9,7 @@ import com.lanf.constant.result.Result;
 import com.lanf.storage.mapper.ReconciliationDiffMapper;
 import com.lanf.storage.service.reconciliation.IReconciliationDiffService;
 import com.lanf.storage.service.reconciliation.IReconciliationOrderDetailService;
+import com.lanf.storage.task.BatchIdContext;
 import com.lanf.storage.task.StockReconciliationTask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,19 +52,22 @@ public class ReconciliationController {
 
 
     @GetMapping("/shortStockReconciliationScanTask")
-    public Result<Void> shortStockReconciliationScanTask(@RequestParam("batchId") Long batchId) {
+    public Result<Void> shortStockReconciliationScanTask(@RequestParam("batchId") String batchId) {
         log.info("手动开启短库存对账任务:batchId{}", batchId);
         reconciliationDiffMapper.deleteAll();
+        BatchIdContext.setBatchId(batchId);
         stockReconciliationTask.shortStockReconciliationScanTask();
         return Result.ok();
     }
 
 
     @GetMapping("/longStockReconciliationScanTask")
-    public Result<Void> longStockReconciliationScanTask(@RequestParam("batchId") Long batchId) {
+    public Result<Void> longStockReconciliationScanTask(@RequestParam("batchId") String batchId) {
 
         log.info("手动开启长库存对账任务:batchId{}", batchId);
         reconciliationDiffMapper.deleteAll();
+        BatchIdContext.setBatchId(batchId);
+
         stockReconciliationTask.longStockReconciliationScanTask();
         return Result.ok();
     }
