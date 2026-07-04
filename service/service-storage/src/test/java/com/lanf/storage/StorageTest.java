@@ -53,5 +53,9 @@ public class StorageTest {
         statusTraceTask.shortStockReconciliationScanTask();
         Thread.sleep(100000000L);
     }
-
+    @Test
+    public void  longStockReconciliationScanTask() throws InterruptedException {
+        statusTraceTask.longStockReconciliationScanTask();
+        Thread.sleep(100000000L);
+    }
 }

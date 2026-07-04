@@ -48,6 +48,7 @@ public class LongStockReconciliationListener implements RocketMQListener<LongSto
     @Override
     public void onMessage(LongStockReconciliationMessage message) {
 
+        log.info("开始处理长库存对账任务:{}",JsonUtils.toJsonString(message));
 
         String bathId = message.getBathId();
         List<LongStockReconciliation> reconciliationList = message.getReconciliationList();
