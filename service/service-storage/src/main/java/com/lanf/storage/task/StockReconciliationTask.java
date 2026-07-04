@@ -27,11 +27,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- *库存对账
+ * 库存对账
  */
 @Slf4j
 @Component
-public class StockReconciliationScanOrderStatusTraceTask {
+public class StockReconciliationTask {
 
     @Autowired
     private RocketMqClient rocketMqClient;
@@ -46,47 +46,55 @@ public class StockReconciliationScanOrderStatusTraceTask {
      */
     @Scheduled(cron = "0 0 9 * * ?")
     public void shortStockReconciliationScanTask() {
-        String bathId = getBathId();
+
+        String batchId = BatchIdContext.getBatchId();
+        if (batchId == null) {
+            batchId = getBathId();
+        }
 
         long pageNum = 1;
         long pageSize = 100;
         Page<ReconciliationOrderDetailDO> page;
 
-        do {
-            LambdaQueryWrapper<ReconciliationOrderDetailDO> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(ReconciliationOrderDetailDO::getBathId, bathId)
-                    .orderByAsc(ReconciliationOrderDetailDO::getId);
+        try {
+            do {
+                LambdaQueryWrapper<ReconciliationOrderDetailDO> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(ReconciliationOrderDetailDO::getBathId, batchId)
+                        .orderByAsc(ReconciliationOrderDetailDO::getId);
 
-            page = reconciliationOrderDetailService.page(new Page<>(pageNum, pageSize), queryWrapper);
+                page = reconciliationOrderDetailService.page(new Page<>(pageNum, pageSize), queryWrapper);
 
-            List<ReconciliationOrderDetailDO> detailList = page.getRecords();
-            if (!IStringUtils.isEmpty(detailList)) {
+                List<ReconciliationOrderDetailDO> detailList = page.getRecords();
+                if (!IStringUtils.isEmpty(detailList)) {
 
-                List<ShortStockReconciliation> reconciliationList = detailList.stream().map(a -> {
-                    ShortStockReconciliation message = new ShortStockReconciliation();
+                    List<ShortStockReconciliation> reconciliationList = detailList.stream().map(a -> {
+                        ShortStockReconciliation message = new ShortStockReconciliation();
 
-                    message.setOrderId(a.getOrderId());
-                    message.setOrderStatus(a.getOrderStatus());
-                    if (!IStringUtils.isEmpty(a.getOrderItems())) {
-                        message.setOrderItems(JsonUtils.toList(a.getOrderItems(),
-                                ReconciliationOrderDetailBO.class));
-                    }
-                    if (!IStringUtils.isEmpty(a.getStockFlows())) {
-                        message.setStockFlows(JsonUtils.toList(a.getStockFlows(),
-                                ReconciliationOrderDetailBO.class));
+                        message.setOrderId(a.getOrderId());
+                        message.setOrderStatus(a.getOrderStatus());
+                        if (!IStringUtils.isEmpty(a.getOrderItems())) {
+                            message.setOrderItems(JsonUtils.toList(a.getOrderItems(),
+                                    ReconciliationOrderDetailBO.class));
+                        }
+                        if (!IStringUtils.isEmpty(a.getStockFlows())) {
+                            message.setStockFlows(JsonUtils.toList(a.getStockFlows(),
+                                    ReconciliationOrderDetailBO.class));
 
-                    }
-                    return message;
+                        }
+                        return message;
 
-                }).collect(Collectors.toList());
-                ShortStockReconciliationMessage message = new ShortStockReconciliationMessage();
-                message.setBathId(bathId);
-                message.setReconciliationList(reconciliationList);
-                rocketMqClient.sendMessage(StorageMqTopicName.SHORT_STOCK_RECONCILIATION_TOPIC,
-                        JsonUtils.toJsonString(message));
-            }
-            pageNum++;
-        } while (page.getCurrent() < page.getPages());
+                    }).collect(Collectors.toList());
+                    ShortStockReconciliationMessage message = new ShortStockReconciliationMessage();
+                    message.setBathId(batchId);
+                    message.setReconciliationList(reconciliationList);
+                    rocketMqClient.sendMessage(StorageMqTopicName.SHORT_STOCK_RECONCILIATION_TOPIC,
+                            JsonUtils.toJsonString(message));
+                }
+                pageNum++;
+            } while (page.getCurrent() < page.getPages());
+        } finally {
+            BatchIdContext.clear();
+        }
     }
 
     private String getBathId() {
@@ -99,15 +107,18 @@ public class StockReconciliationScanOrderStatusTraceTask {
     @Scheduled(cron = "0 0 9 * * ?")
     public void longStockReconciliationScanTask() {
 
-            String createDate = getBathId();
+        String batchId = BatchIdContext.getBatchId();
+        if (batchId == null) {
+            batchId = getBathId();
+        }
+        long pageNum = 1;
+        long pageSize = 100;
+        Page<StockFlowDO> page;
 
-            long pageNum = 1;
-            long pageSize = 100;
-            Page<StockFlowDO> page;
-
+        try {
             do {
                 LambdaQueryWrapper<StockFlowDO> queryWrapper = new LambdaQueryWrapper<>();
-                queryWrapper.eq(StockFlowDO::getCreateDate, createDate)
+                queryWrapper.eq(StockFlowDO::getCreateDate, batchId)
                         .eq(StockFlowDO::getFlowType, StockFlowTypeEnum.SALES_OUTBOUND)
                         .orderByAsc(StockFlowDO::getId);
 
@@ -126,7 +137,7 @@ public class StockReconciliationScanOrderStatusTraceTask {
                         return reconciliation;
                     }).collect(Collectors.toList());
                     LongStockReconciliationMessage message = new LongStockReconciliationMessage();
-                    message.setBathId(createDate);
+                    message.setBathId(batchId);
                     message.setReconciliationList(reconciliationList);
                     rocketMqClient.sendMessage(StorageMqTopicName.LONG_STOCK_RECONCILIATION_TOPIC,
                             JsonUtils.toJsonString(message));
@@ -134,6 +145,9 @@ public class StockReconciliationScanOrderStatusTraceTask {
 
                 pageNum++;
             } while (page.getCurrent() < page.getPages());
+        } finally {
+            BatchIdContext.clear();
         }
+    }
 
 }

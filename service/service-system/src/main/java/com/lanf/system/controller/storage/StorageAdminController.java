@@ -172,4 +172,32 @@ public class StorageAdminController {
         return storageApiService.afterSalesIntStockOrderDetailQuery(id);
     }
 
+    // ==================== ReconciliationDiff 对账差异管理 ====================
+
+    @GetMapping("/reconciliationDiffPageQuery")
+    public Result<PageResult<ReconciliationDiffPageVO>> reconciliationDiffPageQuery(ReconciliationDiffPageQuery query) {
+        log.info("分页查询对账差异列表:query{}", query);
+        return storageApiService.reconciliationDiffPageQuery(query);
+    }
+
+    // ==================== ReconciliationOrderDetail 库存对账订单详细管理 ====================
+
+    @GetMapping("/reconciliationOrderDetailPageQuery")
+    public Result<PageResult<ReconciliationOrderDetailPageVO>> reconciliationOrderDetailPageQuery(ReconciliationOrderDetailPageQuery query) {
+        log.info("分页查询库存对账订单详细列表:query{}", query);
+        return storageApiService.reconciliationOrderDetailPageQuery(query);
+    }
+    @GetMapping("/shortStockReconciliationScanTask")
+    public Result<Void> shortStockReconciliationScanTask(@RequestParam("batchId") Long batchId){
+        log.info("手动开启短库存对账任务:batchId{}", batchId);
+        return storageApiService.shortStockReconciliationScanTask(batchId);
+    }
+
+    @GetMapping("/longStockReconciliationScanTask")
+    public Result<Void> longStockReconciliationScanTask(@RequestParam("batchId") Long batchId){
+        log.info("手动开启长库存对账任务:batchId{}", batchId);
+        return storageApiService.longStockReconciliationScanTask(batchId);
+    }
+
+
 }

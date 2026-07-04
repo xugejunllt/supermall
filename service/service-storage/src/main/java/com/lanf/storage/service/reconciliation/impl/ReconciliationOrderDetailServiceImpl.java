@@ -1,5 +1,8 @@
 package com.lanf.storage.service.reconciliation.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.goods.api.GoodsApiService;
 import com.lanf.api.goods.model.query.ReconciliationStockFlowQuery;
@@ -9,8 +12,11 @@ import com.lanf.api.order.model.query.ReconciliationOrderItemQuery;
 import com.lanf.api.order.model.vo.ReconciliationOrderItem;
 import com.lanf.api.order.model.vo.ReconciliationOrderItemVO;
 import com.lanf.api.storage.model.enums.ReconciliationOrderStatusEnum;
+import com.lanf.api.storage.model.query.ReconciliationOrderDetailPageQuery;
+import com.lanf.api.storage.model.vo.ReconciliationOrderDetailPageVO;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
+import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.storage.mapper.ReconciliationOrderDetailMapper;
@@ -22,6 +28,8 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -39,6 +47,43 @@ public class ReconciliationOrderDetailServiceImpl extends ServiceImpl<Reconcilia
     @Autowired
     private GoodsApiService goodsApiService;
 
+
+    @Override
+    public PageResult<ReconciliationOrderDetailPageVO> reconciliationOrderDetailPageQuery(ReconciliationOrderDetailPageQuery query) {
+        IPage<ReconciliationOrderDetailDO> page = new Page<>(query.getPage(), query.getPageSize());
+        IPage<ReconciliationOrderDetailDO> doPage = this.lambdaQuery()
+                .eq(StringUtils.isNotBlank(query.getBathId()), ReconciliationOrderDetailDO::getBathId, query.getBathId())
+                .eq(query.getOrderId() != null, ReconciliationOrderDetailDO::getOrderId, query.getOrderId())
+                .eq(query.getOrderStatus() != null, ReconciliationOrderDetailDO::getOrderStatus, query.getOrderStatus())
+                .orderByDesc(ReconciliationOrderDetailDO::getCreateTime)
+                .page(page);
+
+        if (doPage.getRecords().isEmpty()) {
+            return PageResult.emptyResult();
+        }
+
+        PageResult<ReconciliationOrderDetailPageVO> result = new PageResult<>();
+        result.setTotal(doPage.getTotal());
+        result.setRecords(doPage.getRecords().stream().map(this::convertToVO).collect(Collectors.toList()));
+        result.setSize(doPage.getSize());
+
+        return result;
+    }
+
+    private ReconciliationOrderDetailPageVO convertToVO(ReconciliationOrderDetailDO d) {
+        ReconciliationOrderDetailPageVO vo = new ReconciliationOrderDetailPageVO();
+        vo.setId(d.getId());
+        vo.setBathId(d.getBathId());
+        vo.setOrderId(d.getOrderId());
+        if (d.getOrderStatus() != null) {
+            vo.setOrderStatus(com.lanf.api.storage.model.enums.ReconciliationOrderStatusEnum.valueOf(d.getOrderStatus().name()));
+        }
+        vo.setOrderItems(d.getOrderItems());
+        vo.setStockFlows(d.getStockFlows());
+        vo.setCreateTime(d.getCreateTime());
+        vo.setUpdateTime(d.getUpdateTime());
+        return vo;
+    }
 
     @Override
     public void addReconciliationOrderDetail(AddReconciliationOrderDetailBO bo) {

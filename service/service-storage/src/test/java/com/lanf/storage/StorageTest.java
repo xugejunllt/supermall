@@ -6,7 +6,7 @@ import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.storage.mq.listener.event.OrderCancelEventListener;
 import com.lanf.storage.mq.listener.event.OrderCreateSuccessEventListener;
 import com.lanf.storage.mq.listener.event.OrderOutBoundedEventListener;
-import com.lanf.storage.task.StockReconciliationScanOrderStatusTraceTask;
+import com.lanf.storage.task.StockReconciliationTask;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ public class StorageTest {
     private OrderOutBoundedEventListener orderOutBoundedEventListener;
     @Autowired
 
-    private StockReconciliationScanOrderStatusTraceTask statusTraceTask;
+    private StockReconciliationTask statusTraceTask;
 
     @Test
     public void orderCreateSuccessTest(){

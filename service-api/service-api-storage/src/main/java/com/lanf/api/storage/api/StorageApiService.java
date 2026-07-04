@@ -109,4 +109,20 @@ public interface StorageApiService {
     @GetMapping("/storage/admin/afterSalesIntStockOrder/afterSalesIntStockOrderDetailQuery")
     Result<AfterSalesIntStockOrderDetailVO> afterSalesIntStockOrderDetailQuery(@RequestParam("id") Long id);
 
+    // ==================== ReconciliationDiff 对账差异管理 ====================
+
+    @GetMapping("/storage/admin/reconciliation/reconciliationDiffPageQuery")
+    Result<PageResult<ReconciliationDiffPageVO>> reconciliationDiffPageQuery(@SpringQueryMap ReconciliationDiffPageQuery query);
+
+    // ==================== ReconciliationOrderDetail 库存对账订单详细管理 ====================
+
+    @GetMapping("/storage/admin/reconciliation/reconciliationOrderDetailPageQuery")
+    Result<PageResult<ReconciliationOrderDetailPageVO>> reconciliationOrderDetailPageQuery(@SpringQueryMap ReconciliationOrderDetailPageQuery query);
+
+
+    @GetMapping("/storage/admin/reconciliation/shortStockReconciliationScanTask")
+    public Result<Void> shortStockReconciliationScanTask(@RequestParam("batchId") Long batchId);
+
+    @GetMapping("/storage/admin/reconciliation/longStockReconciliationScanTask")
+    public Result<Void> longStockReconciliationScanTask(@RequestParam("batchId") Long batchId);
 }
