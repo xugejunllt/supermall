@@ -142,18 +142,20 @@ public class MqConsumeRetryService {
 
             Date nextEstimatedCompletionAt = new Date(System.currentTimeMillis() +
                     mqRetryStrategy.getDelayMillis(retryCount + 1));
-            messageDO.setRetryCount(retryCount);
-            messageDO.setNextEstimatedCompletionAt(nextEstimatedCompletionAt);
-            if (messageDO.getMaxRetryCount().equals(retryCount)) {
-                messageDO.setStatus(2);
-            }
-            mqLocalTransactionMessageService.updateById(messageDO);
+            mqLocalTransactionMessageService.lambdaUpdate()
+                    .eq(MqConsumeMessageDO::getMessageId, messageDO.getMessageId())
+                    .set(MqConsumeMessageDO::getRetryCount,retryCount)
+                    .set(MqConsumeMessageDO::getNextEstimatedCompletionAt,nextEstimatedCompletionAt)
+                    .set(messageDO.getMaxRetryCount().equals(retryCount),MqConsumeMessageDO::getStatus,2)
+                    .update();
             // 通过反射重新执行方法
             mqRetryReflectExecutor.execute(messageDO);
             // 反射执行成功，更新状态
-            messageDO.setStatus(1);
-            messageDO.setErrorMsg(null);
-            mqLocalTransactionMessageService.updateById(messageDO);
+            mqLocalTransactionMessageService.lambdaUpdate()
+                    .eq(MqConsumeMessageDO::getMessageId, messageDO.getMessageId())
+                    .set(MqConsumeMessageDO::getStatus,1)
+                    .set(MqConsumeMessageDO::getErrorMsg,null)
+                    .update();
 
             log.info("MQ消息重试消费成功，messageId:{}, retryCount:{}",
                     messageDO.getMessageId(), retryCount);

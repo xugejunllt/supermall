@@ -182,7 +182,12 @@ public class MqRetryConsumeAspect {
                 //8.执行完成，更新消息状态为消费成功（status=1）
                 messageDO.setStatus(1);
                 messageDO.setErrorMsg(null);
-                mqLocalTransactionMessageService.updateById(messageDO);
+                mqLocalTransactionMessageService.lambdaUpdate()
+                        .eq(MqConsumeMessageDO::getMessageId, messageDO.getMessageId())
+                        .set(MqConsumeMessageDO::getStatus,1)
+                        .set(MqConsumeMessageDO::getErrorMsg,null)
+                        .update();
+
 
                 log.info("MQ消息消费成功，messageId:{}", messageId);
                 return result;
@@ -302,134 +307,7 @@ public class MqRetryConsumeAspect {
         return messageDO;
     }
 
-    /**
-     * 发送到重试队列（HashedWheelTimer延迟执行）
-     * <p>将失败的消息加入内存延迟队列，按策略指定的延迟时间后执行重试</p>
-     * <p>设计亮点：去重容器+任务计数器双重保障，防止重复入队和内存溢出</p>
-     *
-     * @param messageDO 消息消费记录实体
-     */
-    private void sendToRetryQueue(MqConsumeMessageDO messageDO) {
-        String messageId = messageDO.getMessageId();
 
-        //1.去重检查：防止同一消息在短时间内重复入队
-        if (!retryMessageIdSet.add(messageId)) {
-            log.warn("消息已在重试队列中，跳过重复添加，mqConsumeMessageId:{}", messageId);
-            return;
-        }
-
-        //2.任务数上限检查：防止内存溢出，保护系统稳定性
-        int currentCount = retryTaskCount.incrementAndGet();
-        if (currentCount > MAX_RETRY_TASK_COUNT) {
-            retryTaskCount.decrementAndGet();
-            retryMessageIdSet.remove(messageId);
-            log.warn("重试任务数已达上限{}/{}，跳过添加，mqConsumeMessageId:{}", currentCount, MAX_RETRY_TASK_COUNT, messageId);
-            return;
-        }
-
-        //3.从Spring容器中获取重试策略
-        String retryStrategyBeanClass = messageDO.getRetryStrategyBeanClass();
-        Class<?> aClass = null;
-        try {
-            aClass = Class.forName(retryStrategyBeanClass);
-        } catch (ClassNotFoundException e) {
-            log.error("【钉钉告警】重试策略类加载失败，messageId:{}",
-                    messageDO.getMessageId());
-            return;
-        }
-
-        MqRetryStrategy mqRetryStrategy = (MqRetryStrategy) applicationContext.getBean(aClass);
-        int retryCount = messageDO.getRetryCount() + 1;
-
-        //4.校验是否超过最大重试次数
-        if (retryCount > mqRetryStrategy.maxRetryCount()) {
-            log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}, retryCount:{}",
-                    messageDO.getMessageId(), retryCount);
-            // TODO: 调用钉钉Webhook API 发送告警
-            return;
-        }
-
-        //5.计算延迟时间并加入HashedWheelTimer延迟队列
-        long delayMillis = mqRetryStrategy.getDelayMillis(retryCount);
-        log.info("消息加入重试队列，messageId:{}, mqConsumeMessageId:{}, retryCount:{}, delay:{}ms",
-                messageDO.getMessageId(), messageId, retryCount, delayMillis);
-        timer.newTimeout(timeout -> {
-            mqRetrySendExecutor.execute(() -> doRetry(messageDO, retryCount, mqRetryStrategy));
-        }, delayMillis, TimeUnit.MILLISECONDS);
-    }
-
-    /**
-     * 执行重试
-     * <p>通过反射重新调用原消费方法，并更新消费状态</p>
-     * <p>重试失败时会递归加入延迟队列，实现自动重试</p>
-     *
-     * @param messageDO        消息消费记录实体
-     * @param retryCount       当前重试次数
-     * @param mqRetryStrategy  重试策略，用于计算下次延迟时间
-     */
-    private void doRetry(MqConsumeMessageDO messageDO, int retryCount, MqRetryStrategy mqRetryStrategy) {
-        //1.以messageId作为分布式锁key，防止同一消息并发重试
-        String messageId = messageDO.getMessageId();
-        String lockKey = LOCK_PREFIX + messageId;
-        RLock lock = redissonClient.getLock(lockKey);
-        boolean locked = false;
-        try {
-            locked = lock.tryLock();
-            if (!locked) {
-                log.warn("获取分布式锁失败，跳过本次重试，messageId:{}", messageDO.getMessageId());
-                return;
-            }
-
-            //2.重新从DB查询最新状态，防止脏数据
-            messageDO = mqLocalTransactionMessageService.getByMessageId(messageDO.getMessageId());
-            if (messageDO.getRetryCount() > mqRetryStrategy.maxRetryCount()){
-               log.error("钉钉告警");
-               return;
-            }
-
-            //3.更新重试次数和预计完成时间
-            Date nextEstimatedCompletionAt = new Date(System.currentTimeMillis() +
-                    mqRetryStrategy.getDelayMillis(retryCount+1));
-            messageDO.setRetryCount(retryCount);
-            messageDO.setNextEstimatedCompletionAt(nextEstimatedCompletionAt);
-            if (messageDO.getMaxRetryCount().equals(retryCount)){
-                messageDO.setStatus(2); //2=消费失败
-            }
-            mqLocalTransactionMessageService.updateById(messageDO);
-
-            //4.通过反射重新执行原方法（绕过AOP代理，避免循环递归）
-            mqRetryReflectExecutor.execute(messageDO);
-
-            //5.反射执行成功，更新状态为消费成功
-            messageDO.setStatus(1);
-            messageDO.setErrorMsg(null);
-            mqLocalTransactionMessageService.updateById(messageDO);
-
-            log.info("MQ消息重试消费成功，messageId:{}, , retryCount:{}",
-                    messageDO.getMessageId(),  retryCount);
-        } catch (Exception e) {
-            //6.重试失败，递归加入重试队列
-            log.error("MQ消息第{}次重试失败，messageId:{},", retryCount, messageDO.getMessageId(), e);
-            // 第一次执行时如果发生业务异常，不会进入重试队列，所以重试阶段接受任意异常
-            MqConsumeMessageDO freshMessage = mqLocalTransactionMessageService.getByMessageId(messageDO.getMessageId());
-            if (freshMessage != null) {
-                //6.1 先从去重容器中移除，否则sendToRetryQueue会判定为重复
-                retryMessageIdSet.remove(messageId);
-                int remain = retryTaskCount.decrementAndGet();
-                log.info("准备再次入队，先清除当前去重标识，messageId:{}, 剩余任务数:{}", messageId, remain);
-                //6.2 递归加入延迟重试队列
-                sendToRetryQueue(freshMessage);
-            }
-        } finally {
-            //7.任务执行完成后，清理去重标识、减少任务数、释放分布式锁
-            retryMessageIdSet.remove(messageId);
-            int remain = retryTaskCount.decrementAndGet();
-            log.info("消费重试任务执行完成，mqConsumeMessageId:{}, 剩余任务数:{}", messageId, remain);
-            if (locked) {
-                lock.unlock();
-            }
-        }
-    }
 
     /**
      * 判断异常是否属于可重试异常
