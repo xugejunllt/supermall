@@ -20,6 +20,7 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.lanf.pay.mq.constant.PayMqTopicName.QUERY_TRANSFER_RESULT_TOPIC;
 
@@ -40,6 +41,7 @@ public class TransferListener implements RocketMQListener<TransferMessage> {
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
     @MqRetryConsume(messageId = "#message.messageId")
+    @Transactional
     @Override
     public void onMessage(TransferMessage message) {
 

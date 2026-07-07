@@ -11,6 +11,7 @@ import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 @Slf4j
@@ -21,6 +22,7 @@ public class ThirdPartyPayMethodHandler implements PayMethodHandler {
     private IPrepayPayTypeService prepayPayTypeService;
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
+    @Transactional
     @Override
     public void cancelPayOrder(CancelPayOrderContext context) {
 

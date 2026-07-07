@@ -36,8 +36,6 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
     @Autowired
     private IUserStockFlowService userStockFlowService;
 
-    @Autowired
-    private RocketMqClient rocketMqClient;
 
     @Transactional
     @MqRetryConsume(messageId = "#message.messageId")

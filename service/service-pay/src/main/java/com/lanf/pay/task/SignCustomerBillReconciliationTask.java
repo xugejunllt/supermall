@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -60,6 +61,7 @@ public class SignCustomerBillReconciliationTask {
      * 每天上午9点执行
      */
     @Scheduled(cron = "0 0 9 * * ?", zone = "Asia/Shanghai")
+    @Transactional
     public void billTradeSynchronizerTask() {
 
         log.info("开始执行T+1下载对账单任务");

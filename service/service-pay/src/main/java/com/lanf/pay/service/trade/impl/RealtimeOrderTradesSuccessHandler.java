@@ -10,12 +10,15 @@ import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 @Slf4j
 @Service
 public class RealtimeOrderTradesSuccessHandler implements TradeSuccessHandler {
 
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
+    @Transactional
     @Override
     public void postTradeSuccessHandler(PostTradeSuccessHandlerContext context) {
         log.info("交易成功后置处理:{}",context);

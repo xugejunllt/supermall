@@ -10,6 +10,7 @@ import com.lanf.pay.utils.PayServiceUtils;
 import com.lanf.rocketmq.util.MqSendMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -21,6 +22,7 @@ public class WalletRechargeTradesSuccessHandler implements TradeSuccessHandler {
 
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
+    @Transactional
     @Override
     public void postTradeSuccessHandler(PostTradeSuccessHandlerContext context) {
 

@@ -974,7 +974,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         orderDO.setExpireTime(expireTime);
         return orderDO;
     }
-
+    @Transactional
     public void confirmCreateSecKillOrder(SecKillPlaneMessage message) {
 
         Long userId = message.getUserId();

@@ -23,6 +23,7 @@ import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -77,6 +78,7 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
      *
      * @param message 补偿支付订单消息体，包含订单号、支付类型、重试等级等
      */
+    @Transactional
     @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(CompensatePaymentOrderMessage message) {

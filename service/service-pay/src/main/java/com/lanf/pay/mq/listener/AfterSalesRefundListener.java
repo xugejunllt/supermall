@@ -17,6 +17,7 @@ import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Slf4j
@@ -31,6 +32,7 @@ public class AfterSalesRefundListener implements RocketMQListener<AfterSalesRefu
     private ITradeOrderService tradeOrderService;
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
+    @Transactional
     @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(AfterSalesRefundMessage message) {
