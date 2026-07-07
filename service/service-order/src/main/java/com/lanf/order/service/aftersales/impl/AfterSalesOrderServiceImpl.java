@@ -296,6 +296,7 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         dto.setTenantId(salesOrderDO.getTenantId());
         return dto;
     }
+    @Transactional
     @Override
     public void completeRefund(CompleteRefundDTO dto) {
 
