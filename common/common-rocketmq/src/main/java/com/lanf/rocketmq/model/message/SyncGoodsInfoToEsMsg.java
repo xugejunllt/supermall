@@ -1,12 +1,12 @@
 package com.lanf.rocketmq.model.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class SyncGoodsInfoToEsMsg implements Serializable {
+public class SyncGoodsInfoToEsMsg extends BaseMessage {
 
 
     //商品id

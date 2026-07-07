@@ -5,6 +5,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.storage.model.bo.AddReconciliationOrderDetailBO;
 import com.lanf.storage.mq.constant.StorageMqGroupName;
 import com.lanf.storage.service.reconciliation.IReconciliationOrderDetailService;
@@ -31,7 +32,7 @@ public class OrderCreateSuccessEventListener implements RocketMQListener<OrderCr
      @Autowired
      private IReconciliationOrderDetailService reconciliationOrderDetailService;
 
-
+     @MqRetryConsume(messageId = "#message.messageId")
      @Override
      public void onMessage(OrderCreateSuccessMessage message) {
 

@@ -4,9 +4,10 @@ package com.lanf.storage.mq.listener;
  * 售后退货创建商品入库单
  */
 
-import com.lanf.common.utils.JsonUtils;
 import com.lanf.aftersales.mq.AftersalesClientTopicName;
 import com.lanf.aftersales.mq.message.SalesInStockOrderAddMessage;
+import com.lanf.common.utils.JsonUtils;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.storage.service.storage.IAfterSalesIntStockOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -24,7 +25,7 @@ public class AfterSalesCreateInOrderListener implements RocketMQListener<SalesIn
     private IAfterSalesIntStockOrderService afterSalesIntStockOrderService;
 
 
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(SalesInStockOrderAddMessage message) {
 

@@ -2,6 +2,7 @@ package com.lanf.seckill.mq.listener;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.seckill.model.entity.SecKillCouponItemDO;
@@ -46,7 +47,7 @@ public class SecKillCouponMqExecuteListener implements RocketMQListener<SecKillC
 
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Transactional
     @Override
     public void onMessage(SecKillCouponMqExecuteMessage message) {

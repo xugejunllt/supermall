@@ -1,12 +1,12 @@
 package com.lanf.aftersales.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class SalesInStockOrderAddMessage implements Serializable {
+public class SalesInStockOrderAddMessage extends BaseMessage {
 
 
     /**

@@ -4,15 +4,16 @@ package com.lanf.storage.mq.listener;
  * 长库存对账任务
  */
 
+import com.lanf.api.storage.model.enums.ReconciliationOrderStatusEnum;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.utils.IdUtils;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.storage.mapper.ReconciliationDiffMapper;
 import com.lanf.storage.model.bo.ReconciliationOrderDetailBO;
 import com.lanf.storage.model.entity.ReconciliationDiffDO;
 import com.lanf.storage.model.entity.ReconciliationOrderDetailDO;
 import com.lanf.storage.model.enums.ReconciliationDiffTypeEnum;
 import com.lanf.storage.model.enums.ReconciliationJobTypeEnum;
-import com.lanf.api.storage.model.enums.ReconciliationOrderStatusEnum;
 import com.lanf.storage.mq.constant.StorageMqGroupName;
 import com.lanf.storage.mq.constant.StorageMqTopicName;
 import com.lanf.storage.mq.message.LongStockReconciliation;
@@ -44,7 +45,7 @@ public class LongStockReconciliationListener implements RocketMQListener<LongSto
     private IReconciliationDiffService reconciliationDiffService;
     @Autowired
     private ReconciliationDiffMapper reconciliationDiffMapper;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(LongStockReconciliationMessage message) {
 

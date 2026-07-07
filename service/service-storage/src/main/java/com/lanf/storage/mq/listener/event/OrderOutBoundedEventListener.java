@@ -4,6 +4,7 @@ import com.lanf.api.order.mq.message.OrderOutBoundedMessage;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.storage.model.bo.AddReconciliationOrderDetailBO;
 import com.lanf.storage.mq.constant.StorageMqGroupName;
 import com.lanf.storage.service.reconciliation.IReconciliationOrderDetailService;
@@ -24,6 +25,7 @@ public class OrderOutBoundedEventListener implements RocketMQListener<OrderOutBo
 
     @Autowired
     private IReconciliationOrderDetailService reconciliationOrderDetailService;
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(OrderOutBoundedMessage message) {
         log.info("订单出库成功消息:{}", message);

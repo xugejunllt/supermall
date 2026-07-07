@@ -2,12 +2,11 @@ package com.lanf.api.storage.mq.message;
 
 import com.lanf.constant.model.enums.storage.PublishPlatformEnum;
 import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class RecycleStockMessage implements Serializable {
+public class RecycleStockMessage extends BaseMessage {
 
 
     private String flowNo;

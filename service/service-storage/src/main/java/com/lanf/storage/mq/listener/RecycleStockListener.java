@@ -5,6 +5,7 @@ import com.lanf.api.storage.mq.message.RecycleStockMessage;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.storage.PublishStatusEnum;
 import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.storage.model.entity.StockDO;
 import com.lanf.storage.model.entity.StockPreorderPublishLogDO;
@@ -35,7 +36,7 @@ public class RecycleStockListener implements RocketMQListener<RecycleStockMessag
     @Autowired
     private IStockService stockService;
 
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Transactional
     @Override
     public void onMessage(RecycleStockMessage message) {

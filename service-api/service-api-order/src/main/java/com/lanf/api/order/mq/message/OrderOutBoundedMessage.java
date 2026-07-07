@@ -1,14 +1,13 @@
 package com.lanf.api.order.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
-
-import java.io.Serializable;
 
 /**
  *
  */
 @Data
-public class OrderOutBoundedMessage implements Serializable {
+public class OrderOutBoundedMessage extends BaseMessage {
 
     private Long orderId;
 

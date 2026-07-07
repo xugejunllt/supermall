@@ -5,6 +5,7 @@ import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
 import com.lanf.constant.utils.IdUtils;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.mapper.ReconciliationDiffMapper;
 import com.lanf.storage.model.bo.ReconciliationOrderDetailBO;
@@ -47,7 +48,7 @@ public class ShortStockReconciliationListener implements RocketMQListener<ShortS
      private IReconciliationDiffService reconciliationDiffService;
      @Autowired
      private ReconciliationDiffMapper reconciliationDiffMapper;
-
+     @MqRetryConsume(messageId = "#message.messageId")
      @Override
      public void onMessage(ShortStockReconciliationMessage message) {
 

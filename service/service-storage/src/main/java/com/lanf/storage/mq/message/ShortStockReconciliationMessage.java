@@ -1,12 +1,12 @@
 package com.lanf.storage.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class ShortStockReconciliationMessage implements Serializable {
+public class ShortStockReconciliationMessage extends BaseMessage {
 
      private String bathId;
 

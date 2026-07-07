@@ -4,6 +4,7 @@ import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.utils.IdUtils;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.seckill.api.SecKillResultCache;
@@ -71,6 +72,7 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
      *
      * @param message 秒杀执行消息，包含用户ID、秒杀商品ID、秒杀模式等信息
      */
+    @MqRetryConsume(messageId = "#message.messageId")
     @Transactional
     @Override
     public void onMessage(SecKillMqExecuteMessage message) {

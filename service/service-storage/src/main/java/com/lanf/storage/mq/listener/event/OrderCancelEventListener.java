@@ -4,6 +4,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.storage.model.bo.AddReconciliationOrderDetailBO;
 import com.lanf.storage.mq.constant.StorageMqGroupName;
@@ -31,7 +32,7 @@ public class OrderCancelEventListener implements RocketMQListener<CancelOrderEve
      @Autowired
      private IReconciliationOrderDetailService reconciliationOrderDetailService;
 
-
+     @MqRetryConsume(messageId = "#message.messageId")
      @Override
      public void onMessage(CancelOrderEventMessage message) {
 

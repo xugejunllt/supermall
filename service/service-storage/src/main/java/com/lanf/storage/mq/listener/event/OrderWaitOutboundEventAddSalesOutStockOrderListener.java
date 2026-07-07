@@ -9,6 +9,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.utils.IdUtils;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.storage.model.entity.InOutStockOrderItemDO;
 import com.lanf.storage.model.entity.SalesOutStockOrderDO;
 import com.lanf.storage.mq.constant.StorageMqGroupName;
@@ -40,7 +41,7 @@ public class OrderWaitOutboundEventAddSalesOutStockOrderListener implements Rock
     private ISalesOutStockOrderService salesOutStockOrderService;
     @Autowired
     private IInOutStockOrderItemService iInOutStockOrderItemService;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Transactional
     @Override
     public void onMessage(OrderWaitOutboundMessage message) {

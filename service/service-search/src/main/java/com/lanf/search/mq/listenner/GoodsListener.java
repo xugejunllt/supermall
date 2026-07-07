@@ -1,6 +1,7 @@
 package com.lanf.search.mq.listenner;
 
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SyncGoodsInfoToEsMsg;
@@ -26,7 +27,7 @@ public class GoodsListener implements RocketMQListener<SyncGoodsInfoToEsMsg> {
 
     @Autowired
     private GoodsRepository goodsRepository;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(SyncGoodsInfoToEsMsg message) {
         long startTime = System.currentTimeMillis();
