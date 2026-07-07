@@ -28,6 +28,6 @@ spring:
           - group: common
             data-id: common.yaml
 server:
-  port: 9014
+  port: 9016
   servlet:
     context-path: /search

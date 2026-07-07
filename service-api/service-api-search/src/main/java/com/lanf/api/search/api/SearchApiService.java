@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 
 @Component
-@FeignClient(name = "service-search",url = "localhost:9014") //调用的服务名称
+@FeignClient(name = "service-search") //调用的服务名称
 public interface SearchApiService {
 
 

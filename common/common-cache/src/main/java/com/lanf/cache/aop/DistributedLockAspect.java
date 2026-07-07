@@ -2,6 +2,7 @@ package com.lanf.cache.aop;
 
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.StackTraceUtil;
+import com.lanf.constant.exception.BizException;
 import com.lanf.constant.exception.IRedisException;
 import com.lanf.cache.service.DistributedLocker;
 import lombok.extern.slf4j.Slf4j;
@@ -95,7 +96,7 @@ public class DistributedLockAspect {
 
         if (paramNames == null) {
             log.error("无法获取方法参数名，请编译时添加-parameters参数");
-            throw new IRedisException();
+            throw new BizException("无法获取方法参数名");
         }
 
         // 创建评估上下文
