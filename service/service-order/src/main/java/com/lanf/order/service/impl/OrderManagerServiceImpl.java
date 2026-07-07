@@ -426,17 +426,17 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          *
          */
         mqSendMessageUtils.sendDelayMessage(OrderMqTopicName.CANCEL_EXPIRED_ORDER_TOPIC,
-                JsonUtils.toJsonString(message2), (long) (expireInterval),null);
+                JsonUtils.toJsonString(message2), (long) (expireInterval),userId.toString());
 
         /**
          * 发送订单创建成功消息
          */
         mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.WAIT_PAY.getTag(), JsonUtils.toJsonString(message),
-                orderId.toString(),null);
+                orderId.toString(),userId.toString());
 
         mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
-                JsonUtils.toJsonString(bathMessage),null);
+                JsonUtils.toJsonString(bathMessage),userId.toString());
 
 
     }
@@ -846,7 +846,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
 
         mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.CANCELLED.getTag(), JsonUtils.toJsonString(orderEventMessage),
-                orderDO.getId().toString(),null);
+                orderDO.getId().toString(),dto.getUserId().toString());
 
         log.info("取消订单成功");
     }
@@ -976,12 +976,14 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     }
 
     public void confirmCreateSecKillOrder(SecKillPlaneMessage message) {
+
+        Long userId = message.getUserId();
         OrderCreateSuccessMessage message2 = new OrderCreateSuccessMessage();
         message2.setOrderId(message.getOrderId());
-        message2.setUserId(message.getUserId());
+        message2.setUserId(userId);
         mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.WAIT_PAY.getTag(), JsonUtils.toJsonString(message2),
-                message.getOrderId().toString(),null);
+                message.getOrderId().toString(),userId.toString());
         //发送物流跟踪信息
         BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
         bathMessage.setOrderId(message.getOrderId());
@@ -996,7 +998,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         shippingTrackList.add(trackMessage);
         bathMessage.setShippingTrackList(shippingTrackList);
         mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
-                JsonUtils.toJsonString(bathMessage),null);
+                JsonUtils.toJsonString(bathMessage),userId.toString());
         secKillResultCache.addResult(message.getUserId(), message.getSecKillItemId(), SecKillResultEnum.SUCCESS_ORDER_CREATED);
     }
 
@@ -1092,7 +1094,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             throw new BizException("订单更新失败");
         }
         mqSendMessageUtils.sendMessage(OrderClientTopicName.PUBLISH_COMMENT_TOPIC,
-                JsonUtils.toJsonString(publishCommentMessage),null);
+                JsonUtils.toJsonString(publishCommentMessage),userId.toString());
 
 
     }

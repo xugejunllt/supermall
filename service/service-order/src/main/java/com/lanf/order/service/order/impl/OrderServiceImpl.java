@@ -171,9 +171,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     public void allowOutbound(AllowOutboundDTO dto) {
 
         Long orderId = dto.getOrderId();
+        Long userId = dto.getUserId();
         OrderDO orderDO = this.lambdaQuery()
                 .eq(OrderDO::getId, orderId)
-                .eq(OrderDO::getUserId, dto.getUserId())
+                .eq(OrderDO::getUserId, userId)
                 .one();
 
         if (orderDO == null) {
@@ -202,6 +203,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         boolean update = this.lambdaUpdate()
                 .eq(BaseEntity::getId, orderId)
                 .eq(OrderDO::getVersion, orderDO.getVersion())
+                .eq(OrderDO::getUserId, userId)
                 .set(OrderDO::getStatus, OrderStatusEnum.WAIT_OUTBOUND)
                 .set(OrderDO::getVersion, orderDO.getVersion() + 1)
                 .update();
@@ -212,7 +214,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         orderStatusTraceService.save(orderStatusTraceDO);
         mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.WAIT_OUTBOUND.getTag(),JsonUtils.toJsonString(outboundMessage),
-                orderDO.getId().toString(),null);
+                orderDO.getId().toString(),userId.toString());
         //发送物流跟踪信息
         BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
         bathMessage.setOrderId(orderDO.getId());
@@ -227,7 +229,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         shippingTrackList.add(trackMessage);
         bathMessage.setShippingTrackList(shippingTrackList);
         mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
-                JsonUtils.toJsonString(bathMessage),null);
+                JsonUtils.toJsonString(bathMessage),userId.toString());
 
     }
 
@@ -522,7 +524,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         shippingTrackList.add(trackMessage);
         bathMessage.setShippingTrackList(shippingTrackList);
         mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
-                JsonUtils.toJsonString(bathMessage),null);
+                JsonUtils.toJsonString(bathMessage),userId.toString());
 
     }
 
@@ -531,8 +533,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     public void signFor(SignForDTO dto) {
 
         Long orderId = dto.getOrderId();
+        Long userId = UserContext.getUserId();
         OrderDO orderDO = this.lambdaQuery().eq(OrderDO::getId, orderId)
-                .eq(OrderDO::getUserId, UserContext.getUserId()).one();
+                .eq(OrderDO::getUserId, userId).one();
         if (orderDO == null) {
             log.error("订单不存在");
             throw new BizException("订单不存在");
@@ -575,7 +578,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
          * 订单更新信息
          */
         boolean update = this.lambdaUpdate().eq(OrderDO::getId, orderId)
-                .eq(OrderDO::getUserId, UserContext.getUserId())
+                .eq(OrderDO::getUserId, userId)
                 .eq(BaseEntity::getId, orderDO.getId())
                 .eq(OrderDO::getVersion, orderDO.getVersion())
                 .set(OrderDO::getSubStatus, OrderSubStatus.WAIT_EVALUATE)
@@ -592,7 +595,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         //发送订单签收事件
         mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.RECEIVED.getTag(),JsonUtils.toJsonString(signOrderMessage),
-                orderDO.getId().toString(),UserContext.getUserId().toString());
+                orderDO.getId().toString(),userId.toString());
         //发送物流跟踪信息
         BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
         bathMessage.setOrderId(orderDO.getId());
@@ -607,7 +610,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         shippingTrackList.add(trackMessage);
         bathMessage.setShippingTrackList(shippingTrackList);
         mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
-                JsonUtils.toJsonString(bathMessage),null);
+                JsonUtils.toJsonString(bathMessage),userId.toString());
     }
 
     @Override
