@@ -1,6 +1,8 @@
 package com.lanf.rocketmq.sevice;
 
 import com.lanf.cache.service.DistributedLocker;
+import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.entity.MqSendMessageDO;
 import io.netty.util.HashedWheelTimer;
 import lombok.extern.slf4j.Slf4j;
@@ -131,8 +133,12 @@ public class MqRetryService {
                 log.warn("获取分布式锁失败，跳过本次重试，messageId:{}", messageId);
                 return;
             }
+            String shardingKey = messageDO.getShardingKey();
 
-            MqSendMessageDO sendMessageDO = mqSendMessageService.getById(messageDO.getId());
+            MqSendMessageDO sendMessageDO = mqSendMessageService.lambdaQuery()
+                    .eq(BaseEntity::getId, messageDO.getId())
+                    .eq(shardingKey != null, MqSendMessageDO::getShardingKey, shardingKey)
+                    .one();
             Integer retryCount1 = sendMessageDO.getRetryCount();
             if (retryCount1 >= MAX_RETRY_COUNT) {
                 sendDingTalkAlert(messageDO);
@@ -140,10 +146,17 @@ public class MqRetryService {
             }
 
             Date nextEstimatedCompletionAt = getNextEstimatedCompletionAt(retryCount);
-            // 更新重试次数到 DB
-            messageDO.setRetryCount(retryCount);
-            messageDO.setNextEstimatedCompletionAt(nextEstimatedCompletionAt);
-            mqSendMessageService.updateById(messageDO);
+
+            boolean update = mqSendMessageService.lambdaUpdate()
+                    .eq(BaseEntity::getId, messageDO.getId())
+                    .eq(shardingKey != null, MqSendMessageDO::getShardingKey, shardingKey)
+                    .set(MqSendMessageDO::getRetryCount, retryCount)
+                    .set(MqSendMessageDO::getNextEstimatedCompletionAt, nextEstimatedCompletionAt)
+                    .update();
+            if (!update) {
+                log.warn("消息已更新，跳过本次重试，messageId:{}", messageId);
+               throw new MessageRetryConsumeException("更新失败");
+            }
 
             // 调用 MqMessageSendService.sendMessage 重新发送
             // 内部包含 doSend + updateMessageStatus，失败会自动再次加入重试队列

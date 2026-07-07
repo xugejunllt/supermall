@@ -1,5 +1,7 @@
 package com.lanf.rocketmq.sevice;
 
+import com.lanf.mybatis.base.BaseEntity;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.entity.MqSendMessageDO;
 import com.lanf.rocketmq.model.enums.MqSendMessageTypeEnum;
 import com.lanf.rocketmq.util.RocketMqClient;
@@ -136,11 +138,18 @@ public class MqMessageSendService {
      * @param messageDO 消息记录
      */
     public void updateMessageStatus(MqSendMessageDO messageDO) {
-        try {
-            messageDO.setStatus(1);
-            mqSendMessageService.updateById(messageDO);
-        } catch (Exception e) {
-            log.error("更新MQ消息状态失败，messageId:{}", messageDO.getId(), e);
+        String shardingKey = messageDO.getShardingKey();
+
+        boolean update = mqSendMessageService.lambdaUpdate()
+                .eq(BaseEntity::getId, messageDO.getId())
+                .eq(shardingKey != null, MqSendMessageDO::getShardingKey, shardingKey)
+                .set(MqSendMessageDO::getStatus, 1)
+                .update();
+        if (!update) {
+            log.warn("更新消息状态为发送成功失败，messageId:{}", messageDO.getId());
+            throw new MessageRetryConsumeException("更新消息状态为发送成功失败");
         }
     }
+
+
 }
