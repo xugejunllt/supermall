@@ -284,7 +284,7 @@ public class ShardingSphereBeanConfig {
         // 配置 mq_send_message 表的分片规则（每个库不分子表）
         ShardingTableRuleConfiguration mqSendMessageRule = new ShardingTableRuleConfiguration(
                 "mq_send_message",
-                "ds${0..2}.mq_send_message"
+                "ds${0..1}.mq_send_message"
         );
         mqSendMessageRule.setDatabaseShardingStrategy(
                 new StandardShardingStrategyConfiguration(
@@ -297,7 +297,7 @@ public class ShardingSphereBeanConfig {
         // 配置 mq_consume_message 表的分片规则（每个库不分子表）
         ShardingTableRuleConfiguration mqConsumeMessageRule = new ShardingTableRuleConfiguration(
                 "mq_consume_message",
-                "ds${0..2}.mq_consume_message"
+                "ds${0..1}.mq_consume_message"
         );
         mqConsumeMessageRule.setDatabaseShardingStrategy(
                 new StandardShardingStrategyConfiguration(

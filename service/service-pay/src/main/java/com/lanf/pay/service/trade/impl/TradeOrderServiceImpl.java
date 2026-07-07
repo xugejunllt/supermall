@@ -238,7 +238,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
 
         return voList;
     }
-
+    @Transactional
     @Override
     public CreatePrepayOrderVO createPrepayOrder(CreatePrepayOrderDTO dto) {
 
@@ -352,7 +352,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
         return orderStr;
     }
-
+    @Transactional
     public CreatePrepayOrderVO bathCreatePrepayOrder(BathCreatePrepayOrderDTO dto) {
 
         BathTradeOrderDO bathTradeOrderDO = bathTradeOrderService.lambdaQuery()

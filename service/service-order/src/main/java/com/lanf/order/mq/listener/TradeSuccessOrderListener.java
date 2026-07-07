@@ -150,7 +150,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
 
                 mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                         OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(a),
-                        a.getOrderId().toString(),null);
+                        a.getOrderId().toString(),userId.toString());
             });
             orderDOList.forEach(orderDO2 -> {
                 //发送物流跟踪信息
@@ -167,7 +167,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                 shippingTrackList.add(trackMessage);
                 bathMessage.setShippingTrackList(shippingTrackList);
                 mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
-                        JsonUtils.toJsonString(bathMessage),null);
+                        JsonUtils.toJsonString(bathMessage),userId.toString());
             });
             log.info("批量支付订单处理成功");
 
@@ -211,7 +211,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             orderStatusTraceService.save(statusTraceDO);
             mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                     OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(orderPaySuccessMessage),
-                    orderDO.getId().toString(),null);
+                    orderDO.getId().toString(),userId.toString());
             //发送物流跟踪信息
             BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
             bathMessage.setOrderId(orderDO.getId());
@@ -226,7 +226,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             shippingTrackList.add(trackMessage);
             bathMessage.setShippingTrackList(shippingTrackList);
             mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
-                    JsonUtils.toJsonString(bathMessage),null);
+                    JsonUtils.toJsonString(bathMessage),userId.toString());
             log.info("单笔支付订单处理成功");
 
 

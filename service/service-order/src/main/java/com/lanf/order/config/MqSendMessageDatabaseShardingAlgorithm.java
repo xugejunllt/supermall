@@ -42,7 +42,7 @@ public class MqSendMessageDatabaseShardingAlgorithm implements StandardShardingA
 
         // 使用 hashCode 取模，确保均匀分布到 3 个数据库
         int hash = Math.abs(shardingVal.hashCode());
-        String suffix = String.valueOf(hash % 3);
+        String suffix = String.valueOf(hash % 2);
 
         for (String target : availableTargetNames) {
             if (target.endsWith(suffix)) {
