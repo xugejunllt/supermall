@@ -36,8 +36,8 @@ public class MqSendMessageDatabaseShardingAlgorithm implements StandardShardingA
         String shardingVal = shardingValue.getValue();
 
         if (shardingVal == null || shardingVal.isEmpty()) {
-            log.warn("sharding_key 为空，无法进行分片路由");
-            throw new BizException("sharding_key 不能为空");
+            log.warn("sharding_key 为空，默认路由到 ds0");
+            return "ds0";
         }
 
         // 使用 hashCode 取模，确保均匀分布到 3 个数据库

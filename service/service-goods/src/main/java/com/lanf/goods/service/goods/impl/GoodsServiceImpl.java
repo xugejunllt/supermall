@@ -733,7 +733,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
 
         String key = goodsDOId.toString() ;
         mqSendMessageUtils.sendOrderedMessage(TopicName.SAVE_GOODS_ES_TOPIC,
-                JsonUtils.toJsonString(goodsInfoToEsMsg), key,goodsId.toString());
+                JsonUtils.toJsonString(goodsInfoToEsMsg), key,null);
 
     }
 
