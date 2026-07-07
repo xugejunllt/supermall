@@ -34,7 +34,7 @@ import com.lanf.goods.service.stock.IStockService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SyncGoodsInfoToEsMsg;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.web.utils.CndUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +84,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     @Autowired
     private IShopService shopService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Autowired
     private DistributedLocker distributedLocker;
@@ -732,8 +732,8 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
          */
 
         String key = goodsDOId.toString() ;
-        rocketMqClient.syncSendOrderly(TopicName.SAVE_GOODS_ES_TOPIC,
-                JsonUtils.toJsonString(goodsInfoToEsMsg), key);
+        mqSendMessageUtils.sendOrderedMessage(TopicName.SAVE_GOODS_ES_TOPIC,
+                JsonUtils.toJsonString(goodsInfoToEsMsg), key,null);
 
     }
 

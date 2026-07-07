@@ -1,14 +1,10 @@
 package com.lanf.pay.task;
 
-import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.*;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
 import com.lanf.pay.model.entity.ReconciliationJobLogDO;
-import com.lanf.api.pay.model.enums.BillDownloadStatusEnum;
-import com.lanf.api.pay.model.enums.BillTypeEnum;
-import com.lanf.api.pay.model.enums.ReconciliationJobStatusEnum;
-import com.lanf.api.pay.model.enums.ReconciliationJobTypeEnum;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.BillSynchronizerMessage;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
@@ -16,7 +12,7 @@ import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
 import com.lanf.pay.service.reconciliation.IReconciliationJobLogService;
 import com.lanf.pay.service.reconciliation.IReconciliationResultService;
 import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -35,7 +31,7 @@ import java.util.List;
 public class SignCustomerBillReconciliationTask {
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Autowired
     private IChannelBillDownloadProgressService channelBillDownloadProgressService;
@@ -91,8 +87,8 @@ public class SignCustomerBillReconciliationTask {
                 }
 
                 billSynchronizerMessage.setPayChannel(channel);
-                rocketMqClient.sendMessage(PayMqTopicName.BILL_SYNCHRONIZER_TOPIC,
-                        JsonUtils.toJsonString(billSynchronizerMessage));
+                mqSendMessageUtils.sendMessage(PayMqTopicName.BILL_SYNCHRONIZER_TOPIC,
+                        JsonUtils.toJsonString(billSynchronizerMessage),null);
 
 
             }

@@ -1,8 +1,9 @@
 package com.lanf.order.mq.listener;
 
-import com.lanf.api.order.mq.message.OrderPaySuccessMessage;
 import com.lanf.api.order.model.enums.ShippingStatusEnum;
+import com.lanf.api.order.mq.message.OrderPaySuccessMessage;
 import com.lanf.common.utils.DateUtils;
+import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.order.OrderStatusEnum;
@@ -15,14 +16,13 @@ import com.lanf.order.model.enums.PayStatusEnum;
 import com.lanf.order.mq.constant.OrderMqTopicName;
 import com.lanf.order.mq.message.BathAddShippingTrackMessage;
 import com.lanf.order.mq.message.ShippingTrackMessage;
-import com.lanf.common.utils.IStringUtils;
 import com.lanf.order.service.order.IMainOrderService;
 import com.lanf.order.service.order.IOrderService;
 import com.lanf.order.service.order.IOrderStatusTraceService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -54,7 +54,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
     @Autowired
     private IOrderStatusTraceService orderStatusTraceService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Transactional
     @Override
@@ -146,9 +146,9 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             orderStatusTraceService.saveBatch(statusTraceDOList);
             orderPaySuccessMessageList.forEach(a -> {
 
-                rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+                mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                         OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(a),
-                        a.getOrderId().toString());
+                        a.getOrderId().toString(),null);
             });
             orderDOList.forEach(orderDO2 -> {
                 //发送物流跟踪信息
@@ -164,7 +164,8 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                 trackMessage.setFlowNo(IStringUtils.hashToUniqueString(orderDO2.getId() + trackMessage.getFinishContent()));
                 shippingTrackList.add(trackMessage);
                 bathMessage.setShippingTrackList(shippingTrackList);
-                rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
+                mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
+                        JsonUtils.toJsonString(bathMessage),null);
             });
             log.info("批量支付订单处理成功");
 
@@ -206,9 +207,9 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                 throw new MessageRetryConsumeException("订单更新为已支付失败");
             }
             orderStatusTraceService.save(statusTraceDO);
-            rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+            mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                     OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(orderPaySuccessMessage),
-                    orderDO.getId().toString());
+                    orderDO.getId().toString(),null);
             //发送物流跟踪信息
             BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
             bathMessage.setOrderId(orderDO.getId());
@@ -222,7 +223,8 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             trackMessage.setFlowNo(IStringUtils.hashToUniqueString(orderDO.getId() + trackMessage.getFinishContent()));
             shippingTrackList.add(trackMessage);
             bathMessage.setShippingTrackList(shippingTrackList);
-            rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
+            mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
+                    JsonUtils.toJsonString(bathMessage),null);
             log.info("单笔支付订单处理成功");
 
 

@@ -7,7 +7,7 @@ import com.lanf.pay.model.bo.PostTradeSuccessHandlerContext;
 import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.service.trade.TradeSuccessHandler;
 import com.lanf.pay.utils.PayServiceUtils;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,14 +20,14 @@ import java.math.BigDecimal;
 public class WalletRechargeTradesSuccessHandler implements TradeSuccessHandler {
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
     @Override
     public void postTradeSuccessHandler(PostTradeSuccessHandlerContext context) {
 
         TradeOrderDO tradeOrderDO = context.getTradeOrderDO();
         BigDecimal payMoney = context.getPayMoney();
         WalletRechargeMessage walletRechargeMessage = buildWalletRechargeMessage(tradeOrderDO,payMoney);
-        rocketMqClient.sendMessage(PayClientTopicName.WALLET_RECHARGE_TOPIC, JsonUtils.toJsonString(walletRechargeMessage));
+        mqSendMessageUtils.sendMessage(PayClientTopicName.WALLET_RECHARGE_TOPIC, JsonUtils.toJsonString(walletRechargeMessage),null);
 
     }
 

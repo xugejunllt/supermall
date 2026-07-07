@@ -3,10 +3,11 @@ package com.lanf.pay.service.wallet.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.api.pay.model.enums.PayChannelEnum;
-import com.lanf.api.pay.model.enums.PayMethodEnum;
-import com.lanf.api.pay.model.enums.TradePurposeEnum;
-import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
+import com.lanf.api.pay.model.enums.*;
+import com.lanf.api.pay.model.query.WalletAccountFlowPageQuery;
+import com.lanf.api.pay.model.query.WalletAccountPageQuery;
+import com.lanf.api.pay.model.vo.WalletAccountFlowPageVO;
+import com.lanf.api.pay.model.vo.WalletAccountPageVO;
 import com.lanf.api.pay.mq.constant.PayClientTopicName;
 import com.lanf.api.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.api.pay.mq.message.TransferMessage;
@@ -28,19 +29,13 @@ import com.lanf.pay.model.entity.WalletAccountDO;
 import com.lanf.pay.model.entity.WalletAccountFlowDO;
 import com.lanf.pay.model.entity.WalletWithdrawDO;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
-import com.lanf.api.pay.model.enums.WalletEventTypeEnum;
-import com.lanf.api.pay.model.enums.WithdrawStatusEnum;
-import com.lanf.api.pay.model.query.WalletAccountFlowPageQuery;
-import com.lanf.api.pay.model.query.WalletAccountPageQuery;
-import com.lanf.api.pay.model.vo.WalletAccountFlowPageVO;
-import com.lanf.api.pay.model.vo.WalletAccountPageVO;
 import com.lanf.pay.model.vo.WalletAccountVO;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.wallet.IWalletAccountFlowService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
 import com.lanf.pay.service.wallet.IWalletWithdrawService;
 import com.lanf.pay.utils.PayServiceUtils;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -62,7 +57,7 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
     @Autowired
     private IWalletAccountFlowService walletAccountFlowService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
     @Autowired
     private IWalletWithdrawService walletWithdrawService;
 
@@ -140,7 +135,8 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         }
 
         PayOrderFlowInsertSuccessMessage message = buildPayOrderFlowInsertSuccessMessage(tradeOrderDO, tradeMoney);
-        rocketMqClient.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC, JsonUtils.toJsonString(message));
+        mqSendMessageUtils.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC,
+                JsonUtils.toJsonString(message),null);
     }
 
 
@@ -300,7 +296,8 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         }
 
         TransferMessage transferMessage = buildTransferMessage(withdraw);
-        rocketMqClient.sendMessage(PayClientTopicName.TRANSFER_TOPIC, JsonUtils.toJsonString(transferMessage));
+        mqSendMessageUtils.sendMessage(PayClientTopicName.TRANSFER_TOPIC,
+                JsonUtils.toJsonString(transferMessage),null);
 
         log.info("同意提现成功，已发送转账消息，提现单ID: {}, 提现单号: {}", withdrawId, withdraw.getWithdrawNo());
     }

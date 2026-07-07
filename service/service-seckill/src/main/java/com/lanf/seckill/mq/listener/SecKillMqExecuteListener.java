@@ -5,7 +5,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.seckill.model.entity.SecKillItemDO;
 import com.lanf.seckill.model.entity.SecKillRecordDO;
@@ -56,7 +56,7 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
     @Autowired
     private ISecKillRecordService secKillRecordService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     /**
      * 处理秒杀执行消息
@@ -140,8 +140,8 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
         //8.发送SEC_KILL_PLANE_TOPIC消息，订单服务和商品服务并行消费
         //   订单服务：创建订单（TCC事务）
         //   商品服务：扣减真实库存
-        rocketMqClient.sendMessage(SecKillClientTopicName.SEC_KILL_PLANE_TOPIC,
-                JsonUtils.toJsonString(secKillPlaneMessage));
+        mqSendMessageUtils.sendMessage(SecKillClientTopicName.SEC_KILL_PLANE_TOPIC,
+                JsonUtils.toJsonString(secKillPlaneMessage),null);
 
         //9.标记秒杀结果为"订单生成中"，供前端轮询查询
         secKillResultCache.addResult(message.getUserId(), message.getSecKillItemId(),

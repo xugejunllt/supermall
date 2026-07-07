@@ -2,6 +2,7 @@ package com.lanf.user.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.user.model.enums.UserStatusEnum;
 import com.lanf.api.user.model.vo.UserPageVO;
 import com.lanf.api.user.mq.UserClientTopicName;
 import com.lanf.api.user.mq.message.UserRegisterMessage;
@@ -18,7 +19,7 @@ import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SendSmsMsg;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.user.constant.UserRedisKeyConstants;
 import com.lanf.user.mapper.UserMapper;
 import com.lanf.user.model.bo.UserLevel;
@@ -28,7 +29,6 @@ import com.lanf.user.model.dto.RefreshTokenDTO;
 import com.lanf.user.model.dto.RegisterUserDTO;
 import com.lanf.user.model.entity.UserDO;
 import com.lanf.user.model.entity.UserLoginLog;
-import com.lanf.api.user.model.enums.UserStatusEnum;
 import com.lanf.user.model.vo.UserDetailVO;
 import com.lanf.user.model.vo.UserTokenInfoVO;
 import com.lanf.user.model.vo.UserVO;
@@ -71,7 +71,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     @Autowired
     private DistributedLocker distributedLocker;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Autowired
     private IUserLoginLogService userLoginLogService;
@@ -107,8 +107,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         this.save(userDO);
         UserRegisterMessage message = new UserRegisterMessage();
         message.setUserId(userDO.getId());
-        rocketMqClient.sendMessage(UserClientTopicName.USER_REGISTER_EVENT_TOPIC,
-                JsonUtils.toJsonString(message));
+        mqSendMessageUtils.sendMessage(UserClientTopicName.USER_REGISTER_EVENT_TOPIC,
+                JsonUtils.toJsonString(message),null);
         log.info("用户注册成功");
     }
 
@@ -218,7 +218,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         sendSmsDTO.setParameterValueList(parameterValueList);
         //转成 json
         String message = JsonUtils.toJsonString(sendSmsDTO);
-        rocketMqClient.sendMessage(TopicName.SEND_SMS_TOPIC, message);
+        mqSendMessageUtils.sendMessage(TopicName.SEND_SMS_TOPIC, JsonUtils.toJsonString(message),null);
 
     }
 

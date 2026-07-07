@@ -9,7 +9,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.constant.PayMqGroupName;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -32,7 +32,7 @@ public class SecKillPlaneCreateOrderSuccessEventListener implements RocketMQList
     private ITradeOrderService tradeOrderService;
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Override
     public void onMessage(SecKillPlaneCreateOrderSuccessMessage message) {
@@ -56,8 +56,8 @@ public class SecKillPlaneCreateOrderSuccessEventListener implements RocketMQList
         /**
          * 发送创建成功通知消息
          */
-        rocketMqClient.sendMessage(OrderClientTopicName.SEC_KILL_ORDER_CONFIRM_TOPIC,
-                JsonUtils.toJsonString(message1));
+        mqSendMessageUtils.sendMessage(OrderClientTopicName.SEC_KILL_ORDER_CONFIRM_TOPIC,
+                JsonUtils.toJsonString(message1),null);
 
     }
 }

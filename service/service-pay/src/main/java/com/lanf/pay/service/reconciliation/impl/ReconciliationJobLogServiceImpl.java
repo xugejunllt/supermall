@@ -1,6 +1,12 @@
 package com.lanf.pay.service.reconciliation.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.pay.model.enums.ReconciliationBusinessTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationDiffTypeEnum;
+import com.lanf.api.pay.model.enums.ReconciliationJobStatusEnum;
+import com.lanf.api.pay.model.enums.ReconciliationJobTypeEnum;
+import com.lanf.api.pay.model.query.ReconciliationJobLogSumQuery;
+import com.lanf.api.pay.model.vo.ReconciliationJobLogSumVO;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.mapper.ReconciliationJobLogMapper;
@@ -9,12 +15,6 @@ import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.entity.ReconciliationDiffMarkerDO;
 import com.lanf.pay.model.entity.ReconciliationJobLogDO;
 import com.lanf.pay.model.entity.SignCustomerFundBillDetailDO;
-import com.lanf.api.pay.model.enums.ReconciliationBusinessTypeEnum;
-import com.lanf.api.pay.model.enums.ReconciliationDiffTypeEnum;
-import com.lanf.api.pay.model.enums.ReconciliationJobStatusEnum;
-import com.lanf.api.pay.model.enums.ReconciliationJobTypeEnum;
-import com.lanf.api.pay.model.query.ReconciliationJobLogSumQuery;
-import com.lanf.api.pay.model.vo.ReconciliationJobLogSumVO;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.ReconciliationStartMessage;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
@@ -23,7 +23,7 @@ import com.lanf.pay.service.pay.ITransferOrderFlowService;
 import com.lanf.pay.service.reconciliation.IReconciliationDiffMarkerService;
 import com.lanf.pay.service.reconciliation.IReconciliationJobLogService;
 import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -46,7 +46,7 @@ public class ReconciliationJobLogServiceImpl extends ServiceImpl<ReconciliationJ
 
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
     @Lazy
     @Autowired
     private IReconciliationJobLogService reconciliationJobLogService;
@@ -69,8 +69,8 @@ public class ReconciliationJobLogServiceImpl extends ServiceImpl<ReconciliationJ
     @Transactional
     @Override
     public SendMessageAndUpdateResult sendMessageAndUpdate(ReconciliationStartMessage message, ReconciliationJobTypeEnum jobType, String bathId, long currentPage, long pages) throws Exception {
-        rocketMqClient.sendMessage(PayMqTopicName.RECONCILIATION_START_TOPIC, JsonUtils.
-                toJsonString(message));
+        mqSendMessageUtils.sendMessage(PayMqTopicName.RECONCILIATION_START_TOPIC, JsonUtils.
+                toJsonString(message),null);
 
         if (currentPage >= pages) {
             /**

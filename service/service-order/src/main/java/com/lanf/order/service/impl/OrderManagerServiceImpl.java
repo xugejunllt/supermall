@@ -51,7 +51,7 @@ import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.message.CancelExpiredOrderMessage;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.model.message.OrderGoodsInfo;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.seckill.model.enums.SecKillResultEnum;
 import com.lanf.seckill.mq.message.SecKillPlaneMessage;
@@ -70,7 +70,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -90,7 +89,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     private UserCacheService userCacheService;
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
     @Autowired
     private IOrderService orderService;
     @Autowired
@@ -426,17 +425,18 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          * 发送延迟 关单消息 提前5分钟
          *
          */
-        rocketMqClient.sendDelayMessage(OrderMqTopicName.CANCEL_EXPIRED_ORDER_TOPIC,
-                JsonUtils.toJsonString(message2), TimeUnit.MINUTES, (int) (expireInterval - 5));
+        mqSendMessageUtils.sendDelayMessage(OrderMqTopicName.CANCEL_EXPIRED_ORDER_TOPIC,
+                JsonUtils.toJsonString(message2), (int) (expireInterval - 5),null);
 
         /**
          * 发送订单创建成功消息
          */
-        rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+        mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.WAIT_PAY.getTag(), JsonUtils.toJsonString(message),
-                orderId.toString());
+                orderId.toString(),null);
 
-        rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
+        mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
+                JsonUtils.toJsonString(bathMessage),null);
 
 
     }
@@ -844,9 +844,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          * 发送取消订单事件
          */
 
-        rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+        mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.CANCELLED.getTag(), JsonUtils.toJsonString(orderEventMessage),
-                orderDO.getId().toString());
+                orderDO.getId().toString(),null);
 
         log.info("取消订单成功");
     }
@@ -979,9 +979,9 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         OrderCreateSuccessMessage message2 = new OrderCreateSuccessMessage();
         message2.setOrderId(message.getOrderId());
         message2.setUserId(message.getUserId());
-        rocketMqClient.sendOrderlyMessageWithTags(OrderTopicWithTag.ORDER_EVENT_TOPIC,
+        mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.WAIT_PAY.getTag(), JsonUtils.toJsonString(message2),
-                message.getOrderId().toString());
+                message.getOrderId().toString(),null);
         //发送物流跟踪信息
         BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
         bathMessage.setOrderId(message.getOrderId());
@@ -995,7 +995,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         trackMessage.setFlowNo(IStringUtils.hashToUniqueString(message.getOrderId() + trackMessage.getFinishContent()));
         shippingTrackList.add(trackMessage);
         bathMessage.setShippingTrackList(shippingTrackList);
-        rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(bathMessage));
+        mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
+                JsonUtils.toJsonString(bathMessage),null);
         secKillResultCache.addResult(message.getUserId(), message.getSecKillItemId(), SecKillResultEnum.SUCCESS_ORDER_CREATED);
     }
 
@@ -1090,8 +1091,8 @@ public class OrderManagerServiceImpl implements OrderManagerService {
             log.warn("订单更新失败");
             throw new BizException("订单更新失败");
         }
-        rocketMqClient.sendMessage(OrderClientTopicName.PUBLISH_COMMENT_TOPIC,
-                JsonUtils.toJsonString(publishCommentMessage));
+        mqSendMessageUtils.sendMessage(OrderClientTopicName.PUBLISH_COMMENT_TOPIC,
+                JsonUtils.toJsonString(publishCommentMessage),null);
 
 
     }

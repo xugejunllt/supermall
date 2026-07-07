@@ -18,7 +18,7 @@ import com.lanf.pay.model.dto.PayCallbackDTO;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.enums.PayOrderFlowStatusEnum;
 import com.lanf.pay.utils.PayServiceUtils;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -32,7 +32,7 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
     @Autowired
     private IPayOrderFlowService payOrderFlowService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Override
     public void payCallback(PayCallbackDTO dto) {
@@ -127,7 +127,8 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
         /**
          * 下游业务处理
          */
-        rocketMqClient.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC, JsonUtils.toJsonString(message));
+        mqSendMessageUtils.sendMessage(PayClientTopicName.PAY_ORDER_FLOW_INSERT_SUCCESS_TOPIC,
+                JsonUtils.toJsonString(message), null);
         return new PaySuccessHandleResultBO(true);
     }
 

@@ -10,7 +10,7 @@ import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderMessage;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -29,7 +29,7 @@ public class AfterSalesRefundListener implements RocketMQListener<AfterSalesRefu
     @Autowired
     private ITradeOrderService tradeOrderService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Override
     public void onMessage(AfterSalesRefundMessage message) {
@@ -55,7 +55,8 @@ public class AfterSalesRefundListener implements RocketMQListener<AfterSalesRefu
         message2.setBizOrderId(message.getAfterSalesOrderId());
         message2.setRefundEventType(RefundEventTypeEnum.AFTER_SALES_REFUND);
 
-        rocketMqClient.sendMessage(TopicName.CANCEL_PAY_ORDER_TOPIC, JsonUtils.toJsonString(message2));
+        mqSendMessageUtils.sendMessage(TopicName.CANCEL_PAY_ORDER_TOPIC,
+                JsonUtils.toJsonString(message2),null);
 
     }
 }

@@ -5,11 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.storage.model.bo.ReconciliationOrderDetailBO;
 import com.lanf.storage.model.entity.ReconciliationOrderDetailDO;
 import com.lanf.storage.model.entity.StockFlowDO;
-import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
 import com.lanf.storage.mq.constant.StorageMqTopicName;
 import com.lanf.storage.mq.message.LongStockReconciliation;
 import com.lanf.storage.mq.message.LongStockReconciliationMessage;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class StockReconciliationTask {
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
     @Autowired
     private IReconciliationOrderDetailService reconciliationOrderDetailService;
     @Autowired
@@ -87,8 +87,8 @@ public class StockReconciliationTask {
                     ShortStockReconciliationMessage message = new ShortStockReconciliationMessage();
                     message.setBathId(batchId);
                     message.setReconciliationList(reconciliationList);
-                    rocketMqClient.sendMessage(StorageMqTopicName.SHORT_STOCK_RECONCILIATION_TOPIC,
-                            JsonUtils.toJsonString(message));
+                    mqSendMessageUtils.sendMessage(StorageMqTopicName.SHORT_STOCK_RECONCILIATION_TOPIC,
+                            JsonUtils.toJsonString(message),null);
                 }
                 pageNum++;
             } while (page.getCurrent() < page.getPages());
@@ -139,8 +139,8 @@ public class StockReconciliationTask {
                     LongStockReconciliationMessage message = new LongStockReconciliationMessage();
                     message.setBathId(batchId);
                     message.setReconciliationList(reconciliationList);
-                    rocketMqClient.sendMessage(StorageMqTopicName.LONG_STOCK_RECONCILIATION_TOPIC,
-                            JsonUtils.toJsonString(message));
+                    mqSendMessageUtils.sendMessage(StorageMqTopicName.LONG_STOCK_RECONCILIATION_TOPIC,
+                            JsonUtils.toJsonString(message),null);
                 }
 
                 pageNum++;

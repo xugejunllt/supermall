@@ -1,7 +1,6 @@
 package com.lanf.rocketmq.util;
 
 import com.lanf.common.utils.JsonUtils;
-import com.lanf.common.utils.StackTraceUtil;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.utils.TraceIdUtils;
 import io.netty.util.HashedWheelTimer;
@@ -203,25 +202,7 @@ public class RocketMqClient {
         }, delayTime, timeUnit);
 
     }
-    public void sendMessage(String topic, Object message){
 
-        String jsonMessage = JsonUtils.toJsonString(message);
-        log.info("发送mq消息:topic:{},message:{}", topic, jsonMessage);
-
-        try {
-            Map<String, Object> headers = buildHeadersWithTraceId();
-            Message<Object> messageWithHeader = MessageBuilder.createMessage(jsonMessage, new MessageHeaders(headers));
-            SendResult sendResult = rocketMQTemplate.syncSend(topic, messageWithHeader);
-            if (!SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
-                log.error("发送MQ消息失败");
-                throw new BizException("发送MQ消息失败");
-            }
-        } catch (Exception e) {
-            log.error("发送MQ消息失败[{}]", StackTraceUtil.getStackTrace(e));
-            throw new BizException("发送MQ消息失败");
-        }
-
-    }
 
 
 

@@ -1,11 +1,11 @@
 package com.lanf.pay.mq.listener;
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.RefundStatusEnum;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.TradeStatusBO;
 import com.lanf.pay.model.entity.PayOrderFlowDO;
 import com.lanf.pay.model.entity.RefundOrderDO;
-import com.lanf.api.pay.model.enums.RefundStatusEnum;
 import com.lanf.pay.model.enums.TradeStatusEnum;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.QueryRefundResultMessage;
@@ -13,7 +13,7 @@ import com.lanf.pay.service.pay.*;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderMessage;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -42,7 +42,7 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
     @Autowired
     private IRefundOrderService refundOrderService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Override
     public void onMessage(CancelOrderMessage message) {
@@ -112,7 +112,8 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
                 QueryRefundResultMessage queryRefundResultMessage = new QueryRefundResultMessage();
                 queryRefundResultMessage.setOutTradeNo(outTradeNo);
                 queryRefundResultMessage.setOutRequestNo(outTradeNo);
-                rocketMqClient.sendMessage(PayMqTopicName.QUERY_REFUND_RESULT_TOPIC, JsonUtils.toJsonString(queryRefundResultMessage));
+                mqSendMessageUtils.sendMessage(PayMqTopicName.QUERY_REFUND_RESULT_TOPIC,
+                        JsonUtils.toJsonString(queryRefundResultMessage),null);
         }
 
         log.info("查询三方支付订单支付状态成功");

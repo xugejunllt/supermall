@@ -1,19 +1,19 @@
 package com.lanf.pay.service.reconciliation.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lanf.api.pay.model.enums.BillDownloadStatusEnum;
+import com.lanf.api.pay.model.enums.BillTypeEnum;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.query.ChannelBillDownloadProgressListQuery;
+import com.lanf.api.pay.model.vo.ChannelBillDownloadProgressListVO;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.mapper.ChannelBillDownloadProgressMapper;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
-import com.lanf.api.pay.model.enums.BillDownloadStatusEnum;
-import com.lanf.api.pay.model.enums.BillTypeEnum;
-import com.lanf.api.pay.model.query.ChannelBillDownloadProgressListQuery;
-import com.lanf.api.pay.model.vo.ChannelBillDownloadProgressListVO;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.BillSynchronizerMessage;
 import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -35,7 +35,7 @@ import java.util.List;
 public class ChannelBillDownloadProgressServiceImpl extends ServiceImpl<ChannelBillDownloadProgressMapper, ChannelBillDownloadProgressDO> implements IChannelBillDownloadProgressService {
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
     @Override
     public boolean addChannelBillDownloadProgress(String batchId, PayChannelEnum payChannel) {
 
@@ -99,8 +99,8 @@ public class ChannelBillDownloadProgressServiceImpl extends ServiceImpl<ChannelB
             return;
         }
 
-        rocketMqClient.sendMessage(PayMqTopicName.BILL_SYNCHRONIZER_TOPIC,
-                JsonUtils.toJsonString(message));
+        mqSendMessageUtils.sendMessage(PayMqTopicName.BILL_SYNCHRONIZER_TOPIC,
+                JsonUtils.toJsonString(message),null);
 
     }
 

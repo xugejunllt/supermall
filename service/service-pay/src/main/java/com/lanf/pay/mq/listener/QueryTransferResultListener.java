@@ -1,5 +1,7 @@
 package com.lanf.pay.mq.listener;
 
+import com.lanf.api.pay.model.enums.RefundStatusEnum;
+import com.lanf.api.pay.model.enums.TransferStatusEnum;
 import com.lanf.api.pay.mq.constant.PayClientTopicName;
 import com.lanf.api.pay.mq.message.TransferSuccessMessage;
 import com.lanf.common.utils.DateUtils;
@@ -7,8 +9,6 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.bo.TransferQueryResultBO;
 import com.lanf.pay.model.entity.TransferOrderDO;
 import com.lanf.pay.model.entity.TransferOrderFlowDO;
-import com.lanf.api.pay.model.enums.RefundStatusEnum;
-import com.lanf.api.pay.model.enums.TransferStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.QueryTransferResultMessage;
@@ -18,7 +18,7 @@ import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -44,7 +44,7 @@ public class QueryTransferResultListener implements RocketMQListener<QueryTransf
     private ITransferOrderFlowService transferOrderFlowService;
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
     @Autowired
     private ITransferOrderService transferOrderService;
     @MqRetryConsume(messageId = "#message.messageId")
@@ -108,8 +108,8 @@ public class QueryTransferResultListener implements RocketMQListener<QueryTransf
          */
 
         String tag = oned.getEventType().getTag();
-        rocketMqClient.sendMessageWithTags(PayClientTopicName.TRANSFER_SUCCESS_EVENT_TOPIC, tag,
-                JsonUtils.toJsonString(transferSuccessMessage));
+        mqSendMessageUtils.sendMessageWithTag(PayClientTopicName.TRANSFER_SUCCESS_EVENT_TOPIC, tag,
+                JsonUtils.toJsonString(transferSuccessMessage),null);
 
     }
 

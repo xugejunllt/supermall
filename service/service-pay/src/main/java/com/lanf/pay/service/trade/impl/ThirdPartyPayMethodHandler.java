@@ -7,7 +7,7 @@ import com.lanf.pay.service.pay.IPrepayPayTypeService;
 import com.lanf.pay.service.trade.PayMethodHandler;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderMessage;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class ThirdPartyPayMethodHandler implements PayMethodHandler {
     @Autowired
     private IPrepayPayTypeService prepayPayTypeService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
     @Override
     public void cancelPayOrder(CancelPayOrderContext context) {
 
@@ -40,7 +40,7 @@ public class ThirdPartyPayMethodHandler implements PayMethodHandler {
             cancelOrderMessage.setPayType(payType);
             cancelOrderMessage.setBizOrderId(context.getOrderId());
             cancelOrderMessage.setRefundEventType(RefundEventTypeEnum.CANCEL_PAID_ORDER);
-            rocketMqClient.sendMessage(TopicName.CANCEL_PAY_ORDER_TOPIC, JsonUtils.toJsonString(cancelOrderMessage));
+            mqSendMessageUtils.sendMessage(TopicName.CANCEL_PAY_ORDER_TOPIC, JsonUtils.toJsonString(cancelOrderMessage),null);
 
         }
     }

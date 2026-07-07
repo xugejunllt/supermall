@@ -23,7 +23,7 @@ import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.storage.mapper.AftersalesIntStockOrderMapper;
 import com.lanf.storage.model.entity.AfterSalesIntStockOrderDO;
 import com.lanf.storage.model.entity.InOutStockOrderItemDO;
@@ -60,7 +60,7 @@ public class AftersalesIntStockOrderServiceImpl extends ServiceImpl<AftersalesIn
     private IInOutStockOrderItemService iInOutStockOrderItemService;
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Autowired
     private IWarehouseService warehouseService;
@@ -279,6 +279,7 @@ public class AftersalesIntStockOrderServiceImpl extends ServiceImpl<AftersalesIn
          */
         AfterSalesInStockFinishMessage message = new AfterSalesInStockFinishMessage();
         message.setAfterSalesOrderId(orderDO.getAfterSalesOrderId());
-        rocketMqClient.sendMessage(StorageClientTopicName.AFTER_SALES_IN_STOCK_FINISH_TOPIC, JsonUtils.toJsonString(message));
+        mqSendMessageUtils.sendMessage(StorageClientTopicName.AFTER_SALES_IN_STOCK_FINISH_TOPIC,
+                JsonUtils.toJsonString(message),null);
     }
 }

@@ -1,5 +1,6 @@
 package com.lanf.pay.mq.listener;
 
+import com.lanf.api.pay.model.enums.ClearingStatusEnum;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
 import com.lanf.api.pay.mq.constant.PayClientTopicName;
@@ -9,19 +10,19 @@ import com.lanf.constant.constant.Constants;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.pay.model.entity.ClearingDetailDO;
 import com.lanf.pay.model.entity.PayAccountDO;
-import com.lanf.api.pay.model.enums.ClearingStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.ClearingOrderMessage;
 import com.lanf.pay.service.account.IPayAccountService;
 import com.lanf.pay.service.clearing.ClearingDetailService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 定时任务 扫描已关闭的订单
@@ -44,8 +45,9 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
     @Autowired
     private IPayAccountService payAccountService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
+    @Transactional
     @Override
     public void onMessage(ClearingOrderMessage message) {
         log.info("收到结算任务消息: {}", message);
@@ -79,7 +81,8 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
             log.warn("更新清算单失败");
             throw new MessageRetryConsumeException("更新清算单失败");
         }
-        rocketMqClient.sendMessage(PayClientTopicName.TRANSFER_TOPIC, JsonUtils.toJsonString(transferMessage));
+        mqSendMessageUtils.sendMessage(PayClientTopicName.TRANSFER_TOPIC,
+                JsonUtils.toJsonString(transferMessage),null);
 
     }
 

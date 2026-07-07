@@ -21,7 +21,7 @@ import com.lanf.constant.model.enums.storage.StockFlowTypeEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.storage.mapper.SalesOutStockOrderMapper;
 import com.lanf.storage.model.bo.StockUpdateBO;
 import com.lanf.storage.model.entity.*;
@@ -69,7 +69,7 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
     private IInOutStockOrderItemService storageOrderItemDetailsService;
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
 
 
@@ -373,9 +373,9 @@ public class SalesOutStockOrderServiceImpl extends ServiceImpl<SalesOutStockOrde
         SalesOutStockOrderFinishMessage message = new SalesOutStockOrderFinishMessage();
         message.setOrderId(salesOutStockOrderDO.getOrderId());
         message.setUserId(salesOutStockOrderDO.getUserId());
-        rocketMqClient.sendMessage(
+        mqSendMessageUtils.sendMessage(
                 StorageClientTopicName.SALES_OUT_STOCK_ORDER_FINISH_TOPIC, 
-                JsonUtils.toJsonString(message));
+                JsonUtils.toJsonString(message),null);
         
     }
 

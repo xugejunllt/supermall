@@ -8,7 +8,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.order.model.entity.OrderAutoCloseDO;
 import com.lanf.order.model.enums.OrderAutoCloseStatusEnum;
 import com.lanf.order.service.order.IOrderAutoCloseService;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,7 +31,7 @@ public class OrderAutoCloseTask {
     private IOrderAutoCloseService orderAutoCloseService;
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
     /**
      * 每天凌晨0点扫描已到期的订单自动关闭记录
      * 过滤条件：当前时间 >= autoCloseTime 且 status = COMPLETED
@@ -61,8 +61,8 @@ public class OrderAutoCloseTask {
                     CloseOrderMessage closeOrderMessage = new CloseOrderMessage();
                     closeOrderMessage.setOrderId(record.getOrderId());
                     closeOrderMessage.setUserId(record.getUserId());
-                    rocketMqClient.sendMessage(OrderClientTopicName.CLOSE_ORDER_TOPIC,
-                            JsonUtils.toJsonString(closeOrderMessage));
+                    mqSendMessageUtils.sendMessage(OrderClientTopicName.CLOSE_ORDER_TOPIC,
+                            JsonUtils.toJsonString(closeOrderMessage), record.getUserId().toString());
                 });
             }
 

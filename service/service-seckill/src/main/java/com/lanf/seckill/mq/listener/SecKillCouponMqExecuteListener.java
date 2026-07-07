@@ -2,7 +2,7 @@ package com.lanf.seckill.mq.listener;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.seckill.model.entity.SecKillCouponItemDO;
 import com.lanf.seckill.model.entity.SecKillCouponRecordDO;
@@ -45,7 +45,7 @@ public class SecKillCouponMqExecuteListener implements RocketMQListener<SecKillC
     private SecKillResultCache secKillResultCache;
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Transactional
     @Override
@@ -103,8 +103,8 @@ public class SecKillCouponMqExecuteListener implements RocketMQListener<SecKillC
         SecKillCouponSuccessMessage couponSuccessMessage = buildSecKillCouponSuccessMessage(couponItemDO, userId);
 
         // 6. 发送优惠券发放消息
-        rocketMqClient.sendMessage(SecKillClientTopicName.SEC_KILL_COUPON_SUCCESS_TOPIC,
-                JsonUtils.toJsonString(couponSuccessMessage));
+        mqSendMessageUtils.sendMessage(SecKillClientTopicName.SEC_KILL_COUPON_SUCCESS_TOPIC,
+                JsonUtils.toJsonString(couponSuccessMessage),null);
 
         // 7. 标记秒杀结果为"优惠券发放中"
         secKillResultCache.addResult(userId, secKillCouponItemId,

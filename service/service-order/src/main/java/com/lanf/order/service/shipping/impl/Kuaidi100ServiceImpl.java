@@ -29,7 +29,7 @@ import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.bo.ExpressPushBO;
 import com.lanf.rocketmq.model.bo.ExpressPushLastResultBO;
 import com.lanf.rocketmq.model.bo.ExpressPushLastResultDataBO;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.web.utils.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +50,7 @@ public class Kuaidi100ServiceImpl implements Kuaidi100Service {
     @Autowired
     private IShippingInfoService shippingInfoService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Override
     public ShippingVO shippingQuery(ShippingQuery query) {
@@ -164,7 +164,8 @@ public class Kuaidi100ServiceImpl implements Kuaidi100Service {
             shippingTrackList.add(shippingTrackMessage);
         }
         message.setShippingTrackList(shippingTrackList);
-        rocketMqClient.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC, JsonUtils.toJsonString(message));
+        mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
+                JsonUtils.toJsonString(message),null);
 
 
         //响应给快递100

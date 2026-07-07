@@ -35,7 +35,7 @@ import com.lanf.order.service.aftersales.IAfterSalesOrderItemService;
 import com.lanf.order.service.aftersales.IAfterSalesOrderService;
 import com.lanf.order.service.order.IOrderItemService;
 import com.lanf.order.service.order.IOrderService;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -58,7 +58,7 @@ import java.util.List;
 public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMapper, AfterSalesOrderDO> implements IAfterSalesOrderService {
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
 
     @Autowired
@@ -265,8 +265,8 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         /**
          * 创建销售退款退款入库单
          */
-        rocketMqClient.sendMessage(AftersalesClientTopicName.AFTER_SALES_CREATE_IN_ORDER_TOPIC,
-                JsonUtils.toJsonString(buildSalesInStockOrderAddDTO(salesOrderDO)));
+        mqSendMessageUtils.sendMessage(AftersalesClientTopicName.AFTER_SALES_CREATE_IN_ORDER_TOPIC,
+                JsonUtils.toJsonString(buildSalesInStockOrderAddDTO(salesOrderDO)),null);
 
     }
 
@@ -329,8 +329,8 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
         AfterSalesRefundMessage message = new AfterSalesRefundMessage();
         message.setOrderId(salesOrderDO.getOrderId());
         message.setAfterSalesOrderId(id);
-        rocketMqClient.sendMessage(OrderClientTopicName.AFTER_SALES_REFUND_TOPIC,
-                JsonUtils.toJsonString(message));
+        mqSendMessageUtils.sendMessage(OrderClientTopicName.AFTER_SALES_REFUND_TOPIC,
+                JsonUtils.toJsonString(message),null);
 
     }
 

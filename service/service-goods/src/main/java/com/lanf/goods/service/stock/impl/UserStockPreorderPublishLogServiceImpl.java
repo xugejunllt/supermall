@@ -2,16 +2,21 @@ package com.lanf.goods.service.stock.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lanf.api.goods.model.dto.RecycleStockDTO;
 import com.lanf.api.goods.model.query.UserStockPreorderPublishLogPageQuery;
 import com.lanf.api.goods.model.vo.UserStockPreorderPublishLogPageVO;
+import com.lanf.api.storage.mq.constant.StorageClientTopicName;
+import com.lanf.api.storage.mq.message.RecycleStockMessage;
 import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
+import com.lanf.constant.model.enums.storage.PublishStatusEnum;
+import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.goods.mapper.UserStockPreorderPublishLogMapper;
@@ -19,14 +24,9 @@ import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.entity.UserStockPreorderPublishLogDO;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockPreorderPublishLogService;
-import com.lanf.rocketmq.util.RocketMqClient;
-import com.lanf.constant.model.enums.storage.PublishStatusEnum;
-import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
-import com.lanf.api.storage.mq.constant.StorageClientTopicName;
-import com.lanf.api.storage.mq.message.RecycleStockMessage;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 /**
  * <p>
@@ -42,7 +42,7 @@ public class UserStockPreorderPublishLogServiceImpl extends ServiceImpl<UserStoc
     @Autowired
     private IStockService stockService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Override
     public void recycleStock(RecycleStockDTO recycleStockDTO) {
@@ -80,7 +80,9 @@ public class UserStockPreorderPublishLogServiceImpl extends ServiceImpl<UserStoc
             throw new BizException("更新库存失败");
         }
         this.save(publishLogDO);
-        rocketMqClient.sendMessage(StorageClientTopicName.RECYCLE_STOCK_TOPIC, JsonUtils.toJsonString(publishStockMessage));
+
+        mqSendMessageUtils.sendMessage(StorageClientTopicName.RECYCLE_STOCK_TOPIC,
+                JsonUtils.toJsonString(publishStockMessage),null);
 
     }
 

@@ -25,7 +25,7 @@ import com.lanf.pay.service.trade.impl.PayRetryPolicyCacheService;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -67,7 +67,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
     private PayRetryPolicyCacheService payRetryPolicyCacheService;
 
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Autowired
     private ITradeOrderService tradeOrderService;
@@ -327,7 +327,8 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         TradeSuccessEventMessage message = buildTradeSuccessEventMessage(bathTradeOrderDO.getMainOrderId(),
                 bathTradeOrderDO.getUserId());
         message.setPayType(payType);
-        rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
+        mqSendMessageUtils.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC,
+                JsonUtils.toJsonString(message),null);
 
 
     }
@@ -454,7 +455,8 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         // 【后置处理】发送交易成功事件
         TradeSuccessEventMessage message = buildTradeSuccessEventMessage(tradeOrderDO);
         message.setPayType(payType);
-        rocketMqClient.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC, JsonUtils.toJsonString(message));
+        mqSendMessageUtils.sendMessage(TopicName.TRADE_SUCCESS_EVENT_TOPIC,
+                JsonUtils.toJsonString(message),null);
     }
 
     /**
