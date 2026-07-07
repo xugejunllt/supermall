@@ -772,7 +772,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     public OrderDetailForAdminVO loadOrderDetailFromDB(OrderDetailQuery query) {
 
         Long userId = query.getUserId();
-        log.info("加载订单详情, userId={}", userId);
+        log.info("加载订单详情, query={}", query);
         OrderDO orderDO = this.lambdaQuery()
                 .eq(OrderDO::getId, query.getOrderId())
                 .eq(OrderDO::getUserId, userId)

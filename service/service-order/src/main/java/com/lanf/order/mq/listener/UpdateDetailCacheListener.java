@@ -39,7 +39,7 @@ import java.util.Map;
         consumerGroup = OrderMqGroupName.ORDER_EVENT_UPDATE_DETAIL_CACHE_GROUP,
         consumeMode = ConsumeMode.ORDERLY
 )
-public class OrderEventUpdateDetailCacheListener implements RocketMQListener<MessageExt> {
+public class UpdateDetailCacheListener implements RocketMQListener<MessageExt> {
 
     @Autowired
     private IOrderService orderService;

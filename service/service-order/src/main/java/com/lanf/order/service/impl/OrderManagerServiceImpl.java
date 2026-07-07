@@ -398,14 +398,14 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         message.setUserId(userId);
 
         CancelExpiredOrderMessage message2 = new CancelExpiredOrderMessage();
-        message.setOrderId(orderId);
-        message.setUserId(userId);
+        message2.setOrderId(orderId);
+        message2.setUserId(userId);
 
         OrderDO orderDO = orderService.lambdaQuery()
                 .eq(BaseEntity::getId, orderId)
                 .eq(OrderDO::getUserId, userId)
                 .one();
-
+        log.info("用户id:{},orderId:{}", userId, orderId);
         BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
         bathMessage.setOrderId(orderId);
         bathMessage.setTenantId(orderDO.getTenantId());
@@ -426,7 +426,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          *
          */
         mqSendMessageUtils.sendDelayMessage(OrderMqTopicName.CANCEL_EXPIRED_ORDER_TOPIC,
-                JsonUtils.toJsonString(message2), (long) (expireInterval),userId.toString());
+                JsonUtils.toJsonString(message2), (long) (expireInterval-1)*60L,userId.toString());
 
         /**
          * 发送订单创建成功消息

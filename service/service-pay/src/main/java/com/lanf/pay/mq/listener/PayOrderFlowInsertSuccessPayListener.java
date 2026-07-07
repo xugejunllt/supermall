@@ -86,6 +86,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
      */
     @MqRetryConsume(messageId = "#message.messageId")
     @Override
+    @Transactional
     public void onMessage(PayOrderFlowInsertSuccessMessage message) {
 
         log.info("插入支付流水成功:[{}]", JsonUtils.toJsonString(message));
@@ -162,7 +163,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
      * @param payMoney   实际支付金额
      * @param tradeOrderDO 交易单实体
      */
-    @Transactional
+
     public void handleSinglePayScene(Integer payType,
                                      TradePurposeEnum tradeType, PayMethodEnum payMethod,
                                      BigDecimal payMoney, TradeOrderDO tradeOrderDO) {
@@ -240,7 +241,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
      * @param payType    支付渠道编码
      * @param payMethod  支付方式枚举
      */
-    @Transactional
+
     public void handleCombinedPayScene(String outTradeNo, Integer payType, PayMethodEnum payMethod) {
 
         BathTradeOrderDO bathTradeOrderDO = bathTradeOrderService.lambdaQuery()
@@ -371,7 +372,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
      * @param payMethod    支付方式枚举
      * @param tradeOrderDO 当前交易单
      */
-    @Transactional
+
     public void handleCombinedToSinglePayScene(Integer payType,
                                                PayMethodEnum payMethod, TradeOrderDO tradeOrderDO) {
 

@@ -71,16 +71,16 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             log.info("批量支付订单处理开始");
 
             Long mainOrderId = message.getMainOrderId();
-            MainOrderDO orderDO = mainOrderService.lambdaQuery()
+            MainOrderDO mainOrderDO = mainOrderService.lambdaQuery()
                     .eq(BaseEntity::getId, mainOrderId)
                     .eq(MainOrderDO::getUserId, userId)
                     .one();
 
-            if (orderDO == null) {
+            if (mainOrderDO == null) {
                 log.error("订单不存在");
                 return;
             }
-            if (PayStatusEnum.PAID.getCode().equals(orderDO.getPayStatus())) {
+            if (PayStatusEnum.PAID.getCode().equals(mainOrderDO.getPayStatus())) {
                 log.warn("订单已支付");
                 return;
             }
@@ -112,7 +112,7 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
                 statusTraceDOList.add(statusTraceDO);
                 //
                 OrderPaySuccessMessage orderPaySuccessMessage = new OrderPaySuccessMessage();
-                orderPaySuccessMessage.setOrderId(orderDO.getId());
+                orderPaySuccessMessage.setOrderId(orderDO2.getId());
                 orderPaySuccessMessage.setUserId(userId);
                 orderPaySuccessMessageList.add(orderPaySuccessMessage);
             }
@@ -121,10 +121,10 @@ public class TradeSuccessOrderListener implements RocketMQListener<TradeSuccessE
             boolean update = mainOrderService.lambdaUpdate()
                     .eq(BaseEntity::getId, mainOrderId)
                     .eq(MainOrderDO::getUserId, userId)
-                    .eq(MainOrderDO::getVersion, orderDO.getVersion())
+                    .eq(MainOrderDO::getVersion, mainOrderDO.getVersion())
                     .eq(MainOrderDO::getPayStatus, PayStatusEnum.WAIT_PAY.getCode())
                     .set(MainOrderDO::getPayStatus, PayStatusEnum.PAID.getCode())
-                    .set(MainOrderDO::getVersion, orderDO.getVersion() + 1)
+                    .set(MainOrderDO::getVersion, mainOrderDO.getVersion() + 1)
                     .update();
             if (!update) {
                 log.warn("更新主订单状态为已支付失败");

@@ -83,6 +83,7 @@ public class MainOrderServiceImpl extends ServiceImpl<MainOrderMapper, MainOrder
             log.info("订单已存在");
             return;
         }
+        log.info("批量创建订单开始:dto{}", orderDOList);
         orderService.saveBatch(orderDOList);
         orderStatusTraceService.saveBatch(orderStatusTraceDOList);
         orderItemService.saveBatch(orderItemDOList);
