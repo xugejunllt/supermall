@@ -1,12 +1,14 @@
 package com.lanf.rocketmq.aspect;
 
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.exception.BizException;
 import com.lanf.constant.mq.base.BaseMessage;
 import com.lanf.constant.utils.MessageLevelUtils;
 import com.lanf.constant.utils.TraceIdUtils;
 import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.entity.MqConsumeMessageDO;
+import com.lanf.rocketmq.model.enums.MqConsumeExceptionTypeEnum;
 import com.lanf.rocketmq.sevice.IMqConsumeMessageService;
 import com.lanf.rocketmq.sevice.MqConsumeRetryService;
 import com.lanf.rocketmq.sevice.MqRetryReflectExecutor;
@@ -107,64 +109,66 @@ public class MqRetryConsumeAspect {
      * AOP环绕通知核心方法
      * <p>拦截所有带有 @MqRetryConsume 注解的方法，实现幂等控制与失败重试</p>
      *
-     * @param joinPoint       AOP连接点，包含目标方法、参数、类等信息
-     * @param mqRetryConsume  注解对象，包含messageId表达式和重试策略
+     * @param joinPoint      AOP连接点，包含目标方法、参数、类等信息
+     * @param mqRetryConsume 注解对象，包含messageId表达式和重试策略
      * @return 目标方法执行结果，失败返回null
      * @throws Throwable 执行过程中的异常
      */
     @Around("@annotation(mqRetryConsume)")
     public Object around(ProceedingJoinPoint joinPoint, MqRetryConsume mqRetryConsume) throws Throwable {
         //1.解析消息ID（支持SpEL表达式，如"#message.id"）
-        String messageId = parseMessageId(joinPoint, mqRetryConsume.messageId());
-        if (messageId == null || messageId.isEmpty()) {
-            log.error("消息ID解析失败，跳过消费");
-            return null;
-        }
-
-        //2.从方法参数中提取traceId和messageLevel，用于链路追踪
-        String traceId = null;
-        Integer messageLevel = null;
-        Object[] args = joinPoint.getArgs();
-        if (args != null && args.length > 0) {
-            Object arg = args[0];
-            if (arg instanceof BaseMessage) {
-                traceId = ((BaseMessage) arg).getTraceId();
-                messageLevel = ((BaseMessage) arg).getLevel();
-            }
-        }
-        TraceIdUtils.setTraceId(traceId);
-        if (messageLevel != null) {
-            MessageLevelUtils.setLevel(messageLevel + 1);
-        }
-
-        //3.从目标类上的@RocketMQMessageListener注解反射获取topic和group
-        String topic = null;
-        String group = null;
-        Class<?> targetClass = joinPoint.getTarget().getClass();
-        org.apache.rocketmq.spring.annotation.RocketMQMessageListener rocketMQMessageListener =
-                targetClass.getAnnotation(org.apache.rocketmq.spring.annotation.RocketMQMessageListener.class);
-        if (rocketMQMessageListener != null) {
-            topic = rocketMQMessageListener.topic();
-            group = rocketMQMessageListener.consumerGroup();
-        }
-
-        //4.拼接messageId = messageId + ":" + group，确保跨消费组的消息唯一性
-        if (group != null && !group.isEmpty()) {
-            messageId = messageId +":"+ group;
-        }
-
-        String lockKey = LOCK_PREFIX + messageId;
-        RLock lock = redissonClient.getLock(lockKey);
-
-        //5.获取Redisson分布式锁，失败直接return（幂等拦截，同一消息同一时间只允许一个实例消费）
-        if (!lock.tryLock()) {
-            log.warn("获取分布式锁失败，跳过消费，messageId:{}", messageId);
-            return null;
-        }
-
+        String messageId = null;
+        MqConsumeMessageDO messageDO = null;
+        RLock lock = null;
         try {
+            messageId = parseMessageId(joinPoint, mqRetryConsume.messageId());
+            if (messageId == null || messageId.isEmpty()) {
+                log.error("消息ID解析失败，跳过消费");
+               throw new BizException("消息ID解析失败");
+            }
+
+            //2.从方法参数中提取traceId和messageLevel，用于链路追踪
+            String traceId = null;
+            Integer messageLevel = null;
+            Object[] args = joinPoint.getArgs();
+            if (args != null && args.length > 0) {
+                Object arg = args[0];
+                if (arg instanceof BaseMessage) {
+                    traceId = ((BaseMessage) arg).getTraceId();
+                    messageLevel = ((BaseMessage) arg).getLevel();
+                }
+            }
+            TraceIdUtils.setTraceId(traceId);
+            if (messageLevel != null) {
+                MessageLevelUtils.setLevel(messageLevel + 1);
+            }
+
+            //3.从目标类上的@RocketMQMessageListener注解反射获取topic和group
+            String topic = null;
+            String group = null;
+            Class<?> targetClass = joinPoint.getTarget().getClass();
+            org.apache.rocketmq.spring.annotation.RocketMQMessageListener rocketMQMessageListener =
+                    targetClass.getAnnotation(org.apache.rocketmq.spring.annotation.RocketMQMessageListener.class);
+            if (rocketMQMessageListener != null) {
+                topic = rocketMQMessageListener.topic();
+                group = rocketMQMessageListener.consumerGroup();
+            }
+
+            //4.拼接messageId = messageId + ":" + group，确保跨消费组的消息唯一性
+            if (group != null && !group.isEmpty()) {
+                messageId = messageId + ":" + group;
+            }
+
+            String lockKey = LOCK_PREFIX + messageId;
+            lock = redissonClient.getLock(lockKey);
+            //5.获取Redisson分布式锁，失败直接return（幂等拦截，同一消息同一时间只允许一个实例消费）
+            if (!lock.tryLock()) {
+                log.warn("获取分布式锁失败，跳过消费，messageId:{}", messageId);
+                throw new MessageRetryConsumeException("获取分布式失败");
+            }
+
             //6.查询或创建消费记录，实现本地事务消息管理
-            MqConsumeMessageDO messageDO = mqLocalTransactionMessageService.getByMessageId(messageId);
+            messageDO = mqLocalTransactionMessageService.getByMessageId(messageId);
             if (messageDO == null) {
                 //6.1 消息首次消费，创建消费记录并持久化到DB
                 messageDO = createMessageRecord(joinPoint, mqRetryConsume, messageId, topic, group);
@@ -176,41 +180,47 @@ public class MqRetryConsumeAspect {
             }
 
             //7.执行目标业务方法
-            try {
-                Object result = joinPoint.proceed();
 
-                //8.执行完成，更新消息状态为消费成功（status=1）
-                messageDO.setStatus(1);
-                messageDO.setErrorMsg(null);
-                mqLocalTransactionMessageService.lambdaUpdate()
-                        .eq(MqConsumeMessageDO::getMessageId, messageDO.getMessageId())
-                        .set(MqConsumeMessageDO::getStatus,1)
-                        .set(MqConsumeMessageDO::getErrorMsg,null)
-                        .update();
+            Object result = joinPoint.proceed();
 
+            //8.执行完成，更新消息状态为消费成功（status=1）
+            messageDO.setStatus(1);
+            messageDO.setErrorMsg(null);
+            mqLocalTransactionMessageService.lambdaUpdate()
+                    .eq(MqConsumeMessageDO::getMessageId, messageDO.getMessageId())
+                    .set(MqConsumeMessageDO::getStatus, 1)
+                    .set(MqConsumeMessageDO::getErrorMsg, null)
+                    .update();
 
-                log.info("MQ消息消费成功，messageId:{}", messageId);
-                return result;
-            } catch (Exception e) {
-                //9.消费失败，根据异常类型决定处理方式
-                log.error("MQ消息消费失败，准备延迟重试，messageId:{}", messageId, e);
-
-                //9.1 如果是MessageRetryConsumeException，加入延迟重试队列
-                if (isRetryException(e)) {
-                    mqConsumeRetryService.addToRetryQueue(messageDO);
-                } else {
-                    //9.2 非预期异常，直接钉钉告警，不再重试
-                    log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}",
-                            messageDO.getMessageId());
-                }
-                return null;
+            log.info("MQ消息消费成功，messageId:{}", messageId);
+            return result;
+        } catch (Exception e) {
+            //9.消费失败，根据异常类型决定处理方式
+            log.error("MQ消息消费失败，准备延迟重试，messageId:{}", messageId, e);
+            //9.1 如果是MessageRetryConsumeException，加入延迟重试队列
+            if (isRetryException(e) && messageDO != null) {
+                mqConsumeRetryService.addToRetryQueue(messageDO);
+            } else {
+                //9.2 非预期异常，直接钉钉告警，不再重试
+                log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}",
+                        messageId);
             }
+            if (isRetryException(e)) {
+                ExceptionFlagContext.setExceptionType(MqConsumeExceptionTypeEnum.NEED_RETRY);
+            } else {
+                ExceptionFlagContext.setExceptionType(MqConsumeExceptionTypeEnum.NO_NEED_RETRY);
+            }
+
+            return null;
         } finally {
             //10.释放分布式锁并清理链路追踪上下文
-            lock.unlock();
+            if (lock != null) {
+                lock.unlock();
+            }
             TraceIdUtils.clearAll();
             MessageLevelUtils.clear();
         }
+
     }
 
     /**
@@ -225,12 +235,12 @@ public class MqRetryConsumeAspect {
     private String parseMessageId(ProceedingJoinPoint joinPoint, String messageIdExpression) {
         //1.空值校验
         if (messageIdExpression == null || messageIdExpression.isEmpty()) {
-            return null;
+            throw new BizException("消息ID解析失败");
         }
 
         //2.非SpEL表达式（不以"#"开头），直接返回常量值
         if (!messageIdExpression.startsWith(SPEL_PREFIX)) {
-            return messageIdExpression;
+            throw new BizException("消息ID解析失败");
         }
 
         //3.使用Spring SpEL解析表达式
@@ -252,7 +262,7 @@ public class MqRetryConsumeAspect {
             return spelExpressionParser.parseExpression(messageIdExpression).getValue(context, String.class);
         } catch (Exception e) {
             log.error("解析消息ID失败，expression:{}", messageIdExpression, e);
-            return null;
+            throw new BizException("消息ID解析失败");
         }
     }
 
@@ -306,7 +316,6 @@ public class MqRetryConsumeAspect {
 
         return messageDO;
     }
-
 
 
     /**

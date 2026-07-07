@@ -1,9 +1,12 @@
 package com.lanf.rocketmq.sevice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lanf.constant.exception.BizException;
+import com.lanf.rocketmq.aspect.ExceptionFlagContext;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.entity.MqConsumeMessageDO;
+import com.lanf.rocketmq.model.enums.MqConsumeExceptionTypeEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.aop.framework.Advised;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -33,18 +36,6 @@ public class MqRetryReflectExecutor {
             // 获取目标类
             Class<?> clazz = Class.forName(messageDO.getClassName());
             Object bean = applicationContext.getBean(clazz);
-
-            // 获取目标对象（非代理对象），绕过AOP切面
-            Object target = bean;
-            if (bean instanceof Advised) {
-                try {
-                    target = ((Advised) bean).getTargetSource().getTarget();
-                } catch (Exception e) {
-                    log.warn("获取目标对象失败，使用代理对象执行，className:{}", messageDO.getClassName());
-                    throw  e;
-                }
-            }
-
             // 解析参数类型
             String[] paramTypeNames = objectMapper.readValue(messageDO.getParamTypes(), String[].class);
             Class<?>[] paramTypes = new Class<?>[paramTypeNames.length];
@@ -63,13 +54,24 @@ public class MqRetryReflectExecutor {
 
             // 反射调用方法（使用目标对象，绕过AOP代理）
             Method method = clazz.getMethod(messageDO.getMethodName(), paramTypes);
-            method.invoke(target, paramValues);
+            method.invoke(bean, paramValues);
+            MqConsumeExceptionTypeEnum exceptionType = ExceptionFlagContext.getExceptionType();
 
+            if ( exceptionType != null){
+
+                if (MqConsumeExceptionTypeEnum.NEED_RETRY.equals(exceptionType)){
+                    throw new MessageRetryConsumeException("反射执行失败");
+                } else {
+                    throw new BizException("反射执行失败");
+                }
+            }
             log.info("反射执行成功，messageId:{}, className:{}, methodName:{}",
                     messageDO.getMessageId(), messageDO.getClassName(), messageDO.getMethodName());
         } catch (Exception e) {
             log.error("反射执行失败，messageId:{}", messageDO.getMessageId(), e);
             throw  e;
+        } finally {
+            ExceptionFlagContext.clear();
         }
     }
 

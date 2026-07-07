@@ -1,9 +1,10 @@
 package com.lanf.rocketmq.sevice;
 
+import com.lanf.constant.exception.BizException;
+import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.entity.MqConsumeMessageDO;
 import io.netty.util.HashedWheelTimer;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -61,10 +62,13 @@ public class MqConsumeRetryService {
      */
     private static final HashedWheelTimer TIMER = new HashedWheelTimer(100, TimeUnit.MILLISECONDS, 512);
 
-    /**
-     * 分布式锁前缀
-     */
-    private static final String LOCK_PREFIX = "mq:consume:";
+    public AtomicInteger getRetryTaskCount() {
+        return retryTaskCount;
+    }
+
+    public Set<String> getRetryMessageIdSet() {
+        return retryMessageIdSet;
+    }
 
     /**
      * 将消息加入消费重试队列（HashedWheelTimer 延迟执行）
@@ -72,22 +76,7 @@ public class MqConsumeRetryService {
      * @param messageDO 消息记录
      */
     public void addToRetryQueue(MqConsumeMessageDO messageDO) {
-        String messageId = messageDO.getMessageId();
 
-        // 1. 去重检查
-        if (!retryMessageIdSet.add(messageId)) {
-            log.warn("消息已在重试队列中，跳过重复添加，messageId:{}", messageId);
-            return;
-        }
-
-        // 2. 任务数上限检查
-        int currentCount = retryTaskCount.incrementAndGet();
-        if (currentCount > MAX_RETRY_TASK_COUNT) {
-            retryTaskCount.decrementAndGet();
-            retryMessageIdSet.remove(messageId);
-            log.warn("重试任务数已达上限{}/{}，跳过添加，messageId:{}", currentCount, MAX_RETRY_TASK_COUNT, messageId);
-            return;
-        }
 
         String retryStrategyBeanClass = messageDO.getRetryStrategyBeanClass();
         Class<?> aClass = null;
@@ -96,16 +85,11 @@ public class MqConsumeRetryService {
         } catch (ClassNotFoundException e) {
             log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}",
                     messageDO.getMessageId());
-            return;
+            throw new BizException("获取重试策略失败");
         }
 
         MqRetryStrategy mqRetryStrategy = (MqRetryStrategy) applicationContext.getBean(aClass);
         int retryCount = messageDO.getRetryCount() + 1;
-        if (retryCount > mqRetryStrategy.maxRetryCount()) {
-            log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}, retryCount:{}",
-                    messageDO.getMessageId(), retryCount);
-            return;
-        }
 
         long delayMillis = mqRetryStrategy.getDelayMillis(retryCount);
 
@@ -119,21 +103,34 @@ public class MqConsumeRetryService {
     /**
      * 执行重试
      *
-     * @param messageDO  消息记录
-     * @param retryCount 重试次数
+     * @param messageDO       消息记录
+     * @param retryCount      重试次数
      * @param mqRetryStrategy 重试策略
      */
     private void doRetry(MqConsumeMessageDO messageDO, int retryCount, MqRetryStrategy mqRetryStrategy) {
         String messageId = messageDO.getMessageId();
-        String lockKey = LOCK_PREFIX + messageId;
-        RLock lock = redissonClient.getLock(lockKey);
-        boolean locked = false;
+        // 1. 去重检查
+        if (!retryMessageIdSet.add(messageId)) {
+            log.warn("消息已在重试队列中，跳过重复添加，messageId:{}", messageId);
+
+            return;
+        }
+        // 2. 任务数上限检查
+        int currentCount = retryTaskCount.incrementAndGet();
+        if (currentCount > MAX_RETRY_TASK_COUNT) {
+            retryTaskCount.decrementAndGet();
+            retryMessageIdSet.remove(messageId);
+            log.warn("重试任务数已达上限{}/{}，跳过添加，messageId:{}", currentCount, MAX_RETRY_TASK_COUNT, messageId);
+            return;
+        }
+        if (retryCount > mqRetryStrategy.maxRetryCount()) {
+            log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}, retryCount:{}",
+                    messageDO.getMessageId(), retryCount);
+            return;
+        }
+
         try {
-            locked = lock.tryLock();
-            if (!locked) {
-                log.warn("获取分布式锁失败，跳过本次重试，messageId:{}", messageDO.getMessageId());
-                return;
-            }
+
             messageDO = mqLocalTransactionMessageService.getByMessageId(messageDO.getMessageId());
             if (messageDO.getRetryCount() > mqRetryStrategy.maxRetryCount()) {
                 log.error("钉钉告警");
@@ -144,38 +141,31 @@ public class MqConsumeRetryService {
                     mqRetryStrategy.getDelayMillis(retryCount + 1));
             mqLocalTransactionMessageService.lambdaUpdate()
                     .eq(MqConsumeMessageDO::getMessageId, messageDO.getMessageId())
-                    .set(MqConsumeMessageDO::getRetryCount,retryCount)
-                    .set(MqConsumeMessageDO::getNextEstimatedCompletionAt,nextEstimatedCompletionAt)
-                    .set(messageDO.getMaxRetryCount().equals(retryCount),MqConsumeMessageDO::getStatus,2)
+                    .set(MqConsumeMessageDO::getRetryCount, retryCount)
+                    .set(MqConsumeMessageDO::getNextEstimatedCompletionAt, nextEstimatedCompletionAt)
+                    .set(messageDO.getMaxRetryCount().equals(retryCount), MqConsumeMessageDO::getStatus, 2)
                     .update();
             // 通过反射重新执行方法
+            log.info("通过反射重新执行方法");
             mqRetryReflectExecutor.execute(messageDO);
             // 反射执行成功，更新状态
             mqLocalTransactionMessageService.lambdaUpdate()
                     .eq(MqConsumeMessageDO::getMessageId, messageDO.getMessageId())
-                    .set(MqConsumeMessageDO::getStatus,1)
-                    .set(MqConsumeMessageDO::getErrorMsg,null)
+                    .set(MqConsumeMessageDO::getStatus, 1)
+                    .set(MqConsumeMessageDO::getErrorMsg, null)
                     .update();
 
             log.info("MQ消息重试消费成功，messageId:{}, retryCount:{}",
                     messageDO.getMessageId(), retryCount);
+
         } catch (Exception e) {
-            log.error("MQ消息第{}次重试失败，messageId:{},", retryCount, messageDO.getMessageId(), e);
-            // 再次加入重试队列
-            MqConsumeMessageDO freshMessage = mqLocalTransactionMessageService.getByMessageId(messageDO.getMessageId());
-            if (freshMessage != null) {
-                retryMessageIdSet.remove(messageId);
-                int remain = retryTaskCount.decrementAndGet();
-                log.info("准备再次入队，先清除当前去重标识，messageId:{}, 剩余任务数:{}", messageId, remain);
-                addToRetryQueue(freshMessage);
-            }
+            log.error("反射执行失败，messageId:{}", messageDO.getMessageId(), e);
+            throw new MessageRetryConsumeException("反射执行失败");
         } finally {
             retryMessageIdSet.remove(messageId);
             int remain = retryTaskCount.decrementAndGet();
             log.info("消费重试任务执行完成，messageId:{}, 剩余任务数:{}", messageId, remain);
-            if (locked) {
-                lock.unlock();
-            }
+
         }
     }
 }

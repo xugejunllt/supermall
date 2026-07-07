@@ -29,7 +29,7 @@ public class TestController {
         sendSmsMsg.setTemplateCode("SMS_0000000");
 
 
-        mqSendMessageUtils.sendMessage(TopicName.SEND_SMS_TOPIC, JsonUtils.toJsonString(sendSmsMsg));
+        mqSendMessageUtils.sendMessage(TopicName.SEND_SMS_TOPIC, JsonUtils.toJsonString(sendSmsMsg),null);
 
         return "success";
     }
