@@ -3,7 +3,6 @@ package com.lanf.order.service.order.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lanf.aftersales.mq.message.CloseOrderMessage;
 import com.lanf.api.order.model.bo.AddressJson;
 import com.lanf.api.order.model.bo.DiscountInfoJson;
 import com.lanf.api.order.model.bo.ShippingInfoBO;
@@ -43,7 +42,6 @@ import com.lanf.order.model.dto.OrderItemDTO;
 import com.lanf.order.model.dto.SignForDTO;
 import com.lanf.order.model.entity.*;
 import com.lanf.order.model.enums.OrderAutoCloseStatusEnum;
-import com.lanf.order.model.enums.PayStatusEnum;
 import com.lanf.order.model.enums.SubStatusEnum;
 import com.lanf.order.model.query.AppOrderSearchQuery;
 import com.lanf.order.model.query.OrderPageQuery;
@@ -57,7 +55,6 @@ import com.lanf.order.service.shipping.IShippingInfoService;
 import com.lanf.order.service.shipping.IShippingTrackService;
 import com.lanf.order.utils.OrderServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
-import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
 import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
@@ -834,247 +831,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         return vo;
     }
 
-    @Transactional
-    @Override
-    public void closeOrderMessage(CloseOrderMessage message) {
-        Long orderId = message.getOrderId();
-        OrderDO orderDO = this.lambdaQuery()
-                .eq(BaseEntity::getId, orderId)
-                .eq(OrderDO::getUserId, message.getUserId())
-                .one();
-
-        if (orderDO == null) {
-            log.error("订单不存在:{}", orderId);
-            return;
-        }
-        OrderStatusEnum status = orderDO.getStatus();
-
-        if (OrderStatusEnum.CLOSED.equals(status)){
-            log.warn("订单已关闭");
-            return;
-        }
-
-        if (!(OrderStatusEnum.RECEIVED.equals(status)
-
-                || OrderStatusEnum.CANCELLED.equals(status))) {
-            log.error("订单状态错误:{}", status);
-            return;
-        }
-
-        Date date = new Date();
-        OrderStatusTraceDO orderStatusTraceDO = new OrderStatusTraceDO();
-        orderStatusTraceDO.setOrderId(orderId);
-        orderStatusTraceDO.setFromStatus(orderDO.getStatus());
-        orderStatusTraceDO.setToStatus(OrderStatusEnum.CLOSED);
-        orderStatusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
-        orderStatusTraceDO.setUserId(orderDO.getUserId());
-        orderStatusTraceDO.setTenantId(orderDO.getTenantId());
-
-        boolean update = this.lambdaUpdate()
-                .eq(OrderDO::getId, orderId)
-                .eq(OrderDO::getUserId, message.getUserId())
-                .eq(OrderDO::getVersion, orderDO.getVersion())
-                .set(OrderDO::getStatus, OrderStatusEnum.CLOSED)
-                .set(OrderDO::getVersion, orderDO.getVersion() + 1)
-                .update();
-        if (!update) {
-            log.warn("订单更新失败:{}", orderId);
-            throw new MessageRetryConsumeException("订单更新失败");
-        }
-        orderStatusTraceService.save(orderStatusTraceDO);
-    }
-
-    @Override
-    public void tradeSuccessEvent(TradeSuccessEventMessage message) {
-
-        Boolean bathPay = message.getBathPay();
-        Long userId = message.getUserId();
-
-        if (bathPay) {
-
-            log.info("批量支付订单处理开始");
-
-            Long mainOrderId = message.getMainOrderId();
-            MainOrderDO orderDO = mainOrderService.lambdaQuery()
-                    .eq(BaseEntity::getId, mainOrderId)
-                    .eq(MainOrderDO::getUserId, userId)
-                    .one();
-
-            if (orderDO == null) {
-                log.error("订单不存在");
-                return;
-            }
-            if (PayStatusEnum.PAID.getCode().equals(orderDO.getPayStatus())) {
-                log.warn("订单已支付");
-                return;
-            }
-
-            List<OrderDO> orderDOList = this.lambdaQuery()
-                    .eq(OrderDO::getUserId,userId)
-                    .eq(OrderDO::getMainOrderId, message.getMainOrderId())
-                    .list();
-            if (orderDOList.isEmpty()) {
-                log.error("订单不存在");
-                return;
-            }
-            for (OrderDO orderDO2 : orderDOList) {
-                updateOrderStatusCheck(orderDO2);
-            }
-            List<OrderStatusTraceDO> statusTraceDOList = new ArrayList<>();
-            List<OrderPaySuccessMessage> orderPaySuccessMessageList = new ArrayList<>();
-            Date date = new Date();
-
-            for (OrderDO orderDO2 : orderDOList) {
-                OrderStatusTraceDO statusTraceDO = new OrderStatusTraceDO();
-                statusTraceDO.setOrderId(orderDO2.getId());
-                statusTraceDO.setFromStatus(OrderStatusEnum.WAIT_PAY);
-                statusTraceDO.setToStatus(OrderStatusEnum.PAID);
-                statusTraceDO.setUserId(userId);
-                statusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
-                statusTraceDO.setRemark("订单支付成功");
-                statusTraceDO.setTenantId(orderDO2.getTenantId());
-                statusTraceDOList.add(statusTraceDO);
-                //
-                OrderPaySuccessMessage orderPaySuccessMessage = new OrderPaySuccessMessage();
-                orderPaySuccessMessage.setOrderId(orderDO.getId());
-                orderPaySuccessMessage.setUserId(userId);
-                orderPaySuccessMessageList.add(orderPaySuccessMessage);
-            }
 
 
-            boolean update = mainOrderService.lambdaUpdate()
-                    .eq(BaseEntity::getId, mainOrderId)
-                    .eq(MainOrderDO::getUserId, userId)
-                    .eq(MainOrderDO::getVersion, orderDO.getVersion())
-                    .eq(MainOrderDO::getPayStatus, PayStatusEnum.WAIT_PAY.getCode())
-                    .set(MainOrderDO::getPayStatus, PayStatusEnum.PAID.getCode())
-                    .set(MainOrderDO::getVersion, orderDO.getVersion() + 1)
-                    .update();
-            if (!update) {
-                log.warn("更新主订单状态为已支付失败");
-                throw new MessageRetryConsumeException("更新主订单状态为已支付失败");
-            }
 
-            for (OrderDO orderDO2 : orderDOList) {
-                boolean update2 = this.lambdaUpdate()
-                        .eq(BaseEntity::getId, orderDO2.getId())
-                        .eq(OrderDO::getUserId, userId)
-                        .eq(OrderDO::getVersion, orderDO2.getVersion())
-                        .set(OrderDO::getStatus, OrderStatusEnum.PAID.getCode())
-                        .set(OrderDO::getPayType,message.getPayType())
-                        .set(OrderDO::getVersion, orderDO2.getVersion() + 1)
-                        .update();
-                if (!update2) {
-                    log.warn("更新订单状态为已支付失败");
-                    throw new MessageRetryConsumeException("更新订单状态为已支付失败");
-                }
-            }
-            orderStatusTraceService.saveBatch(statusTraceDOList);
-            orderPaySuccessMessageList.forEach(a -> {
-
-                mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
-                        OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(a),
-                        a.getOrderId().toString(),null);
-            });
-            orderDOList.forEach(orderDO2 -> {
-                //发送物流跟踪信息
-                BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
-                bathMessage.setOrderId(orderDO2.getId());
-                bathMessage.setTenantId(orderDO2.getTenantId());
-                bathMessage.setUserId(orderDO2.getUserId());
-                List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
-                ShippingTrackMessage trackMessage = new ShippingTrackMessage();
-                trackMessage.setStatus(ShippingStatusEnum.WAREHOUSE_PROCESSING);
-                trackMessage.setFinishTime(new Date());
-                trackMessage.setFinishContent("订单已支付，等待仓库处理");
-                trackMessage.setFlowNo(IStringUtils.hashToUniqueString(orderDO2.getId() + trackMessage.getFinishContent()));
-                shippingTrackList.add(trackMessage);
-                bathMessage.setShippingTrackList(shippingTrackList);
-                mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
-                        JsonUtils.toJsonString(bathMessage),null);
-            });
-            log.info("批量支付订单处理成功");
-
-        } else {
-
-            log.info("单笔支付订单处理开始");
-
-            Date date = new Date();
-            OrderDO orderDO = this.lambdaQuery()
-                    .eq(OrderDO::getId, message.getOrderId())
-                    .eq(OrderDO::getUserId, userId)
-                    .one();
-            updateOrderStatusCheck(orderDO);
-
-            OrderStatusTraceDO statusTraceDO = new OrderStatusTraceDO();
-            statusTraceDO.setOrderId(orderDO.getId());
-            statusTraceDO.setFromStatus(OrderStatusEnum.WAIT_PAY);
-            statusTraceDO.setToStatus(OrderStatusEnum.PAID);
-            statusTraceDO.setCreateDate(DateUtils.format(date, DateUtils.DATE));
-            statusTraceDO.setRemark("订单支付成功");
-            statusTraceDO.setUserId(orderDO.getUserId());
-            statusTraceDO.setTenantId(orderDO.getTenantId());
-
-            OrderPaySuccessMessage orderPaySuccessMessage = new OrderPaySuccessMessage();
-            orderPaySuccessMessage.setOrderId(orderDO.getId());
-            orderPaySuccessMessage.setUserId(orderDO.getUserId());
-
-
-            boolean update = this.lambdaUpdate()
-                    .eq(BaseEntity::getId, orderDO.getId())
-                    .eq(OrderDO::getUserId, userId)
-                    .eq(OrderDO::getVersion, orderDO.getVersion())
-                    .set(OrderDO::getStatus, OrderStatusEnum.PAID.getCode())
-                    .set(OrderDO::getPayType,message.getPayType())
-                    .set(OrderDO::getVersion, orderDO.getVersion() + 1)
-                    .update();
-            if (!update) {
-                log.warn("订单更新为已支付失败");
-                throw new MessageRetryConsumeException("订单更新为已支付失败");
-            }
-            orderStatusTraceService.save(statusTraceDO);
-            mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
-                    OrderStatusEnum.PAID.getTag(),JsonUtils.toJsonString(orderPaySuccessMessage),
-                    orderDO.getId().toString(),null);
-            //发送物流跟踪信息
-            BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
-            bathMessage.setOrderId(orderDO.getId());
-            bathMessage.setTenantId(orderDO.getTenantId());
-            bathMessage.setUserId(orderDO.getUserId());
-            List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
-            ShippingTrackMessage trackMessage = new ShippingTrackMessage();
-            trackMessage.setStatus(ShippingStatusEnum.WAREHOUSE_PROCESSING);
-            trackMessage.setFinishTime(new Date());
-            trackMessage.setFinishContent("订单已支付，等待仓库处理");
-            trackMessage.setFlowNo(IStringUtils.hashToUniqueString(orderDO.getId() + trackMessage.getFinishContent()));
-            shippingTrackList.add(trackMessage);
-            bathMessage.setShippingTrackList(shippingTrackList);
-            mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
-                    JsonUtils.toJsonString(bathMessage),null);
-            log.info("单笔支付订单处理成功");
-
-
-        }
-
-
-    }
-
-    private void updateOrderStatusCheck( OrderDO orderDO) {
-
-        if (orderDO == null) {
-            log.error("订单不存在");
-            throw new BizException("订单不存在");
-        }
-        if (OrderStatusEnum.PAID.equals(orderDO.getStatus())) {
-            log.warn("订单已为支付状态");
-            throw new BizException("订单已为支付状态");
-        }
-
-        if (!OrderStatusEnum.WAIT_PAY.equals(orderDO.getStatus())) {
-            log.warn("订单已被其他业务场景更新");
-            throw new BizException("订单已被其他业务场景更新");
-        }
-
-    }
 
 }

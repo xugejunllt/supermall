@@ -20,7 +20,6 @@ import com.lanf.order.model.query.OrderPageQuery;
 import com.lanf.order.model.vo.CommentGoodsItemVO;
 import com.lanf.order.model.vo.OrderListVO;
 import com.lanf.order.model.vo.OrderPageVO;
-import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
 
 import java.util.List;
 
@@ -107,7 +106,5 @@ public interface IOrderService extends IService<OrderDO> {
 
     CommentGoodsItemVO commentGoodsItemListQuery(Long orderId);
 
-    void closeOrderMessage (CloseOrderMessage message);
 
-    void tradeSuccessEvent(TradeSuccessEventMessage message);
 }
