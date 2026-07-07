@@ -205,7 +205,10 @@ public class MqRetryConsumeAspect {
                 log.error("【钉钉告警】MQ消息消费超过最大重试次数，messageId:{}",
                         messageId);
             }
-            if (isRetryException(e)) {
+            if (isRetryException(e) && Boolean.TRUE.equals(ExceptionFlagContext.getReflectFlag())) {
+                /**
+                 * 避免框架调用 而ExceptionFlagContext不会被清理问题
+                 */
                 ExceptionFlagContext.setExceptionType(MqConsumeExceptionTypeEnum.NEED_RETRY);
             } else {
                 ExceptionFlagContext.setExceptionType(MqConsumeExceptionTypeEnum.NO_NEED_RETRY);

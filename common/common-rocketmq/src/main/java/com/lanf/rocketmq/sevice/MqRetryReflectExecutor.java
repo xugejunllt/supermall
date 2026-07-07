@@ -54,6 +54,7 @@ public class MqRetryReflectExecutor {
 
             // 反射调用方法（使用目标对象，绕过AOP代理）
             Method method = clazz.getMethod(messageDO.getMethodName(), paramTypes);
+            ExceptionFlagContext.setReflectFlag(true);
             method.invoke(bean, paramValues);
             MqConsumeExceptionTypeEnum exceptionType = ExceptionFlagContext.getExceptionType();
 
@@ -71,6 +72,7 @@ public class MqRetryReflectExecutor {
             log.error("反射执行失败，messageId:{}", messageDO.getMessageId(), e);
             throw  e;
         } finally {
+            ExceptionFlagContext.clear();
             ExceptionFlagContext.clear();
         }
     }

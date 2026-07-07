@@ -11,6 +11,11 @@ public class ExceptionFlagContext {
     private static final ThreadLocal<MqConsumeExceptionTypeEnum> EXCEPTION_FLAG = new ThreadLocal<>();
 
     /**
+     * 反射调用标记，true 表示当前线程正在通过反射执行重试方法
+     */
+    private static final ThreadLocal<Boolean> REFLECT_FLAG = new ThreadLocal<>();
+
+    /**
      * 设置异常类型
      *
      * @param exceptionType 异常类型枚举
@@ -47,10 +52,38 @@ public class ExceptionFlagContext {
     }
 
     /**
+     * 设置反射调用标记
+     *
+     * @param isReflect true 表示当前是反射调用执行
+     */
+    public static void setReflectFlag(boolean isReflect) {
+        REFLECT_FLAG.set(isReflect);
+    }
+
+    /**
+     * 获取反射调用标记
+     *
+     * @return true 表示当前是反射调用执行
+     */
+    public static Boolean getReflectFlag() {
+        return REFLECT_FLAG.get();
+    }
+
+    /**
+     * 判断当前线程是否是反射调用执行
+     *
+     * @return true 表示是反射调用执行
+     */
+    public static boolean isReflect() {
+        return Boolean.TRUE.equals(REFLECT_FLAG.get());
+    }
+
+    /**
      * 清除当前线程的异常标记
      * <p>必须在请求结束时调用，防止线程池场景下的内存泄漏</p>
      */
     public static void clear() {
         EXCEPTION_FLAG.remove();
+        REFLECT_FLAG.remove();
     }
 }
