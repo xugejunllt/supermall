@@ -5,13 +5,13 @@ package com.lanf.pay.mq.listener;
  */
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.api.pay.model.enums.RefundStatusEnum;
 import com.lanf.common.utils.DateUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.RefundQueryResultBO;
 import com.lanf.pay.model.entity.RefundOrderDO;
 import com.lanf.pay.model.entity.RefundOrderFlowDO;
 import com.lanf.pay.model.enums.RefundFlowStatusEnum;
-import com.lanf.api.pay.model.enums.RefundStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.QueryRefundResultMessage;
@@ -19,6 +19,7 @@ import com.lanf.pay.service.pay.IRefundOrderFlowService;
 import com.lanf.pay.service.pay.IRefundOrderService;
 import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,7 @@ public class QueryRefundResultListener implements RocketMQListener<QueryRefundRe
     private IRefundOrderService refundOrderService;
 
     @Transactional
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(QueryRefundResultMessage message) {
 

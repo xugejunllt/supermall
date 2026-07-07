@@ -10,6 +10,7 @@ import com.lanf.pay.service.pay.IPrepayPayTypeService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.PayMethodHandler;
 import com.lanf.pay.service.trade.PayMethodHandlerFactory;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,7 @@ public class CancelOrderEventRollbackPayOrderListener implements RocketMQListene
     private IPrepayPayTypeService prepayPayTypeService;
     @Autowired
     private RocketMqClient rocketMqClient;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(CancelOrderEventMessage message) {
 

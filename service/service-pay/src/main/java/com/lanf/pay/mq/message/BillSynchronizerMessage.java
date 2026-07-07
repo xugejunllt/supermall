@@ -1,12 +1,11 @@
 package com.lanf.pay.mq.message;
 
 import com.lanf.api.pay.model.enums.PayChannelEnum;
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class BillSynchronizerMessage implements Serializable {
+public class BillSynchronizerMessage extends BaseMessage {
 
     private PayChannelEnum payChannel;
 

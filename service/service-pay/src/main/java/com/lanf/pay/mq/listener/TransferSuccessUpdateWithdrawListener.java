@@ -2,6 +2,8 @@ package com.lanf.pay.mq.listener;
 
 
 import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
+import com.lanf.api.pay.model.enums.WalletEventTypeEnum;
+import com.lanf.api.pay.model.enums.WithdrawStatusEnum;
 import com.lanf.api.pay.mq.constant.PayClientTopicName;
 import com.lanf.api.pay.mq.constant.TransferEventTagConstant;
 import com.lanf.api.pay.mq.message.TransferSuccessMessage;
@@ -10,12 +12,11 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.model.entity.WalletAccountDO;
 import com.lanf.pay.model.entity.WalletAccountFlowDO;
 import com.lanf.pay.model.entity.WalletWithdrawDO;
-import com.lanf.api.pay.model.enums.WalletEventTypeEnum;
-import com.lanf.api.pay.model.enums.WithdrawStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.service.wallet.IWalletAccountFlowService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
 import com.lanf.pay.service.wallet.IWalletWithdrawService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -44,7 +45,7 @@ public class TransferSuccessUpdateWithdrawListener implements RocketMQListener<T
 
     @Autowired
     private IWalletAccountFlowService walletAccountFlowService;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Transactional
     @Override
     public void onMessage(TransferSuccessMessage message) {

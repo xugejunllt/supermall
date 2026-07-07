@@ -8,6 +8,7 @@ import com.lanf.pay.model.entity.TradeOrderDO;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.service.trade.ITradeOrderService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderMessage;
 import com.lanf.rocketmq.util.MqSendMessageUtils;
@@ -30,7 +31,7 @@ public class AfterSalesRefundListener implements RocketMQListener<AfterSalesRefu
     private ITradeOrderService tradeOrderService;
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(AfterSalesRefundMessage message) {
 

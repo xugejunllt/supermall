@@ -8,6 +8,7 @@ import com.lanf.api.pay.model.dto.CreateTradeOrderDTO;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.pay.constant.PayMqGroupName;
 import com.lanf.pay.service.trade.ITradeOrderService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 秒杀 订单创建成功之后 ，创建交易单
@@ -33,7 +35,8 @@ public class SecKillPlaneCreateOrderSuccessEventListener implements RocketMQList
 
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
-
+    @MqRetryConsume(messageId = "#message.messageId")
+    @Transactional
     @Override
     public void onMessage(SecKillPlaneCreateOrderSuccessMessage message) {
 

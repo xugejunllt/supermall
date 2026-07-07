@@ -1,13 +1,14 @@
 package com.lanf.pay.mq.listener.event;
 
 import com.lanf.api.order.mq.message.SignOrderMessage;
+import com.lanf.api.pay.model.enums.ClearingStatusEnum;
+import com.lanf.api.pay.model.vo.RecipientTypeEnum;
 import com.lanf.common.utils.BigDecimalUtil;
 import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.pay.model.entity.ClearingDetailDO;
-import com.lanf.api.pay.model.enums.ClearingStatusEnum;
-import com.lanf.api.pay.model.vo.RecipientTypeEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.service.clearing.ClearingDetailService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -41,7 +42,7 @@ public class SignOrderEventAddClearingDetailListener implements RocketMQListener
      * 平台费率 5%
      */
     private static final BigDecimal rate = new BigDecimal(50);
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(SignOrderMessage message) {
 

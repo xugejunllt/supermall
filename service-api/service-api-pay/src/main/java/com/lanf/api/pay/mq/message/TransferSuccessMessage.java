@@ -1,14 +1,14 @@
 package com.lanf.api.pay.mq.message;
 
 import com.lanf.api.pay.model.enums.TransferEventTypeEnum;
+import com.lanf.constant.mq.base.BaseMessage;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class TransferSuccessMessage implements Serializable {
+public class TransferSuccessMessage extends BaseMessage {
 
     private static final long serialVersionUID = 1L;
 

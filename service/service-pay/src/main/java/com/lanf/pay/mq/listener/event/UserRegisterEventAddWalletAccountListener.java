@@ -5,6 +5,7 @@ import com.lanf.api.user.mq.message.UserRegisterMessage;
 import com.lanf.pay.constant.PayMqGroupName;
 import com.lanf.pay.model.bo.AddWalletAccount;
 import com.lanf.pay.service.wallet.IWalletAccountService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -24,7 +25,7 @@ public class UserRegisterEventAddWalletAccountListener implements RocketMQListen
 
     @Autowired
     private IWalletAccountService walletAccountService;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(UserRegisterMessage message) {
 

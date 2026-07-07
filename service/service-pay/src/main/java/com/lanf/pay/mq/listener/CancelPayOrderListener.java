@@ -10,6 +10,7 @@ import com.lanf.pay.model.enums.TradeStatusEnum;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.QueryRefundResultMessage;
 import com.lanf.pay.service.pay.*;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderMessage;
@@ -20,6 +21,7 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 交易成功事件 - 支付服务消费者
@@ -43,7 +45,8 @@ public class CancelPayOrderListener implements RocketMQListener<CancelOrderMessa
     private IRefundOrderService refundOrderService;
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
-
+    @MqRetryConsume(messageId = "#message.messageId")
+    @Transactional
     @Override
     public void onMessage(CancelOrderMessage message) {
 

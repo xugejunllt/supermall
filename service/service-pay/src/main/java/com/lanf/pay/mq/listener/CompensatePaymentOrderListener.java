@@ -14,6 +14,7 @@ import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.pay.service.trade.IBathTradeOrderService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.impl.PayRetryPolicyCacheService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CompensatePaymentOrderMessage;
 import com.lanf.rocketmq.util.MqSendMessageUtils;
@@ -76,6 +77,7 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
      *
      * @param message 补偿支付订单消息体，包含订单号、支付类型、重试等级等
      */
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(CompensatePaymentOrderMessage message) {
 

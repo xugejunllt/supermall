@@ -15,6 +15,7 @@ import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.ClearingOrderMessage;
 import com.lanf.pay.service.account.IPayAccountService;
 import com.lanf.pay.service.clearing.ClearingDetailService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,7 @@ public class ClearingOrderListener implements RocketMQListener<ClearingOrderMess
     private IPayAccountService payAccountService;
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Transactional
     @Override
     public void onMessage(ClearingOrderMessage message) {

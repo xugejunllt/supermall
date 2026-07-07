@@ -1,11 +1,11 @@
 package com.lanf.pay.mq.listener;
 
+import com.lanf.api.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.pay.model.bo.BillDownloadUrlResultBO;
 import com.lanf.pay.model.entity.ChannelBillDownloadProgressDO;
-import com.lanf.api.pay.model.enums.BillDownloadStatusEnum;
 import com.lanf.pay.mq.constant.PayMqGroupName;
 import com.lanf.pay.mq.constant.PayMqTopicName;
 import com.lanf.pay.mq.message.BillSynchronizerMessage;
@@ -13,6 +13,7 @@ import com.lanf.pay.service.pay.PaymentService;
 import com.lanf.pay.service.pay.PaymentServiceFactory;
 import com.lanf.pay.service.reconciliation.IChannelBillDownloadProgressService;
 import com.lanf.pay.service.reconciliation.SignCustomerIFundBillDetailService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -55,7 +56,7 @@ public class BillSynchronizerListener implements RocketMQListener<BillSynchroniz
     private ThreadPoolTaskScheduler taskScheduler;
     @Autowired
     private PaymentServiceFactory paymentServiceFactory;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(BillSynchronizerMessage message) {
 

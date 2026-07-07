@@ -1,14 +1,15 @@
 package com.lanf.pay.mq.listener;
 
+import com.lanf.api.pay.model.enums.WalletEventTypeEnum;
 import com.lanf.api.pay.mq.constant.PayClientTopicName;
 import com.lanf.api.pay.mq.message.WalletRechargeMessage;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.pay.constant.PayMqGroupName;
 import com.lanf.pay.model.entity.WalletAccountDO;
 import com.lanf.pay.model.entity.WalletAccountFlowDO;
-import com.lanf.api.pay.model.enums.WalletEventTypeEnum;
 import com.lanf.pay.service.wallet.IWalletAccountFlowService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -37,7 +38,7 @@ public class WalletRechargeListener implements RocketMQListener<WalletRechargeMe
     @Autowired
     private IWalletAccountFlowService walletAccountFlowService;
 
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Transactional
     @Override
     public void onMessage(WalletRechargeMessage message) {

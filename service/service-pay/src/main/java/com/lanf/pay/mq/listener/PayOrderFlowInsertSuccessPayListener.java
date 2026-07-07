@@ -22,6 +22,7 @@ import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.TradeSuccessHandler;
 import com.lanf.pay.service.trade.TradeSuccessHandlerFactory;
 import com.lanf.pay.service.trade.impl.PayRetryPolicyCacheService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.TradeSuccessEventMessage;
@@ -83,6 +84,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
      *
      * @param message 支付流水插入成功消息
      */
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(PayOrderFlowInsertSuccessMessage message) {
 

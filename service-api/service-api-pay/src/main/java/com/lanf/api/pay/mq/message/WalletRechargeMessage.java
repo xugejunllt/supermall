@@ -1,12 +1,13 @@
 package com.lanf.api.pay.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class WalletRechargeMessage implements Serializable {
+public class WalletRechargeMessage
+        extends BaseMessage {
 
     private Long userId;
     /**
