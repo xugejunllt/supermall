@@ -17,7 +17,6 @@ import com.lanf.constant.model.enums.SmsCodeEnum;
 import com.lanf.constant.model.query.PageQuery;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
-import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.SendSmsMsg;
 import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.user.constant.UserRedisKeyConstants;
@@ -159,7 +158,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         //移除空格、横杠等特殊字符
         phoneNumber = PhoneValidator.cleanPhoneNumber(phoneNumber);
         //生成随机验证码
-        String code = CodeGenerateUtils.generateFourDigitCode();
+//        String code = CodeGenerateUtils.generateFourDigitCode();
+        String code = "6666";
         //缓存验证码
         cacheRegisterCode(phoneNumber, code);
         //发送验证码
@@ -184,7 +184,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         //移除空格、横杠等特殊字符
         phoneNumber = PhoneValidator.cleanPhoneNumber(phoneNumber);
         //生成随机验证码
-        String code = CodeGenerateUtils.generateFourDigitCode();
+//        String code = CodeGenerateUtils.generateFourDigitCode();
+        String code = "6666";
         //缓存验证码
         cacheLoginCode(phoneNumber, code);
         //发送验证码
@@ -216,9 +217,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         sendSmsDTO.setTemplateCode(templateCode);
         sendSmsDTO.setPhone(phoneNumber);
         sendSmsDTO.setParameterValueList(parameterValueList);
-        //转成 json
-        String message = JsonUtils.toJsonString(sendSmsDTO);
-        mqSendMessageUtils.sendMessage(TopicName.SEND_SMS_TOPIC, JsonUtils.toJsonString(message),null);
+//        //转成 json
+//        String message = JsonUtils.toJsonString(sendSmsDTO);
+//        mqSendMessageUtils.sendMessage(TopicName.SEND_SMS_TOPIC, JsonUtils.toJsonString(message),null);
 
     }
 

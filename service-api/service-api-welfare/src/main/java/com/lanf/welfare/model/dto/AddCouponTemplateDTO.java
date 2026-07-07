@@ -19,8 +19,8 @@ public class AddCouponTemplateDTO implements Serializable {
      * 1、2只能由平台管理员发放
      *
      */
-    @NotNull(message = "用途不能为空")
-    private Integer purpose;
+    @NotNull(message = "场景不能为空")
+    private Integer scene;
 
     /**
      * 店铺id purpose =0有值

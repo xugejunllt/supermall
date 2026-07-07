@@ -170,7 +170,9 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
 
         RedisKeyGenerator.ALL_DIGIT_SUFFIXES.forEach(digit -> {
             String generateKey = redisKeyGenerator.generateKey(keyPrefix, digit);
-            redissonCacheService.addToList(generateKey, data, cacheExpireSeconds, TimeUnit.SECONDS);
+            if ( !redissonCacheService.exists(generateKey)) {
+                redissonCacheService.addToList(generateKey, data, cacheExpireSeconds, TimeUnit.SECONDS);
+            }
         });
 
     }
@@ -248,6 +250,7 @@ public class SecKillCouponItemServiceImpl extends ServiceImpl<SecKillCouponItemM
         String key = redisKeyGenerator.generateKey(keyPrefix, randomDigit);
 
         List<String> items = redissonCacheService.getListPage(key, 1, 10);
+        log.info("获取秒杀优惠券列表: {}", items);
         if (IStringUtils.isEmpty(items)) {
             return Collections.emptyList();
         }

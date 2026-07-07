@@ -79,7 +79,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         //不同优惠卷类型 不同的使用条件
         String useCondition = buildUseCondition(dto);
         Long shopId = dto.getShopId();
-        CouponPurpose byCode = CouponPurpose.getByCode(dto.getPurpose());
+        CouponPurpose byCode = CouponPurpose.getByCode(dto.getScene());
 
         if (!CouponPurpose.SHOP.equals(byCode)) {
             //如果不是店铺优惠卷，-1默认所有店铺都能使用
@@ -134,12 +134,12 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
             log.info("不支持的优惠卷类型");
             throw new BizException("不支持的优惠卷类型");
         }
-        if (!CouponPurpose.include(dto.getPurpose())) {
+        if (!CouponPurpose.include(dto.getScene())) {
             log.info("不支持的优惠卷用途");
             throw new BizException("不支持的优惠卷用途");
         }
 
-        Integer purpose = dto.getPurpose();
+        Integer purpose = dto.getScene();
         CouponPurpose byCode = CouponPurpose.getByCode(purpose);
         if (CouponPurpose.SHOP.equals(byCode) && dto.getShopId() == null) {
             log.info("店铺id不能为空");
