@@ -2,6 +2,7 @@ package com.lanf.welfare.mq.listener;
 
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.mq.OrderTopicWithTag;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
@@ -37,7 +38,7 @@ public class CancelOrderEventRollbackCouponListener implements RocketMQListener<
     private IOrderCouponService orderCouponService;
     @Autowired
     private ICouponService couponService;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Transactional
     @Override
     public void onMessage(CancelOrderEventMessage message) {

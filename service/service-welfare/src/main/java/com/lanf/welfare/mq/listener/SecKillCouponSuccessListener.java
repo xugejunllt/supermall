@@ -1,5 +1,6 @@
 package com.lanf.welfare.mq.listener;
 
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.seckill.api.SecKillResultCache;
 import com.lanf.seckill.model.enums.SecKillResultEnum;
 import com.lanf.seckill.mq.constant.SecKillClientTopicName;
@@ -36,7 +37,7 @@ public class SecKillCouponSuccessListener implements RocketMQListener<SecKillCou
     private ICouponService couponService;
     @Autowired
     private SecKillResultCache secKillResultCache;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Transactional
     @Override
     public void onMessage(SecKillCouponSuccessMessage message) {
