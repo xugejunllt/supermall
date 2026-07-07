@@ -8,7 +8,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class PublishStockMessage extends BaseMessage  {
+public class PublishStockMessage extends BaseMessage {
 
 
     private String flowNo;

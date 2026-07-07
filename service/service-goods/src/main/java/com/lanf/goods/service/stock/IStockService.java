@@ -7,7 +7,6 @@ import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.api.goods.model.query.UserStockPageQuery;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.StockPageVO;
-import com.lanf.api.storage.mq.message.PublishStockMessage;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.model.bo.RollbackStockBO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
@@ -16,7 +15,6 @@ import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.model.vo.StockWithDistanceVO;
-import com.lanf.seckill.mq.message.SecKillPlaneMessage;
 
 import java.util.List;
 
@@ -90,8 +88,6 @@ public interface IStockService extends IService<StockDO> {
 
      */
     void rollbackStock(RollbackStockBO rollbackStock);
-    void publishStock(PublishStockMessage message);
 
-    void secKillPlane(SecKillPlaneMessage message);
 
 }

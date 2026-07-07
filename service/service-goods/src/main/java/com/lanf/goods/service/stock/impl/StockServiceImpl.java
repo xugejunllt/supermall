@@ -11,7 +11,6 @@ import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.api.goods.model.query.UserStockPageQuery;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.StockPageVO;
-import com.lanf.api.storage.mq.message.PublishStockMessage;
 import com.lanf.api.user.api.UserCacheService;
 import com.lanf.api.user.model.vo.AddressListVO;
 import com.lanf.common.utils.BeanCopyUtils;
@@ -19,11 +18,9 @@ import com.lanf.common.utils.BeanUtil;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.goods.UserStockFlowEventTypeEnum;
-import com.lanf.constant.model.enums.storage.PublishStatusEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.result.RpcResultParser;
-import com.lanf.constant.utils.IdUtils;
 import com.lanf.goods.constant.GoodsCodeEnum;
 import com.lanf.goods.mapper.StockMapper;
 import com.lanf.goods.model.bo.DeductStockParameterBO;
@@ -40,11 +37,9 @@ import com.lanf.goods.service.goods.IGoodsSkuService;
 import com.lanf.goods.service.goods.IShopService;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockFlowService;
-import com.lanf.goods.service.stock.IUserStockPreorderPublishLogService;
 import com.lanf.goods.utils.GoodsServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.message.OrderGoodsInfo;
-import com.lanf.seckill.mq.message.SecKillPlaneMessage;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -94,9 +89,7 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
     @Autowired
     @Qualifier("stockDeductExecutor")
     private ExecutorService stockDeductExecutor;
-    @Lazy
-    @Autowired
-    private IUserStockPreorderPublishLogService userStockPreorderPublishLogService;
+
 
     @Transactional
     @HmilyTCC(confirmMethod = "confirmDeductStock", cancelMethod = "cancelDeductStock")
@@ -929,161 +922,4 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         }
         log.info("回滚库存成功");
     }
-    @Transactional
-    @Override
-    public void publishStock(PublishStockMessage message) {
-        Long goodsId = message.getGoodsId();
-
-        StockDO one = this.lambdaQuery()
-                .eq(StockDO::getGoodsId, goodsId)
-                .eq(StockDO::getSkuCode, message.getSkuCode())
-                .eq(StockDO::getWarehouseId, message.getWarehouseId())
-                .one();
-        boolean saveStockDO = false;
-        if (one == null) {
-            saveStockDO = true;
-            one = new StockDO();
-            one.setId(IdUtils.generateId());
-            one.setSkuCode(message.getSkuCode());
-            one.setUsableStock(message.getChangeQuantity());
-            one.setLockStock(0);
-            one.setWarehouseId(message.getWarehouseId());
-            one.setWarehouseName(message.getWarehouseName());
-            one.setTenantId(message.getTenantId());
-            one.setAreaCode(message.getAreaCode());
-            one.setLatitude(message.getLatitude());
-            one.setLongitude(message.getLongitude());
-            one.setGoodsId(goodsId);
-            one.setVersion(0L);
-        }
-        Integer usableStock = one.getUsableStock() + message.getChangeQuantity();
-
-        UserStockPreorderPublishLogDO userStockPreorderPublishLogDO = buildStockPreorderPublishLogDO(message, one);
-
-        try {
-            userStockPreorderPublishLogService.save(userStockPreorderPublishLogDO);
-        } catch (DuplicateKeyException e) {
-            /**
-             * 消息幂等
-             */
-            log.warn("重复发布库存，忽略");
-            return;
-        }
-        if (saveStockDO) {
-            try {
-                this.save(one);
-            } catch (DuplicateKeyException e) {
-                log.warn("库存已存在");
-                /**
-                 * 重试 走更新库存流程
-                 */
-                throw new MessageRetryConsumeException("重复发布库存");
-            }
-        } else {
-
-            boolean update = this.lambdaUpdate()
-                    .eq(StockDO::getId, one.getId())
-                    .eq(StockDO::getVersion, one.getVersion())
-                    .set(StockDO::getUsableStock, usableStock)
-                    .set(StockDO::getVersion, one.getVersion() + 1)
-                    .update();
-            if (!update) {
-                log.warn("更新库存失败");
-                /**
-                 * 重试 走更新库存流程
-                 */
-                throw new MessageRetryConsumeException("更新库存失败");
-            }
-
-        }
-
-    }
-
-
-    private static UserStockPreorderPublishLogDO buildStockPreorderPublishLogDO(PublishStockMessage message, StockDO one) {
-        UserStockPreorderPublishLogDO userStockPreorderPublishLogDO = new UserStockPreorderPublishLogDO();
-        userStockPreorderPublishLogDO.setFlowNo(message.getFlowNo());
-        userStockPreorderPublishLogDO.setStockId(one.getId());
-        userStockPreorderPublishLogDO.setSkuCode(message.getSkuCode());
-        userStockPreorderPublishLogDO.setChangeQuantity(message.getChangeQuantity());
-        userStockPreorderPublishLogDO.setEventType(message.getEventType());
-        userStockPreorderPublishLogDO.setPublishPlatform(message.getPublishPlatform());
-        userStockPreorderPublishLogDO.setWarehouseId(message.getWarehouseId());
-        userStockPreorderPublishLogDO.setTenantId(message.getTenantId());
-        userStockPreorderPublishLogDO.setStatus(PublishStatusEnum.SUCCESS);
-        userStockPreorderPublishLogDO.setWarehouseName(message.getWarehouseName());
-        userStockPreorderPublishLogDO.setGoodsId(message.getGoodsId());
-        return userStockPreorderPublishLogDO;
-    }
-
-    @Transactional
-    @Override
-    public void secKillPlane(SecKillPlaneMessage message) {
-        StockDO stockDO = this.lambdaQuery()
-                .eq(StockDO::getGoodsId, message.getGoodsId())
-                .eq(StockDO::getSkuCode, message.getSkuCode())
-                .eq(StockDO::getWarehouseId, message.getWarehouseId())
-                .one();
-        if (stockDO == null) {
-            log.error("秒杀订单创建成功，但是库存不存在");
-            throw new BizException("秒杀订单创建成功，但是库存不存在");
-
-        }
-        if (stockDO.getUsableStock() < message.getQuantity()) {
-            log.error("秒杀订单创建成功，但是库存不足");
-            /**
-             * 发送通知 标记订单为异常
-             */
-
-
-            return;
-        }
-
-        String flowNo = message.getGoodsId() + "_" +
-                message.getSkuCode() + ":" + message.getOrderNumber() + ":" +
-                UserStockFlowEventTypeEnum.ORDER_OUTBOUND.getCode();
-
-        UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery()
-                .eq(UserStockFlowDO::getFlowNo, flowNo)
-                .one();
-        if (stockFlowDO != null) {
-            log.warn("库存流水已添加");
-            return;
-        }
-
-        Integer beforeQuantity = stockDO.getUsableStock() + stockDO.getLockStock();
-        Integer afterQuantity = beforeQuantity - message.getQuantity();
-        Integer updateLockStock = stockDO.getLockStock() - message.getQuantity();
-        UserStockFlowDO userStockFlowDO = new UserStockFlowDO();
-        userStockFlowDO.setGoodsId(message.getGoodsId());
-        userStockFlowDO.setFlowNo(flowNo);
-        userStockFlowDO.setUserStockId(stockDO.getId());
-        userStockFlowDO.setSkuCode(message.getSkuCode());
-        userStockFlowDO.setWarehouseId(message.getWarehouseId());
-        userStockFlowDO.setOrderId(message.getOrderId());
-        userStockFlowDO.setEventType(UserStockFlowEventTypeEnum.ORDER_OUTBOUND);
-        userStockFlowDO.setBeforeQuantity(beforeQuantity);
-        userStockFlowDO.setChangeQuantity(message.getQuantity());
-        userStockFlowDO.setAfterQuantity(afterQuantity);
-        userStockFlowDO.setTenantId(stockDO.getTenantId());
-        try {
-            userStockFlowService.save(userStockFlowDO);
-        } catch (DuplicateKeyException e) {
-            log.warn("库存流水已添加");
-            return;
-        }
-        boolean update = this.lambdaUpdate()
-                .set(StockDO::getLockStock, updateLockStock)
-                .set(StockDO::getVersion, stockDO.getVersion()+1)
-                .eq(StockDO::getId, stockDO.getId())
-                .eq(StockDO::getVersion, stockDO.getVersion())
-                .update();
-
-        if (!update) {
-            log.warn("库存更新失败");
-            throw new MessageRetryConsumeException("库存更新失败");
-        }
-
-    }
-
 }
