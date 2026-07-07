@@ -5,6 +5,7 @@ import com.lanf.file.model.bo.FileUploadResultBO;
 import com.lanf.file.model.dto.FileUploadFileDTO;
 import com.lanf.file.service.manager.FileService;
 import com.lanf.file.service.manager.impl.config.FileConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,7 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
-
+@Slf4j
 public class LocalFileServiceImpl implements FileService {
 
     @Autowired
@@ -35,11 +36,11 @@ public class LocalFileServiceImpl implements FileService {
             // 保存文件到本地
             Path filePath = uploadDir.resolve(uniqueName);
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-            String url = fileConfig.getDomain() + fileConfig.getLocalFileUrlPre()+"/" + file.getOriginalFilename();
-
+            String url = fileConfig.getDomain() + fileConfig.getLocalFileUrlPre()+"/" + uniqueName;
+            log.info("文件上传成功，保存路径：{}", url);
            return  new FileUploadResultBO(url);
         } catch (IOException e) {
-            e.printStackTrace();
+           log.error("文件上传失败",e);
             throw new BizException("文件上传失败");
         }
 
