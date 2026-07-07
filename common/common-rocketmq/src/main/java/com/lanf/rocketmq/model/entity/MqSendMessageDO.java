@@ -47,6 +47,9 @@ private static final long serialVersionUID=1L;
      * 下次重试完成时间 用于心跳检测
      */
     private Date nextEstimatedCompletionAt;
-
+    /**
+     * 分片键
+     */
+    private String shardingKey ;
 
 }

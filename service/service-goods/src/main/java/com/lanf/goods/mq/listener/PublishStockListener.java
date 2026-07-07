@@ -96,8 +96,6 @@ public class PublishStockListener implements RocketMQListener<PublishStockMessag
                  * 重试 走更新库存流程
                  */
                 throw new MessageRetryConsumeException("重复发布库存");
-            } catch (Exception ignored){
-
             }
         } else {
 

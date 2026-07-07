@@ -192,6 +192,32 @@ public class ShardingSphereBeanConfig {
         );
         shardingRuleConfig.getTables().add(tccOperationRule);
 
+        // 配置 mq_send_message 表的分片规则（每个库不分子表）
+        ShardingTableRuleConfiguration mqSendMessageRule = new ShardingTableRuleConfiguration(
+                "mq_send_message",
+                "ds${0..2}.mq_send_message"
+        );
+        mqSendMessageRule.setDatabaseShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "sharding_key",
+                        "mq-send-message-database-algorithm"
+                )
+        );
+        shardingRuleConfig.getTables().add(mqSendMessageRule);
+
+        // 配置 mq_consume_message 表的分片规则（每个库不分子表）
+        ShardingTableRuleConfiguration mqConsumeMessageRule = new ShardingTableRuleConfiguration(
+                "mq_consume_message",
+                "ds${0..2}.mq_consume_message"
+        );
+        mqConsumeMessageRule.setDatabaseShardingStrategy(
+                new StandardShardingStrategyConfiguration(
+                        "message_id",
+                        "mq-consume-message-database-algorithm"
+                )
+        );
+        shardingRuleConfig.getTables().add(mqConsumeMessageRule);
+
         Map<String, AlgorithmConfiguration> shardingAlgorithms = new LinkedHashMap<>();
         
         Properties userStockAlgoProps = new Properties();
@@ -214,7 +240,19 @@ public class ShardingSphereBeanConfig {
         tccOperationAlgoProps.setProperty("strategy", "standard");
         tccOperationAlgoProps.setProperty("algorithmClassName", "com.lanf.goods.config.TccOperationDatabaseShardingAlgorithm");
         shardingAlgorithms.put("tcc-operation-database-algorithm", new AlgorithmConfiguration("CLASS_BASED", tccOperationAlgoProps));
-        
+
+        // 配置 mq_send_message 分库算法
+        Properties mqSendMessageAlgoProps = new Properties();
+        mqSendMessageAlgoProps.setProperty("strategy", "standard");
+        mqSendMessageAlgoProps.setProperty("algorithmClassName", "com.lanf.goods.config.MqSendMessageDatabaseShardingAlgorithm");
+        shardingAlgorithms.put("mq-send-message-database-algorithm", new AlgorithmConfiguration("CLASS_BASED", mqSendMessageAlgoProps));
+
+        // 配置 mq_consume_message 分库算法
+        Properties mqConsumeMessageAlgoProps = new Properties();
+        mqConsumeMessageAlgoProps.setProperty("strategy", "standard");
+        mqConsumeMessageAlgoProps.setProperty("algorithmClassName", "com.lanf.goods.config.MqConsumeMessageDatabaseShardingAlgorithm");
+        shardingAlgorithms.put("mq-consume-message-database-algorithm", new AlgorithmConfiguration("CLASS_BASED", mqConsumeMessageAlgoProps));
+
         shardingRuleConfig.setShardingAlgorithms(shardingAlgorithms);
 
         return shardingRuleConfig;
