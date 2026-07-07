@@ -7,6 +7,7 @@ import com.lanf.api.goods.model.dto.SeckillStockPreoccupationDTO;
 import com.lanf.api.goods.model.query.UserStockPageQuery;
 import com.lanf.api.goods.model.vo.DeductStockVO;
 import com.lanf.api.goods.model.vo.StockPageVO;
+import com.lanf.api.storage.mq.message.PublishStockMessage;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.goods.model.bo.RollbackStockBO;
 import com.lanf.goods.model.dto.StockEnoughDTO;
@@ -88,5 +89,6 @@ public interface IStockService extends IService<StockDO> {
 
      */
     void rollbackStock(RollbackStockBO rollbackStock);
+    void publishStock(PublishStockMessage message);
 
 }

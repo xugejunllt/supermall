@@ -18,6 +18,7 @@ import com.lanf.constant.model.enums.storage.PublishStatusEnum;
 import com.lanf.constant.model.enums.storage.StockPreorderEventTypeEnum;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.storage.mapper.StockPreorderPublishLogMapper;
 import com.lanf.storage.model.entity.StockDO;
@@ -49,6 +50,8 @@ public class StockPreorderPublishLogServiceImpl extends ServiceImpl<StockPreorde
     private RocketMqClient rocketMqClient;
     @Autowired
     private IWarehouseService warehouseService;
+    @Autowired
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Transactional
     @Override
@@ -90,7 +93,9 @@ public class StockPreorderPublishLogServiceImpl extends ServiceImpl<StockPreorde
             throw new BizException("更新库存失败");
         }
         this.save(publishLogDO);
-        rocketMqClient.sendMessage(StorageClientTopicName.PUBLISH_STOCK_TOPIC, JsonUtils.toJsonString(publishStockMessage));
+
+        mqSendMessageUtils.sendMessage(StorageClientTopicName.PUBLISH_STOCK_TOPIC,
+                JsonUtils.toJsonString(publishStockMessage),null);
 
     }
 
