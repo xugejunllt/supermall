@@ -6,6 +6,7 @@ import com.lanf.comment.mq.constant.CommentMqGroupName;
 import com.lanf.comment.mq.constant.CommentMqTopicName;
 import com.lanf.comment.mq.message.CommentLikeEventMessage;
 import com.lanf.comment.repository.CommentLikeRepository;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.mongodb.client.result.UpdateResult;
 import lombok.extern.slf4j.Slf4j;
@@ -13,12 +14,12 @@ import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
-import org.springframework.dao.DuplicateKeyException;
 
 import java.util.Date;
 
@@ -44,7 +45,7 @@ public class CommentLikeEventListener implements RocketMQListener<CommentLikeEve
 
     @Autowired
     private CommentLikeRepository commentLikeRepository;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(CommentLikeEventMessage message) {
 

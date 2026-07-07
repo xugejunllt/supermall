@@ -7,6 +7,7 @@ import com.lanf.goods.model.entity.UserStockFlowDO;
 import com.lanf.goods.mq.constant.GoodsMqGroupName;
 import com.lanf.goods.service.stock.IStockService;
 import com.lanf.goods.service.stock.IUserStockFlowService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.mq.constant.SecKillClientTopicName;
@@ -35,7 +36,7 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
 
     @Autowired
     private RocketMqClient rocketMqClient;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(SecKillPlaneMessage message) {
 

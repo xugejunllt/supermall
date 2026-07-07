@@ -5,6 +5,7 @@ import com.lanf.api.order.mq.message.PublishCommentMessage;
 import com.lanf.comment.mq.constant.CommentMqGroupName;
 import com.lanf.comment.service.CommentService;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -21,6 +22,7 @@ public class PublishCommentListener implements RocketMQListener<PublishCommentMe
 
     @Autowired
     private CommentService commentService;
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(PublishCommentMessage publishCommentMessage) {
 

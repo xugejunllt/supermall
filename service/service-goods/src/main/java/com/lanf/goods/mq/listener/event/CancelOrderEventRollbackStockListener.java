@@ -4,6 +4,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.goods.model.bo.RollbackStockBO;
 import com.lanf.goods.service.stock.IStockService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelOrderEventMessage;
 import com.lanf.rocketmq.model.message.OrderGoodsInfo;
@@ -29,7 +30,7 @@ public class CancelOrderEventRollbackStockListener implements RocketMQListener<C
     @Autowired
     private IStockService stockService;
 
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(CancelOrderEventMessage message) {
 

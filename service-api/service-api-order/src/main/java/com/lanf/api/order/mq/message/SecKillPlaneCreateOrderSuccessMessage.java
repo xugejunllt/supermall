@@ -1,12 +1,12 @@
 package com.lanf.api.order.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class SecKillPlaneCreateOrderSuccessMessage implements Serializable {
+public class SecKillPlaneCreateOrderSuccessMessage extends BaseMessage{
 
 
     private Long orderId;

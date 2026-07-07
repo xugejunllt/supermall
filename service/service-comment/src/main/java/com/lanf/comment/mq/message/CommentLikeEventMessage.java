@@ -1,8 +1,7 @@
 package com.lanf.comment.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
-
-import java.io.Serializable;
 
 /**
  * 评论点赞事件消息
@@ -12,7 +11,7 @@ import java.io.Serializable;
  * @author lanf
  */
 @Data
-public class CommentLikeEventMessage implements Serializable {
+public class CommentLikeEventMessage extends BaseMessage {
 
     private static final long serialVersionUID = 1L;
 
