@@ -237,7 +237,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return validateCartVO;
     }
 
-
+    @Transactional
     @Override
     public void confirmPlaceOrder(PlaceOrderDTO orderDTO) {
         /**
@@ -391,7 +391,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         }
     }
 
-    @Transactional
+
     public void sendOrderCreateSuccessMessage(Long orderId, Long userId) {
         OrderCreateSuccessMessage message = new OrderCreateSuccessMessage();
         message.setOrderId(orderId);
@@ -599,7 +599,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         return bathDeductStockDTO;
 
     }
-
+    @Transactional
     @Override
     public void confirmSubmitCart(StartSubmitCartBO dto) {
 
