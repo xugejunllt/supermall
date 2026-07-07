@@ -297,7 +297,20 @@ public class ShardingSphereBeanConfig {
         tableAlgorithmProps.put("algorithmClassName", "com.lanf.order.config.TableShardingAlgorithm");
         shardingAlgorithms.put("table-sharding-algorithm", 
                 new AlgorithmConfiguration("CLASS_BASED", tableAlgorithmProps));
-        
+
+        // 配置 mq_send_message 分库算法
+        Properties mqSendMessageAlgoProps = new Properties();
+        mqSendMessageAlgoProps.setProperty("strategy", "standard");
+        mqSendMessageAlgoProps.setProperty("algorithmClassName", "com.lanf.order.config.MqSendMessageDatabaseShardingAlgorithm");
+        shardingAlgorithms.put("mq-send-message-database-algorithm", new AlgorithmConfiguration("CLASS_BASED", mqSendMessageAlgoProps));
+
+        // 配置 mq_consume_message 分库算法
+        Properties mqConsumeMessageAlgoProps = new Properties();
+        mqConsumeMessageAlgoProps.setProperty("strategy", "standard");
+        mqConsumeMessageAlgoProps.setProperty("algorithmClassName", "com.lanf.order.config.MqConsumeMessageDatabaseShardingAlgorithm");
+        shardingAlgorithms.put("mq-consume-message-database-algorithm", new AlgorithmConfiguration("CLASS_BASED", mqConsumeMessageAlgoProps));
+
+
         // 将所有算法配置设置到分片规则中
         shardingRuleConfig.setShardingAlgorithms(shardingAlgorithms);
 
