@@ -1,11 +1,10 @@
 package com.lanf.aftersales.mq.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class CloseOrderMessage implements Serializable {
+public class CloseOrderMessage extends BaseMessage {
 
     private Long orderId;
     private Long userId;

@@ -1,6 +1,7 @@
 package com.lanf.order.mq.listener;
 
 import com.lanf.order.service.order.IOrderService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.PrePayMsg;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,7 @@ public class PrePayCloseOrderListener implements RocketMQListener<PrePayMsg> {
 
     @Autowired
     private IOrderService orderService;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(PrePayMsg message) {
 

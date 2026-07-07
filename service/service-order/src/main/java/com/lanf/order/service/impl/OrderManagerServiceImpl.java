@@ -426,7 +426,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
          *
          */
         mqSendMessageUtils.sendDelayMessage(OrderMqTopicName.CANCEL_EXPIRED_ORDER_TOPIC,
-                JsonUtils.toJsonString(message2), (int) (expireInterval - 5),null);
+                JsonUtils.toJsonString(message2), (long) (expireInterval),null);
 
         /**
          * 发送订单创建成功消息

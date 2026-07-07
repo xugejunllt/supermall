@@ -4,6 +4,7 @@ import com.lanf.api.storage.mq.constant.StorageClientTopicName;
 import com.lanf.api.storage.mq.message.SalesOutStockOrderFinishMessage;
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.service.order.IOrderService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -24,6 +25,7 @@ public class SalesOutStockOrderFinishListener implements RocketMQListener<SalesO
     @Autowired
     private IOrderService orderService;
 
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(SalesOutStockOrderFinishMessage message) {
 

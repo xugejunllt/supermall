@@ -9,6 +9,7 @@ import com.lanf.order.mq.constant.OrderMqTopicName;
 import com.lanf.order.mq.message.BathAddShippingTrackMessage;
 import com.lanf.order.mq.message.ShippingTrackMessage;
 import com.lanf.order.service.shipping.IShippingTrackService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -28,7 +29,7 @@ public class BathAddShippingTrackListener implements RocketMQListener<BathAddShi
 
     @Autowired
     private IShippingTrackService shippingTrackService;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(BathAddShippingTrackMessage message) {
 

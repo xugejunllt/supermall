@@ -8,6 +8,7 @@ import com.lanf.order.model.enums.SubStatusEnum;
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.service.shipping.IShippingInfoService;
 import com.lanf.order.service.shipping.Kuaidi100Service;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -27,7 +28,7 @@ public class ShippedOrderEventPushShippingInfoListener implements RocketMQListen
     private IShippingInfoService shippingInfoService;
     @Autowired
     private Kuaidi100Service kuaidi100Service;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(OrderShippedMessage orderShippedMessage) {
 

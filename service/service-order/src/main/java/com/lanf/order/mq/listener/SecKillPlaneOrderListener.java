@@ -2,6 +2,7 @@ package com.lanf.order.mq.listener;
 
 import com.lanf.order.mq.constant.OrderMqGroupName;
 import com.lanf.order.service.OrderManagerService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.seckill.mq.constant.SecKillClientTopicName;
 import com.lanf.seckill.mq.message.SecKillPlaneMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ public class SecKillPlaneOrderListener implements RocketMQListener<SecKillPlaneM
 
     @Autowired
     private OrderManagerService orderManagerService;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(SecKillPlaneMessage message) {
 

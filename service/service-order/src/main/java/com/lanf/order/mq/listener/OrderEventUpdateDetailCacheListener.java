@@ -61,7 +61,6 @@ public class OrderEventUpdateDetailCacheListener implements RocketMQListener<Mes
         //2.校验消息中必须包含orderId和userId，缺失时直接抛异常触发MQ重试
         if (orderIdObj == null || userIdObj == null) {
             log.error("订单事件消息中无orderId或userId, tag={}, body={}", tags, body);
-//            throw new BizException("订单事件消息中无orderId或userId");
             return;
         }
         Long orderId = Long.valueOf(orderIdObj.toString());

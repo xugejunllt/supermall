@@ -1,11 +1,10 @@
 package com.lanf.rocketmq.model.message;
 
+import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class CancelExpiredOrderMessage implements Serializable {
+public class CancelExpiredOrderMessage extends BaseMessage {
 
     private Long orderId;
 

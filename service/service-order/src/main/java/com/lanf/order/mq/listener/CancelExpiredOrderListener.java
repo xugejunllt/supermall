@@ -4,6 +4,7 @@ import com.lanf.common.utils.JsonUtils;
 import com.lanf.order.model.dto.CancelOrderDTO;
 import com.lanf.order.mq.constant.OrderMqTopicName;
 import com.lanf.order.service.OrderManagerService;
+import com.lanf.rocketmq.annotation.MqRetryConsume;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CancelExpiredOrderMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,7 @@ public class CancelExpiredOrderListener implements RocketMQListener<CancelExpire
 
     @Autowired
     private OrderManagerService orderManagerService;
-
+    @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(CancelExpiredOrderMessage message) {
 
