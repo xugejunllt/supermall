@@ -16,7 +16,7 @@ import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.trade.impl.PayRetryPolicyCacheService;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CompensatePaymentOrderMessage;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 支付订单补偿监听器
@@ -63,7 +62,7 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
     @Autowired
     private PayRetryPolicyCacheService payRetryPolicyCacheService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
 
     @Autowired
     private ITradeOrderService tradeOrderService;
@@ -323,8 +322,8 @@ public class CompensatePaymentOrderListener implements RocketMQListener<Compensa
         message.setPayType(payType);
         message.setRetryLevel(matchOrNext.getRetryLevel());
         message.setBathOrder(bathOrder);
-        rocketMqClient.sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
-                JsonUtils.toJsonString(message), TimeUnit.SECONDS, matchOrNext.getDelaySeconds());
+        mqSendMessageUtils.sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
+                JsonUtils.toJsonString(message), Long.valueOf(matchOrNext.getDelaySeconds()),null);
 
 
     }

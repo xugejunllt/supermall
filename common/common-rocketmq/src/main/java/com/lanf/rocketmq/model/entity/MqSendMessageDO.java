@@ -29,8 +29,8 @@ private static final long serialVersionUID=1L;
 
     private String tag;
 
-    @ApiModelProperty(value = "延迟时间 单位分钟")
-    private Integer delayTime;
+    @ApiModelProperty(value = "延迟时间 单位秒")
+    private Long delayTime;
 
     @ApiModelProperty(value = "如果是顺序消息，消息key")
     private String messageKey;

@@ -93,7 +93,7 @@ public class MqMessageSendService {
                     log.warn("延迟消息缺少delayTime，降级为普通消息发送，messageId:{}", messageDO.getId());
                     rocketMqClient.sendMessage(messageDO.getTopic(), messageDO.getMessageContent());
                 } else {
-                    rocketMqClient.sendDelayMessage(messageDO.getTopic(), messageDO.getMessageContent(), TimeUnit.MINUTES, messageDO.getDelayTime());
+                    rocketMqClient.sendDelayMessage(messageDO.getTopic(), messageDO.getMessageContent(), TimeUnit.SECONDS, messageDO.getDelayTime());
                 }
                 break;
             case DELAY_ORDERED:
@@ -102,7 +102,7 @@ public class MqMessageSendService {
                     rocketMqClient.sendMessage(messageDO.getTopic(), messageDO.getMessageContent());
                 } else {
                     String delayContent = messageDO.getMessageContent();
-                    rocketMqClient.sendDelayMessage(messageDO.getTopic(), delayContent, TimeUnit.MINUTES, messageDO.getDelayTime());
+                    rocketMqClient.sendDelayMessage(messageDO.getTopic(), delayContent, TimeUnit.SECONDS, messageDO.getDelayTime());
                 }
                 break;
             case DELAY_NORMAL_TAG:
@@ -111,7 +111,7 @@ public class MqMessageSendService {
                     rocketMqClient.sendMessage(messageDO.getTopic(), messageDO.getMessageContent());
                 } else {
                     String delayContent = messageDO.getMessageContent();
-                    rocketMqClient.sendDelayMessage(messageDO.getTopic() + ":" + messageDO.getTag(), delayContent, TimeUnit.MINUTES, messageDO.getDelayTime());
+                    rocketMqClient.sendDelayMessage(messageDO.getTopic() + ":" + messageDO.getTag(), delayContent, TimeUnit.SECONDS, messageDO.getDelayTime());
                 }
                 break;
             case DELAY_ORDERED_TAG:
@@ -120,7 +120,7 @@ public class MqMessageSendService {
                     rocketMqClient.sendMessage(messageDO.getTopic(), messageDO.getMessageContent());
                 } else {
                     String delayContent = messageDO.getMessageContent();
-                    rocketMqClient.sendDelayMessage(messageDO.getTopic() + ":" + messageDO.getTag(), delayContent, TimeUnit.MINUTES, messageDO.getDelayTime());
+                    rocketMqClient.sendDelayMessage(messageDO.getTopic() + ":" + messageDO.getTag(), delayContent, TimeUnit.SECONDS, messageDO.getDelayTime());
                 }
                 break;
             default:

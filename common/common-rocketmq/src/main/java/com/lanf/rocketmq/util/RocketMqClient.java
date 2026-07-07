@@ -166,7 +166,7 @@ public class RocketMqClient {
      * 通过时钟轮算法实现
      *
      */
-    public void sendDelayMessage(String topic, String message, TimeUnit timeUnit, int delayTime){
+    public void sendDelayMessage(String topic, String message, TimeUnit timeUnit, Long delayTime){
 
         log.info("发送延迟mq消息开始:topic:{},message:{},timeUnit:{},delayTime:{}", topic, message, timeUnit, delayTime);
         

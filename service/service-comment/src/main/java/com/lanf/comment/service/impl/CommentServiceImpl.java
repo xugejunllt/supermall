@@ -27,7 +27,7 @@ import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
-import com.lanf.rocketmq.util.MqSendMessageUtils;
+import com.lanf.rocketmq.util.RocketMqClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -68,7 +68,7 @@ public class CommentServiceImpl implements CommentService {
     private CommentLikeCountRedisService commentLikeCountRedisService;
 
     @Autowired
-    private MqSendMessageUtils mqSendMessageUtils;
+    private RocketMqClient rocketMqClient;
 
     @Override
     public Long publishComment(PublishCommentMessage dto) {
@@ -217,11 +217,12 @@ public class CommentServiceImpl implements CommentService {
         eventMessage.setUserId(userId);
 
         String tag = isLike ? CommentMqTopicName.COMMENT_LIKE_TAG : CommentMqTopicName.COMMENT_UNLIKE_TAG;
-        mqSendMessageUtils.sendOrderedMessageWithTag(
+
+        rocketMqClient.sendOrderlyMessageWithTags(
                 CommentMqTopicName.COMMENT_EVENT_TOPIC,
                 tag,
                 JsonUtils.toJsonString(eventMessage),
-                commentId.toString(),null);
+                commentId.toString());
 
         log.info("评论点赞操作完成, userId={}, commentId={}, like={}",
                 userId, commentId, isLike);

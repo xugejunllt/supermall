@@ -52,7 +52,7 @@ import com.lanf.pay.utils.PayServiceUtils;
 import com.lanf.rocketmq.model.TopicName;
 import com.lanf.rocketmq.model.message.CompensatePaymentOrderMessage;
 import com.lanf.rocketmq.model.message.RefundDTO;
-import com.lanf.rocketmq.util.RocketMqClient;
+import com.lanf.rocketmq.util.MqSendMessageUtils;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.HmilyTCC;
@@ -64,7 +64,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -99,7 +98,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     @Autowired
     private PayRetryPolicyCacheService payRetryPolicyCacheService;
     @Autowired
-    private RocketMqClient rocketMqClient;
+    private MqSendMessageUtils mqSendMessageUtils;
     @Autowired
     private PaymentServiceFactory paymentServiceFactory;
 
@@ -289,8 +288,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             vo.setOrderStr(orderStr);
         }
 
-        rocketMqClient.sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
-                JsonUtils.toJsonString(message), TimeUnit.SECONDS, firstLevelRetryPolicy.getDelaySeconds());
+        mqSendMessageUtils.sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
+                JsonUtils.toJsonString(message), Long.valueOf(firstLevelRetryPolicy.getDelaySeconds()),null);
 
         return vo;
     }
@@ -403,8 +402,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             vo.setOrderStr(orderStr);
         }
 
-        rocketMqClient.sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
-                JsonUtils.toJsonString(message), TimeUnit.SECONDS, firstLevelRetryPolicy.getDelaySeconds());
+        mqSendMessageUtils.sendDelayMessage(TopicName.COMPENSATE_PAYMENT_TOPIC,
+                JsonUtils.toJsonString(message),
+                Long.valueOf(firstLevelRetryPolicy.getDelaySeconds()),null);
 
         return vo;
     }

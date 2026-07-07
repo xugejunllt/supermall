@@ -88,10 +88,10 @@ public class MqSendMessageUtils {
      *
      * @param topic    消息主题
      * @param content  消息内容
-     * @param delayTime 延迟时间（分钟）
+     * @param delayTime 延迟时间
      * @param shardingKey 分片键
      */
-    public void sendDelayMessage(String topic, String content, Integer delayTime, String shardingKey) {
+    public void sendDelayMessage(String topic, String content, Long delayTime, String shardingKey) {
         sendMessage(topic, null, MqSendMessageTypeEnum.DELAY_NORMAL, content, delayTime, null, shardingKey);
     }
 
@@ -104,7 +104,7 @@ public class MqSendMessageUtils {
      * @param delayTime 延迟时间（分钟）
      * @param shardingKey 分片键
      */
-    public void sendDelayMessageWithTag(String topic, String tag, String content, Integer delayTime, String shardingKey) {
+    public void sendDelayMessageWithTag(String topic, String tag, String content, Long delayTime, String shardingKey) {
         sendMessage(topic, tag, MqSendMessageTypeEnum.DELAY_NORMAL_TAG, content, delayTime, null, shardingKey);
     }
 
@@ -117,7 +117,7 @@ public class MqSendMessageUtils {
      * @param messageKey 顺序消息Key
      * @param shardingKey 分片键
      */
-    public void sendDelayOrderedMessage(String topic, String content, Integer delayTime, String messageKey, String shardingKey) {
+    public void sendDelayOrderedMessage(String topic, String content, Long delayTime, String messageKey, String shardingKey) {
         sendMessage(topic, null, MqSendMessageTypeEnum.DELAY_ORDERED, content, delayTime, messageKey, shardingKey);
     }
 
@@ -131,7 +131,7 @@ public class MqSendMessageUtils {
      * @param messageKey 顺序消息Key
      * @param shardingKey 分片键
      */
-    public void sendDelayOrderedMessageWithTag(String topic, String tag, String content, Integer delayTime, String messageKey, String shardingKey) {
+    public void sendDelayOrderedMessageWithTag(String topic, String tag, String content, Long delayTime, String messageKey, String shardingKey) {
         sendMessage(topic, tag, MqSendMessageTypeEnum.DELAY_ORDERED_TAG, content, delayTime, messageKey, shardingKey);
     }
 
@@ -147,7 +147,7 @@ public class MqSendMessageUtils {
      * @param shardingKey     分片键
      */
     private void sendMessage(String topic, String tag, MqSendMessageTypeEnum sendMessageType,
-                             String content, Integer delayTime, String messageKey, String shardingKey) {
+                             String content, Long delayTime, String messageKey, String shardingKey) {
 
         Date nextEstimatedCompletionAt = mqRetryService.getNextEstimatedCompletionAt(0);
 
