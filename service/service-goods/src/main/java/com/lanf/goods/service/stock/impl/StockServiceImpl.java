@@ -44,6 +44,7 @@ import com.lanf.goods.service.stock.IUserStockPreorderPublishLogService;
 import com.lanf.goods.utils.GoodsServiceUtils;
 import com.lanf.rocketmq.exception.MessageRetryConsumeException;
 import com.lanf.rocketmq.model.message.OrderGoodsInfo;
+import com.lanf.seckill.mq.message.SecKillPlaneMessage;
 import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -997,6 +998,8 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         }
 
     }
+
+
     private static UserStockPreorderPublishLogDO buildStockPreorderPublishLogDO(PublishStockMessage message, StockDO one) {
         UserStockPreorderPublishLogDO userStockPreorderPublishLogDO = new UserStockPreorderPublishLogDO();
         userStockPreorderPublishLogDO.setFlowNo(message.getFlowNo());
@@ -1011,6 +1014,76 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, StockDO> implemen
         userStockPreorderPublishLogDO.setWarehouseName(message.getWarehouseName());
         userStockPreorderPublishLogDO.setGoodsId(message.getGoodsId());
         return userStockPreorderPublishLogDO;
+    }
+
+    @Transactional
+    @Override
+    public void secKillPlane(SecKillPlaneMessage message) {
+        StockDO stockDO = this.lambdaQuery()
+                .eq(StockDO::getGoodsId, message.getGoodsId())
+                .eq(StockDO::getSkuCode, message.getSkuCode())
+                .eq(StockDO::getWarehouseId, message.getWarehouseId())
+                .one();
+        if (stockDO == null) {
+            log.error("秒杀订单创建成功，但是库存不存在");
+            throw new BizException("秒杀订单创建成功，但是库存不存在");
+
+        }
+        if (stockDO.getUsableStock() < message.getQuantity()) {
+            log.error("秒杀订单创建成功，但是库存不足");
+            /**
+             * 发送通知 标记订单为异常
+             */
+
+
+            return;
+        }
+
+        String flowNo = message.getGoodsId() + "_" +
+                message.getSkuCode() + ":" + message.getOrderNumber() + ":" +
+                UserStockFlowEventTypeEnum.ORDER_OUTBOUND.getCode();
+
+        UserStockFlowDO stockFlowDO = userStockFlowService.lambdaQuery()
+                .eq(UserStockFlowDO::getFlowNo, flowNo)
+                .one();
+        if (stockFlowDO != null) {
+            log.warn("库存流水已添加");
+            return;
+        }
+
+        Integer beforeQuantity = stockDO.getUsableStock() + stockDO.getLockStock();
+        Integer afterQuantity = beforeQuantity - message.getQuantity();
+        Integer updateLockStock = stockDO.getLockStock() - message.getQuantity();
+        UserStockFlowDO userStockFlowDO = new UserStockFlowDO();
+        userStockFlowDO.setGoodsId(message.getGoodsId());
+        userStockFlowDO.setFlowNo(flowNo);
+        userStockFlowDO.setUserStockId(stockDO.getId());
+        userStockFlowDO.setSkuCode(message.getSkuCode());
+        userStockFlowDO.setWarehouseId(message.getWarehouseId());
+        userStockFlowDO.setOrderId(message.getOrderId());
+        userStockFlowDO.setEventType(UserStockFlowEventTypeEnum.ORDER_OUTBOUND);
+        userStockFlowDO.setBeforeQuantity(beforeQuantity);
+        userStockFlowDO.setChangeQuantity(message.getQuantity());
+        userStockFlowDO.setAfterQuantity(afterQuantity);
+        userStockFlowDO.setTenantId(stockDO.getTenantId());
+        try {
+            userStockFlowService.save(userStockFlowDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("库存流水已添加");
+            return;
+        }
+        boolean update = this.lambdaUpdate()
+                .set(StockDO::getLockStock, updateLockStock)
+                .set(StockDO::getVersion, stockDO.getVersion()+1)
+                .eq(StockDO::getId, stockDO.getId())
+                .eq(StockDO::getVersion, stockDO.getVersion())
+                .update();
+
+        if (!update) {
+            log.warn("库存更新失败");
+            throw new MessageRetryConsumeException("库存更新失败");
+        }
+
     }
 
 }

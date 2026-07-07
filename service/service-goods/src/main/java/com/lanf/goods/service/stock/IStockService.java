@@ -16,6 +16,7 @@ import com.lanf.goods.model.entity.StockDO;
 import com.lanf.goods.model.query.StockQueryByGoodsIdQuery;
 import com.lanf.goods.model.vo.StockEnoughVO;
 import com.lanf.goods.model.vo.StockWithDistanceVO;
+import com.lanf.seckill.mq.message.SecKillPlaneMessage;
 
 import java.util.List;
 
@@ -90,5 +91,7 @@ public interface IStockService extends IService<StockDO> {
      */
     void rollbackStock(RollbackStockBO rollbackStock);
     void publishStock(PublishStockMessage message);
+
+    void secKillPlane(SecKillPlaneMessage message);
 
 }
