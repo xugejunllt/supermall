@@ -40,8 +40,7 @@ public class CancelOrderEventRollbackPayOrderListener implements RocketMQListene
     private ITradeOrderService tradeOrderService;
     @Autowired
     private IPrepayPayTypeService prepayPayTypeService;
-    @Autowired
-    private RocketMqClient rocketMqClient;
+
     @MqRetryConsume(messageId = "#message.messageId")
     @Override
     public void onMessage(CancelOrderEventMessage message) {

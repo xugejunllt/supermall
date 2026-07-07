@@ -39,6 +39,7 @@ import com.lanf.rocketmq.util.MqSendMessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -240,7 +241,7 @@ public class AfterSalesOrderServiceImpl extends ServiceImpl<AfterSalesOrderMappe
             throw new BizException("售后单更新失败");
         }
     }
-
+    @Transactional
     @Override
     public void businessReceiver(BusinessReceiverDTO dto) {
 

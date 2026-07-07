@@ -27,6 +27,7 @@ import com.lanf.goods.service.stock.IUserStockPreorderPublishLogService;
 import com.lanf.rocketmq.util.MqSendMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <p>
@@ -43,7 +44,7 @@ public class UserStockPreorderPublishLogServiceImpl extends ServiceImpl<UserStoc
     private IStockService stockService;
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
-
+    @Transactional
     @Override
     public void recycleStock(RecycleStockDTO recycleStockDTO) {
         String skuCode = recycleStockDTO.getSkuCode();
