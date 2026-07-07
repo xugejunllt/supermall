@@ -60,6 +60,7 @@ import com.lanf.tcc.service.ITccOperationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -121,6 +122,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
     private OrderDetailCacheService orderDetailCacheService;
     @Autowired
     private IOrderAutoCloseService orderAutoCloseService;
+    @Lazy
     @Autowired
     private IMainOrderService mainOrderService;
 
