@@ -28,4 +28,5 @@ public class SignOrderMessage extends BaseMessage {
     //商家id
     private Long tenantId;
 
+    private Long userId;
 }

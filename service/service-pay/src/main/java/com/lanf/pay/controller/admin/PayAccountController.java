@@ -23,7 +23,7 @@ public class PayAccountController {
     @PostMapping("/addPayAccount")
     public Result<Void> addPayAccount(@Validated @RequestBody AddPayAccountDTO dto) {
 
-        log.info("添加支付账户");
+        log.info("添加支付账户:{}", dto);
         payAccountService.addPayAccount(dto);
         return Result.ok();
     }

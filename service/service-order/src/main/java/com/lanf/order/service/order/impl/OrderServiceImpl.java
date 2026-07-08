@@ -466,7 +466,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
     }
 
-
+    @Transactional
     @Override
     public void outStockFinish(SalesOutStockOrderFinishMessage message) {
 
@@ -509,6 +509,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
          */
         OrderOutBoundedMessage message2 = new OrderOutBoundedMessage();
         message2.setOrderId(orderId);
+        message2.setUserId(userId);
         mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
                 OrderStatusEnum.OUTBOUNDED.getTag(), JsonUtils.toJsonString(message2),
                 orderDO.getId().toString(), userId.toString());
@@ -568,7 +569,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
         signOrderMessage.setAfterSaleDays(orderDO.getAfterSaleDays());
         signOrderMessage.setPayMoney(orderDO.getActualPayMoney());
         signOrderMessage.setTenantId(orderDO.getTenantId());
-
+        signOrderMessage.setUserId(userId);
 
         OrderAutoCloseDO orderAutoClose = new OrderAutoCloseDO();
         orderAutoClose.setOrderId(orderId);

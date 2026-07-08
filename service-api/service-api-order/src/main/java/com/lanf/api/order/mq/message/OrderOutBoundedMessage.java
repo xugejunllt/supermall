@@ -10,5 +10,6 @@ import lombok.Data;
 public class OrderOutBoundedMessage extends BaseMessage {
 
     private Long orderId;
+    private Long userId;
 
 }
