@@ -32,6 +32,7 @@ private static final long serialVersionUID=1L;
 
     @ApiModelProperty(value = "提现单号")
     private String withdrawNo;
+    private String incomeAccountUserName;
 
     @ApiModelProperty(value = "提现金额")
     private BigDecimal amount;

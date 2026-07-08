@@ -29,6 +29,8 @@ public class WithdrawApplyDTO implements Serializable {
     @NotNull(message = "提现方式不能为空")
     private Integer withdrawType;
 
+    @NotNull(message = "收款账户名称不能为空")
+    private String incomeAccountUserName;
     /**
      * 备注
      */

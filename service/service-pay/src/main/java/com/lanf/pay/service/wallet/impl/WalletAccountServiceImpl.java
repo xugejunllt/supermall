@@ -266,7 +266,7 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         withdraw.setStatus(WithdrawStatusEnum.PENDING);
         withdraw.setRemark(dto.getRemark());
         withdraw.setVersion(0L);
-
+        withdraw.setIncomeAccountUserName(dto.getIncomeAccountUserName());
         return withdraw;
     }
 
@@ -321,6 +321,7 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
         message.setIncomeAccount(withdraw.getPayeeAccount());
         message.setTransAmount(withdraw.getAmount());
         message.setOrderTitle("钱包提现");
+        message.setIncomeAccountUserName(withdraw.getIncomeAccountUserName());
         return message;
     }
 
