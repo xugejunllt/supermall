@@ -11,8 +11,7 @@ public enum WithdrawStatusEnum {
     PENDING(0, "待处理"),
     PROCESSING(1, "处理中"),
     SUCCESS(2, "成功"),
-    FAILED(3, "失败"),
-    CANCELLED(4, "已取消");
+    ;
 
     @EnumValue
     private final Integer code;

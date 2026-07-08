@@ -45,6 +45,7 @@ public class TransferSuccessUpdateWithdrawListener implements RocketMQListener<T
 
     @Autowired
     private IWalletAccountFlowService walletAccountFlowService;
+
     @MqRetryConsume(messageId = "#message.messageId")
     @Transactional
     @Override
@@ -65,8 +66,7 @@ public class TransferSuccessUpdateWithdrawListener implements RocketMQListener<T
             return;
         }
         if (WithdrawStatusEnum.SUCCESS.equals(withdraw.getStatus())
-                 || WithdrawStatusEnum.FAILED.equals(withdraw.getStatus())
-           || WithdrawStatusEnum.CANCELLED.equals(withdraw.getStatus())) {
+                ) {
             log.info("提现已完成");
             return;
         }
@@ -80,74 +80,38 @@ public class TransferSuccessUpdateWithdrawListener implements RocketMQListener<T
             return;
         }
 
-        Boolean result = message.getResult();
 
-        if (result){
-
-            WalletAccountFlowDO walletAccountFlowDO = buildWalletAccountFlowDO(withdraw,transAmount,accountDO);
-            BigDecimal currentFrozenBalance = accountDO.getFrozenBalance();
-            //扣除冻结金额
-            BigDecimal afterFrozenBalance = BigDecimalUtils.subtract(currentFrozenBalance, transAmount);
-            try {
-                walletAccountFlowService.save(walletAccountFlowDO);
-            } catch (DuplicateKeyException e) {
-                log.warn("钱包账户流水记录已存在");
-                return;
-            }
-
-            boolean accountUpdated = walletAccountService.lambdaUpdate()
-                    .eq(WalletAccountDO::getId, accountDO.getId())
-                    .eq(WalletAccountDO::getVersion, accountDO.getVersion())
-                    .set(WalletAccountDO::getFrozenBalance, afterFrozenBalance)
-                    .set(WalletAccountDO::getVersion, accountDO.getVersion() + 1)
-                    .update();
-            if (!accountUpdated) {
-                log.warn("更新钱包账户冻结余额失败，账户ID: {}", accountDO.getId());
-                throw new MessageRetryConsumeException("更新钱包账户冻结余额失败");
-            }
-            boolean updated = walletWithdrawService.lambdaUpdate()
-                    .eq(WalletWithdrawDO::getId, withdrawId)
-                    .eq(WalletWithdrawDO::getStatus, WithdrawStatusEnum.PROCESSING)
-                    .eq(WalletWithdrawDO::getVersion, withdraw.getVersion())
-                    .set(WalletWithdrawDO::getStatus, WithdrawStatusEnum.SUCCESS)
-                    .set(WalletWithdrawDO::getVersion, withdraw.getVersion() + 1)
-                    .update();
-            if (!updated) {
-                log.warn("更新提现单状态失败，可能已被处理，ID: {}", withdrawId);
-                throw new MessageRetryConsumeException("更新提现单状态失败");
-            }
-
-        } else {
-
-            //1.回加解冻金额到可用余额
-            BigDecimal currentFrozenBalance = accountDO.getFrozenBalance();
-            BigDecimal afterFrozenBalance = BigDecimalUtils.subtract(currentFrozenBalance, transAmount);
-            BigDecimal currentBalance =  BigDecimalUtils.add(accountDO.getBalance(), transAmount);
-
-            boolean accountUpdated = walletAccountService.lambdaUpdate()
-                    .eq(WalletAccountDO::getId, accountDO.getId())
-                    .eq(WalletAccountDO::getVersion, accountDO.getVersion())
-                    .set(WalletAccountDO::getFrozenBalance, afterFrozenBalance)
-                    .set(WalletAccountDO::getBalance, currentBalance)
-                    .set(WalletAccountDO::getVersion, accountDO.getVersion() + 1)
-                    .update();
-            if (!accountUpdated) {
-                log.warn("更新钱包账户冻结余额失败，账户ID: {}", accountDO.getId());
-                throw new MessageRetryConsumeException("更新钱包账户冻结余额失败");
-            }
-            boolean updated = walletWithdrawService.lambdaUpdate()
-                    .eq(WalletWithdrawDO::getId, withdrawId)
-                    .eq(WalletWithdrawDO::getStatus, WithdrawStatusEnum.PROCESSING)
-                    .eq(WalletWithdrawDO::getVersion, withdraw.getVersion())
-                    .set(WalletWithdrawDO::getStatus, WithdrawStatusEnum.FAILED)
-                    .set(WalletWithdrawDO::getVersion, withdraw.getVersion() + 1)
-                    .update();
-            if (!updated) {
-                log.warn("更新提现单状态失败，可能已被处理，ID: {}", withdrawId);
-                throw new MessageRetryConsumeException("更新提现单状态失败");
-            }
+        WalletAccountFlowDO walletAccountFlowDO = buildWalletAccountFlowDO(withdraw, transAmount, accountDO);
+        BigDecimal currentFrozenBalance = accountDO.getFrozenBalance();
+        //扣除冻结金额
+        BigDecimal afterFrozenBalance = BigDecimalUtils.subtract(currentFrozenBalance, transAmount);
+        try {
+            walletAccountFlowService.save(walletAccountFlowDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("钱包账户流水记录已存在");
+            return;
         }
 
+        boolean accountUpdated = walletAccountService.lambdaUpdate()
+                .eq(WalletAccountDO::getId, accountDO.getId())
+                .eq(WalletAccountDO::getVersion, accountDO.getVersion())
+                .set(WalletAccountDO::getFrozenBalance, afterFrozenBalance)
+                .set(WalletAccountDO::getVersion, accountDO.getVersion() + 1)
+                .update();
+        if (!accountUpdated) {
+            log.warn("更新钱包账户冻结余额失败，账户ID: {}", accountDO.getId());
+            throw new MessageRetryConsumeException("更新钱包账户冻结余额失败");
+        }
+        boolean updated = walletWithdrawService.lambdaUpdate()
+                .eq(WalletWithdrawDO::getId, withdrawId)
+                .eq(WalletWithdrawDO::getVersion, withdraw.getVersion())
+                .set(WalletWithdrawDO::getStatus, WithdrawStatusEnum.SUCCESS)
+                .set(WalletWithdrawDO::getVersion, withdraw.getVersion() + 1)
+                .update();
+        if (!updated) {
+            log.warn("更新提现单状态失败，可能已被处理，ID: {}", withdrawId);
+            throw new MessageRetryConsumeException("更新提现单状态失败");
+        }
 
 
         log.info("提现处理完成，提现单ID: {}, 用户ID: {}, 金额: {}", withdrawId, withdraw.getUserId(), transAmount);
@@ -155,7 +119,7 @@ public class TransferSuccessUpdateWithdrawListener implements RocketMQListener<T
     }
 
     private WalletAccountFlowDO buildWalletAccountFlowDO(WalletWithdrawDO withdraw,
-                                                         BigDecimal transAmount,WalletAccountDO accountDO) {
+                                                         BigDecimal transAmount, WalletAccountDO accountDO) {
         BigDecimal beforeBalance = BigDecimalUtils.add(accountDO.getBalance(),
                 accountDO.getFrozenBalance());
         BigDecimal afterBalance = BigDecimalUtils.subtract(beforeBalance, transAmount);

@@ -21,10 +21,6 @@ public class TransferSuccessMessage extends BaseMessage {
     @ApiModelProperty(value = "转账金额")
     private BigDecimal transAmount;
 
-    /**
-     * 转账结果
-     */
-    private Boolean result;
 
 
 }

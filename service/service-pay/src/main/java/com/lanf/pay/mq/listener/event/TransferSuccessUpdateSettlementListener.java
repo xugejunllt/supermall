@@ -54,18 +54,11 @@ public class TransferSuccessUpdateSettlementListener implements RocketMQListener
             return;
         }
 
-        ClearingStatusEnum status = null;
-        if (message.getResult()) {
-            status = ClearingStatusEnum.CLEARING_COMPLETED;
-        } else {
-            status = ClearingStatusEnum.EXCEPTION;
-        }
 
         boolean update = clearingDetailService.lambdaUpdate()
                 .eq(ClearingDetailDO::getId, clearingDetailDO.getId())
-                .eq(ClearingDetailDO::getStatus, ClearingStatusEnum.CLEARING)
                 .eq(ClearingDetailDO::getVersion, clearingDetailDO.getVersion())
-                .set(ClearingDetailDO::getStatus, status)
+                .set(ClearingDetailDO::getStatus, ClearingStatusEnum.CLEARING_COMPLETED)
                 .set(ClearingDetailDO::getTransferMoney, message.getTransAmount())
                 .set(ClearingDetailDO::getVersion, clearingDetailDO.getVersion() + 1)
                 .update();

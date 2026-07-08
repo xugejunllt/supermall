@@ -118,7 +118,6 @@ public class QueryTransferResultListener implements RocketMQListener<QueryTransf
         transferSuccessMessage.setBizOrderId(oned.getBizOrderId());
         transferSuccessMessage.setEventType(oned.getEventType());
         transferSuccessMessage.setTransAmount(oned.getTotalAmount());
-        transferSuccessMessage.setResult( queryResultBO.getResult());
         return transferSuccessMessage;
     }
 
