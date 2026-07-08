@@ -8,10 +8,7 @@ package com.lanf.constant.constant;
  */
 public class Constants {
 
-    /**
-     * 平台租户编码
-     */
-    public static final String ADMIN_TENANT_CODE = "IKXHHIYJBLAXHFIVPEN";
+
     public static final Long PLATFORM_BUSINESS_ID = 1441223317880180736L;
 
 
@@ -20,9 +17,6 @@ public class Constants {
      */
     public static  final String CHANEL = "channel";
     public static  final String DEVICE_ID = "deviceId";
-    //refreshToken
-    public static  final String REFRESH_TOKEN = "refreshToken";
-    public static  final String USER_TOKEN = "token";
     public static  final String TENANT_CODE = "tenantCode";
 
 

@@ -15,6 +15,7 @@ import com.lanf.common.utils.BeanCopyUtils;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.CodeGenerateUtils;
 import com.lanf.common.utils.JsonUtils;
+import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.enums.FlowNoPrefixEnum;
 import com.lanf.constant.model.vo.PageResult;
@@ -24,12 +25,10 @@ import com.lanf.pay.mapper.WalletAccountMapper;
 import com.lanf.pay.model.bo.AddWalletAccount;
 import com.lanf.pay.model.dto.BalanceOrderDTO;
 import com.lanf.pay.model.dto.WithdrawApplyDTO;
-import com.lanf.pay.model.entity.TradeOrderDO;
-import com.lanf.pay.model.entity.WalletAccountDO;
-import com.lanf.pay.model.entity.WalletAccountFlowDO;
-import com.lanf.pay.model.entity.WalletWithdrawDO;
+import com.lanf.pay.model.entity.*;
 import com.lanf.pay.model.enums.TradeOrderStatusEnum;
 import com.lanf.pay.model.vo.WalletAccountVO;
+import com.lanf.pay.service.account.IPayAccountService;
 import com.lanf.pay.service.trade.ITradeOrderService;
 import com.lanf.pay.service.wallet.IWalletAccountFlowService;
 import com.lanf.pay.service.wallet.IWalletAccountService;
@@ -60,6 +59,8 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
     private MqSendMessageUtils mqSendMessageUtils;
     @Autowired
     private IWalletWithdrawService walletWithdrawService;
+    @Autowired
+    private IPayAccountService payAccountService;
 
     @Override
     public void addWalletAccount(AddWalletAccount dto) {
@@ -305,18 +306,18 @@ public class WalletAccountServiceImpl extends ServiceImpl<WalletAccountMapper, W
 
 
     private TransferMessage buildTransferMessage(WalletWithdrawDO withdraw) {
-
+        PayAccountDO byTenantIdAccount = payAccountService.getByTenantIdAccount(Constants.PLATFORM_BUSINESS_ID, PayChannelEnum.ALI_PAY);
         TransferMessage message = new TransferMessage();
         message.setOutBizNo(withdraw.getWithdrawNo());
         message.setUserId(withdraw.getUserId());
-        message.setMerchantId(null);
         message.setBizOrderId(withdraw.getId());
         message.setEventType(TransferEventTypeEnum.WALLET_WITHDRAW);
         message.setTransferChannel(convertWithdrawTypeToPayType(withdraw.getWithdrawType()));
         /**
          * 待添加查询方法
          */
-        message.setFromAccount(null);
+
+        message.setFromAccount(byTenantIdAccount.getAccount());
         message.setIncomeAccount(withdraw.getPayeeAccount());
         message.setTransAmount(withdraw.getAmount());
         message.setOrderTitle("钱包提现");
