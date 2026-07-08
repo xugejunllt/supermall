@@ -868,6 +868,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
         cancelOrderEventMessage.setOrderId(orderDO.getId());
         cancelOrderEventMessage.setOrderNumber(orderDO.getOrderNumber());
         cancelOrderEventMessage.setOrderGoodsInfoList(orderGoodsInfoList);
+        cancelOrderEventMessage.setUserId(orderDO.getUserId());
         return cancelOrderEventMessage;
     }
 

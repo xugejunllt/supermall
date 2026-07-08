@@ -12,7 +12,7 @@ public class CancelOrderEventMessage extends BaseMessage {
     private String orderNumber;
 
     private Long orderId;
-
+    private Long userId;
     private List<OrderGoodsInfo> orderGoodsInfoList;
 
 
