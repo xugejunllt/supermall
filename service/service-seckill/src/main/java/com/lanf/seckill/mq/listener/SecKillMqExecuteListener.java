@@ -125,6 +125,7 @@ public class SecKillMqExecuteListener implements RocketMQListener<SecKillMqExecu
                     .eq(SecKillItemDO::getId, message.getSecKillItemId())
                     .eq(SecKillItemDO::getVersion, killItemDO.getVersion())
                     .set(SecKillItemDO::getRemainingStock, remainingStock - 1)
+                    .set(SecKillItemDO::getSoldStock, killItemDO.getSoldStock() + 1)
                     .set(SecKillItemDO::getVersion, killItemDO.getVersion() + 1)
                     .update();
             if (!updated) {

@@ -50,6 +50,7 @@ import static com.lanf.seckill.service.strategy.impl.RealTimeSecKillStrategy.USE
         SecKillMqExecuteMessage message = new SecKillMqExecuteMessage();
         message.setUserId(dto.getUserId());
         message.setSecKillItemId(dto.getSeckillItemId());
+        message.setSeckillModeEnum(SeckillModeEnum.MQ_QUEUE);
         rocketMqClient.sendMessage(SecKillMqTopicName.SEC_KILL_MQ_EXECUTE_TOPIC,
                 JsonUtils.toJsonString(message));
     }
