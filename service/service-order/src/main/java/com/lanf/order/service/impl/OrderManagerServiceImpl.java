@@ -978,28 +978,7 @@ public class OrderManagerServiceImpl implements OrderManagerService {
     @Transactional
     public void confirmCreateSecKillOrder(SecKillPlaneMessage message) {
 
-        Long userId = message.getUserId();
-        OrderCreateSuccessMessage message2 = new OrderCreateSuccessMessage();
-        message2.setOrderId(message.getOrderId());
-        message2.setUserId(userId);
-        mqSendMessageUtils.sendOrderedMessageWithTag(OrderTopicWithTag.ORDER_EVENT_TOPIC,
-                OrderStatusEnum.WAIT_PAY.getTag(), JsonUtils.toJsonString(message2),
-                message.getOrderId().toString(),userId.toString());
-        //发送物流跟踪信息
-        BathAddShippingTrackMessage bathMessage = new BathAddShippingTrackMessage();
-        bathMessage.setOrderId(message.getOrderId());
-        bathMessage.setTenantId(message.getTenantId());
-        bathMessage.setUserId(message.getUserId());
-        List<ShippingTrackMessage> shippingTrackList = new ArrayList<>();
-        ShippingTrackMessage trackMessage = new ShippingTrackMessage();
-        trackMessage.setStatus(ShippingStatusEnum.ORDER_PLACED);
-        trackMessage.setFinishTime(new Date());
-        trackMessage.setFinishContent("订单已提交");
-        trackMessage.setFlowNo(IStringUtils.hashToUniqueString(message.getOrderId() + trackMessage.getFinishContent()));
-        shippingTrackList.add(trackMessage);
-        bathMessage.setShippingTrackList(shippingTrackList);
-        mqSendMessageUtils.sendMessage(OrderMqTopicName.BATH_ADD_SHIPPING_TRACK_TOPIC,
-                JsonUtils.toJsonString(bathMessage),userId.toString());
+        sendOrderCreateSuccessMessage(message.getOrderId(), message.getUserId());
         secKillResultCache.addResult(message.getUserId(), message.getSecKillItemId(), SecKillResultEnum.SUCCESS_ORDER_CREATED);
     }
 
