@@ -432,6 +432,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         Date expireTime = DateUtils.addMinutes(new Date(), payConfig.getExpireInterval().longValue());
         String outTradeNo = CodeGenerateUtils.generateFlowNo(FlowNoPrefixEnum.TRADE_ORDER, dto.getOrderNumber());
         TradeOrderDO tradeOrderDO = new TradeOrderDO();
+        tradeOrderDO.setId(IdUtils.generateId());
         tradeOrderDO.setUserId(UserContext.getUserId());
         tradeOrderDO.setOrderNumber(dto.getOrderNumber());
         tradeOrderDO.setOutTradeNo(PayServiceUtils.generateOutTradeNo(dto.getOrderNumber()));
@@ -444,7 +445,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         tradeOrderDO.setOutTradeNo(outTradeNo);
         String params = PayServiceUtils.buildPassbackParams(tradeOrderDO.getId(), false,
                 tradeOrderDO.getTradeMoney(),
-                TradePurposeEnum.REALTIME_ORDER);
+                TradePurposeEnum.WALLET_RECHARGE);
         tradeOrderDO.setPassBackParams(params);
 
         try {

@@ -43,7 +43,7 @@ public class WalletRechargeListener implements RocketMQListener<WalletRechargeMe
     @Override
     public void onMessage(WalletRechargeMessage message) {
 
-        log.info("钱包充值");
+        log.info("钱包充值:{}", message);
         BigDecimal amount = message.getAmount();
         Long userId = message.getUserId();
         String flowNo = message.getFlowNo();

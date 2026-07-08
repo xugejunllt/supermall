@@ -5,8 +5,6 @@ import com.lanf.api.pay.model.enums.TradePurposeEnum;
 import com.lanf.constant.mq.base.BaseMessage;
 import lombok.Data;
 
-import java.math.BigDecimal;
-
 @Data
 public class PayOrderFlowInsertSuccessMessage extends BaseMessage {
 
@@ -21,9 +19,6 @@ public class PayOrderFlowInsertSuccessMessage extends BaseMessage {
     private TradePurposeEnum tradePurpose;
 
     private PayMethodEnum payMethod;
-    /**
-     * 用户实际支付的金额
-     */
-    private BigDecimal payMoney;
+
 
 }

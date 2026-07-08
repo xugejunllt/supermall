@@ -18,7 +18,7 @@ public class RealtimeOrderTradesSuccessHandler implements TradeSuccessHandler {
 
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
-    @Transactional
+
     @Override
     public void postTradeSuccessHandler(PostTradeSuccessHandlerContext context) {
         log.info("交易成功后置处理:{}",context);

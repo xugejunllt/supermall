@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -93,7 +92,6 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         String outTradeNo = message.getOutTradeNo();
         Boolean bathPay = message.getBathPay();
         Integer payType = message.getPayType();
-        BigDecimal payMoney = message.getPayMoney();
         PayMethodEnum payMethod = message.getPayMethod();
 
         // 【边界条件】查询交易单，可能不存在（理论上不会发生，防御性编程）
@@ -105,7 +103,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         PaySceneEnum payScene = getPayScene(bathPay, tradeOrderDO);
         if (PaySceneEnum.SINGLE_ORDER_SINGLE_PAY.equals(payScene)) {
 
-            handleSinglePayScene(payType, message.getTradePurpose(), payMethod, payMoney, tradeOrderDO);
+            handleSinglePayScene(payType, message.getTradePurpose(), payMethod,  tradeOrderDO);
         }
         if (PaySceneEnum.COMBINED_PAY.equals(payScene)) {
 
@@ -160,13 +158,12 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
      * @param payType    支付渠道编码（支付宝/微信等）
      * @param tradeType  交易用途（实时订单/钱包充值等）
      * @param payMethod  支付方式枚举
-     * @param payMoney   实际支付金额
      * @param tradeOrderDO 交易单实体
      */
 
     public void handleSinglePayScene(Integer payType,
                                      TradePurposeEnum tradeType, PayMethodEnum payMethod,
-                                     BigDecimal payMoney, TradeOrderDO tradeOrderDO) {
+                                     TradeOrderDO tradeOrderDO) {
 
 
         // 【边界条件1】幂等：已支付且同渠道，说明是重复消息，直接返回
@@ -215,7 +212,7 @@ public class PayOrderFlowInsertSuccessPayListener implements RocketMQListener<Pa
         PostTradeSuccessHandlerContext context = new PostTradeSuccessHandlerContext();
         context.setTradeOrderDO(tradeOrderDO);
         context.setPayType(payType);
-        context.setPayMoney(payMoney);
+        context.setPayMoney(tradeOrderDO.getTradeMoney());
         tradeSuccessHandler.postTradeSuccessHandler(context);
 
 
