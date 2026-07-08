@@ -5,7 +5,7 @@ import com.lanf.common.utils.IStringUtils;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.result.Result;
 import com.lanf.constant.utils.UserContext;
-import com.lanf.rocketmq.util.MqSendMessageUtils;
+import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.config.SeckillCouponUrlConfig;
 import com.lanf.seckill.model.dto.PlaceDTO;
 import com.lanf.seckill.model.enums.SeckillModeEnum;
@@ -50,7 +50,7 @@ public class SecKillCouponFilter implements Filter {
     private ISecKillCouponItemService seckillCouponItemService;
 
     @Autowired
-    private MqSendMessageUtils mqSendMessageUtils;
+    private RocketMqClient rocketMqClient;
 
     private final PathMatcher pathMatcher = new AntPathMatcher();
 
@@ -168,8 +168,8 @@ public class SecKillCouponFilter implements Filter {
             message.setSecKillCouponItemId(couponItemId);
             message.setSeckillModeEnum(SeckillModeEnum.REAL_TIME);
 
-            mqSendMessageUtils.sendMessage(SecKillMqTopicName.SEC_KILL_COUPON_MQ_EXECUTE_TOPIC,
-                    JsonUtils.toJsonString(message),null);
+            rocketMqClient.sendMessage(SecKillMqTopicName.SEC_KILL_COUPON_MQ_EXECUTE_TOPIC,
+                    JsonUtils.toJsonString(message));
             ResponseUtil.outSuccess(response, Result.ok());
         } else if (decremented == -1 || participateCount == -1) {
             redissonCacheService.delete(stockKey);

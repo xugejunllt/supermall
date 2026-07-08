@@ -29,7 +29,7 @@ spring:
             data-id: common.yaml
 
 server:
-  port: 9013
+  port: 9019
   servlet:
     context-path: /seckill
 

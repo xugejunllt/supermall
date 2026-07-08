@@ -4,6 +4,7 @@ import com.lanf.cache.service.RedissonCacheService;
 import com.lanf.common.utils.JsonUtils;
 import com.lanf.constant.exception.BizException;
 import com.lanf.rocketmq.util.MqSendMessageUtils;
+import com.lanf.rocketmq.util.RocketMqClient;
 import com.lanf.seckill.model.dto.PlaceDTO;
 import com.lanf.seckill.model.enums.SeckillModeEnum;
 import com.lanf.seckill.mq.constant.SecKillMqTopicName;
@@ -25,7 +26,8 @@ import static com.lanf.seckill.service.impl.SecKillActivityServiceImpl.SECKILL_I
     private RedissonCacheService redissonCacheService;
     @Autowired
     private MqSendMessageUtils mqSendMessageUtils;
-
+    @Autowired
+    private RocketMqClient rocketMqClient;
 
     public static final String USER_PARTICIPATED_KEY_PRX = "seckill:user:participated:%s:%s";
 
@@ -59,8 +61,8 @@ import static com.lanf.seckill.service.impl.SecKillActivityServiceImpl.SECKILL_I
             message.setSecKillItemId(dto.getSeckillItemId());
             message.setSeckillModeEnum(SeckillModeEnum.REAL_TIME);
 
-            mqSendMessageUtils.sendMessage(SecKillMqTopicName.SEC_KILL_MQ_EXECUTE_TOPIC,
-                    JsonUtils.toJsonString(message),null);
+            rocketMqClient.sendMessage(SecKillMqTopicName.SEC_KILL_MQ_EXECUTE_TOPIC,
+                    JsonUtils.toJsonString(message));
         } else if (decremented == -1 || participateCount == -1) {
             /**
              * redis 异常 允许用户重试
