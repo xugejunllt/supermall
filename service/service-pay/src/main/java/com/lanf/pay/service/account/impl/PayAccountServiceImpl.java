@@ -7,6 +7,7 @@ import com.lanf.api.pay.model.dto.AddPayAccountDTO;
 import com.lanf.api.pay.model.enums.PayChannelEnum;
 import com.lanf.api.pay.model.query.PayAccountPageQuery;
 import com.lanf.common.utils.BeanCopyUtils;
+import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
 import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.UserContext;
@@ -35,7 +36,8 @@ public class PayAccountServiceImpl extends ServiceImpl<PayAccountMapper, PayAcco
     public PayAccountDO getByTenantIdAccount(Long tentId, PayChannelEnum accountType) {
 
         PayAccountDO accountDO = this.lambdaQuery()
-                .eq(PayAccountDO::getTenantId, tentId)
+                .eq(!Constants.PLATFORM_BUSINESS_ID.equals(tentId),PayAccountDO::getTenantId, tentId)
+                .eq(PayAccountDO::getAccountType, accountType)
                 .one();
         if (accountDO == null){
             log.error("支付账户不存在");

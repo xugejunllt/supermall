@@ -112,13 +112,14 @@ public class AalPaySignCustomerFundBillDetailExcel extends AbstractFundBillDetai
     }
 
     private ReconciliationBusinessTypeEnum getReconciliationBusinessTypeEnum(String businessType) {
+        log.info("业务类型：{}", businessType);
         if ("在线支付".equals(businessType)) {
             return ReconciliationBusinessTypeEnum.PAYMENT;
         }
         if ("转账".equals(businessType)) {
             return ReconciliationBusinessTypeEnum.TRANSFER;
         }
-        if ("退款".equals(businessType)) {
+        if ("交易退款".equals(businessType)) {
             return ReconciliationBusinessTypeEnum.REFUND;
         }
         log.error("不支持的业务类型");

@@ -1,5 +1,6 @@
 package com.lanf.pay.service.reconciliation.strategy;
 
+import com.lanf.api.pay.model.enums.*;
 import com.lanf.common.utils.BigDecimalUtils;
 import com.lanf.common.utils.IStringUtils;
 import com.lanf.constant.utils.IdUtils;
@@ -8,10 +9,7 @@ import com.lanf.pay.mapper.ReconciliationDiffMarkerMapper;
 import com.lanf.pay.model.bo.*;
 import com.lanf.pay.model.entity.ReconciliationDiffDO;
 import com.lanf.pay.model.entity.ReconciliationDiffMarkerDO;
-import com.lanf.api.pay.model.enums.ReconciliationBusinessTypeEnum;
-import com.lanf.api.pay.model.enums.ReconciliationDiffTypeEnum;
-import com.lanf.api.pay.model.enums.ReconciliationJobTypeEnum;
-import com.lanf.api.pay.model.enums.ReconciliationTradeStatusEnum;
+import com.lanf.pay.model.entity.ReconciliationJobLogDO;
 import com.lanf.pay.mq.message.ReconciliationStartMessage;
 import com.lanf.pay.service.pay.IPayOrderFlowService;
 import com.lanf.pay.service.reconciliation.IReconciliationDiffMarkerService;
@@ -86,6 +84,11 @@ public abstract class AbstractReconciliationStrategy<T> implements Reconciliatio
             ReconciliationScanPageResult<T> resultPage = doPage(pages);
             List<T> dataList = resultPage.getDataList();
             if (IStringUtils.isEmpty(dataList)) {
+                reconciliationJobLogService.lambdaUpdate()
+                        .eq(ReconciliationJobLogDO::getBatchId, bathId)
+                        .eq(ReconciliationJobLogDO::getJobType, jobType)
+                        .set(ReconciliationJobLogDO::getStatus, ReconciliationJobStatusEnum.SCAN_COMPLETED)
+                        .update();
                 log.warn("数据为空");
                 return;
             }

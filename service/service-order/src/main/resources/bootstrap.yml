@@ -44,4 +44,4 @@ express100:
 
 order:
   #订单超时自动关单时间 小于支付订单超时 时间
-  expireInterval: 2
+  expireInterval: 30

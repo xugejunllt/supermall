@@ -183,7 +183,7 @@ public class SignCustomerBillReconciliationTask {
                     log.warn("该对账任务已完成");
                     continue;
                 }
-
+                log.info("提交对账任务 {}", jobType);
                 taskScheduler.execute(billScanTask);
             }
             log.info("批次号 {} 的对账任务已提交", bathId);

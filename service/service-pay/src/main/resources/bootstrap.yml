@@ -30,7 +30,7 @@ spring:
             data-id: common.yaml
 
 server:
-  port: 9009
+  port: 9029
   servlet:
     context-path: /pay
 mybatis-plus:
