@@ -1,16 +1,13 @@
 package com.lanf.cache.aop;
 
-import com.lanf.common.utils.IStringUtils;
-import com.lanf.common.utils.StackTraceUtil;
-import com.lanf.constant.exception.BizException;
-import com.lanf.constant.exception.IRedisException;
 import com.lanf.cache.service.DistributedLocker;
+import com.lanf.common.utils.IStringUtils;
+import com.lanf.constant.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.redisson.client.RedisException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.expression.EvaluationContext;
@@ -54,7 +51,7 @@ public class DistributedLockAspect {
                 return joinPoint.proceed();
             } else {
 
-                throw new IRedisException("正在执行，请稍后");
+                throw new BizException("正在执行，请稍后");
             }
         } finally {
             distributedLocker.unlock(lockKey);
@@ -74,7 +71,7 @@ public class DistributedLockAspect {
         // 如果前缀为空，使用类名+方法名
         if (IStringUtils.isEmpty(prefix)) {
             log.error("key前缀为空");
-            throw new RedisException("key前缀为空");
+            throw new BizException("key前缀为空");
         }
 
         // 解析SpEL表达式获取实际的key值
@@ -113,13 +110,13 @@ public class DistributedLockAspect {
             Object value = parser.parseExpression(expression).getValue(context);
             if (value == null) {
                 log.error("锁key表达式解析结果为null");
-                throw new IRedisException();
+                throw new BizException("锁key表达式解析结果为null");
             }
             return value.toString();
         } catch (Exception e) {
-            log.error("解析锁key表达式失败[{}]", StackTraceUtil.getStackTrace(e));
 
-            throw new IRedisException();
+            log.error("解析锁key表达式失败", e);
+            throw new BizException("解析锁key表达式失败");
         }
     }
 }
