@@ -46,6 +46,7 @@ import com.lanf.web.utils.WebUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -103,7 +104,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         validateRegisterUser(dto);
         UserDO userDO = BeanCopyUtils.copyBean(dto, UserDO.class);
         fillUser(userDO);
-        this.save(userDO);
+        try {
+            this.save(userDO);
+        } catch (DuplicateKeyException e) {
+            log.warn("该手机号已注册");
+           throw new BizException("该手机号已注册");
+        }
         UserRegisterMessage message = new UserRegisterMessage();
         message.setUserId(userDO.getId());
         mqSendMessageUtils.sendMessage(UserClientTopicName.USER_REGISTER_EVENT_TOPIC,
