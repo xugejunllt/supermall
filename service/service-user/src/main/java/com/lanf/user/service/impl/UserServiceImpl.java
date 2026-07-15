@@ -145,8 +145,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
 
         //2.校验是否已经注册过了
-        List<UserDO> list = this.lambdaQuery().eq(UserDO::getPhoneNumber, phoneNumber).list();
-        if (!list.isEmpty()) {
+        UserDO userDO = this.lambdaQuery().eq(UserDO::getPhoneNumber, phoneNumber).one();
+        if (userDO != null) {
             log.info("该手机号已被注册");
             throw new BizException("该手机号已被注册");
 
