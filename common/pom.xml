@@ -18,7 +18,6 @@
     <modules>
         <module>common-util</module>
         <module>admin-auth</module>
-        <module>common-log</module>
         <module>common-mybatis</module>
         <module>common-web</module>
         <module>common-constant</module>
