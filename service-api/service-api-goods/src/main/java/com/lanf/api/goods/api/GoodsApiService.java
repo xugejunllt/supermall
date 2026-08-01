@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-@FeignClient(name = "service-goods",  url = "localhost:9005")
+@FeignClient(name = "service-goods")
 public interface GoodsApiService {
 
     @Hmily

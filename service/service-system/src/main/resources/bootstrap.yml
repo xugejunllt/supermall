@@ -29,7 +29,7 @@ spring:
           - group: common
             data-id: common.yaml
 server:
-  port: 9002
+  port: 9019
   servlet:
     context-path: /system
 mybatis-plus:

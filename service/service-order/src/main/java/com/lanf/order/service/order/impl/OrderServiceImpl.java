@@ -33,7 +33,6 @@ import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.mq.OrderTopicWithTag;
 import com.lanf.constant.result.RpcResultParser;
 import com.lanf.constant.utils.UserContext;
-import com.lanf.logistics.api.LogisticsApiService;
 import com.lanf.mybatis.base.BaseEntity;
 import com.lanf.order.mapper.OrderMapper;
 import com.lanf.order.model.bo.OrderIdAndUserId;
@@ -95,8 +94,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderDO> implemen
 
     @Autowired
     private PayApiService payApiService;
-    @Autowired
-    private LogisticsApiService logisticsApiService;
+
 
     @Autowired
     private ITccOperationService tccOperationService;

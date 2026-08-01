@@ -28,6 +28,6 @@ spring:
           - group: comment
             data-id: mysql.yaml
 server:
-  port: 9018
+  port: 9010
   servlet:
     context-path: /comment

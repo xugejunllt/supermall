@@ -27,7 +27,7 @@ spring:
           - group: common
             data-id: common.yaml
 server:
-  port: 9015
+  port: 9021
   servlet:
     context-path: /welfare
 mybatis-plus:

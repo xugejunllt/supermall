@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 @Component
-@FeignClient(name = "service-storage",url = "localhost:9004")
+@FeignClient(name = "service-storage")
 public interface StorageApiService {
 
 

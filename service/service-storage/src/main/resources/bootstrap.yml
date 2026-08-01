@@ -26,7 +26,7 @@ spring:
           - group: common
             data-id: common.yaml
 server:
-  port: 9004
+  port: 9018
   servlet:
     context-path: /storage
 

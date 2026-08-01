@@ -26,7 +26,7 @@ spring:
           - group: common
             data-id: rocketmq.yaml
 server:
-  port: 9012
+  port: 9017
   servlet:
     context-path: /sms
 mybatis-plus:

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-@FeignClient(name = "service-welfare",url = "localhost:9015") //调用的服务名称
+@FeignClient(name = "service-welfare") //调用的服务名称
 public interface WelfareApiService {
 
     /**

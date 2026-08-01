@@ -33,7 +33,7 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 server:
-  port: 9007
+  port: 9013
   servlet:
     context-path: /order
 

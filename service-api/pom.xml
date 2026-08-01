@@ -14,17 +14,12 @@
     <properties>
     </properties>
     <modules>
-        <module>service-api-system</module>
-        <module>service-api-log</module>
         <module>service-api-goods</module>
         <module>service-api-pay</module>
         <module>service-api-storage</module>
         <module>service-api-order</module>
-        <module>service-api-finance</module>
-        <module>service-api-logistics</module>
         <module>service-api-welfare</module>
         <module>service-api-search</module>
-        <module>service-api-aftersales</module>
         <module>service-api-user</module>
         <module>service-api-seckill</module>
         <module>service-api-comment</module>

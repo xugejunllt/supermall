@@ -26,7 +26,7 @@ spring:
      max-request-size: 20MB
 
 server:
-  port: 9014
+  port: 9011
 #  servlet:
 #    context-path: /file
 mybatis-plus:

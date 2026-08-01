@@ -16,7 +16,6 @@ import com.lanf.constant.model.vo.PageResult;
 import com.lanf.constant.utils.IdUtils;
 import com.lanf.constant.utils.UserContext;
 import com.lanf.mybatis.base.BaseEntity;
-import com.lanf.system.api.SystemService;
 import com.lanf.welfare.mapper.CouponTemplateMapper;
 import com.lanf.welfare.model.bo.*;
 import com.lanf.welfare.model.dto.AddCouponTemplateDTO;
@@ -55,8 +54,7 @@ import java.util.stream.Collectors;
 @Service
 public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper, CouponTemplateDO> implements ICouponTemplateService {
 
-    @Autowired
-    private SystemService systemService;
+
     @Autowired
     private RedissonCacheService redissonCacheService;
     @Autowired
