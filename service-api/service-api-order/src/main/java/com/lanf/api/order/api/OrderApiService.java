@@ -1,7 +1,6 @@
 package com.lanf.api.order.api;
 
 import com.lanf.api.order.model.dto.*;
-import com.lanf.api.order.model.query.ContrastBillOrderQuery;
 import com.lanf.api.order.model.query.OrderDetailQuery;
 import com.lanf.api.order.model.query.OrderDocumentQuery;
 import com.lanf.api.order.model.query.ReconciliationOrderItemQuery;
@@ -16,8 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.List;
 
 @Component
 @FeignClient(name = "service-order") //调用的服务名称
@@ -35,18 +32,6 @@ public interface OrderApiService {
     @PostMapping("/order/api/orderDocumentQuery")
     public Result<OrderDocumentVO> orderDocumentQuery( @RequestBody OrderDocumentQuery query);
 
-
-    @PostMapping("/order/orderApi/contrastBillOrderCountQuery")
-    @Deprecated
-    public Result<Integer> contrastBillOrderCountQuery(@RequestBody ContrastBillOrderQuery query);
-
-    @PostMapping("/order/orderApi/contrastBillOrderIdQuery")
-    @Deprecated
-    public Result<List<Long>> contrastBillOrderIdQuery(@RequestBody ContrastBillOrderQuery query);
-
-    @GetMapping("/order/orderApi/queryById2")
-    @Deprecated
-    public Result<OrderVO2> queryById2(@RequestParam("id") Long id);
 
     // ==================== Admin 订单管理 ====================
 
