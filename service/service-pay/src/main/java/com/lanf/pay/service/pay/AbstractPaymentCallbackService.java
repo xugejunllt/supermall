@@ -8,8 +8,6 @@ import com.lanf.api.pay.mq.message.PayOrderFlowInsertSuccessMessage;
 import com.lanf.common.utils.*;
 import com.lanf.constant.constant.Constants;
 import com.lanf.constant.exception.BizException;
-import com.lanf.finance.model.enums.RecordTypeEnum;
-import com.lanf.finance.mq.message.AddMoneyFlowMessage;
 import com.lanf.pay.model.bo.CallbackResultBO;
 import com.lanf.pay.model.bo.PassbackParams;
 import com.lanf.pay.model.bo.PaySuccessHandleBO;
@@ -180,32 +178,6 @@ public abstract class AbstractPaymentCallbackService implements PaymentService {
         return message;
     }
 
-    private AddMoneyFlowMessage buildAddMoneyFlowMessage(CallbackResultBO resultBO) {
 
-
-        PassbackParams passbackParams = resultBO.getPassbackParams();
-        TradePurposeEnum tradePurposeEnum = passbackParams.getTradeType();
-        RecordTypeEnum recordType = null;
-        switch (tradePurposeEnum) {
-            case REALTIME_ORDER:
-                recordType = RecordTypeEnum.ORDER;
-                break;
-            case WALLET_RECHARGE:
-                recordType = RecordTypeEnum.WALLET_RECHARGE;
-                break;
-            default:
-                log.error("不支持的用途");
-                throw new BizException("不支持的用途");
-
-        }
-        AddMoneyFlowMessage addMoneyFlowMessage = new AddMoneyFlowMessage();
-        addMoneyFlowMessage.setTenantId(Constants.PLATFORM_BUSINESS_ID);
-        addMoneyFlowMessage.setBizOrderId(resultBO.getPassbackParams().getTradeOrderId());
-        addMoneyFlowMessage.setIncomeMoney(resultBO.getReceiptMoney());
-        addMoneyFlowMessage.setRecordType(recordType);
-        addMoneyFlowMessage.setFlowNo(CodeGenerateUtils.generateSerialNumber(passbackParams.getTradeOrderId().toString()));
-
-        return addMoneyFlowMessage;
-    }
 
 }
