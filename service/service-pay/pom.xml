@@ -48,11 +48,7 @@
             <artifactId>common-constant</artifactId>
             <version>${common.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>common-log</artifactId>
-            <version>${common.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -78,12 +74,6 @@
             <artifactId>service-api-pay</artifactId>
             <version>${service.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.lanf</groupId>
-            <artifactId>service-api-finance</artifactId>
-            <version>${service.version}</version>
-        </dependency>
-
 
         <dependency>
             <groupId>com.alipay.sdk</groupId>
