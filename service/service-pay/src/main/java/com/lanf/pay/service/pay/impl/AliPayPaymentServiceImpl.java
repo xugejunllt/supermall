@@ -127,9 +127,10 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
         alipayConfig.setCharset(aliPayConfig.getCharset());
         alipayConfig.setSignType(aliPayConfig.getSignType());
         alipayConfig.setFormat(aliPayConfig.getFormat());
-        alipayConfig.setAppCertPath(aliPayConfig.getAppCertPath());
-        alipayConfig.setAlipayPublicCertPath(aliPayConfig.getAlipayPublicCertPath());
-        alipayConfig.setRootCertPath(aliPayConfig.getRootCertPath());
+//        alipayConfig.setAppCertPath(aliPayConfig.getAppCertPath());
+//        alipayConfig.setAlipayPublicCertPath(aliPayConfig.getAlipayPublicCertPath());
+//        alipayConfig.setRootCertPath(aliPayConfig.getRootCertPath());
+        alipayConfig.setAlipayPublicKey(aliPayConfig.getAlipayPublicKey());
         return alipayConfig;
     }
 

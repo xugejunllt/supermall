@@ -47,32 +47,35 @@ pay:
       format: json
       charset: utf-8
       signType: RSA2
-      appCertPath: D:\file\电商实战公开课视频\商城资料\支付宝沙箱环境\证书\appPublicCert.crt
-      alipayPublicCertPath: D:\file\电商实战公开课视频\商城资料\支付宝沙箱环境\证书\alipayPublicCert.crt
-      rootCertPath: D:\file\电商实战公开课视频\商城资料\支付宝沙箱环境\证书\alipayRootCert.crt
-      privateKey: "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDL10XqlloNtbIM\
-      OutE2jIa4toQteE/+GLUIlZ/mE6mDFvhK0/du7+EKJbdooXLIk0bB1awAHIID55s\
-      SQGNl9e5aXBYja2wMLO1Scv+01j74T2Shf0jufNlXR4Bch35UE8mgGqUu9mhhQW2\
-      kZUNHaYGgbIF7BfEZSjBCOy+3dMJLP2Pn23OL0ZMDkF57X/ld3eIn4jREgx9bshr\
-      Rf3vhTtVrozDilvOol1YXkg5gpPBElry/O0Tc21TCFiRQtR0pU/Ni3jQJRzybmvH\
-      3H53YiF0MVcuec9pSjX2xna5yatQGxn0zlP6DvIEH12ngSXeszWXLYis7ypq3Tzw\
-      r73htByVAgMBAAECggEATaYqrwspMNHHClujZa4MqitCUF1Iefrfgtm1w5M8WoqY\
-      sXSzTs8HTIu9tJ4Fg3UElEg+YHs69REmEy/YVJzEA5BDyKfnwxc6TdPXzrGp0wFh\
-      WCCMZoCeVD2dgYV8H43VKOCAOTo51Ap9O6fHdKCXryDWtOTTxO+YD7ibnrWXf4Wi\
-      IO+pbqlmGOR4CKZuaJFhoKnLPbYo0kajE3VpCuU82Ht1wFB6+MtnwJD/K3bbiip8\
-      r+qaEvDL2yNb7ElbSEkKmeCdZcSdhr4ZnfooCzg6l2tm9eMHt7wak5Y3z2BLbDlU\
-      NWFof4HgZAF6nHHA+POpuuXh6sa6jVIF6Iz+bYZMfQKBgQD6zb4PusOwSvSwTDzm\
-      Hia9VHB2yvhPI78VKca1EUHUALpGEw1IoYvrmQQJ60wvvojJcJabaA5RLeqR12Ew\
-      Sl4i2wyxOVei/6N32kheDiRh8N6zpmDlduBc1BeecwgByXfaq3/QM8QZNqjBxkXK\
-      p07Y8/PZmGzEzRYeuS8PNgC8VwKBgQDQEHDsuIxCQQUMhEM6JX5WM/GWFaG82omx\
-      p7pn929TYTcck7uk4KCYfRyojnIKS1fQ1g0/8cWdoz4gzdLBoSyJMj6NxWX3Q2K2\
-      sDAoG7cpX09APvk+ARl7SnD0qiQA6IH/hxp3Aj7pb7WF94/mMlnDGodKb+ZaYIXL\
-      ofGiXtOa8wKBgQChAl5GyNaCIcyuNXNPJAIov8GncawxWjh8xKINcfO5v3HWNLrt\
-      atBhwo0GNSlm6UH1WDNHt2ihkwGo+QUqtEN0yv199NsfCFCQS/DzeM7AlZrS6DgC\
-      d+uXjI1RKnX0d7tbBYh7SBBXQ3DZXYlGjVwgCZT9l04Ulbjipm3grQGR5wKBgQDN\
-      U9xNEBaCb63u2zuIz2Vs5pf7998EA1qtMowXe6ymSSLdFcGxBWgW9CjrAp/yHsZL\
-      tmGfABZ36ZgvQU9CfK75udbXi72DlUF+bkMn4aoQrxkDmuHW2bju3di46orbRpi7\
-      tfVdCp9ROUeXLGca0geZLb3jrKhT+jsvaOKPzSrgFwKBgD5vHxVbgk5elSOujHQv\
-      YT6Q9RwlNOEDCZ4Q1s+rDs7uREGxA8OBV90MAlWve+7WB/XIRRzcbjkTYTPe76EJ\
-      FxUo4eCTZ4wj1CExyrtaggwc57QOE3eDKi+qlAwTP3PYqarEN3e9wiTN9AdJMWed\
-      CXQ/+fAxvohgeP9VKFQVbuet"
+#      appCertPath: D:\file\电商实战公开课视频\商城资料\支付宝沙箱环境\证书\appPublicCert.crt
+#      alipayPublicCertPath: D:\file\电商实战公开课视频\商城资料\支付宝沙箱环境\证书\alipayPublicCert.crt
+#      rootCertPath: D:\file\电商实战公开课视频\商城资料\支付宝沙箱环境\证书\alipayRootCert.crt
+      privateKey: >-
+        MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCugUa7+QgnfTcgwYgF+
+        wwvz4zC16chOm0cRPEFbijc9/xDs1SyO1hLHeEEQf4ZCS8tp0NFuD/r8kIPyYniYkOboiEihb+E
+        Wyi5wG1nryyhEtoxTLJFn1Xm4yQQ0hu9VfalsYvZK+buWsKKAiRZ83kyiKe2rtQXfmv/Ty4Hbffy
+        ZW6Bz/k94dtPJQ2y2tFGIFjmefh2bhTMVcRZ/M89E3sPDjwc23tjWVhwr/JAXGLd5qBb1CLRixg
+        LtNXL7CjEpA3aMe3H439t6axD3Ge9Q8g3J9CSlQPMlvFHUfc5sj5I6wFlLbXv7Tk
+        4Dgzd3Q9u2XabTPb1tJgko6d+GCuvOdQf
+        AgMBAAECggEAX7qrgxLqVj9qrp18cUt3NAM3xOto0+GpWYi4b7Iu2Ilx6fHG1L+ZgBu0BRHuwu0
+        25GSNkwGwj08mzmJRMc+WJxqZ8sZMed9ISB435llCsloVOFZKtcbi6PZSIqggb41o8RylC036MWe4
+        sNzb9DyMkBxHZQAjeX/w3u4g4hKBoob6ONTxFGaIDrmPDbN+HihQIcOeFauHhJQVrWEq033WqWv
+        VT9zEyOi2BCyp1rDZ15Spkpqwzli4xeuHXbWmeWJ0QHm93d37pys8IUfMS1KZzjDLX8UAQO0r5NLV
+        cINVJNADil6nscySMv4VDiGwZ9FsbVYUmV5ntcX8HyMH4bP/gQKBgQDbbSWitmGsUqf8FiMoSI6N
+        B8DEkzclTefI4SxMLJcLxKbcFWUI1RUjvK9Q4fhPtLiwahdG6Ig3mddXQbcPvBdiDaZSEaqFlCfBhs
+        V1xmvmIt53Q4KKMATILKLuMo4yBl/z21/sdAopNvE7th4YTrUpycC9Ui9ThwHZaR8Ii+4PhQKBgQDL
+        l1lDb7/IEgJ/DAIzLOshIa/5t5//q84Q4VpsIaC0vG3992I/s+GM6CnF6o/vGVqW6diiMoq+gN+QeZ
+        hM/gEfwjEo7jEMCu0So4qZ39Zdkslzn2PSF79Mota5QNc4EJrxjTTDyMJWEv9dqFMVl0yZ2AYdutrSU
+        ISgIb1GMctcUwKBgC3aRhYVZJ28/AuKmLgvSVKhPyAU3141RG1O2JHmc33rDy9IbT+GP4+jO0N8pQYK
+        7tk2ojyYFPcBd+Vs/xMTrBM6ZPobZPXa+t/PCO5Ok3eY68IiYmH8HNOzuCxsdhhwCpcLzaS8ru7j408m
+        BG3x7JuZ5GPri6Y5vSIwfGKt0wZ9AoGBAKoAIyVQds/VWghEOsIIy/3KZ2sZjZysFVG7GwoXul2wyhe7
+        LmsLBVfntJnzF2ULwr0pXx9xHLGeYw/8uNPxdXbTbMFEw+fOZ8+ch+udIR7ZpyXI/k08TxzrDGl8XzoN
+        g5QX2OtzA/NjwaCvIVFyGSCNZe4FTRs46MXd5nJquejJAoGBAIjlju7APn0aQI/MWA9BfiN4PKX7QrXa
+        g0bQMyEiYg4IVrffjrscR1GygIm28PZwBNa4pslLyFu8NE8S/lQ/wVsyztB1ldqHtw+XpzgZEUn8QxBtq
+        6WWE1K79lWImkw4cz9FaxOfrPJ8syHG2Mg5ASMYGq9s1QJsXi1yanQ4BoM6
+      alipayPublicKey: >-
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiRNOaxUsg+ee2tesHqNb3vM0eupiZL1MazUby
+        7dtz+TZYGdo0WM0sv7qmVlgsMXUwbW8cMYtzDWBE+OOf0msi73nzc5aznGNZqHLel3x2iESsnrUqP3Qxj
+        67zbFrV46cfB4b5HwTWzPrc0A+1fTx17ZRdjxVRP8OoA0Tp+CK+BNNnW9PixvnjeYUhQu1B4LBQIuM7+zH
+        eIWzY2kfCPnPlKqsE0Bsc2jLy8PCK6VzlJWbQUHY/pqJB8fe8bO7grc5+DnH58KdDqChMxXIhSTaUIsBDJU
+        y+yZyNoxHVNo315XKcOw4sSEYO3SBQb1wqqzVTxFfzJw/nM2oxM6UbVLslwIDAQAB

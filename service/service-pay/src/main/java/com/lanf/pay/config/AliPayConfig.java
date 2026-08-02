@@ -22,6 +22,6 @@ public class AliPayConfig implements Serializable {
     private String alipayPublicCertPath;
     private String rootCertPath;
     private String privateKey;
-
+    private String alipayPublicKey;
 
 }
