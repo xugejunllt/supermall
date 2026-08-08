@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: service-pay
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        enabled: true
+        meta-data:
+          #大版本 小版本 bug修改版本/小功能
+          appVersion: 9.7.3
+      config:
+        server-addr: localhost:8848
+        #命名空间做环境隔离
+        namespace: 286634bf-14d1-486f-b53a-a8aaa2af5221
+        #配置文件后缀，properties文件不需要
+        file-extension: yaml
+        extension-configs:
+          - group: pay
+            data-id: mysql.yaml
+          - group: common
+            data-id: redis.yaml
+          - group: common
+            data-id: tenant.yaml
+          - group: common
+            data-id: filterPath.yaml
+          - group: common
+            data-id: rocketmq.yaml
+          - group: common
+            data-id: common.yaml
+
+server:
+  port: 9014
+  servlet:
+    context-path: /pay
+mybatis-plus:
+  mapper-locations: classpath:com/lanf/pay/mapper/xml/*.xml
+pay:
+  #支付操作时间 分钟
+  expireInterval: 60
+  signSecretKey: asa1212121fdffdfhghghghgeererere
+  channel:
+    ali:
+      notifyUrl: http://94kf749024wj.vicp.fun/pay/callback/aliPayCallback
+      serverUrl: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+      appId: 9021000166632999
+      format: json
+      charset: utf-8
+      signType: RSA2
+#      appCertPath: D:\file\电商实战公开课视频\商城资料\支付宝沙箱环境\证书\appPublicCert.crt
+#      alipayPublicCertPath: D:\file\电商实战公开课视频\商城资料\支付宝沙箱环境\证书\alipayPublicCert.crt
+#      rootCertPath: D:\file\电商实战公开课视频\商城资料\支付宝沙箱环境\证书\alipayRootCert.crt
+      privateKey: >-
+        MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCugUa7+QgnfTcgwYgF+
+        wwvz4zC16chOm0cRPEFbijc9/xDs1SyO1hLHeEEQf4ZCS8tp0NFuD/r8kIPyYniYkOboiEihb+E
+        Wyi5wG1nryyhEtoxTLJFn1Xm4yQQ0hu9VfalsYvZK+buWsKKAiRZ83kyiKe2rtQXfmv/Ty4Hbffy
+        ZW6Bz/k94dtPJQ2y2tFGIFjmefh2bhTMVcRZ/M89E3sPDjwc23tjWVhwr/JAXGLd5qBb1CLRixg
+        LtNXL7CjEpA3aMe3H439t6axD3Ge9Q8g3J9CSlQPMlvFHUfc5sj5I6wFlLbXv7Tk
+        4Dgzd3Q9u2XabTPb1tJgko6d+GCuvOdQf
+        AgMBAAECggEAX7qrgxLqVj9qrp18cUt3NAM3xOto0+GpWYi4b7Iu2Ilx6fHG1L+ZgBu0BRHuwu0
+        25GSNkwGwj08mzmJRMc+WJxqZ8sZMed9ISB435llCsloVOFZKtcbi6PZSIqggb41o8RylC036MWe4
+        sNzb9DyMkBxHZQAjeX/w3u4g4hKBoob6ONTxFGaIDrmPDbN+HihQIcOeFauHhJQVrWEq033WqWv
+        VT9zEyOi2BCyp1rDZ15Spkpqwzli4xeuHXbWmeWJ0QHm93d37pys8IUfMS1KZzjDLX8UAQO0r5NLV
+        cINVJNADil6nscySMv4VDiGwZ9FsbVYUmV5ntcX8HyMH4bP/gQKBgQDbbSWitmGsUqf8FiMoSI6N
+        B8DEkzclTefI4SxMLJcLxKbcFWUI1RUjvK9Q4fhPtLiwahdG6Ig3mddXQbcPvBdiDaZSEaqFlCfBhs
+        V1xmvmIt53Q4KKMATILKLuMo4yBl/z21/sdAopNvE7th4YTrUpycC9Ui9ThwHZaR8Ii+4PhQKBgQDL
+        l1lDb7/IEgJ/DAIzLOshIa/5t5//q84Q4VpsIaC0vG3992I/s+GM6CnF6o/vGVqW6diiMoq+gN+QeZ
+        hM/gEfwjEo7jEMCu0So4qZ39Zdkslzn2PSF79Mota5QNc4EJrxjTTDyMJWEv9dqFMVl0yZ2AYdutrSU
+        ISgIb1GMctcUwKBgC3aRhYVZJ28/AuKmLgvSVKhPyAU3141RG1O2JHmc33rDy9IbT+GP4+jO0N8pQYK
+        7tk2ojyYFPcBd+Vs/xMTrBM6ZPobZPXa+t/PCO5Ok3eY68IiYmH8HNOzuCxsdhhwCpcLzaS8ru7j408m
+        BG3x7JuZ5GPri6Y5vSIwfGKt0wZ9AoGBAKoAIyVQds/VWghEOsIIy/3KZ2sZjZysFVG7GwoXul2wyhe7
+        LmsLBVfntJnzF2ULwr0pXx9xHLGeYw/8uNPxdXbTbMFEw+fOZ8+ch+udIR7ZpyXI/k08TxzrDGl8XzoN
+        g5QX2OtzA/NjwaCvIVFyGSCNZe4FTRs46MXd5nJquejJAoGBAIjlju7APn0aQI/MWA9BfiN4PKX7QrXa
+        g0bQMyEiYg4IVrffjrscR1GygIm28PZwBNa4pslLyFu8NE8S/lQ/wVsyztB1ldqHtw+XpzgZEUn8QxBtq
+        6WWE1K79lWImkw4cz9FaxOfrPJ8syHG2Mg5ASMYGq9s1QJsXi1yanQ4BoM6
+      alipayPublicKey: >-
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiRNOaxUsg+ee2tesHqNb3vM0eupiZL1MazUby
+        7dtz+TZYGdo0WM0sv7qmVlgsMXUwbW8cMYtzDWBE+OOf0msi73nzc5aznGNZqHLel3x2iESsnrUqP3Qxj
+        67zbFrV46cfB4b5HwTWzPrc0A+1fTx17ZRdjxVRP8OoA0Tp+CK+BNNnW9PixvnjeYUhQu1B4LBQIuM7+zH
+        eIWzY2kfCPnPlKqsE0Bsc2jLy8PCK6VzlJWbQUHY/pqJB8fe8bO7grc5+DnH58KdDqChMxXIhSTaUIsBDJU
+        y+yZyNoxHVNo315XKcOw4sSEYO3SBQb1wqqzVTxFfzJw/nM2oxM6UbVLslwIDAQAB

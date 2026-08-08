@@ -141,8 +141,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
 
         AlipayClient alipayClient = null;
         AlipayTradeQueryResponse response = null;
-        String alipayPublicKey = getAlipayConfig().getAlipayPublicKey();
-        log.info("公钥是:{}",alipayPublicKey);
+
         try {
             alipayClient = new DefaultAlipayClient(getAlipayConfig());
 
@@ -151,8 +150,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             model.setOutTradeNo(outTradeNo);
             request.setBizModel(model);
 
-            response = alipayClient.execute(request);
-            log.info("支付宝响应结果:{}",response);
+            response = alipayClient.certificateExecute(request);
             String code = response.getCode();
             String subMsg = response.getSubMsg();
             String subCode = response.getSubCode();
@@ -290,7 +288,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             model.setOutTradeNo(outTradeNo);
             request.setBizModel(model);
 
-            AlipayTradeCloseResponse response = alipayClient.execute(request);
+            AlipayTradeCloseResponse response = alipayClient.certificateExecute(request);
             String code = response.getCode();
             if (!"10000".equals(code)) {
                 log.error("取消支付宝订单失败:outTradeNo={},code={},msg={}",
@@ -323,7 +321,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             model.setRefundAmount(refundAmount.toString());
             model.setRefundReason(refundReason != null ? refundReason : "订单取消退款");
             request.setBizModel(model);
-            AlipayTradeRefundResponse response = alipayClient.execute(request);
+            AlipayTradeRefundResponse response = alipayClient.certificateExecute(request);
             String code = response.getCode();
             String msg = response.getMsg();
             String subMsg = response.getSubMsg();
@@ -362,7 +360,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             model.setOutRequestNo(outRequestNo != null ? outRequestNo : "");
             request.setBizModel(model);
 
-            AlipayTradeFastpayRefundQueryResponse response = alipayClient.execute(request);
+            AlipayTradeFastpayRefundQueryResponse response = alipayClient.certificateExecute(request);
 
             RefundQueryResultBO result = new RefundQueryResultBO();
             result.setOutTradeNo(outTradeNo);
@@ -425,7 +423,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             model.setTransferSceneReportInfos(transferSceneReportInfos);
 
             request.setBizModel(model);
-            AlipayFundTransUniTransferResponse response = alipayClient.execute(request);
+            AlipayFundTransUniTransferResponse response = alipayClient.certificateExecute(request);
             String code = response.getCode();
             String subCode = response.getSubCode();
 
@@ -476,7 +474,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
                 throw new BizException("outBizNo和orderId不能同时为空");
             }
             request.setBizModel(model);
-            AlipayFundTransCommonQueryResponse response = alipayClient.execute(request);
+            AlipayFundTransCommonQueryResponse response = alipayClient.certificateExecute(request);
 
             String code = response.getCode();
             String subCode = response.getSubCode();
@@ -535,7 +533,7 @@ public class AliPayPaymentServiceImpl extends AbstractPaymentCallbackService {
             model.setBillType(billType);
             model.setBillDate(billDate);
             request.setBizModel(model);
-            AlipayDataDataserviceBillDownloadurlQueryResponse response = alipayClient.execute(request);
+            AlipayDataDataserviceBillDownloadurlQueryResponse response = alipayClient.certificateExecute(request);
 
             BillDownloadUrlResultBO result = new BillDownloadUrlResultBO();
             result.setBillType(billType);
